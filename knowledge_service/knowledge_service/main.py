@@ -1,0 +1,98 @@
+"""FastAPI application entry point for Knowledge Service."""
+
+import logging
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+from datetime import UTC, datetime
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
+
+from knowledge_service.api import articles, categories, search, tags
+from knowledge_service.config import settings
+from knowledge_service.database import init_db
+from knowledge_service.middleware.auth import AuthTokenMiddleware
+from knowledge_service.schemas import HealthCheck, ServiceStatus
+from knowledge_service.utils import cache
+
+# Configure logging
+logging.basicConfig(
+    level=getattr(logging, settings.LOG_LEVEL),
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+)
+logger = logging.getLogger(__name__)
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
+    """Handle application startup and shutdown events."""
+    logger.info("Starting Knowledge Service...")
+    await init_db()
+
+    # Connect to cache
+    await cache.connect()
+
+    logger.info("Database initialized")
+    yield
+
+    # Cleanup
+    await cache.disconnect()
+    logger.info("Shutting down Knowledge Service...")
+
+
+app = FastAPI(
+    title=settings.APP_NAME,
+    version=settings.APP_VERSION,
+    description="Knowledge Base and FAQ Management Microservice",
+    docs_url="/docs" if settings.DEBUG else None,
+    redoc_url="/redoc" if settings.DEBUG else None,
+    openapi_url=f"{settings.API_V1_PREFIX}/openapi.json",
+    lifespan=lifespan,
+)
+
+# Add middleware
+app.add_middleware(AuthTokenMiddleware)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.CORS_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.ALLOWED_HOSTS)
+
+# Include routers
+app.include_router(categories.router, prefix=f"{settings.API_V1_PREFIX}/categories", tags=["categories"])
+app.include_router(articles.router, prefix=f"{settings.API_V1_PREFIX}/articles", tags=["articles"])
+app.include_router(search.router, prefix=f"{settings.API_V1_PREFIX}/search", tags=["search"])
+app.include_router(tags.router, prefix=f"{settings.API_V1_PREFIX}/tags", tags=["tags"])
+
+
+@app.get("/")
+async def root() -> ServiceStatus:
+    """Root endpoint returning service status."""
+    return ServiceStatus(
+        service=settings.APP_NAME,
+        version=settings.APP_VERSION,
+        status="running",
+        docs="/docs" if settings.DEBUG else None,
+    )
+
+
+@app.get("/health")
+async def health_check() -> HealthCheck:
+    """Health check endpoint for load balancers and monitoring."""
+    # Check cache connection
+    cache_status = "connected" if cache.is_connected else "disconnected"
+
+    return HealthCheck(
+        status="healthy",
+        service="knowledge",
+        timestamp=datetime.now(UTC).isoformat(),
+        dependencies={
+            "database": "connected",
+            "redis": cache_status,
+            "auth_service": "connected",
+        },
+    )

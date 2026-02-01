@@ -1,0 +1,80 @@
+"""Unit of Work pattern for transaction management."""
+
+from contextlib import asynccontextmanager
+from typing import TYPE_CHECKING, Protocol, Self, runtime_checkable
+
+from auth_service.repositories.implementations.invitation import InvitationRepository
+from auth_service.repositories.implementations.user import UserRepository
+from auth_service.repositories.interfaces.invitation import IInvitationRepository
+from auth_service.repositories.interfaces.user import IUserRepository
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
+
+
+@runtime_checkable
+class IUnitOfWork(Protocol):
+    """Unit of Work interface for managing repositories and transactions."""
+
+    users: IUserRepository
+    invitations: IInvitationRepository
+
+    async def commit(self) -> None:
+        """Commit all changes made in this unit of work."""
+        ...
+
+    async def rollback(self) -> None:
+        """Rollback all changes made in this unit of work."""
+        ...
+
+    async def __aenter__(self) -> Self:
+        """Enter async context manager."""
+        ...
+
+    async def __aexit__(self, *args) -> None:
+        """Exit async context manager."""
+        ...
+
+
+class SqlAlchemyUnitOfWork(IUnitOfWork):
+    """SQLAlchemy implementation of Unit of Work."""
+
+    def __init__(self, session_factory) -> None:
+        """Initialize Unit of Work with session factory."""
+        self._session_factory = session_factory
+        self._session: AsyncSession | None = None
+
+    async def __aenter__(self) -> Self:
+        """Enter async context manager and initialize repositories."""
+        self._session = self._session_factory()
+        self.users = UserRepository(self._session)
+        self.invitations = InvitationRepository(self._session)
+        return self
+
+    async def __aexit__(self, *args) -> None:
+        """Exit async context manager and clean up session."""
+        if self._session:
+            await self._session.close()
+            self._session = None
+
+    async def commit(self) -> None:
+        """Commit all changes made in this unit of work."""
+        if not self._session:
+            msg = "Session not initialized"
+            raise RuntimeError(msg)
+        await self._session.commit()
+
+    async def rollback(self) -> None:
+        """Rollback all changes made in this unit of work."""
+        if not self._session:
+            msg = "Session not initialized"
+            raise RuntimeError(msg)
+        await self._session.rollback()
+
+
+# Helper for dependency injection
+@asynccontextmanager
+async def sqlalchemy_uow(session_factory):
+    """Async context manager for SqlAlchemyUnitOfWork."""
+    async with SqlAlchemyUnitOfWork(session_factory) as uow:
+        yield uow

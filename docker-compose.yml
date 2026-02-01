@@ -1,0 +1,194 @@
+services:
+  telegram_bot:
+    build: ./telegram_bot
+    container_name: telegram_bot
+    environment:
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - TELEGRAM_API_KEY=${TELEGRAM_API_KEY}
+      - REDIS_URL=redis://redis:6379/3
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/mentor_bot
+      - AUTH_SERVICE_URL=http://auth_service:8000
+      - CHECKLISTS_SERVICE_URL=http://checklists_service:8000
+      - DEBUG=true
+      - LOG_LEVEL=DEBUG
+      - ENABLE_NOTIFICATIONS=true
+      - NOTIFICATION_HOUR=9
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      auth_service:
+        condition: service_healthy
+      checklists_service:
+        condition: service_healthy
+    networks:
+      - mentor_network
+    restart: unless-stopped
+
+  auth_service:
+    build: ./auth_service
+    container_name: auth_service
+    ports:
+      - "8001:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/mentor_bot
+      - REDIS_URL=redis://redis:6379/0
+      - DEBUG=true
+      - LOG_LEVEL=DEBUG
+      - TELEGRAM_API_KEY=${TELEGRAM_API_KEY}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./auth_service/auth_service:/auth_service/auth_service
+    networks:
+      - mentor_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 300s
+      timeout: 1s
+      retries: 10
+      start_period: 5s
+      start_interval: 500ms
+
+  checklists_service:
+    build: ./checklists_service
+    container_name: checklists_service
+    ports:
+      - "8002:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/mentor_bot
+      - REDIS_URL=redis://redis:6379/1
+      - AUTH_SERVICE_URL=http://auth_service:8000
+      - DEBUG=true
+      - LOG_LEVEL=DEBUG
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      auth_service:
+        condition: service_healthy
+    volumes:
+      - ./checklists_service/checklists_service:/checklists_service/checklists_service
+    networks:
+      - mentor_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 300s
+      timeout: 1s
+      retries: 10
+      start_period: 5s
+      start_interval: 500ms
+
+  knowledge_service:
+    build: ./knowledge_service
+    container_name: knowledge_service
+    ports:
+      - "8003:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/mentor_bot
+      - REDIS_URL=redis://redis:6379/2
+      - AUTH_SERVICE_URL=http://auth_service:8000
+      - DEBUG=true
+      - LOG_LEVEL=DEBUG
+      - STORAGE_PATH=/var/lib/knowledge/files
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      auth_service:
+        condition: service_healthy
+    volumes:
+      - ./knowledge_service/knowledge_service:/knowledge_service/knowledge_service
+      - knowledge_files:/var/lib/knowledge/files
+    networks:
+      - mentor_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 300s
+      timeout: 1s
+      retries: 10
+      start_period: 5s
+      start_interval: 500ms
+
+  postgres:
+    container_name: postgres_container
+    image: postgres:18
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "5432:5432"
+    networks:
+      - mentor_network
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-mentor_bot}",
+        ]
+      interval: 300s
+      timeout: 1s
+      retries: 10
+      start_period: 5s
+      start_interval: 500ms
+
+  redis:
+    container_name: redis_container
+    image: redis:8.4
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - mentor_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 300s
+      timeout: 1s
+      retries: 10
+      start_period: 5s
+      start_interval: 500ms
+
+  pgadmin:
+    container_name: pgadmin4_container
+    image: dpage/pgadmin4:9.11
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: root
+    networks:
+      - mentor_network
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+
+  redis-insight:
+    image: redis/redisinsight:3.0
+    restart: unless-stopped
+    ports:
+      - "5540:5540"
+    volumes:
+      - redis-insight:/data
+    networks:
+      - mentor_network
+
+volumes:
+  postgres_data:
+  redis_data:
+  pgadmin-data:
+  redis-insight:
+  knowledge_files:
+
+networks:
+  mentor_network:
+    driver: bridge
