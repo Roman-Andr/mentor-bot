@@ -29,7 +29,7 @@ router = APIRouter()
 
 
 @router.get("/")
-async def get_users(  # noqa: PLR0913
+async def get_users(
     user_service: UserServiceDep,
     _current_user: AdminUser,
     skip: Annotated[int, Query(ge=0)] = 0,

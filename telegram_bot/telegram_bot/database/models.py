@@ -11,7 +11,6 @@ class Base(DeclarativeBase):
     """Base class for all database models."""
 
 
-
 class UserSession(Base):
     """User session and preferences."""
 

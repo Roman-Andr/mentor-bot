@@ -64,7 +64,14 @@ async def init_db() -> None:
         )
 
         # Create all tables
-        from knowledge_service.models import Article, Attachment, Category, SearchHistory, Tag  # noqa: F401, PLC0415
+        from knowledge_service.models import (  # noqa: F401, PLC0415
+            Article,
+            ArticleView,
+            Attachment,
+            Category,
+            SearchHistory,
+            Tag,
+        )
 
         await conn.run_sync(Base.metadata.create_all)
 
@@ -108,6 +115,13 @@ def _create_search_indexes(sync_conn) -> None:
         text(f"""
         CREATE INDEX IF NOT EXISTS idx_categories_parent_id
         ON {settings.DATABASE_SCHEMA}.categories(parent_id);
+        """)
+    )
+
+    sync_conn.execute(
+        text(f"""
+        CREATE INDEX IF NOT EXISTS idx_article_views_article_id_viewed_at
+        ON {settings.DATABASE_SCHEMA}.article_views(article_id, viewed_at DESC);
         """)
     )
 

@@ -15,7 +15,7 @@ from knowledge_service.api.deps import (
     require_hr,
     require_mentor_or_above,
 )
-from knowledge_service.api.endpoints import articles, categories, search, tags
+from knowledge_service.api.endpoints import articles, attachments, categories, search, tags
 
 __all__ = [
     "AdminUser",
@@ -26,6 +26,7 @@ __all__ = [
     "MentorUser",
     "UserInfo",
     "articles",
+    "attachments",
     "categories",
     "get_auth_token",
     "get_current_active_user",

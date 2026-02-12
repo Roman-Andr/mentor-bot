@@ -3,9 +3,12 @@
 # Configuration
 AUTH_SERVICE_URL="http://localhost:8001"
 CHECKLISTS_SERVICE_URL="http://localhost:8002"
-ADMIN_EMAIL="admin@company.com"
+KNOWLEDGE_SERVICE_URL="http://localhost:8003"
+NOTIFICATION_SERVICE_URL="http://localhost:8004"
+ESCALATION_SERVICE_URL="http://localhost:8005"
+ADMIN_EMAIL="andrroman07@yandex.ru"
 ADMIN_PASSWORD="admin123"
-API_KEY="xj8ogjVXqSH1ywC/Pbq/kWWMpHdvkkJrofPWtVO/J9s="
+API_KEY="test_api_key"
 
 # Color codes
 RED='\033[0;31m'
@@ -159,7 +162,6 @@ wait_for_service() {
     
     for i in $(seq 1 $max_attempts); do
         if check_service_health "$service_url" "$service_name"; then
-            log_success "$service_name is available"
             return 0
         fi
         
@@ -192,6 +194,7 @@ setup_checks() {
     # Check services
     wait_for_service "$AUTH_SERVICE_URL" "Auth Service"
     wait_for_service "$CHECKLISTS_SERVICE_URL" "Checklists Service"
+    wait_for_service "$KNOWLEDGE_SERVICE_URL" "Knowledge Service"
     
     log_success "All services are available"
     log_divider

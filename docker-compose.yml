@@ -5,8 +5,8 @@ services:
     environment:
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
       - TELEGRAM_API_KEY=${TELEGRAM_API_KEY}
-      - REDIS_URL=redis://redis:6379/3
-      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/mentor_bot
+      - REDIS_URL=${REDIS_URL}/3
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       - AUTH_SERVICE_URL=http://auth_service:8000
       - CHECKLISTS_SERVICE_URL=http://checklists_service:8000
       - DEBUG=true
@@ -22,6 +22,10 @@ services:
         condition: service_healthy
       checklists_service:
         condition: service_healthy
+      notification_service:
+        condition: service_healthy
+      escalation_service:
+        condition: service_healthy
     networks:
       - mentor_network
     restart: unless-stopped
@@ -32,8 +36,8 @@ services:
     ports:
       - "8001:8000"
     environment:
-      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/mentor_bot
-      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - REDIS_URL=${REDIS_URL}/0
       - DEBUG=true
       - LOG_LEVEL=DEBUG
       - TELEGRAM_API_KEY=${TELEGRAM_API_KEY}
@@ -52,7 +56,7 @@ services:
       timeout: 1s
       retries: 10
       start_period: 5s
-      start_interval: 500ms
+      start_interval: 1s
 
   checklists_service:
     build: ./checklists_service
@@ -60,8 +64,8 @@ services:
     ports:
       - "8002:8000"
     environment:
-      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/mentor_bot
-      - REDIS_URL=redis://redis:6379/1
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - REDIS_URL=${REDIS_URL}/1
       - AUTH_SERVICE_URL=http://auth_service:8000
       - DEBUG=true
       - LOG_LEVEL=DEBUG
@@ -82,20 +86,22 @@ services:
       timeout: 1s
       retries: 10
       start_period: 5s
-      start_interval: 500ms
+      start_interval: 1s
 
   knowledge_service:
     build: ./knowledge_service
     container_name: knowledge_service
     ports:
       - "8003:8000"
+      - "5678:5678"
     environment:
-      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/mentor_bot
-      - REDIS_URL=redis://redis:6379/2
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - REDIS_URL=${REDIS_URL}/2
       - AUTH_SERVICE_URL=http://auth_service:8000
       - DEBUG=true
       - LOG_LEVEL=DEBUG
       - STORAGE_PATH=/var/lib/knowledge/files
+      - PYTHONUNBUFFERED=1
     depends_on:
       postgres:
         condition: service_healthy
@@ -109,19 +115,124 @@ services:
     networks:
       - mentor_network
     healthcheck:
+      test: ["CMD", "curl", "-f", "http://auth_service:8000/health"]
+      interval: 300s
+      timeout: 1s
+      retries: 10
+      start_period: 5s
+      start_interval: 1s
+    # command: >
+    #   sh -c "python -m debugpy --listen 0.0.0.0:5678 --wait-for-client -m uvicorn knowledge_service.main:app --host 0.0.0.0 --port 8000 --reload"
+
+  notification_service:
+    build: ./notification_service
+    container_name: notification_service
+    ports:
+      - "8004:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - AUTH_SERVICE_URL=http://auth_service:8000
+      - DEBUG=true
+      - LOG_LEVEL=DEBUG
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - SMTP_USE_TLS=${SMTP_USE_TLS}
+      - DEFAULT_FROM_EMAIL=${DEFAULT_FROM_EMAIL}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      auth_service:
+        condition: service_healthy
+    volumes:
+      - ./notification_service/notification_service:/notification_service/notification_service
+    networks:
+      - mentor_network
+    healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 300s
       timeout: 1s
       retries: 10
       start_period: 5s
-      start_interval: 500ms
+      start_interval: 1s
+
+  escalation_service:
+    build: ./escalation_service
+    container_name: escalation_service
+    ports:
+      - "8005:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - AUTH_SERVICE_URL=http://auth_service:8000
+      - NOTIFICATION_SERVICE_URL=http://notification_service:8000
+      - DEBUG=true
+      - LOG_LEVEL=DEBUG
+      - API_V1_PREFIX=/api/v1
+      - DATABASE_SCHEMA=escalation
+      - CORS_ORIGINS=["*"]
+      - ALLOWED_HOSTS=["*"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      auth_service:
+        condition: service_healthy
+      notification_service:
+        condition: service_healthy
+    volumes:
+      - ./escalation_service/escalation_service:/escalation_service/escalation_service
+    networks:
+      - mentor_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 300s
+      timeout: 1s
+      retries: 10
+      start_period: 5s
+      start_interval: 1s
+
+  meeting_service:
+    build: ./meeting_service
+    container_name: meeting_service
+    ports:
+      - "8006:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - REDIS_URL=${REDIS_URL}/4
+      - AUTH_SERVICE_URL=http://auth_service:8000
+      - DEBUG=true
+      - LOG_LEVEL=DEBUG
+      - DATABASE_SCHEMA=meeting
+      - CORS_ORIGINS=["*"]
+      - ALLOWED_HOSTS=["*"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      auth_service:
+        condition: service_healthy
+    volumes:
+      - ./meeting_service/meeting_service:/meeting_service/meeting_service
+    networks:
+      - mentor_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 300s
+      timeout: 1s
+      retries: 10
+      start_period: 5s
+      start_interval: 1s
 
   postgres:
     container_name: postgres_container
     image: postgres:18
     restart: unless-stopped
-    env_file:
-      - .env
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     ports:
       - "5432:5432"
     networks:
@@ -132,13 +243,13 @@ services:
       test:
         [
           "CMD-SHELL",
-          "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-mentor_bot}",
+          "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}",
         ]
       interval: 300s
       timeout: 1s
       retries: 10
       start_period: 5s
-      start_interval: 500ms
+      start_interval: 1s
 
   redis:
     container_name: redis_container
@@ -156,11 +267,11 @@ services:
       timeout: 1s
       retries: 10
       start_period: 5s
-      start_interval: 500ms
+      start_interval: 1s
 
   pgadmin:
     container_name: pgadmin4_container
-    image: dpage/pgadmin4:9.11
+    image: dpage/pgadmin4:9.13
     restart: unless-stopped
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@admin.com
@@ -171,6 +282,13 @@ services:
       - "5050:80"
     volumes:
       - pgadmin-data:/var/lib/pgadmin
+    entrypoint: /bin/sh -c "chmod 600 /pgpass; /entrypoint.sh;"
+    user: root
+    configs:
+      - source: servers.json
+        target: /pgadmin4/servers.json
+      - source: pgpass
+        target: /pgpass
 
   redis-insight:
     image: redis/redisinsight:3.0
@@ -192,3 +310,27 @@ volumes:
 networks:
   mentor_network:
     driver: bridge
+
+configs:
+  pgpass:
+    content: postgres:5432:${POSTGRES_DB}:${POSTGRES_USER}:${POSTGRES_PASSWORD}
+  servers.json:
+    content: |
+      {"Servers": {"1": {
+        "Group": "Servers",
+        "Name": "Main postgres database",
+        "Host": "postgres",
+        "Port": 5432,
+        "MaintenanceDB": "${POSTGRES_DB}",
+        "Username": "${POSTGRES_USER}",
+        "UseSSHTunnel": 0,
+        "TunnelPort": "22",
+        "TunnelAuthentication": 0,
+        "KerberosAuthentication": false,
+        "ConnectionParameters": {
+            "sslmode": "prefer",
+            "connect_timeout": 10,
+            "sslcompression": 0,
+            "passfile": "/pgpass"
+        }
+      }}}

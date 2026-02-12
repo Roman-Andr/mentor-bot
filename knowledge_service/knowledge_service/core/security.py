@@ -52,7 +52,6 @@ def sanitize_html(content: str) -> str:
     return re.sub(r"javascript:", "", content, flags=re.IGNORECASE)
 
 
-
 def generate_secure_filename(filename: str, user_id: int) -> str:
     """Generate secure filename with timestamp and user ID."""
     _name, ext = os.path.splitext(filename)

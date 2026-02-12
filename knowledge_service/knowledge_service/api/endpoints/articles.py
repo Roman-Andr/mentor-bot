@@ -21,7 +21,7 @@ router = APIRouter()
 
 
 @router.get("/")
-async def get_articles(  # noqa: PLR0913
+async def get_articles(
     db: DatabaseSession,
     current_user: CurrentUser,
     skip: Annotated[int, Query(ge=0)] = 0,
@@ -115,8 +115,16 @@ async def get_article(
             msg = "Cannot view draft articles"
             raise PermissionDenied(msg)
 
+        if (
+            current_user.role not in ["HR", "ADMIN"]
+            and article.department
+            and article.department != current_user.department
+        ):
+            msg = "Access to articles from other departments is not allowed"
+            raise PermissionDenied(msg)
+
         # Record view
-        await article_service.record_view(article.id)
+        await article_service.record_view(article.id, user_id=current_user.id)
 
         return ArticleResponse.model_validate(article)
     except NotFoundException as e:

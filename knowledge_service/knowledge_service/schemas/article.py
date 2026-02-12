@@ -6,6 +6,7 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict, Field
 
 from knowledge_service.core import ArticleStatus, EmployeeLevel
+from knowledge_service.schemas.tag import TagResponse
 
 
 class ArticleBase(BaseModel):
@@ -61,7 +62,7 @@ class ArticleResponse(ArticleBase):
     author_name: str
     view_count: int
     category_name: str | None = None
-    tags: list[dict[str, Any]] = Field(default_factory=list)
+    tags: list[TagResponse] = Field(default_factory=list)
     attachments: list[dict[str, Any]] = Field(default_factory=list)
     created_at: datetime
     updated_at: datetime | None = None

@@ -19,7 +19,7 @@ router = APIRouter()
 
 
 @router.get("/checklist/{checklist_id}")
-async def get_checklist_tasks(  # noqa: PLR0913
+async def get_checklist_tasks(
     checklist_id: int,
     db: DatabaseSession,
     current_user: CurrentUser,

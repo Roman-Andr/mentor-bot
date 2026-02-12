@@ -21,7 +21,7 @@ router = APIRouter()
 
 
 @router.get("/")
-async def get_templates(  # noqa: PLR0913
+async def get_templates(
     db: DatabaseSession,
     _current_user: HRUser,
     skip: Annotated[int, Query(ge=0)] = 0,

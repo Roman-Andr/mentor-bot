@@ -25,10 +25,13 @@ dependencies = [
   "sqlalchemy[asyncio,mypy]>=2.0.46",
   "uvicorn[standard]>=0.40.0",
   "python-slugify>=8.0.4",
+  "slowapi>=0.1.9",
+  "aiosmtplib>=5.1.0",
 ]
 
 [dependency-groups]
 dev = [
+  "debugpy>=1.8.20",
   "httpx>=0.28.1",
   "mypy>=1.19.1",
   "pytest>=9.0.2",

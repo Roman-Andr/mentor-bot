@@ -206,7 +206,7 @@ class ChecklistService:
         await self.db.delete(checklist)
         await self.db.commit()
 
-    async def get_checklists(  # noqa: PLR0913
+    async def get_checklists(
         self,
         skip: int = 0,
         limit: int = 50,

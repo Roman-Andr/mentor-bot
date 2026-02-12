@@ -79,7 +79,6 @@ async def search_suggestions(
     )
 
 
-
 @router.get("/popular")
 async def popular_searches(
     db: DatabaseSession,
@@ -93,7 +92,6 @@ async def popular_searches(
         department=current_user.department,
         limit=limit,
     )
-
 
 
 @router.get("/history")

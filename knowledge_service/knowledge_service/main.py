@@ -8,8 +8,12 @@ from datetime import UTC, datetime
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
+from slowapi.util import get_remote_address
 
-from knowledge_service.api import articles, categories, search, tags
+from knowledge_service.api import articles, attachments, categories, search, tags
 from knowledge_service.config import settings
 from knowledge_service.database import init_db
 from knowledge_service.middleware.auth import AuthTokenMiddleware
@@ -52,6 +56,13 @@ app = FastAPI(
 )
 
 # Add middleware
+
+# Rate-limit
+limiter = Limiter(key_func=get_remote_address, default_limits=["100/minute"])
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_middleware(SlowAPIMiddleware)
+
 app.add_middleware(AuthTokenMiddleware)
 app.add_middleware(
     CORSMiddleware,
@@ -67,6 +78,7 @@ app.include_router(categories.router, prefix=f"{settings.API_V1_PREFIX}/categori
 app.include_router(articles.router, prefix=f"{settings.API_V1_PREFIX}/articles", tags=["articles"])
 app.include_router(search.router, prefix=f"{settings.API_V1_PREFIX}/search", tags=["search"])
 app.include_router(tags.router, prefix=f"{settings.API_V1_PREFIX}/tags", tags=["tags"])
+app.include_router(attachments.router, prefix=f"{settings.API_V1_PREFIX}", tags=["attachments"])
 
 
 @app.get("/")

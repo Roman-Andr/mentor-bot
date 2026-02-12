@@ -18,7 +18,7 @@ router = APIRouter()
 
 
 @router.get("/")
-async def get_tags(  # noqa: PLR0913
+async def get_tags(
     db: DatabaseSession,
     current_user: CurrentUser,
     skip: Annotated[int, Query(ge=0)] = 0,

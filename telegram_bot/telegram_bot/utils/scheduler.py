@@ -72,14 +72,12 @@ class Scheduler:
 
         logger.info("Sending daily notifications")
 
-
     async def send_weekly_summary(self) -> None:
         """Send weekly summary to users and admins."""
         if not self.bot:
             return
 
         logger.info("Sending weekly summary")
-
 
     async def send_task_reminder(self, user_id: int, task: dict) -> None:
         """Send reminder for specific task."""
@@ -101,7 +99,6 @@ class Scheduler:
     async def cleanup_old_data(self) -> None:
         """Cleanup old cached data."""
         logger.info("Running cleanup job")
-
 
     async def schedule_user_notification(self, user_id: int, notification_time: datetime, message: str) -> None:
         """Schedule a one-time notification for user."""

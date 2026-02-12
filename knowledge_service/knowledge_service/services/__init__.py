@@ -1,6 +1,7 @@
 """Business logic services."""
 
 from knowledge_service.services.article import ArticleService
+from knowledge_service.services.attachment import AttachmentService
 from knowledge_service.services.category import CategoryService
 from knowledge_service.services.circuit_breaker import (
     CircuitBreaker,
@@ -11,6 +12,7 @@ from knowledge_service.services.tag import TagService
 
 __all__ = [
     "ArticleService",
+    "AttachmentService",
     "CategoryService",
     "CircuitBreaker",
     "SearchService",

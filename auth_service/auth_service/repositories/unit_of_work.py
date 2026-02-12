@@ -1,15 +1,15 @@
 """Unit of Work pattern for transaction management."""
 
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import TYPE_CHECKING, Protocol, Self, runtime_checkable
+from typing import Protocol, Self, runtime_checkable
+
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from auth_service.repositories.implementations.invitation import InvitationRepository
 from auth_service.repositories.implementations.user import UserRepository
 from auth_service.repositories.interfaces.invitation import IInvitationRepository
 from auth_service.repositories.interfaces.user import IUserRepository
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
 
 
 @runtime_checkable
@@ -31,7 +31,7 @@ class IUnitOfWork(Protocol):
         """Enter async context manager."""
         ...
 
-    async def __aexit__(self, *args) -> None:
+    async def __aexit__(self, *args: object) -> None:
         """Exit async context manager."""
         ...
 
@@ -39,7 +39,7 @@ class IUnitOfWork(Protocol):
 class SqlAlchemyUnitOfWork(IUnitOfWork):
     """SQLAlchemy implementation of Unit of Work."""
 
-    def __init__(self, session_factory) -> None:
+    def __init__(self, session_factory: async_sessionmaker[AsyncSession]) -> None:
         """Initialize Unit of Work with session factory."""
         self._session_factory = session_factory
         self._session: AsyncSession | None = None
@@ -51,7 +51,7 @@ class SqlAlchemyUnitOfWork(IUnitOfWork):
         self.invitations = InvitationRepository(self._session)
         return self
 
-    async def __aexit__(self, *args) -> None:
+    async def __aexit__(self, *args: object) -> None:
         """Exit async context manager and clean up session."""
         if self._session:
             await self._session.close()
@@ -72,9 +72,8 @@ class SqlAlchemyUnitOfWork(IUnitOfWork):
         await self._session.rollback()
 
 
-# Helper for dependency injection
 @asynccontextmanager
-async def sqlalchemy_uow(session_factory):
+async def sqlalchemy_uow(session_factory: async_sessionmaker) -> AsyncGenerator[SqlAlchemyUnitOfWork, None]:
     """Async context manager for SqlAlchemyUnitOfWork."""
     async with SqlAlchemyUnitOfWork(session_factory) as uow:
         yield uow

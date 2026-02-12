@@ -1,5 +1,5 @@
 [project]
-name = "checklists_service"
+name = "knowledge_service"
 version = "1.0.0"
 description = "Knowledge Base Management Microservice"
 requires-python = ">=3.14"
@@ -23,10 +23,12 @@ dependencies = [
     "python-multipart>=0.0.21",
     "redis>=7.1.0",
     "python-slugify>=8.0.4",
+    "slowapi>=0.1.9",
 ]
 
 [dependency-groups]
 dev = [
+    "debugpy>=1.8.20",
     "httpx>=0.28.1",
     "mypy>=1.19.1",
     "pytest>=9.0.2",

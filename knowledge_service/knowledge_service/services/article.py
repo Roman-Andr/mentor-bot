@@ -1,6 +1,6 @@
 """Article management service."""
 
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime, timedelta
 from typing import Any
 
 from slugify import slugify
@@ -12,6 +12,8 @@ from sqlalchemy.sql.expression import text
 from knowledge_service.config import settings
 from knowledge_service.core import ArticleStatus, NotFoundException
 from knowledge_service.models import Article, Tag
+from knowledge_service.models.article_view import ArticleView
+from knowledge_service.models.association import article_tags
 from knowledge_service.schemas import ArticleCreate, ArticleUpdate
 
 
@@ -26,16 +28,13 @@ class ArticleService:
         """Create new article."""
         base_slug = slugify(article_data.title)
         slug = base_slug
-
         counter = 1
         while True:
             stmt = select(Article).where(Article.slug == slug)
             result = await self.db.execute(stmt)
             existing = result.scalar_one_or_none()
-
             if not existing:
                 break
-
             slug = f"{base_slug}-{counter}"
             counter += 1
 
@@ -60,25 +59,24 @@ class ArticleService:
 
         self.db.add(article)
         await self.db.flush()
-
         if article_data.tag_ids:
             stmt = select(Tag).where(Tag.id.in_(article_data.tag_ids))
             result = await self.db.execute(stmt)
             tags = list(result.scalars().all())
 
             if tags:
-                article.tags.extend(tags)
-
+                await self.db.execute(
+                    article_tags.insert().values([{"article_id": article.id, "tag_id": tag.id} for tag in tags])
+                )
                 for tag in tags:
                     tag.usage_count += 1
+                    self.db.add(tag)
 
         if article_data.status == ArticleStatus.PUBLISHED:
             article.published_at = datetime.now(UTC)
 
         await self._update_search_vector(article.id)
-
         await self.db.commit()
-        await self.db.refresh(article)
 
         stmt = (
             select(Article)
@@ -141,19 +139,15 @@ class ArticleService:
         if "title" in update_dict and update_dict["title"] != article.title:
             base_slug = slugify(update_dict["title"])
             slug = base_slug
-
             counter = 1
             while True:
                 stmt = select(Article).where(Article.slug == slug, Article.id != article_id)
                 result = await self.db.execute(stmt)
                 existing = result.scalar_one_or_none()
-
                 if not existing:
                     break
-
                 slug = f"{base_slug}-{counter}"
                 counter += 1
-
             article.slug = slug
             article.title = update_dict["title"]
 
@@ -177,21 +171,16 @@ class ArticleService:
                 stmt = select(Tag).where(Tag.id.in_(update_dict["tag_ids"]))
                 result = await self.db.execute(stmt)
                 tags = list(result.scalars().all())
-
                 if tags:
                     article.tags.extend(tags)
-
                     for tag in tags:
                         tag.usage_count += 1
 
         article.updated_at = datetime.now(UTC)
-
         await self._update_search_vector(article.id)
-
         await self.db.commit()
         await self.db.refresh(article)
-
-        return await self.get_article_by_id(article_id)
+        return article
 
     async def delete_article(self, article_id: int) -> None:
         """Delete article."""
@@ -203,7 +192,7 @@ class ArticleService:
         await self.db.delete(article)
         await self.db.commit()
 
-    async def get_articles(  # noqa: PLR0913
+    async def get_articles(
         self,
         skip: int = 0,
         limit: int = 50,
@@ -292,10 +281,13 @@ class ArticleService:
         # Return article with loaded relationships
         return await self.get_article_by_id(article_id)
 
-    async def record_view(self, article_id: int) -> None:
-        """Record article view."""
+    async def record_view(self, article_id: int, user_id: int | None = None) -> None:
+        """Record article view and increment counter."""
         stmt = update(Article).where(Article.id == article_id).values(view_count=Article.view_count + 1)
         await self.db.execute(stmt)
+
+        view = ArticleView(article_id=article_id, user_id=user_id)
+        self.db.add(view)
         await self.db.commit()
 
     async def get_department_articles(
@@ -334,25 +326,69 @@ class ArticleService:
         return articles, total
 
     async def get_article_stats(self, article_id: int) -> dict[str, Any]:
-        """Get article view statistics."""
+        """Get detailed view statistics for an article."""
         article = await self.get_article_by_id(article_id)
 
+        end_date = datetime.now(UTC).date()
+        start_date = end_date - timedelta(days=6)
+
+        stmt = (
+            select(
+                func.date(ArticleView.viewed_at).label("date"),
+                func.count(ArticleView.id).label("count"),
+            )
+            .where(
+                and_(
+                    ArticleView.article_id == article_id,
+                    func.date(ArticleView.viewed_at) >= start_date,
+                )
+            )
+            .group_by(func.date(ArticleView.viewed_at))
+            .order_by(func.date(ArticleView.viewed_at))
+        )
+        result = await self.db.execute(stmt)
+        daily = {row.date: row.count for row in result.all()}
+
         daily_views = []
-        tag_names = [tag.name for tag in article.tags]
+        for i in range(7):
+            day = start_date + timedelta(days=i)
+            daily_views.append(
+                {
+                    "date": day.isoformat(),
+                    "count": daily.get(day, 0),
+                }
+            )
+
+        total_last_7 = sum(item["count"] for item in daily_views)
+        total_previous_7 = await self._get_previous_week_views(article_id, start_date - timedelta(days=7))
+        weekly_growth = 0.0
+        if total_previous_7 > 0:
+            weekly_growth = ((total_last_7 - total_previous_7) / total_previous_7) * 100
 
         return {
             "article_id": article.id,
             "title": article.title,
             "view_count": article.view_count,
             "daily_views": daily_views,
-            "weekly_growth": 0.0,
-            "popular_tags": tag_names,
+            "weekly_growth": round(weekly_growth, 2),
+            "popular_tags": [tag.name for tag in article.tags],
         }
 
+    async def _get_previous_week_views(self, article_id: int, before_date: date) -> int:
+        """Total views for the 7 days preceding the given date."""
+        stmt = select(func.count(ArticleView.id)).where(
+            and_(
+                ArticleView.article_id == article_id,
+                func.date(ArticleView.viewed_at) >= before_date - timedelta(days=6),
+                func.date(ArticleView.viewed_at) < before_date,
+            )
+        )
+        result = await self.db.execute(stmt)
+        return result.scalar_one() or 0
+
     async def _update_search_vector(self, article_id: int) -> None:
-        """Update search vector for article."""
-        # Update the search vector column using PostgreSQL full-text search
-        update_stmt = text(f"""
+        """Update PostgreSQL full-text search vector for an article."""
+        stmt = text(f"""
             UPDATE {settings.DATABASE_SCHEMA}.articles
             SET search_vector =
                 setweight(to_tsvector('russian', coalesce(title, '')), 'A') ||
@@ -360,4 +396,4 @@ class ArticleService:
                 setweight(to_tsvector('russian', coalesce(excerpt, '')), 'C')
             WHERE id = :article_id
         """)
-        await self.db.execute(update_stmt, {"article_id": article_id})
+        await self.db.execute(stmt, {"article_id": article_id})

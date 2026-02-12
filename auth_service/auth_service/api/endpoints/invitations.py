@@ -26,7 +26,7 @@ router = APIRouter()
 
 
 @router.get("/")
-async def get_invitations(  # noqa: PLR0913
+async def get_invitations(
     invitation_service: InvitationServiceDep,
     _current_user: HRUser,
     skip: Annotated[int, Query(ge=0)] = 0,

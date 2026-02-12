@@ -28,7 +28,7 @@ DECLARE
 BEGIN
     -- Check if admin user already exists
     SELECT EXISTS (
-        SELECT 1 FROM auth.users WHERE email = 'admin@company.com'
+        SELECT 1 FROM auth.users WHERE email = '$ADMIN_EMAIL'
     ) INTO user_exists;
     
     IF NOT user_exists THEN
@@ -44,7 +44,7 @@ BEGIN
             is_verified,
             created_at
         ) VALUES (
-            'admin@company.com', 
+            '$ADMIN_EMAIL', 
             'Admin', 
             'Adminov', 
             'admin001', 
@@ -61,7 +61,7 @@ BEGIN
         RAISE NOTICE 'Admin user already exists';
         
         -- Get existing admin ID
-        SELECT id INTO user_id FROM auth.users WHERE email = 'admin@company.com';
+        SELECT id INTO user_id FROM auth.users WHERE email = '$ADMIN_EMAIL';
         RAISE NOTICE 'Admin user ID: %', user_id;
     END IF;
 END
@@ -91,8 +91,8 @@ fi
 log_divider
 log_success "================================"
 log_success "Admin credentials created:"
-log_success "Email: admin@company.com"
-log_success "Password: admin123"
+log_success "Email: $ADMIN_EMAIL"
+log_success "Password: $ADMIN_PASSWORD"
 log_success "================================"
 log_divider
 
@@ -109,7 +109,7 @@ if curl -s -o /dev/null -w "%{http_code}" "$AUTH_SERVICE_URL/health" | grep -q "
     
     TOKEN_RESPONSE=$(curl -s -X POST "$AUTH_SERVICE_URL/api/v1/auth/login" \
         -H "Content-Type: application/x-www-form-urlencoded" \
-        -d "username=admin@company.com&password=admin123&grant_type=password")
+        -d "username=$ADMIN_EMAIL&password=$ADMIN_PASSWORD&grant_type=password")
     
     if echo "$TOKEN_RESPONSE" | jq -e '.access_token' >/dev/null 2>&1; then
         log_success "Admin authentication successful!"

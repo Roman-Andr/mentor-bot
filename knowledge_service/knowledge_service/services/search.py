@@ -1,11 +1,14 @@
+# knowledge_service/knowledge_service/services/search.py
 """Search service for knowledge base."""
 
+import json
 import re
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from sqlalchemy import and_, func, or_, select, text
+from sqlalchemy import and_, case, func, literal, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from knowledge_service.config import settings
 from knowledge_service.core import ArticleStatus, SearchSortBy
@@ -30,11 +33,9 @@ class SearchService:
         user_filters: dict | None = None,
         user_id: int | None = None,
     ) -> tuple[list[dict], int, list[str]]:
-        """Search articles with full-text search."""
-        # Generate cache key
-        cache_key = f"search:{query}:{hash(str(filters))}:{sort_by}:{page}:{size}"
-
-        # Try to get from cache
+        """Search articles with full-text search and proper relevance scoring."""
+        filters_str = json.dumps(filters, sort_keys=True)
+        cache_key = f"search:{query}:{filters_str}:{sort_by}:{page}:{size}"
         cached_result = await cache.get(cache_key)
         if cached_result:
             return (
@@ -43,41 +44,28 @@ class SearchService:
                 cached_result["suggestions"],
             )
 
-        # Build base query
-        stmt = select(Article)
-        count_stmt = select(func.count(Article.id))
+        where_conditions = []
 
-        # Apply search query
         if query.strip():
-            search_condition = text("articles.search_vector @@ plainto_tsquery('russian', :query)")
-            stmt = stmt.where(search_condition)
-            count_stmt = count_stmt.where(search_condition)
-            stmt_params = {"query": query}
+            ts_query = func.plainto_tsquery("russian", query)
+            where_conditions.append(Article.search_vector.op("@@")(ts_query))
+            rank_column = func.ts_rank(Article.search_vector, ts_query).label("relevance")
         else:
-            stmt_params = {}
-
-        # Apply filters
-        filter_conditions = []
+            rank_column = literal(1.0).label("relevance")
 
         if filters.get("category_id"):
-            filter_conditions.append(Article.category_id == filters["category_id"])
-
+            where_conditions.append(Article.category_id == filters["category_id"])
         if filters.get("tag_ids"):
-            filter_conditions.append(Article.tags.any(Tag.id.in_(filters["tag_ids"])))
-
+            where_conditions.append(Article.tags.any(Tag.id.in_(filters["tag_ids"])))
         if filters.get("department"):
-            filter_conditions.append(Article.department == filters["department"])
-
+            where_conditions.append(Article.department == filters["department"])
         if filters.get("position"):
-            filter_conditions.append(Article.position == filters["position"])
-
+            where_conditions.append(Article.position == filters["position"])
         if filters.get("level"):
-            filter_conditions.append(Article.level == filters["level"])
-
+            where_conditions.append(Article.level == filters["level"])
         if filters.get("only_published", True):
-            filter_conditions.append(Article.status == ArticleStatus.PUBLISHED)
+            where_conditions.append(Article.status == ArticleStatus.PUBLISHED)
 
-        # Apply user-specific filters (for non-admins)
         if user_filters:
             user_filter_conditions = []
             if user_filters.get("department"):
@@ -86,45 +74,73 @@ class SearchService:
                 user_filter_conditions.append(Article.position == user_filters["position"])
             if user_filters.get("level"):
                 user_filter_conditions.append(Article.level == user_filters["level"])
-
             if user_filter_conditions:
-                filter_conditions.append(or_(*user_filter_conditions))
+                where_conditions.append(or_(*user_filter_conditions))
 
-        if filter_conditions:
-            stmt = stmt.where(and_(*filter_conditions))
-            count_stmt = count_stmt.where(and_(*filter_conditions))
-
-        # Get total count
-        result = await self.db.execute(count_stmt, stmt_params)
+        count_stmt = select(func.count(Article.id))
+        if where_conditions:
+            count_stmt = count_stmt.where(and_(*where_conditions))
+        result = await self.db.execute(count_stmt)
         total = result.scalar_one()
 
-        # Apply sorting
+        id_stmt = select(Article.id, rank_column).where(and_(*where_conditions))
+
         if sort_by == SearchSortBy.RELEVANCE and query.strip():
-            stmt = stmt.order_by(text("ts_rank(articles.search_vector, plainto_tsquery('russian', :query)) DESC"))
+            id_stmt = id_stmt.order_by(rank_column.desc())
         elif sort_by == SearchSortBy.DATE_NEWEST:
-            stmt = stmt.order_by(Article.published_at.desc())
+            id_stmt = id_stmt.order_by(Article.published_at.desc())
         elif sort_by == SearchSortBy.DATE_OLDEST:
-            stmt = stmt.order_by(Article.published_at.asc())
+            id_stmt = id_stmt.order_by(Article.published_at.asc())
         elif sort_by == SearchSortBy.VIEWS:
-            stmt = stmt.order_by(Article.view_count.desc())
+            id_stmt = id_stmt.order_by(Article.view_count.desc())
         elif sort_by == SearchSortBy.TITLE:
-            stmt = stmt.order_by(Article.title.asc())
+            id_stmt = id_stmt.order_by(Article.title.asc())
 
-        # Apply pagination
         skip = (page - 1) * size
-        stmt = stmt.offset(skip).limit(size)
+        id_stmt = id_stmt.offset(skip).limit(size)
 
-        # Execute query
-        result = await self.db.execute(stmt, stmt_params)
-        articles = list(result.scalars().all())
+        result = await self.db.execute(id_stmt)
+        rows = result.all()
 
-        # Format results
+        if not rows:
+            empty_result = [], 0, []
+            if user_id:
+                await self._record_search_history(
+                    user_id=user_id,
+                    query=query,
+                    results_count=0,
+                    filters=filters,
+                    department=user_filters.get("department") if user_filters else None,
+                )
+            return empty_result
+
+        article_ids = [row[0] for row in rows]
+        relevance_map = {row[0]: float(row[1]) for row in rows}
+
+        stmt = (
+            select(Article)
+            .where(Article.id.in_(article_ids))
+            .options(
+                selectinload(Article.category),
+                selectinload(Article.tags),
+                selectinload(Article.attachments),
+            )
+        )
+
+        ordering = case({id_: index for index, id_ in enumerate(article_ids)}, value=Article.id)
+        stmt = stmt.order_by(ordering)
+
+        result = await self.db.execute(stmt)
+        articles = result.scalars().unique().all()
+
         formatted_results = []
         for article in articles:
-            # Highlight search terms in content
+            relevance = relevance_map.get(article.id, 1.0)
+
             highlighted_content = None
             if query.strip():
-                highlighted_content = self._highlight_text(article.excerpt or article.content[:500], query)
+                text_to_highlight = article.excerpt or article.content[:500]
+                highlighted_content = self._highlight_text(text_to_highlight, query)
 
             formatted_results.append(
                 {
@@ -134,16 +150,16 @@ class SearchService:
                     "excerpt": article.excerpt,
                     "category_name": article.category.name if article.category else None,
                     "tags": [tag.name for tag in article.tags],
-                    "relevance_score": 1.0,  # Would calculate actual relevance
+                    "relevance_score": round(relevance, 4),
                     "highlighted_content": highlighted_content,
                     "published_at": article.published_at.isoformat() if article.published_at else None,
                 }
             )
 
-        # Get search suggestions
-        suggestions = await self._get_search_suggestions(query)
+        suggestions = []
+        if query.strip():
+            suggestions = await self.get_search_suggestions(query)
 
-        # Record search history if user is logged in
         if user_id:
             await self._record_search_history(
                 user_id=user_id,
@@ -153,7 +169,6 @@ class SearchService:
                 department=user_filters.get("department") if user_filters else None,
             )
 
-        # Cache results
         await cache.set(
             cache_key,
             {
@@ -166,7 +181,12 @@ class SearchService:
 
         return formatted_results, total, suggestions
 
-    async def get_search_suggestions(self, query: str, department: str | None = None, limit: int = 10) -> list[str]:
+    async def get_search_suggestions(
+        self,
+        query: str,
+        department: str | None = None,
+        limit: int = 10,
+    ) -> list[str]:
         """Get search suggestions based on query."""
         if not query or len(query) < 2:
             return []
@@ -178,15 +198,16 @@ class SearchService:
             return cached
 
         # Get suggestions from recent searches
+        conditions = [
+            SearchHistory.query.ilike(f"%{query}%"),
+            SearchHistory.created_at >= datetime.now(UTC) - timedelta(days=30),
+        ]
+        if department is not None:
+            conditions.append(SearchHistory.department == department)
+
         stmt = (
             select(SearchHistory.query, func.count(SearchHistory.id).label("count"))
-            .where(
-                and_(
-                    SearchHistory.query.ilike(f"%{query}%"),
-                    SearchHistory.department == department if department else True,
-                    SearchHistory.created_at >= datetime.now(UTC) - timedelta(days=30),
-                )
-            )
+            .where(and_(*conditions))
             .group_by(SearchHistory.query)
             .order_by(func.count(SearchHistory.id).desc())
             .limit(limit)
@@ -197,17 +218,14 @@ class SearchService:
 
         # If not enough suggestions, get from article titles
         if len(suggestions) < limit:
-            stmt = (
-                select(Article.title)
-                .where(
-                    and_(
-                        Article.title.ilike(f"%{query}%"),
-                        Article.status == ArticleStatus.PUBLISHED,
-                        Article.department == department if department else True,
-                    )
-                )
-                .limit(limit - len(suggestions))
-            )
+            title_conditions = [
+                Article.title.ilike(f"%{query}%"),
+                Article.status == ArticleStatus.PUBLISHED,
+            ]
+            if department is not None:
+                title_conditions.append(Article.department == department)
+
+            stmt = select(Article.title).where(and_(*title_conditions)).limit(limit - len(suggestions))
             result = await self.db.execute(stmt)
             title_suggestions = [row[0] for row in result.all()]
             suggestions.extend(title_suggestions)
@@ -220,12 +238,22 @@ class SearchService:
 
         return suggestions
 
-    async def get_popular_searches(self, department: str | None = None, limit: int = 10) -> list[dict]:
+    async def get_popular_searches(
+        self,
+        department: str | None = None,
+        limit: int = 10,
+    ) -> list[dict]:
         """Get popular searches."""
         cache_key = f"popular_searches:{department}"
         cached = await cache.get(cache_key)
         if cached:
             return cached
+
+        conditions = [
+            SearchHistory.created_at >= datetime.now(UTC) - timedelta(days=7),
+        ]
+        if department is not None:
+            conditions.append(SearchHistory.department == department)
 
         stmt = (
             select(
@@ -233,12 +261,7 @@ class SearchService:
                 func.count(SearchHistory.id).label("search_count"),
                 func.avg(SearchHistory.results_count).label("avg_results"),
             )
-            .where(
-                and_(
-                    SearchHistory.created_at >= datetime.now(UTC) - timedelta(days=7),
-                    SearchHistory.department == department if department else True,
-                )
-            )
+            .where(and_(*conditions))
             .group_by(SearchHistory.query)
             .order_by(func.count(SearchHistory.id).desc())
             .limit(limit)

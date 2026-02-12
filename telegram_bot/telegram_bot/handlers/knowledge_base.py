@@ -52,6 +52,7 @@ async def knowledge_base_menu(update: Message | CallbackQuery) -> None:
         parse_mode="Markdown",
     )
 
+
 @router.callback_query(F.data == "search_kb")
 async def start_search(callback: CallbackQuery, state: FSMContext) -> None:
     """Start knowledge base search."""

@@ -23,7 +23,7 @@ router = APIRouter()
 
 
 @router.get("/")
-async def get_checklists(  # noqa: PLR0913
+async def get_checklists(
     db: DatabaseSession,
     current_user: CurrentUser,
     skip: Annotated[int, Query(ge=0)] = 0,

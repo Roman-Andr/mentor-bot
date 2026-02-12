@@ -21,7 +21,7 @@ router = APIRouter()
 
 
 @router.get("/")
-async def get_categories(  # noqa: PLR0913
+async def get_categories(
     db: DatabaseSession,
     current_user: CurrentUser,
     skip: Annotated[int, Query(ge=0)] = 0,
@@ -258,4 +258,5 @@ async def get_category_tree(
         )
 
     category_service = CategoryService(db)
-    return await category_service.get_category_tree(department)
+    tree, _ = await category_service.get_category_tree(department)
+    return tree

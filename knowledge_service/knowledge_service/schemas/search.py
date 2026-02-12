@@ -19,7 +19,7 @@ class SearchQuery(BaseModel):
     only_published: bool = Field(default=True, description="Only show published articles")
     sort_by: SearchSortBy = Field(SearchSortBy.RELEVANCE, description="Sort order")
     page: int = Field(1, ge=1, description="Page number")
-    size: int = Field(10, ge=1, le=100, description="Page size")
+    size: int = Field(10, ge=1, le=10, description="Page size")
 
 
 class SearchResponse(BaseModel):

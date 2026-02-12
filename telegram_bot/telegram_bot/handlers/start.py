@@ -6,9 +6,9 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
 from telegram_bot.keyboards.main_menu import get_inline_main_menu, get_main_menu_keyboard
-from telegram_bot.services import register_by_token
 from telegram_bot.states.auth_states import RegistrationStates
 from telegram_bot.utils.formatters import format_welcome_message
+from telegram_bot.utils.registration import register_by_token
 
 router = Router()
 
