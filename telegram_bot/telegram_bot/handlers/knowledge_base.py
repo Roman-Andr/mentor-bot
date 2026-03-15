@@ -3,14 +3,20 @@
 from aiogram import F, Router
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, InlineKeyboardButton, Message
+from aiogram.types import CallbackQuery, Message
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+from telegram_bot.core.enums import ButtonStyle
+from telegram_bot.keyboards.utils import create_inline_button
+from telegram_bot.services.knowledge_client import knowledge_client
 from telegram_bot.states.auth_states import SearchStates
 from telegram_bot.utils.cache import cached
 from telegram_bot.utils.formatters import format_search_results
 
 router = Router()
+
+# Minimum search query length
+MIN_QUERY_LENGTH = 3
 
 
 @cached(ttl=300, key_prefix="kb_menu")
@@ -30,6 +36,8 @@ async def knowledge_base_menu(update: Message | CallbackQuery) -> None:
     """Show knowledge base menu."""
     if isinstance(update, CallbackQuery):
         message = update.message
+        if message is None:
+            return
         await update.answer()
     else:
         message = update
@@ -39,24 +47,31 @@ async def knowledge_base_menu(update: Message | CallbackQuery) -> None:
 
     builder = InlineKeyboardBuilder()
     builder.add(
-        InlineKeyboardButton(text="🔍 Search", callback_data="search_kb"),
-        InlineKeyboardButton(text="📚 FAQ", callback_data="show_faq"),
-        InlineKeyboardButton(text="📖 Categories", callback_data="kb_categories"),
-        InlineKeyboardButton(text="← Menu", callback_data="menu"),
+        create_inline_button("🔍 Search", callback_data="search_kb", style=ButtonStyle.PRIMARY),
+        create_inline_button("📚 FAQ", callback_data="show_faq", style=ButtonStyle.PRIMARY),
+        create_inline_button("📖 Categories", callback_data="kb_categories", style=ButtonStyle.PRIMARY),
+        create_inline_button("← Menu", callback_data="menu"),
     )
-    builder.adjust(2)
+    builder.adjust(1)
 
-    await message.answer(
-        f"{menu_data['title']}\n\n{menu_data['description']}",
-        reply_markup=builder.as_markup(),
-        parse_mode="Markdown",
-    )
+    if isinstance(update, CallbackQuery):
+        await message.edit_text(
+            f"{menu_data['title']}\n\n{menu_data['description']}",
+            reply_markup=builder.as_markup(),
+            parse_mode="Markdown",
+        )
+    else:
+        await message.answer(
+            f"{menu_data['title']}\n\n{menu_data['description']}",
+            reply_markup=builder.as_markup(),
+            parse_mode="Markdown",
+        )
 
 
 @router.callback_query(F.data == "search_kb")
 async def start_search(callback: CallbackQuery, state: FSMContext) -> None:
     """Start knowledge base search."""
-    await callback.message.answer(
+    await callback.message.edit_text(
         "🔍 *Search Knowledge Base*\n\nWhat would you like to search for?\nPlease enter your search query:",
         parse_mode="Markdown",
     )
@@ -65,43 +80,41 @@ async def start_search(callback: CallbackQuery, state: FSMContext) -> None:
 
 
 @router.message(SearchStates.waiting_for_query)
-async def process_search_query(message: Message, state: FSMContext) -> None:
+async def process_search_query(message: Message, state: FSMContext, auth_token: str | None = None) -> None:
     """Process search query."""
     query = message.text.strip()
 
-    if len(query) < 3:
+    if len(query) < MIN_QUERY_LENGTH:
         await message.answer("❌ Search query must be at least 3 characters long.")
         return
 
-    mock_results = [
+    # Search articles using knowledge service
+    search_results = await knowledge_client.search_articles(
+        query=query,
+        auth_token=auth_token,
+        page=1,
+        size=5,
+    )
+
+    # Format results for display using Pydantic models
+    formatted_results = [
         {
-            "title": "How to request vacation",
-            "snippet": "Learn how to request vacation time through the HR system...",
-            "category": "HR",
-            "relevance": 0.95,
-        },
-        {
-            "title": "Setting up your workstation",
-            "snippet": "Complete guide to setting up your computer and software...",
-            "category": "IT",
-            "relevance": 0.87,
-        },
-        {
-            "title": "Company policies overview",
-            "snippet": "Overview of all company policies and procedures...",
-            "category": "General",
-            "relevance": 0.76,
-        },
+            "title": result.title or "Untitled",
+            "snippet": result.excerpt or result.highlighted_content or "",
+            "category": result.category_name or "General",
+            "relevance": result.relevance_score or 0,
+        }
+        for result in search_results.results
     ]
 
-    text = format_search_results(query, mock_results)
+    text = format_search_results(query, formatted_results)
 
     builder = InlineKeyboardBuilder()
     builder.add(
-        InlineKeyboardButton(text="📄 View first result", callback_data="view_result_0"),
-        InlineKeyboardButton(text="🔍 Search again", callback_data="search_kb"),
-        InlineKeyboardButton(text="📞 Contact HR", callback_data="contact_hr"),
-        InlineKeyboardButton(text="← Menu", callback_data="menu"),
+        create_inline_button("📄 View first result", callback_data="view_result_0", style=ButtonStyle.PRIMARY),
+        create_inline_button("🔍 Search again", callback_data="search_kb", style=ButtonStyle.PRIMARY),
+        create_inline_button("📞 Contact HR", callback_data="contact_hr", style=ButtonStyle.PRIMARY),
+        create_inline_button("← Menu", callback_data="menu"),
     )
     builder.adjust(1)
 
@@ -132,11 +145,11 @@ async def show_faq(callback: CallbackQuery) -> None:
 
     builder = InlineKeyboardBuilder()
     builder.add(
-        InlineKeyboardButton(text="🔍 Search", callback_data="search_kb"),
-        InlineKeyboardButton(text="📞 Contact HR", callback_data="contact_hr"),
-        InlineKeyboardButton(text="← Back", callback_data="knowledge_base"),
+        create_inline_button("🔍 Search", callback_data="search_kb", style=ButtonStyle.PRIMARY),
+        create_inline_button("📞 Contact HR", callback_data="contact_hr", style=ButtonStyle.PRIMARY),
+        create_inline_button("← Back", callback_data="knowledge_base"),
     )
-    builder.adjust(2)
+    builder.adjust(1)
 
     await callback.message.edit_text(text, reply_markup=builder.as_markup(), parse_mode="Markdown")
     await callback.answer()

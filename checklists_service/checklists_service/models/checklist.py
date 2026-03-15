@@ -3,7 +3,8 @@
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import JSON, DateTime, Enum, ForeignKey, Integer, String, Text
+from sqlalchemy import DateTime, Enum, ForeignKey, Integer, String, Text
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
@@ -91,11 +92,11 @@ class Task(Base):
     # Completion details
     completed_by: Mapped[int | None] = mapped_column(Integer, nullable=True)
     completion_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
-    attachments: Mapped[list[dict]] = mapped_column(JSON, default=list, nullable=False)
+    attachments: Mapped[list[dict]] = mapped_column(JSONB, default=list, nullable=False)
 
     # Dependencies
-    depends_on: Mapped[list[int]] = mapped_column(JSON, default=list, nullable=False)
-    blocks: Mapped[list[int]] = mapped_column(JSON, default=list, nullable=False)
+    depends_on: Mapped[list[int]] = mapped_column(JSONB, default=list, nullable=False)
+    blocks: Mapped[list[int]] = mapped_column(JSONB, default=list, nullable=False)
 
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)

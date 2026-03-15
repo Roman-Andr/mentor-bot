@@ -1,16 +1,24 @@
 """FastAPI dependencies for authentication and authorization via HTTP."""
 
+from collections.abc import AsyncGenerator
 from typing import Annotated
 
 import httpx
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from knowledge_service.config import settings
 from knowledge_service.core import AuthException, PermissionDenied
-from knowledge_service.database import get_db
-from knowledge_service.services import auth_service_circuit_breaker
+from knowledge_service.database import AsyncSessionLocal
+from knowledge_service.repositories import SqlAlchemyUnitOfWork
+from knowledge_service.services import (
+    ArticleService,
+    AttachmentService,
+    CategoryService,
+    SearchService,
+    TagService,
+    auth_service_circuit_breaker,
+)
 
 security = HTTPBearer(auto_error=False)
 
@@ -124,10 +132,61 @@ async def get_auth_token(request: Request) -> str | None:
     return getattr(request.state, "auth_token", None)
 
 
+async def get_uow() -> AsyncGenerator[SqlAlchemyUnitOfWork, None]:
+    """Get Unit of Work instance for current request."""
+    async with SqlAlchemyUnitOfWork(AsyncSessionLocal) as uow:
+        try:
+            yield uow
+            await uow.commit()
+        except Exception:
+            await uow.rollback()
+            raise
+
+
+async def get_article_service(
+    uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_uow)],
+) -> ArticleService:
+    """Get ArticleService instance with dependency injection."""
+    return ArticleService(uow)
+
+
+async def get_category_service(
+    uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_uow)],
+) -> CategoryService:
+    """Get CategoryService instance with dependency injection."""
+    return CategoryService(uow)
+
+
+async def get_tag_service(
+    uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_uow)],
+) -> TagService:
+    """Get TagService instance with dependency injection."""
+    return TagService(uow)
+
+
+async def get_attachment_service(
+    uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_uow)],
+) -> AttachmentService:
+    """Get AttachmentService instance with dependency injection."""
+    return AttachmentService(uow)
+
+
+async def get_search_service(
+    uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_uow)],
+) -> SearchService:
+    """Get SearchService instance with dependency injection."""
+    return SearchService(uow)
+
+
 # Type aliases for dependencies
 CurrentUser = Annotated[UserInfo, Depends(get_current_active_user)]
 AdminUser = Annotated[UserInfo, Depends(require_admin)]
 HRUser = Annotated[UserInfo, Depends(require_hr)]
 MentorUser = Annotated[UserInfo, Depends(require_mentor_or_above)]
-DatabaseSession = Annotated[AsyncSession, Depends(get_db)]
 AuthToken = Annotated[str | None, Depends(get_auth_token)]
+UOWDep = Annotated[SqlAlchemyUnitOfWork, Depends(get_uow)]
+ArticleServiceDep = Annotated[ArticleService, Depends(get_article_service)]
+CategoryServiceDep = Annotated[CategoryService, Depends(get_category_service)]
+TagServiceDep = Annotated[TagService, Depends(get_tag_service)]
+AttachmentServiceDep = Annotated[AttachmentService, Depends(get_attachment_service)]
+SearchServiceDep = Annotated[SearchService, Depends(get_search_service)]

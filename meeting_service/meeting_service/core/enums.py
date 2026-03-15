@@ -1,9 +1,9 @@
 """Enum definitions for the Meeting Service."""
 
-from enum import Enum
+from enum import StrEnum
 
 
-class MeetingType(str, Enum):
+class MeetingType(StrEnum):
     """Type of meeting."""
 
     HR = "HR"
@@ -13,7 +13,7 @@ class MeetingType(str, Enum):
     OTHER = "OTHER"
 
 
-class MeetingStatus(str, Enum):
+class MeetingStatus(StrEnum):
     """Status of a user meeting."""
 
     SCHEDULED = "SCHEDULED"
@@ -22,7 +22,7 @@ class MeetingStatus(str, Enum):
     CANCELLED = "CANCELLED"
 
 
-class MaterialType(str, Enum):
+class MaterialType(StrEnum):
     """Type of meeting material."""
 
     PDF = "PDF"
@@ -32,7 +32,7 @@ class MaterialType(str, Enum):
     VIDEO = "VIDEO"
 
 
-class EmployeeLevel(str, Enum):
+class EmployeeLevel(StrEnum):
     """Employee level enumeration (copied from auth for consistency)."""
 
     JUNIOR = "JUNIOR"

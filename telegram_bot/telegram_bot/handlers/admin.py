@@ -2,10 +2,12 @@
 
 from aiogram import F, Router
 from aiogram.filters import Command
-from aiogram.types import CallbackQuery, InlineKeyboardButton, Message
+from aiogram.types import CallbackQuery, Message
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+from telegram_bot.core.enums import ButtonStyle
 from telegram_bot.keyboards.admin_kb import get_admin_keyboard
+from telegram_bot.keyboards.utils import create_inline_button
 
 router = Router()
 
@@ -58,9 +60,9 @@ async def admin_stats(callback: CallbackQuery, user: dict) -> None:
 
     builder = InlineKeyboardBuilder()
     builder.add(
-        InlineKeyboardButton(text="📈 Detailed Report", callback_data="detailed_report"),
-        InlineKeyboardButton(text="📤 Export Data", callback_data="export_data"),
-        InlineKeyboardButton(text="← Back", callback_data="admin_panel"),
+        create_inline_button("📈 Detailed Report", callback_data="detailed_report", style=ButtonStyle.PRIMARY),
+        create_inline_button("📤 Export Data", callback_data="export_data", style=ButtonStyle.PRIMARY),
+        create_inline_button("← Back", callback_data="admin_panel"),
     )
     builder.adjust(1)
 
@@ -77,12 +79,12 @@ async def admin_users(callback: CallbackQuery, user: dict) -> None:
 
     builder = InlineKeyboardBuilder()
     builder.add(
-        InlineKeyboardButton(text="👥 List Users", callback_data="list_users"),
-        InlineKeyboardButton(text="➕ Add User", callback_data="add_user"),
-        InlineKeyboardButton(text="📧 Send Invite", callback_data="send_invite"),
-        InlineKeyboardButton(text="← Back", callback_data="admin_panel"),
+        create_inline_button("👥 List Users", callback_data="list_users", style=ButtonStyle.PRIMARY),
+        create_inline_button("➕ Add User", callback_data="add_user", style=ButtonStyle.PRIMARY),
+        create_inline_button("📧 Send Invite", callback_data="send_invite", style=ButtonStyle.PRIMARY),
+        create_inline_button("← Back", callback_data="admin_panel"),
     )
-    builder.adjust(2)
+    builder.adjust(1)
 
     await callback.message.edit_text(
         "👥 *User Management*\n\nManage system users and invitations.",
@@ -101,12 +103,12 @@ async def admin_checklists(callback: CallbackQuery, user: dict) -> None:
 
     builder = InlineKeyboardBuilder()
     builder.add(
-        InlineKeyboardButton(text="📋 Templates", callback_data="list_templates"),
-        InlineKeyboardButton(text="📊 Progress", callback_data="checklist_progress"),
-        InlineKeyboardButton(text="⚠️ Overdue", callback_data="overdue_tasks"),
-        InlineKeyboardButton(text="← Back", callback_data="admin_panel"),
+        create_inline_button("📋 Templates", callback_data="list_templates", style=ButtonStyle.PRIMARY),
+        create_inline_button("📊 Progress", callback_data="checklist_progress", style=ButtonStyle.PRIMARY),
+        create_inline_button("⚠️ Overdue", callback_data="overdue_tasks", style=ButtonStyle.DANGER),
+        create_inline_button("← Back", callback_data="admin_panel"),
     )
-    builder.adjust(2)
+    builder.adjust(1)
 
     await callback.message.edit_text(
         "📋 *Checklist Management*\n\nManage checklist templates and monitor progress.",

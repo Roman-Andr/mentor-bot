@@ -1,22 +1,23 @@
-"""Attachment management service."""
-
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
+"""Attachment management service with repository pattern."""
 
 from knowledge_service.core import NotFoundException
 from knowledge_service.core.enums import AttachmentType
 from knowledge_service.models import Attachment
+from knowledge_service.repositories import IUnitOfWork
 
 
 class AttachmentService:
-    def __init__(self, db: AsyncSession) -> None:
-        self.db = db
+    """Service for attachment management operations."""
+
+    def __init__(self, uow: IUnitOfWork) -> None:
+        """Initialize attachment service with Unit of Work."""
+        self._uow = uow
 
     async def create_attachment(
         self,
         article_id: int,
         name: str,
-        type: AttachmentType,
+        attachment_type: AttachmentType,
         url: str,
         file_size: int | None = None,
         mime_type: str | None = None,
@@ -24,10 +25,11 @@ class AttachmentService:
         order: int = 0,
         is_downloadable: bool = True,
     ) -> Attachment:
+        """Create new attachment."""
         attachment = Attachment(
             article_id=article_id,
             name=name,
-            type=type,
+            type=attachment_type,
             url=url,
             file_size=file_size,
             mime_type=mime_type,
@@ -35,21 +37,20 @@ class AttachmentService:
             order=order,
             is_downloadable=is_downloadable,
         )
-        self.db.add(attachment)
-        await self.db.commit()
-        await self.db.refresh(attachment)
-        return attachment
+        created = await self._uow.attachments.create(attachment)
+        await self._uow.commit()
+        return created
 
     async def get_attachment(self, attachment_id: int) -> Attachment:
-        stmt = select(Attachment).where(Attachment.id == attachment_id)
-        result = await self.db.execute(stmt)
-        attachment = result.scalar_one_or_none()
+        """Get attachment by ID."""
+        attachment = await self._uow.attachments.get_by_id(attachment_id)
         if not attachment:
             msg = "Attachment"
             raise NotFoundException(msg)
         return attachment
 
     async def delete_attachment(self, attachment_id: int) -> None:
-        attachment = await self.get_attachment(attachment_id)
-        await self.db.delete(attachment)
-        await self.db.commit()
+        """Delete attachment."""
+        await self.get_attachment(attachment_id)
+        await self._uow.attachments.delete(attachment_id)
+        await self._uow.commit()

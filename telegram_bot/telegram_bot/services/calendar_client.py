@@ -1,0 +1,64 @@
+"""Client for interacting with Meeting Service Calendar API."""
+
+import logging
+from typing import Any
+
+import httpx
+from google_auth_oauthlib.flow import Flow
+
+from telegram_bot.config import settings
+
+logger = logging.getLogger(__name__)
+
+
+class CalendarClient:
+    """Client for Meeting Service Calendar API."""
+
+    def __init__(self, base_url: str | None = None) -> None:
+        self.base_url = base_url or settings.MEETING_SERVICE_URL
+        self.client = httpx.AsyncClient(base_url=self.base_url, timeout=settings.SERVICE_TIMEOUT)
+
+    async def check_connection_status(self, user_id: int) -> dict[str, Any]:
+        """Check if user has connected Google Calendar."""
+        response = await self.client.get(
+            f"{settings.API_V1_PREFIX}/calendar/status/{user_id}",
+        )
+        response.raise_for_status()
+        return response.json()
+
+    async def get_connect_url(self, user_id: int, state: str) -> str:
+        """Get Google Calendar connection URL."""
+        # Format state as user_id:random_state for CSRF protection
+        formatted_state = f"{user_id}:{state}"
+
+        # Create OAuth flow using google_auth_oauthlib
+        flow = Flow.from_client_config(
+            client_config={
+                "web": {
+                    "client_id": settings.GOOGLE_CLIENT_ID,
+                    "client_secret": settings.GOOGLE_CLIENT_SECRET,
+                    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                    "token_uri": "https://oauth2.googleapis.com/token",
+                }
+            },
+            scopes=settings.GOOGLE_CALENDAR_SCOPES,
+            redirect_uri=settings.GOOGLE_REDIRECT_URI,
+        )
+
+        # Generate authorization URL with state for CSRF protection
+        authorization_url, _ = flow.authorization_url(
+            access_type="offline",
+            include_granted_scopes="true",
+            prompt="consent",
+            state=formatted_state,
+        )
+
+        return authorization_url
+
+    async def disconnect_calendar(self, user_id: int) -> dict[str, Any]:
+        """Disconnect Google Calendar account."""
+        response = await self.client.delete(
+            f"{settings.API_V1_PREFIX}/calendar/{user_id}",
+        )
+        response.raise_for_status()
+        return response.json()

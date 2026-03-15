@@ -2,7 +2,8 @@
 
 from datetime import datetime
 
-from sqlalchemy import JSON, BigInteger, Boolean, DateTime, Integer, String, Text
+from sqlalchemy import BigInteger, Boolean, DateTime, Integer, String, Text
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.sql import func
 
@@ -27,7 +28,7 @@ class UserSession(Base):
 
     # Session data
     last_activity: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
-    session_data: Mapped[dict] = mapped_column(JSON, default=dict)
+    session_data: Mapped[dict] = mapped_column(JSONB, default=dict)
 
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
@@ -89,7 +90,7 @@ class Notification(Base):
     attempts: Mapped[int] = mapped_column(Integer, default=0)
 
     # Metadata
-    metadata_obj: Mapped[dict] = mapped_column(JSON, default=dict)
+    metadata_obj: Mapped[dict] = mapped_column(JSONB, default=dict)
 
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

@@ -4,7 +4,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Query, status
 
-from knowledge_service.api import CurrentUser, DatabaseSession, HRUser
+from knowledge_service.api import ArticleServiceDep, CurrentUser, HRUser
 from knowledge_service.core import NotFoundException, PermissionDenied
 from knowledge_service.core.enums import ArticleStatus
 from knowledge_service.schemas import (
@@ -15,14 +15,13 @@ from knowledge_service.schemas import (
     ArticleViewStats,
     MessageResponse,
 )
-from knowledge_service.services import ArticleService
 
 router = APIRouter()
 
 
 @router.get("/")
 async def get_articles(
-    db: DatabaseSession,
+    article_service: ArticleServiceDep,
     current_user: CurrentUser,
     skip: Annotated[int, Query(ge=0)] = 0,
     limit: Annotated[int, Query(ge=1, le=100)] = 50,
@@ -35,9 +34,6 @@ async def get_articles(
     pinned_only: Annotated[bool, Query()] = False,
 ) -> ArticleListResponse:
     """Get paginated list of articles."""
-    article_service = ArticleService(db)
-
-    # Apply user filters for non-admins
     user_filters = {}
     if current_user.role not in ["HR", "ADMIN"]:
         user_filters = {
@@ -72,12 +68,10 @@ async def get_articles(
 @router.post("/")
 async def create_article(
     article_data: ArticleCreate,
-    db: DatabaseSession,
+    article_service: ArticleServiceDep,
     current_user: CurrentUser,
 ) -> ArticleResponse:
     """Create new article."""
-    article_service = ArticleService(db)
-
     try:
         article = await article_service.create_article(article_data, current_user.id, current_user.first_name)
         return ArticleResponse.model_validate(article)
@@ -91,22 +85,17 @@ async def create_article(
 @router.get("/{article_id_or_slug}")
 async def get_article(
     article_id_or_slug: str,
-    db: DatabaseSession,
+    article_service: ArticleServiceDep,
     current_user: CurrentUser,
 ) -> ArticleResponse:
     """Get article by ID or slug."""
-    article_service = ArticleService(db)
-
     try:
-        # Try to parse as ID first
         try:
             article_id = int(article_id_or_slug)
             article = await article_service.get_article_by_id(article_id)
         except ValueError:
-            # If not a number, treat as slug
             article = await article_service.get_article_by_slug(article_id_or_slug)
 
-        # Check permissions for draft articles
         if (
             article.status == ArticleStatus.DRAFT
             and current_user.id != article.author_id
@@ -123,7 +112,6 @@ async def get_article(
             msg = "Access to articles from other departments is not allowed"
             raise PermissionDenied(msg)
 
-        # Record view
         await article_service.record_view(article.id, user_id=current_user.id)
 
         return ArticleResponse.model_validate(article)
@@ -138,16 +126,13 @@ async def get_article(
 async def update_article(
     article_id: int,
     article_data: ArticleUpdate,
-    db: DatabaseSession,
+    article_service: ArticleServiceDep,
     current_user: CurrentUser,
 ) -> ArticleResponse:
     """Update article."""
-    article_service = ArticleService(db)
-
     try:
         article = await article_service.get_article_by_id(article_id)
 
-        # Check permissions
         if current_user.id != article.author_id and current_user.role not in ["HR", "ADMIN"]:
             msg = "Cannot update other users' articles"
             raise PermissionDenied(msg)
@@ -164,16 +149,13 @@ async def update_article(
 @router.delete("/{article_id}")
 async def delete_article(
     article_id: int,
-    db: DatabaseSession,
+    article_service: ArticleServiceDep,
     current_user: CurrentUser,
 ) -> MessageResponse:
     """Delete article."""
-    article_service = ArticleService(db)
-
     try:
         article = await article_service.get_article_by_id(article_id)
 
-        # Check permissions
         if current_user.id != article.author_id and current_user.role not in ["HR", "ADMIN"]:
             msg = "Cannot delete other users' articles"
             raise PermissionDenied(msg)
@@ -190,12 +172,10 @@ async def delete_article(
 @router.post("/{article_id}/publish")
 async def publish_article(
     article_id: int,
-    db: DatabaseSession,
+    article_service: ArticleServiceDep,
     _current_user: HRUser,
 ) -> ArticleResponse:
     """Publish article (HR/admin only)."""
-    article_service = ArticleService(db)
-
     try:
         article = await article_service.publish_article(article_id)
         return ArticleResponse.model_validate(article)
@@ -209,12 +189,10 @@ async def publish_article(
 @router.get("/{article_id}/stats")
 async def get_article_stats(
     article_id: int,
-    db: DatabaseSession,
+    article_service: ArticleServiceDep,
     _current_user: HRUser,
 ) -> ArticleViewStats:
     """Get article view statistics (HR/admin only)."""
-    article_service = ArticleService(db)
-
     try:
         stats = await article_service.get_article_stats(article_id)
         return ArticleViewStats(**stats)
@@ -228,15 +206,12 @@ async def get_article_stats(
 @router.get("/department/{department}")
 async def get_department_articles(
     department: str,
-    db: DatabaseSession,
+    article_service: ArticleServiceDep,
     current_user: CurrentUser,
     skip: Annotated[int, Query(ge=0)] = 0,
     limit: Annotated[int, Query(ge=1, le=100)] = 50,
 ) -> ArticleListResponse:
     """Get articles for specific department."""
-    article_service = ArticleService(db)
-
-    # Check if user has access to this department
     if current_user.department != department and current_user.role not in ["HR", "ADMIN"]:
         msg = "Cannot view other departments' articles"
         raise PermissionDenied(msg)

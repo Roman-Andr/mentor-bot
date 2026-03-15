@@ -4,7 +4,6 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy import (
-    JSON,
     Boolean,
     DateTime,
     ForeignKey,
@@ -12,7 +11,7 @@ from sqlalchemy import (
     String,
     Text,
 )
-from sqlalchemy.dialects.postgresql import TSVECTOR
+from sqlalchemy.dialects.postgresql import JSONB, TSVECTOR
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
@@ -56,7 +55,7 @@ class Article(Base):
     # SEO and metadata
     meta_title: Mapped[str | None] = mapped_column(String(200), nullable=True)
     meta_description: Mapped[str | None] = mapped_column(String(500), nullable=True)
-    keywords: Mapped[list[str]] = mapped_column(JSON, default=list, nullable=False)
+    keywords: Mapped[list[str]] = mapped_column(JSONB, default=list, nullable=False)
 
     # Full-text search
     search_vector: Mapped[TSVECTOR] = mapped_column(

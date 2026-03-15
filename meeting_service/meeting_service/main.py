@@ -13,7 +13,7 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
 
-from meeting_service.api.endpoints import meetings_router, user_meetings_router
+from meeting_service.api.endpoints import calendar_router, meetings_router, user_meetings_router
 from meeting_service.config import settings
 from meeting_service.database import init_db
 from meeting_service.schemas import HealthCheck, ServiceStatus
@@ -67,6 +67,7 @@ app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.ALLOWED_HOSTS)
 # Include routers
 app.include_router(meetings_router, prefix=f"{settings.API_V1_PREFIX}/meetings", tags=["meetings"])
 app.include_router(user_meetings_router, prefix=f"{settings.API_V1_PREFIX}/user-meetings", tags=["user-meetings"])
+app.include_router(calendar_router, prefix=f"{settings.API_V1_PREFIX}/calendar", tags=["calendar"])
 
 
 @app.get("/")

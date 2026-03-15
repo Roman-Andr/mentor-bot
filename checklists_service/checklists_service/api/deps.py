@@ -1,15 +1,16 @@
 """FastAPI dependencies for authentication and authorization via HTTP."""
 
+from collections.abc import AsyncGenerator
 from typing import Annotated
 
 import httpx
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from checklists_service.config import settings
 from checklists_service.core import AuthException, PermissionDenied
-from checklists_service.database import get_db
+from checklists_service.database import AsyncSessionLocal
+from checklists_service.repositories.unit_of_work import SqlAlchemyUnitOfWork
 from checklists_service.services import auth_service_circuit_breaker
 
 security = HTTPBearer(auto_error=False)
@@ -124,10 +125,22 @@ async def get_auth_token(request: Request) -> str | None:
     return getattr(request.state, "auth_token", None)
 
 
+# Unit of Work dependency
+async def get_uow() -> AsyncGenerator[SqlAlchemyUnitOfWork, None]:
+    """Get Unit of Work instance for current request."""
+    async with SqlAlchemyUnitOfWork(AsyncSessionLocal) as uow:
+        try:
+            yield uow
+            await uow.commit()
+        except Exception:
+            await uow.rollback()
+            raise
+
+
 # Type aliases for dependencies
+UOWDep = Annotated[SqlAlchemyUnitOfWork, Depends(get_uow)]
 CurrentUser = Annotated[UserInfo, Depends(get_current_active_user)]
 AdminUser = Annotated[UserInfo, Depends(require_admin)]
 HRUser = Annotated[UserInfo, Depends(require_hr)]
 MentorUser = Annotated[UserInfo, Depends(require_mentor_or_above)]
-DatabaseSession = Annotated[AsyncSession, Depends(get_db)]
 AuthToken = Annotated[str | None, Depends(get_auth_token)]

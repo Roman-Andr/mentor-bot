@@ -26,10 +26,14 @@ def format_welcome_message(tg_user: TgUser, user_data: dict[str, Any] | None = N
             f"👋 Welcome, *{name}!*\n\n"
             "I'm Mentor Bot, your personal onboarding assistant.\n\n"
             "I can help you with:\n"
-            "• 📋 Onboarding checklist\n"
-            "• 🔍 Knowledge base search\n"
+            "• 📋 Onboarding checklist and tasks\n"
+            "• 🔍 Knowledge base and FAQ search\n"
+            "• 📅 Schedule meetings with mentor/HR\n"
+            "• 📁 Access department documents\n"
             "• 👨‍🏫 Mentor communication\n"
-            "• 📞 HR support\n\n"
+            "• 📞 HR support and escalation\n"
+            "• 📊 Track your progress\n"
+            "• 📊 Share feedback\n\n"
             "Let's get started!"
         )
 
@@ -198,3 +202,89 @@ def format_date(dt: datetime) -> str:
 def format_percentage(value: float) -> str:
     """Format percentage value."""
     return f"{value:.1f}%"
+
+
+def format_feedback_menu() -> str:
+    """Format feedback menu for display."""
+    return (
+        "📊 *Feedback & Surveys*\n\n"
+        "Help us improve your onboarding experience!\n\n"
+        "*Available options:*\n"
+        "• 😊 Daily Pulse Survey - Quick well-being check\n"
+        "• ⭐ Rate Experience - Rate your onboarding\n"
+        "• 💬 Comments & Suggestions - Share your thoughts\n\n"
+        "Your feedback is anonymous and helps us serve you better."
+    )
+
+
+def format_meeting_list(meetings: list[dict[str, Any]]) -> str:
+    """Format meeting list for display."""
+    if not meetings:
+        return "📭 No meetings found."
+
+    text = "📅 *Upcoming Meetings*\n\n"
+
+    for i, meeting in enumerate(meetings[:5], 1):
+        title = meeting.get("title", f"Meeting #{meeting['id']}")
+        scheduled_at = meeting.get("scheduled_at", "TBD")
+        meeting_type = meeting.get("meeting_type", "general")
+
+        # Parse and format datetime
+        try:
+            dt = datetime.fromisoformat(scheduled_at)
+            formatted_date = dt.strftime("%b %d, %Y %H:%M")
+        except:
+            formatted_date = scheduled_at
+
+        # Type emoji
+        type_emoji = {
+            "onboarding": "👋",
+            "mentor": "👨‍🏫",
+            "hr": "📞",
+            "technical": "💻",
+        }.get(meeting_type, "📅")
+
+        text += f"{i}. {type_emoji} *{title}*\n"
+        text += f"   📅 {formatted_date}\n\n"
+
+    if len(meetings) > 5:
+        text += f"... and {len(meetings) - 5} more meetings\n\n"
+
+    return text
+
+
+def format_escalation_list(escalations: list[dict[str, Any]]) -> str:
+    """Format escalation list for display."""
+    if not escalations:
+        return "📭 No escalations found."
+
+    text = "📞 *Your Escalations*\n\n"
+
+    for i, escalation in enumerate(escalations[:5], 1):
+        title = escalation.get("title", f"Escalation #{escalation['id']}")
+        status = escalation.get("status", "open").lower()
+        category = escalation.get("category", "General")
+        created_at = escalation.get("created_at", "N/A")
+
+        # Status emoji
+        status_emoji = {
+            "open": "⏳",
+            "in_progress": "🔄",
+            "resolved": "✅",
+            "closed": "🔒",
+        }.get(status, "❓")
+
+        # Parse and format datetime
+        try:
+            dt = datetime.fromisoformat(created_at)
+            formatted_date = dt.strftime("%b %d")
+        except:
+            formatted_date = created_at
+
+        text += f"{i}. {status_emoji} *{title}*\n"
+        text += f"   📁 {category} | 📅 {formatted_date}\n\n"
+
+    if len(escalations) > 5:
+        text += f"... and {len(escalations) - 5} more escalations\n\n"
+
+    return text

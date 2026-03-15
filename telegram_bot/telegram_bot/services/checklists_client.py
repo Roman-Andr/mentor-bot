@@ -24,7 +24,7 @@ class ChecklistsServiceClient:
         """Get checklists for user (cached)."""
         try:
             response = await self.client.get(
-                "/api/v1/checklists/",
+                f"{settings.API_V1_PREFIX}/checklists/",
                 params={"user_id": user_id},
                 headers={"Authorization": f"Bearer {auth_token}"},
             )
@@ -40,7 +40,7 @@ class ChecklistsServiceClient:
         """Get tasks for checklist (cached)."""
         try:
             response = await self.client.get(
-                f"/api/v1/tasks/checklist/{checklist_id}",
+                f"{settings.API_V1_PREFIX}/tasks/checklist/{checklist_id}",
                 headers={"Authorization": f"Bearer {auth_token}"},
             )
             if response.status_code == status.HTTP_200_OK:
@@ -50,11 +50,11 @@ class ChecklistsServiceClient:
         return []
 
     @cached(ttl=30, key_prefix="assigned_tasks")
-    async def get_assigned_tasks(self, user_id: int, auth_token: str) -> list[dict]:
+    async def get_assigned_tasks(self, auth_token: str) -> list[dict]:
         """Get tasks assigned to user (cached)."""
         try:
             response = await self.client.get(
-                "/api/v1/tasks/assigned-to-me",
+                f"{settings.API_V1_PREFIX}/tasks/assigned-to-me",
                 headers={"Authorization": f"Bearer {auth_token}"},
             )
             if response.status_code == status.HTTP_200_OK:
@@ -67,7 +67,7 @@ class ChecklistsServiceClient:
         """Update task status."""
         try:
             response = await self.client.put(
-                f"/api/v1/tasks/{task_id}",
+                f"{settings.API_V1_PREFIX}/tasks/{task_id}",
                 json={"status": status},
                 headers={"Authorization": f"Bearer {auth_token}"},
             )
@@ -86,7 +86,7 @@ class ChecklistsServiceClient:
         """Mark task as completed."""
         try:
             response = await self.client.post(
-                f"/api/v1/tasks/{task_id}/complete",
+                f"{settings.API_V1_PREFIX}/tasks/{task_id}/complete",
                 params={"completion_notes": notes} if notes else None,
                 headers={"Authorization": f"Bearer {auth_token}"},
             )
@@ -106,7 +106,7 @@ class ChecklistsServiceClient:
         """Get checklist progress details (cached)."""
         try:
             response = await self.client.get(
-                f"/api/v1/checklists/{checklist_id}/progress",
+                f"{settings.API_V1_PREFIX}/checklists/{checklist_id}/progress",
                 headers={"Authorization": f"Bearer {auth_token}"},
             )
             if response.status_code == status.HTTP_200_OK:

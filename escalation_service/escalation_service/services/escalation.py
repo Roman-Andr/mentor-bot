@@ -1,9 +1,8 @@
 """Escalation management service with repository pattern."""
 
 from datetime import UTC, datetime
-from typing import Any
 
-from escalation_service.core.enums import EscalationStatus
+from escalation_service.core.enums import EscalationStatus, EscalationType
 from escalation_service.core.exceptions import NotFoundException
 from escalation_service.models import EscalationRequest
 from escalation_service.repositories.unit_of_work import IUnitOfWork
@@ -48,7 +47,7 @@ class EscalationService:
         limit: int = 100,
         user_id: int | None = None,
         assigned_to: int | None = None,
-        type: Any | None = None,
+        escalation_type: EscalationType | None = None,
         status: EscalationStatus | None = None,
     ) -> tuple[list[EscalationRequest], int]:
         """Get paginated list of escalation requests with filters."""
@@ -57,7 +56,7 @@ class EscalationService:
             limit=limit,
             user_id=user_id,
             assigned_to=assigned_to,
-            type=type,
+            escalation_type=escalation_type,
             status=status,
         )
         return list(requests), total

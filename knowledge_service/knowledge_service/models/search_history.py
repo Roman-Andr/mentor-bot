@@ -2,7 +2,8 @@
 
 from datetime import datetime
 
-from sqlalchemy import JSON, DateTime, Integer, String
+from sqlalchemy import DateTime, Integer, String
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
 
@@ -19,7 +20,7 @@ class SearchHistory(Base):
     query: Mapped[str] = mapped_column(String(500), nullable=False, index=True)
 
     # Search context
-    filters: Mapped[dict] = mapped_column(JSON, default=dict, nullable=False)
+    filters: Mapped[dict] = mapped_column(JSONB, default=dict, nullable=False)
     results_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     department: Mapped[str | None] = mapped_column(String(100), nullable=True)
     position: Mapped[str | None] = mapped_column(String(100), nullable=True)

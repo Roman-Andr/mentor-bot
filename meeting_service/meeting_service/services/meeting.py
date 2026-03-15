@@ -1,6 +1,7 @@
 """Meeting management service with repository pattern."""
 
-from datetime import UTC, datetime
+import logging
+from datetime import UTC, datetime, timedelta
 
 from meeting_service.core import (
     ConflictException,
@@ -18,6 +19,9 @@ from meeting_service.schemas import (
     UserMeetingCreate,
     UserMeetingUpdate,
 )
+from meeting_service.services.google_calendar_service import GoogleCalendarService
+
+logger = logging.getLogger(__name__)
 
 
 class MeetingService:
@@ -102,7 +106,7 @@ class MeetingService:
     async def assign_meeting(self, assignment_data: UserMeetingCreate) -> UserMeeting:
         """Assign a meeting template to a user."""
         # Check if meeting exists
-        await self.get_meeting(assignment_data.meeting_id)
+        meeting = await self.get_meeting(assignment_data.meeting_id)
 
         # Check if already assigned
         existing = await self._uow.user_meetings.get_user_meeting(assignment_data.user_id, assignment_data.meeting_id)
@@ -116,7 +120,33 @@ class MeetingService:
             scheduled_at=assignment_data.scheduled_at,
             status=MeetingStatus.SCHEDULED,
         )
-        return await self._uow.user_meetings.create(assignment)
+        created_assignment = await self._uow.user_meetings.create(assignment)
+
+        # Try to create Google Calendar event if scheduled_at is provided
+        if assignment_data.scheduled_at:
+            try:
+                gc_service = GoogleCalendarService(self._uow)
+                event_data = {
+                    "summary": meeting.title,
+                    "description": meeting.description,
+                    "start": {
+                        "dateTime": assignment_data.scheduled_at.isoformat(),
+                        "timeZone": "UTC",
+                    },
+                    "end": {
+                        "dateTime": (assignment_data.scheduled_at + timedelta(hours=1)).isoformat(),
+                        "timeZone": "UTC",
+                    },
+                }
+                event = await gc_service.create_event(assignment_data.user_id, event_data)
+                created_assignment.google_calendar_event_id = event["id"]
+                await self._uow.user_meetings.update(created_assignment)
+                logger.info(f"Created Google Calendar event {event['id']} for user {assignment_data.user_id}")
+            except Exception as e:
+                # Don't fail the assignment if calendar sync fails
+                logger.warning(f"Failed to create Google Calendar event: {e}")
+
+        return created_assignment
 
     async def get_user_meetings(
         self,
@@ -146,6 +176,61 @@ class MeetingService:
         """Update a user meeting assignment (status, scheduled_at)."""
         assignment = await self.get_assignment(assignment_id)
         update_dict = update_data.model_dump(exclude_unset=True)
+
+        # Handle Google Calendar sync if scheduled_at changes
+        if "scheduled_at" in update_dict:
+            new_scheduled_at = update_dict["scheduled_at"]
+            old_scheduled_at = assignment.scheduled_at
+
+            # Only proceed if the time actually changed
+            if new_scheduled_at != old_scheduled_at:
+                gc_service = GoogleCalendarService(self._uow)
+
+                if new_scheduled_at is None:
+                    # Delete event if scheduled_at is removed
+                    if assignment.google_calendar_event_id:
+                        try:
+                            await gc_service.delete_event(assignment.user_id, assignment.google_calendar_event_id)
+                            logger.info(
+                                f"Deleted Google Calendar event {assignment.google_calendar_event_id} due to unscheduling"
+                            )
+                            assignment.google_calendar_event_id = None
+                        except Exception as e:
+                            logger.warning(f"Failed to delete Google Calendar event: {e}")
+                else:
+                    # Need meeting details for event data
+                    meeting = await self.get_meeting(assignment.meeting_id)
+                    event_data = {
+                        "summary": meeting.title,
+                        "description": meeting.description,
+                        "start": {
+                            "dateTime": new_scheduled_at.isoformat(),
+                            "timeZone": "UTC",
+                        },
+                        "end": {
+                            "dateTime": (new_scheduled_at + timedelta(hours=1)).isoformat(),
+                            "timeZone": "UTC",
+                        },
+                    }
+
+                    if assignment.google_calendar_event_id:
+                        # Update existing event
+                        try:
+                            await gc_service.update_event(
+                                assignment.user_id, assignment.google_calendar_event_id, event_data
+                            )
+                            logger.info(f"Updated Google Calendar event {assignment.google_calendar_event_id}")
+                        except Exception as e:
+                            logger.warning(f"Failed to update Google Calendar event: {e}")
+                    else:
+                        # Create new event
+                        try:
+                            event = await gc_service.create_event(assignment.user_id, event_data)
+                            assignment.google_calendar_event_id = event["id"]
+                            logger.info(f"Created Google Calendar event {event['id']} for user {assignment.user_id}")
+                        except Exception as e:
+                            logger.warning(f"Failed to create Google Calendar event: {e}")
+
         for field, value in update_dict.items():
             setattr(assignment, field, value)
         assignment.updated_at = datetime.now(UTC)
@@ -168,6 +253,18 @@ class MeetingService:
     async def delete_assignment(self, assignment_id: int) -> None:
         """Delete a user meeting assignment (e.g., cancel)."""
         assignment = await self.get_assignment(assignment_id)
+
+        # Delete Google Calendar event if it exists
+        if assignment.google_calendar_event_id:
+            try:
+                gc_service = GoogleCalendarService(self._uow)
+                await gc_service.delete_event(assignment.user_id, assignment.google_calendar_event_id)
+                logger.info(
+                    f"Deleted Google Calendar event {assignment.google_calendar_event_id} for user {assignment.user_id}"
+                )
+            except Exception as e:
+                logger.warning(f"Failed to delete Google Calendar event: {e}")
+
         await self._uow.user_meetings.delete(assignment.id)
 
     # --- Auto-assignment for new user ---

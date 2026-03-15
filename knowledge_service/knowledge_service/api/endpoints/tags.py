@@ -4,7 +4,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Query, status
 
-from knowledge_service.api import AdminUser, CurrentUser, DatabaseSession, HRUser
+from knowledge_service.api import AdminUser, CurrentUser, HRUser, TagServiceDep
 from knowledge_service.core import NotFoundException, ValidationException
 from knowledge_service.schemas import (
     MessageResponse,
@@ -12,14 +12,13 @@ from knowledge_service.schemas import (
     TagResponse,
     TagUpdate,
 )
-from knowledge_service.services import TagService
 
 router = APIRouter()
 
 
 @router.get("/")
 async def get_tags(
-    db: DatabaseSession,
+    tag_service: TagServiceDep,
     current_user: CurrentUser,
     skip: Annotated[int, Query(ge=0)] = 0,
     limit: Annotated[int, Query(ge=1, le=100)] = 50,
@@ -29,8 +28,6 @@ async def get_tags(
     sort_desc: Annotated[bool, Query()] = True,
 ) -> list[TagResponse]:
     """Get paginated list of tags."""
-    tag_service = TagService(db)
-
     tags, _ = await tag_service.get_tags(
         skip=skip,
         limit=limit,
@@ -44,27 +41,22 @@ async def get_tags(
 
 @router.get("/popular")
 async def get_popular_tags(
-    db: DatabaseSession,
+    tag_service: TagServiceDep,
     current_user: CurrentUser,
     limit: Annotated[int, Query(ge=1, le=50)] = 20,
 ) -> list[TagResponse]:
     """Get most popular tags."""
-    tag_service = TagService(db)
-
     tags = await tag_service.get_popular_tags(limit)
-
     return [TagResponse.model_validate(tag) for tag in tags]
 
 
 @router.post("/")
 async def create_tag(
     tag_data: TagCreate,
-    db: DatabaseSession,
+    tag_service: TagServiceDep,
     _current_user: HRUser,
 ) -> TagResponse:
     """Create new tag (HR/admin only)."""
-    tag_service = TagService(db)
-
     try:
         tag = await tag_service.create_tag(tag_data)
         return TagResponse.model_validate(tag)
@@ -78,19 +70,15 @@ async def create_tag(
 @router.get("/{tag_id_or_slug}")
 async def get_tag(
     tag_id_or_slug: str,
-    db: DatabaseSession,
+    tag_service: TagServiceDep,
     current_user: CurrentUser,
 ) -> TagResponse:
     """Get tag by ID or slug."""
-    tag_service = TagService(db)
-
     try:
-        # Try to parse as ID first
         try:
             tag_id = int(tag_id_or_slug)
             tag = await tag_service.get_tag_by_id(tag_id)
         except ValueError:
-            # If not a number, treat as slug
             tag = await tag_service.get_tag_by_slug(tag_id_or_slug)
 
         return TagResponse.model_validate(tag)
@@ -105,12 +93,10 @@ async def get_tag(
 async def update_tag(
     tag_id: int,
     tag_data: TagUpdate,
-    db: DatabaseSession,
+    tag_service: TagServiceDep,
     _current_user: HRUser,
 ) -> TagResponse:
     """Update tag (HR/admin only)."""
-    tag_service = TagService(db)
-
     try:
         tag = await tag_service.update_tag(tag_id, tag_data)
         return TagResponse.model_validate(tag)
@@ -129,12 +115,10 @@ async def update_tag(
 @router.delete("/{tag_id}")
 async def delete_tag(
     tag_id: int,
-    db: DatabaseSession,
+    tag_service: TagServiceDep,
     _current_user: AdminUser,
 ) -> MessageResponse:
     """Delete tag (admin only)."""
-    tag_service = TagService(db)
-
     try:
         await tag_service.delete_tag(tag_id)
         return MessageResponse(message="Tag deleted successfully")
@@ -154,12 +138,10 @@ async def delete_tag(
 async def merge_tags(
     source_tag_id: int,
     target_tag_id: int,
-    db: DatabaseSession,
+    tag_service: TagServiceDep,
     _current_user: AdminUser,
 ) -> TagResponse:
     """Merge two tags (admin only)."""
-    tag_service = TagService(db)
-
     try:
         merged_tag = await tag_service.merge_tags(source_tag_id, target_tag_id)
         return TagResponse.model_validate(merged_tag)
@@ -178,12 +160,10 @@ async def merge_tags(
 @router.get("/article/{article_id}")
 async def get_article_tags(
     article_id: int,
-    db: DatabaseSession,
+    tag_service: TagServiceDep,
     current_user: CurrentUser,
 ) -> list[TagResponse]:
     """Get tags for a specific article."""
-    tag_service = TagService(db)
-
     try:
         tags = await tag_service.get_tags_by_article(article_id)
         return [TagResponse.model_validate(tag) for tag in tags]

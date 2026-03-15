@@ -1,7 +1,10 @@
 """Admin panel keyboards."""
 
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.types import InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
+
+from telegram_bot.core.enums import ButtonStyle
+from telegram_bot.keyboards.utils import create_inline_button
 
 
 def get_admin_keyboard() -> InlineKeyboardMarkup:
@@ -9,14 +12,14 @@ def get_admin_keyboard() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
 
     builder.add(
-        InlineKeyboardButton(text="📊 Statistics", callback_data="admin_stats"),
-        InlineKeyboardButton(text="👥 Users", callback_data="admin_users"),
-        InlineKeyboardButton(text="📋 Checklists", callback_data="admin_checklists"),
-        InlineKeyboardButton(text="📚 Knowledge Base", callback_data="admin_knowledge"),
-        InlineKeyboardButton(text="⚙️ Settings", callback_data="admin_settings"),
-        InlineKeyboardButton(text="📈 Reports", callback_data="admin_reports"),
-        InlineKeyboardButton(text="🚨 Alerts", callback_data="admin_alerts"),
-        InlineKeyboardButton(text="← Main Menu", callback_data="menu"),
+        create_inline_button("📊 Statistics", callback_data="admin_stats", style=ButtonStyle.PRIMARY),
+        create_inline_button("👥 Users", callback_data="admin_users", style=ButtonStyle.PRIMARY),
+        create_inline_button("📋 Checklists", callback_data="admin_checklists", style=ButtonStyle.PRIMARY),
+        create_inline_button("📚 Knowledge Base", callback_data="admin_knowledge", style=ButtonStyle.PRIMARY),
+        create_inline_button("⚙️ Settings", callback_data="admin_settings", style=ButtonStyle.PRIMARY),
+        create_inline_button("📈 Reports", callback_data="admin_reports", style=ButtonStyle.PRIMARY),
+        create_inline_button("🚨 Alerts", callback_data="admin_alerts", style=ButtonStyle.DANGER),
+        create_inline_button("← Main Menu", callback_data="menu", style=ButtonStyle.SUCCESS),
     )
 
     builder.adjust(2)

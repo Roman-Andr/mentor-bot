@@ -25,7 +25,7 @@ class EscalationRepository(SqlAlchemyBaseRepository[EscalationRequest, int], IEs
         limit: int = 100,
         user_id: int | None = None,
         assigned_to: int | None = None,
-        type: EscalationType | None = None,
+        escalation_type: EscalationType | None = None,
         status: EscalationStatus | None = None,
     ) -> tuple[Sequence[EscalationRequest], int]:
         """Find escalation requests with filtering and return results with total count."""
@@ -40,9 +40,9 @@ class EscalationRepository(SqlAlchemyBaseRepository[EscalationRequest, int], IEs
             stmt = stmt.where(EscalationRequest.assigned_to == assigned_to)
             count_stmt = count_stmt.where(EscalationRequest.assigned_to == assigned_to)
 
-        if type is not None:
-            stmt = stmt.where(EscalationRequest.type == type)
-            count_stmt = count_stmt.where(EscalationRequest.type == type)
+        if escalation_type is not None:
+            stmt = stmt.where(EscalationRequest.type == escalation_type)
+            count_stmt = count_stmt.where(EscalationRequest.type == escalation_type)
 
         if status is not None:
             stmt = stmt.where(EscalationRequest.status == status)

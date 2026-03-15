@@ -6,9 +6,13 @@ from typing import Protocol, Self, runtime_checkable
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from meeting_service.repositories.implementations.google_calendar_account import (
+    SQLAlchemyGoogleCalendarAccountRepository,
+)
 from meeting_service.repositories.implementations.material import MaterialRepository
 from meeting_service.repositories.implementations.meeting import MeetingRepository
 from meeting_service.repositories.implementations.user_meeting import UserMeetingRepository
+from meeting_service.repositories.interfaces.google_calendar_account import IGoogleCalendarAccountRepository
 from meeting_service.repositories.interfaces.material import IMaterialRepository
 from meeting_service.repositories.interfaces.meeting import IMeetingRepository
 from meeting_service.repositories.interfaces.user_meeting import IUserMeetingRepository
@@ -21,6 +25,7 @@ class IUnitOfWork(Protocol):
     meetings: IMeetingRepository
     materials: IMaterialRepository
     user_meetings: IUserMeetingRepository
+    google_calendar_accounts: IGoogleCalendarAccountRepository
 
     async def commit(self) -> None:
         """Commit all changes made in this unit of work."""
@@ -49,6 +54,7 @@ class SqlAlchemyUnitOfWork(IUnitOfWork):
         self.meetings = MeetingRepository(self._session)
         self.materials = MaterialRepository(self._session)
         self.user_meetings = UserMeetingRepository(self._session)
+        self.google_calendar_accounts = SQLAlchemyGoogleCalendarAccountRepository(self._session)
         return self
 
     async def __aexit__(self, *args: object) -> None:

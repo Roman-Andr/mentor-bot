@@ -29,7 +29,7 @@ class NotificationRepository(SqlAlchemyBaseRepository[Notification, int], INotif
         skip: int = 0,
         limit: int = 100,
         user_id: int | None = None,
-        type: NotificationType | None = None,
+        notification_type: NotificationType | None = None,
         status: NotificationStatus | None = None,
     ) -> tuple[Sequence[Notification], int]:
         """Find notifications with filtering and return results with total count."""
@@ -39,9 +39,9 @@ class NotificationRepository(SqlAlchemyBaseRepository[Notification, int], INotif
         if user_id:
             stmt = stmt.where(Notification.user_id == user_id)
             count_stmt = count_stmt.where(Notification.user_id == user_id)
-        if type:
-            stmt = stmt.where(Notification.type == type)
-            count_stmt = count_stmt.where(Notification.type == type)
+        if notification_type:
+            stmt = stmt.where(Notification.type == notification_type)
+            count_stmt = count_stmt.where(Notification.type == notification_type)
         if status:
             stmt = stmt.where(Notification.status == status)
             count_stmt = count_stmt.where(Notification.status == status)

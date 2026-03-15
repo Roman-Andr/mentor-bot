@@ -32,15 +32,10 @@ async def get_escalations(
     limit: Annotated[int, Query(ge=1, le=1000)] = 100,
     user_id: Annotated[int | None, Query()] = None,
     assigned_to: Annotated[int | None, Query()] = None,
-    type: Annotated[EscalationType | None, Query()] = None,
+    escalation_type: Annotated[EscalationType | None, Query()] = None,
     status: Annotated[EscalationStatus | None, Query()] = None,
 ) -> EscalationRequestListResponse:
-    """
-    Get paginated list of escalation requests.
-
-    Regular users see only their own requests.
-    HR/Admin can filter by any user or assignee.
-    """
+    """Get paginated list of escalation requests."""
     # Authorization: regular users can only see their own requests
     if not current_user.has_role(["HR", "ADMIN"]):
         if user_id is not None and user_id != current_user.id:
@@ -56,7 +51,7 @@ async def get_escalations(
         limit=limit,
         user_id=user_id,
         assigned_to=assigned_to,
-        type=type,
+        escalation_type=escalation_type,
         status=status,
     )
 
@@ -116,11 +111,7 @@ async def update_escalation(
     current_user: CurrentUser,
     uow: UOWDep,
 ) -> EscalationRequestResponse:
-    """
-    Update escalation request (status, assignee).
-
-    Only assignee or HR/Admin can update.
-    """
+    """Update escalation request (status, assignee)."""
     # Fetch and check permissions
     request = await uow.escalations.get_by_id(escalation_id)
     if not request:

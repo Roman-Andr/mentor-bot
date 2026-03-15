@@ -9,10 +9,18 @@ services:
       - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       - AUTH_SERVICE_URL=http://auth_service:8000
       - CHECKLISTS_SERVICE_URL=http://checklists_service:8000
+      - KNOWLEDGE_SERVICE_URL=http://knowledge_service_url:8000
+      - NOTIFICATION_SERVICE_URL=http://notification_service_url:8000
+      - ESCALATION_SERVICE_URL=http://escalation_service_url:8000
+      - FEEDBACK_SERVICE_URL=http://feedback_service:8000
+      - MEETING_SERVICE_URL=http://meeting_service:8000
       - DEBUG=true
       - LOG_LEVEL=DEBUG
       - ENABLE_NOTIFICATIONS=true
       - NOTIFICATION_HOUR=9
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GOOGLE_REDIRECT_URI=${GOOGLE_REDIRECT_URI}
     depends_on:
       postgres:
         condition: service_healthy
@@ -24,7 +32,11 @@ services:
         condition: service_healthy
       notification_service:
         condition: service_healthy
+      feedback_service:
+        condition: service_healthy
       escalation_service:
+        condition: service_healthy
+      meeting_service:
         condition: service_healthy
     networks:
       - mentor_network
@@ -86,7 +98,7 @@ services:
       timeout: 1s
       retries: 10
       start_period: 5s
-      start_interval: 1s
+      start_interval: 3s
 
   knowledge_service:
     build: ./knowledge_service
@@ -158,6 +170,37 @@ services:
       start_period: 5s
       start_interval: 1s
 
+  feedback_service:
+    build: ./feedback_service
+    container_name: feedback_service
+    ports:
+      - "8007:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - AUTH_SERVICE_URL=http://auth_service:8000
+      - DEBUG=true
+      - LOG_LEVEL=DEBUG
+      - API_V1_PREFIX=/api/v1
+      - DATABASE_SCHEMA=feedback
+      - CORS_ORIGINS=["*"]
+      - ALLOWED_HOSTS=["*"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      auth_service:
+        condition: service_healthy
+    volumes:
+      - ./feedback_service/feedback_service:/feedback_service/feedback_service
+    networks:
+      - mentor_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 300s
+      timeout: 1s
+      retries: 10
+      start_period: 5s
+      start_interval: 1s
+
   escalation_service:
     build: ./escalation_service
     container_name: escalation_service
@@ -206,6 +249,9 @@ services:
       - DATABASE_SCHEMA=meeting
       - CORS_ORIGINS=["*"]
       - ALLOWED_HOSTS=["*"]
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GOOGLE_REDIRECT_URI=${GOOGLE_REDIRECT_URI}
     depends_on:
       postgres:
         condition: service_healthy
@@ -223,7 +269,7 @@ services:
       timeout: 1s
       retries: 10
       start_period: 5s
-      start_interval: 1s
+      start_interval: 3s
 
   postgres:
     container_name: postgres_container

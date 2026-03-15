@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager, suppress
 
 from aiogram import Bot, Dispatcher
@@ -26,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
-async def lifespan(bot: Bot):
+async def lifespan(bot: Bot) -> AsyncGenerator[None, None]:
     """Handle application startup and shutdown events."""
     logger.info("Starting Telegram Bot...")
 
@@ -65,6 +66,10 @@ async def setup_bot_commands(bot: Bot) -> None:
         BotCommand(command="/tasks", description="Show my tasks"),
         BotCommand(command="/checklist", description="Show checklist progress"),
         BotCommand(command="/knowledge", description="Search knowledge base"),
+        BotCommand(command="/meetings", description="View and manage meetings"),
+        BotCommand(command="/documents", description="Access documents"),
+        BotCommand(command="/feedback", description="Provide feedback"),
+        BotCommand(command="/progress", description="View onboarding progress"),
         BotCommand(command="/help", description="Show help"),
     ]
 

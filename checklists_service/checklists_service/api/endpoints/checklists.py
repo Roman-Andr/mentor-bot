@@ -5,8 +5,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Query, status
 
-from checklists_service.api import AdminUser, CurrentUser, DatabaseSession, HRUser
-from checklists_service.api.deps import AuthToken
+from checklists_service.api.deps import AuthToken, CurrentUser, HRUser, UOWDep
 from checklists_service.core import NotFoundException, PermissionDenied, ValidationException
 from checklists_service.core.enums import ChecklistStatus
 from checklists_service.schemas import (
@@ -24,7 +23,7 @@ router = APIRouter()
 
 @router.get("/")
 async def get_checklists(
-    db: DatabaseSession,
+    uow: UOWDep,
     current_user: CurrentUser,
     skip: Annotated[int, Query(ge=0)] = 0,
     limit: Annotated[int, Query(ge=1, le=100)] = 50,
@@ -35,9 +34,8 @@ async def get_checklists(
     overdue_only: Annotated[bool, Query()] = False,
 ) -> ChecklistListResponse:
     """Get paginated list of checklists."""
-    checklist_service = ChecklistService(db)
+    checklist_service = ChecklistService(uow)
 
-    # Check permissions
     if user_id and user_id != current_user.id and current_user.role not in ["HR", "ADMIN"]:
         msg = "Cannot view other users' checklists"
         raise PermissionDenied(msg)
@@ -51,7 +49,6 @@ async def get_checklists(
         overdue_only=overdue_only,
     )
 
-    # Get stats
     stats = await checklist_service.get_checklist_stats(user_id or current_user.id)
 
     pages = (total + limit - 1) // limit if limit > 0 else 0
@@ -76,12 +73,12 @@ async def get_checklists(
 @router.post("/")
 async def create_checklist(
     checklist_data: ChecklistCreate,
-    db: DatabaseSession,
+    uow: UOWDep,
     _current_user: HRUser,
     auth_token: AuthToken,
 ) -> ChecklistResponse:
     """Create new checklist (HR/admin only)."""
-    checklist_service = ChecklistService(db)
+    checklist_service = ChecklistService(uow, auth_token)
 
     try:
         checklist = await checklist_service.create_checklist(checklist_data, auth_token)
@@ -100,16 +97,15 @@ async def create_checklist(
 @router.get("/{checklist_id}")
 async def get_checklist(
     checklist_id: int,
-    db: DatabaseSession,
+    uow: UOWDep,
     current_user: CurrentUser,
 ) -> ChecklistResponse:
     """Get checklist by ID."""
-    checklist_service = ChecklistService(db)
+    checklist_service = ChecklistService(uow)
 
     try:
         checklist = await checklist_service.get_checklist(checklist_id)
 
-        # Check permissions
         if checklist.user_id != current_user.id and current_user.role not in ["HR", "ADMIN"]:
             msg = "Cannot view other users' checklists"
             raise PermissionDenied(msg)
@@ -130,16 +126,15 @@ async def get_checklist(
 async def update_checklist(
     checklist_id: int,
     checklist_data: ChecklistUpdate,
-    db: DatabaseSession,
+    uow: UOWDep,
     current_user: CurrentUser,
 ) -> ChecklistResponse:
     """Update checklist."""
-    checklist_service = ChecklistService(db)
+    checklist_service = ChecklistService(uow)
 
     try:
         checklist = await checklist_service.get_checklist(checklist_id)
 
-        # Check permissions
         if checklist.user_id != current_user.id and current_user.role not in ["HR", "ADMIN"]:
             msg = "Cannot update other users' checklists"
             raise PermissionDenied(msg)
@@ -163,11 +158,11 @@ async def update_checklist(
 @router.delete("/{checklist_id}")
 async def delete_checklist(
     checklist_id: int,
-    db: DatabaseSession,
-    _current_user: AdminUser,
+    uow: UOWDep,
+    _current_user: HRUser,
 ) -> MessageResponse:
     """Delete checklist (admin only)."""
-    checklist_service = ChecklistService(db)
+    checklist_service = ChecklistService(uow)
 
     try:
         await checklist_service.delete_checklist(checklist_id)
@@ -182,16 +177,15 @@ async def delete_checklist(
 @router.post("/{checklist_id}/complete")
 async def complete_checklist(
     checklist_id: int,
-    db: DatabaseSession,
+    uow: UOWDep,
     current_user: CurrentUser,
 ) -> ChecklistResponse:
     """Mark checklist as completed."""
-    checklist_service = ChecklistService(db)
+    checklist_service = ChecklistService(uow)
 
     try:
         checklist = await checklist_service.get_checklist(checklist_id)
 
-        # Check permissions
         if checklist.user_id != current_user.id and current_user.role not in ["HR", "ADMIN"]:
             msg = "Cannot complete other users' checklists"
             raise PermissionDenied(msg)
@@ -212,16 +206,15 @@ async def complete_checklist(
 @router.get("/{checklist_id}/progress")
 async def get_checklist_progress(
     checklist_id: int,
-    db: DatabaseSession,
+    uow: UOWDep,
     current_user: CurrentUser,
 ) -> dict:
     """Get checklist progress details."""
-    checklist_service = ChecklistService(db)
+    checklist_service = ChecklistService(uow)
 
     try:
         checklist = await checklist_service.get_checklist(checklist_id)
 
-        # Check permissions
         if checklist.user_id != current_user.id and current_user.role not in ["HR", "ADMIN"]:
             msg = "Cannot view other users' checklists"
             raise PermissionDenied(msg)
@@ -236,12 +229,12 @@ async def get_checklist_progress(
 
 @router.get("/stats/summary")
 async def get_checklist_stats(
-    db: DatabaseSession,
+    uow: UOWDep,
     _current_user: HRUser,
     user_id: Annotated[int | None, Query()] = None,
     department: Annotated[str | None, Query()] = None,
 ) -> ChecklistStats:
     """Get checklist statistics (HR/admin only)."""
-    checklist_service = ChecklistService(db)
+    checklist_service = ChecklistService(uow)
 
     return await checklist_service.get_checklist_stats(user_id, department)

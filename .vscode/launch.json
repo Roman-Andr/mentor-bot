@@ -15,6 +15,22 @@
           "remoteRoot": "/knowledge_service/knowledge_service"
         }
       ]
+    },
+    {
+      "name": "Next.js: debug server-side",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "npm run dev",
+      "cwd": "${workspaceFolder}/admin_web"
+    },
+    {
+      "name": "Next.js: debug client-side",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3000",
+      "cwd": "${workspaceFolder}/admin_web",
+      "webRoot": "${workspaceFolder}/admin_web",
+      "sourceMaps": true
     }
   ]
 }

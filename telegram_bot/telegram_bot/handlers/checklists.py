@@ -2,14 +2,16 @@
 
 from aiogram import F, Router
 from aiogram.filters import Command
-from aiogram.types import CallbackQuery, InlineKeyboardButton, Message
+from aiogram.types import CallbackQuery, Message
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+from telegram_bot.core.enums import ButtonStyle
 from telegram_bot.keyboards.checklist_kb import (
     get_checklists_keyboard,
     get_task_detail_keyboard,
     get_tasks_keyboard,
 )
+from telegram_bot.keyboards.utils import create_inline_button
 from telegram_bot.services.checklists_client import checklists_client
 from telegram_bot.utils.formatters import (
     format_checklist_progress,
@@ -52,7 +54,10 @@ async def show_checklists(callback: Message | CallbackQuery, auth_token: str, us
     if len(checklists) > 5:
         text += f"\n... and {len(checklists) - 5} more"
 
-    await message.answer(text, reply_markup=get_checklists_keyboard(checklists), parse_mode="Markdown")
+    if isinstance(callback, CallbackQuery) and isinstance(message, Message):
+        await message.edit_text(text, reply_markup=get_checklists_keyboard(checklists), parse_mode="Markdown")
+    else:
+        await message.answer(text, reply_markup=get_checklists_keyboard(checklists), parse_mode="Markdown")
 
 
 @router.callback_query(F.data.startswith("checklist_"))
@@ -70,7 +75,7 @@ async def show_checklist_tasks(callback: CallbackQuery, auth_token: str) -> None
         await callback.message.edit_text(
             "📭 No tasks found for this checklist.",
             reply_markup=InlineKeyboardBuilder()
-            .add(InlineKeyboardButton(text="← Back", callback_data="my_tasks"))
+            .add(create_inline_button("← Back", callback_data="my_tasks"))
             .as_markup(),
         )
         await callback.answer()
@@ -92,16 +97,24 @@ async def show_task_detail(callback: CallbackQuery, auth_token: str) -> None:
     task_id = int(callback.data.split("_")[1])
     checklist_id = int(callback.data.split("_")[2]) if len(callback.data.split("_")) > 2 else None
 
-    # In real implementation, we would fetch task details
-    # For now, show placeholder
-    task_detail = {
-        "id": task_id,
-        "title": "Sample Task",
-        "description": "Task description details",
-        "status": "pending",
-        "due_date": "2024-12-31",
-        "category": "documentation",
-    }
+    # Fetch task details from service
+    tasks = await checklists_client.get_assigned_tasks(auth_token)
+    task_detail = None
+    for task in tasks:
+        if task.get("id") == task_id:
+            task_detail = task
+            break
+
+    if not task_detail and checklist_id:
+        tasks = await checklists_client.get_checklist_tasks(checklist_id, auth_token)
+        for task in tasks:
+            if task.get("id") == task_id:
+                task_detail = task
+                break
+
+    if not task_detail:
+        await callback.answer("Task not found", show_alert=True)
+        return
 
     text = format_task_detail(task_detail)
 
@@ -127,8 +140,8 @@ async def complete_task(callback: CallbackQuery, auth_token: str, user: dict) ->
 
         # Update message
         builder = InlineKeyboardBuilder()
-        builder.add(InlineKeyboardButton(text="✅ Completed", callback_data=f"task_{task_id}"))
-        builder.add(InlineKeyboardButton(text="← Back to Tasks", callback_data="my_tasks"))
+        builder.add(create_inline_button("✅ Completed", callback_data=f"task_{task_id}", style=ButtonStyle.SUCCESS))
+        builder.add(create_inline_button("← Back to Tasks", callback_data="my_tasks"))
 
         await callback.message.edit_reply_markup(reply_markup=builder.as_markup())
     else:

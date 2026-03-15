@@ -20,7 +20,7 @@ async def cmd_start(message: Message, state: FSMContext, *, is_authenticated: bo
 
     # Format: /start token or via link: https://t.me/bot?start=token
     token = None
-    if len(message.text.split()) > 1:
+    if message.text and len(message.text.split()) > 1:
         token = message.text.split()[1].strip()
 
     if is_authenticated:
@@ -42,7 +42,14 @@ async def cmd_start(message: Message, state: FSMContext, *, is_authenticated: bo
     else:
         await message.answer(
             "👋 Welcome to Mentor Bot!\n\n"
-            "This bot helps new employees with onboarding process.\n\n"
+            "🤖 Your personal onboarding assistant for a smooth transition into your new role.\n\n"
+            "*What I can help you with:*\n"
+            "• 📋 Complete your onboarding checklist\n"
+            "• 🔍 Search the knowledge base for answers\n"
+            "• 📅 Schedule meetings with your mentor\n"
+            "• 📁 Access important documents\n"
+            "• 📊 Track your progress\n"
+            "• 📞 Get help from HR\n\n"
             "To get started, you need to register using your invitation link.\n"
             "Please send me your invitation token or use the link from your email."
         )
@@ -50,7 +57,7 @@ async def cmd_start(message: Message, state: FSMContext, *, is_authenticated: bo
 
 
 @router.message(Command("menu"))
-async def cmd_menu(message: Message, is_authenticated: bool) -> None:
+async def cmd_menu(message: Message, *, is_authenticated: bool) -> None:
     """Show main menu."""
     if not is_authenticated:
         await message.answer("You need to register first. Use /start to begin registration.")
@@ -58,7 +65,7 @@ async def cmd_menu(message: Message, is_authenticated: bool) -> None:
 
     await message.answer(
         "📋 *Main Menu*\n\nChoose an option below:",
-        reply_markup=get_main_menu_keyboard(is_authenticated=True),
+        reply_markup=get_inline_main_menu(),
         parse_mode="Markdown",
     )
 
@@ -68,6 +75,10 @@ async def cb_menu(callback: CallbackQuery, *, is_authenticated: bool) -> None:
     """Menu callback button."""
     if not is_authenticated:
         await callback.answer("You need to register first.")
+        return
+
+    if callback.message is None:
+        await callback.answer("Unable to show menu. Please try again.")
         return
 
     await callback.message.edit_text(

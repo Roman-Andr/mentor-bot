@@ -51,6 +51,7 @@ class UserMeetingResponse(UserMeetingBase):
     completed_at: datetime | None = None
     feedback: str | None = None
     rating: int | None = None
+    google_calendar_event_id: str | None = None
     created_at: datetime
     updated_at: datetime | None = None
     meeting: MeetingResponse | None = None  # optionally expand meeting details

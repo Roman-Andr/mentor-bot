@@ -1,7 +1,10 @@
 """Checklist-related keyboards."""
 
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.types import InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
+
+from telegram_bot.core.enums import ButtonStyle
+from telegram_bot.keyboards.utils import create_inline_button
 
 
 def get_checklists_keyboard(checklists: list[dict]) -> InlineKeyboardMarkup:
@@ -14,11 +17,15 @@ def get_checklists_keyboard(checklists: list[dict]) -> InlineKeyboardMarkup:
 
         emoji = "✅" if status == "completed" else "📋" if status == "in_progress" else "⏳"
 
-        builder.add(InlineKeyboardButton(text=f"{emoji} {title}", callback_data=f"checklist_{checklist['id']}"))
+        builder.add(
+            create_inline_button(
+                text=f"{emoji} {title}", callback_data=f"checklist_{checklist['id']}", style=ButtonStyle.PRIMARY
+            )
+        )
 
     builder.add(
-        InlineKeyboardButton(text="📊 Progress", callback_data="progress"),
-        InlineKeyboardButton(text="← Menu", callback_data="menu"),
+        create_inline_button("📊 Progress", callback_data="progress", style=ButtonStyle.PRIMARY),
+        create_inline_button("← Menu", callback_data="menu"),
     )
 
     builder.adjust(1)
@@ -46,11 +53,13 @@ def get_tasks_keyboard(tasks: list[dict], checklist_id: int | None = None) -> In
         if checklist_id:
             callback_data += f"_{checklist_id}"
 
-        builder.add(InlineKeyboardButton(text=f"{emoji} {title}", callback_data=callback_data))
+        builder.add(
+            create_inline_button(text=f"{emoji} {title}", callback_data=callback_data, style=ButtonStyle.PRIMARY)
+        )
 
     builder.add(
-        InlineKeyboardButton(text="← Back to Checklists", callback_data="my_tasks"),
-        InlineKeyboardButton(text="📊 Overall Progress", callback_data="progress"),
+        create_inline_button("← Back to Checklists", callback_data="my_tasks"),
+        create_inline_button("📊 Overall Progress", callback_data="progress", style=ButtonStyle.PRIMARY),
     )
 
     builder.adjust(1)
@@ -62,16 +71,16 @@ def get_task_detail_keyboard(task_id: int, checklist_id: int | None = None) -> I
     builder = InlineKeyboardBuilder()
 
     builder.add(
-        InlineKeyboardButton(text="✅ Mark Complete", callback_data=f"complete_task_{task_id}"),
-        InlineKeyboardButton(text="🔄 Start Progress", callback_data=f"start_task_{task_id}"),
-        InlineKeyboardButton(text="📎 Add Attachment", callback_data=f"attach_task_{task_id}"),
+        create_inline_button("✅ Mark Complete", callback_data=f"complete_task_{task_id}", style=ButtonStyle.SUCCESS),
+        create_inline_button("🔄 Start Progress", callback_data=f"start_task_{task_id}", style=ButtonStyle.PRIMARY),
+        create_inline_button("📎 Add Attachment", callback_data=f"attach_task_{task_id}", style=ButtonStyle.PRIMARY),
     )
 
     back_callback = f"checklist_{checklist_id}" if checklist_id else "my_tasks"
     builder.add(
-        InlineKeyboardButton(text="ℹ️ More Info", callback_data=f"task_info_{task_id}"),
-        InlineKeyboardButton(text="← Back", callback_data=back_callback),
+        create_inline_button("ℹ️ More Info", callback_data=f"task_info_{task_id}", style=ButtonStyle.PRIMARY),
+        create_inline_button("← Back", callback_data=back_callback),
     )
 
-    builder.adjust(2)
+    builder.adjust(1)
     return builder.as_markup()

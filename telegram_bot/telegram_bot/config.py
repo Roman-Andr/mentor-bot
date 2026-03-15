@@ -35,6 +35,13 @@ class Settings(BaseSettings):
     # Services
     AUTH_SERVICE_URL: str = Field(default="http://localhost:8001")
     CHECKLISTS_SERVICE_URL: str = Field(default="http://localhost:8002")
+    KNOWLEDGE_SERVICE_URL: str = Field(default="http://localhost:8003")
+    NOTIFICATION_SERVICE_URL: str = Field(default="http://localhost:8004")
+    ESCALATION_SERVICE_URL: str = Field(default="http://localhost:8005")
+    MEETING_SERVICE_URL: str = Field(default="http://localhost:8006")
+    FEEDBACK_SERVICE_URL: str = Field(default="http://localhost:8007")
+    API_GATEWAY_URL: str = Field(default="http://localhost:8000")
+    API_V1_PREFIX: str = Field(default="/api/v1")
 
     # Timeouts
     SERVICE_TIMEOUT: int = Field(default=10, ge=1)
@@ -47,6 +54,12 @@ class Settings(BaseSettings):
     ENABLE_WELCOME_TOUR: bool = Field(default=True)
     ENABLE_NOTIFICATIONS: bool = Field(default=True)
     NOTIFICATION_HOUR: int = Field(default=9, ge=0, le=23)
+
+    # Google Calendar Integration
+    GOOGLE_CLIENT_ID: str = Field(default="")
+    GOOGLE_CLIENT_SECRET: str = Field(default="")
+    GOOGLE_REDIRECT_URI: str = Field(default="")
+    GOOGLE_CALENDAR_SCOPES: list[str] = Field(default=["https://www.googleapis.com/auth/calendar.events"])
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", case_sensitive=True, extra="ignore")
 

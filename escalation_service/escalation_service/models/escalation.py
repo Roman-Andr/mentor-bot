@@ -2,7 +2,8 @@
 
 from datetime import datetime
 
-from sqlalchemy import JSON, DateTime, Enum, Integer, String, Text
+from sqlalchemy import DateTime, Enum, Integer, String, Text
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
 
@@ -24,7 +25,7 @@ class EscalationRequest(Base):
     type: Mapped[EscalationType] = mapped_column(Enum(EscalationType), nullable=False, index=True)
     source: Mapped[EscalationSource] = mapped_column(Enum(EscalationSource), nullable=False, index=True)
     reason: Mapped[str | None] = mapped_column(Text, nullable=True)  # free text explanation
-    context: Mapped[dict] = mapped_column(JSON, default=dict, nullable=False)  # additional context
+    context: Mapped[dict] = mapped_column(JSONB, default=dict, nullable=False)  # additional context
 
     # Assignment and status
     status: Mapped[EscalationStatus] = mapped_column(

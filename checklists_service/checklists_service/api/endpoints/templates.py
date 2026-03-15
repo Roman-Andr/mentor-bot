@@ -4,7 +4,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Query, status
 
-from checklists_service.api import AdminUser, DatabaseSession, HRUser
+from checklists_service.api.deps import AdminUser, HRUser, UOWDep
 from checklists_service.core import ConflictException, NotFoundException
 from checklists_service.schemas import (
     MessageResponse,
@@ -22,7 +22,7 @@ router = APIRouter()
 
 @router.get("/")
 async def get_templates(
-    db: DatabaseSession,
+    uow: UOWDep,
     _current_user: HRUser,
     skip: Annotated[int, Query(ge=0)] = 0,
     limit: Annotated[int, Query(ge=1, le=100)] = 50,
@@ -31,7 +31,7 @@ async def get_templates(
     is_default: Annotated[bool | None, Query()] = None,
 ) -> list[TemplateResponse]:
     """Get paginated list of templates (HR/admin only)."""
-    template_service = TemplateService(db)
+    template_service = TemplateService(uow)
 
     templates, _ = await template_service.get_templates(
         skip=skip,
@@ -47,11 +47,11 @@ async def get_templates(
 @router.post("/")
 async def create_template(
     template_data: TemplateCreate,
-    db: DatabaseSession,
+    uow: UOWDep,
     _current_user: AdminUser,
 ) -> TemplateResponse:
     """Create new template (admin only)."""
-    template_service = TemplateService(db)
+    template_service = TemplateService(uow)
 
     try:
         template = await template_service.create_template(template_data)
@@ -66,11 +66,11 @@ async def create_template(
 @router.get("/{template_id}")
 async def get_template(
     template_id: int,
-    db: DatabaseSession,
+    uow: UOWDep,
     _current_user: HRUser,
 ) -> TemplateWithTasks:
     """Get template by ID with tasks (HR/admin only)."""
-    template_service = TemplateService(db)
+    template_service = TemplateService(uow)
 
     try:
         template = await template_service.get_template_with_tasks(template_id)
@@ -87,11 +87,11 @@ async def get_template(
 async def update_template(
     template_id: int,
     template_data: TemplateUpdate,
-    db: DatabaseSession,
+    uow: UOWDep,
     _current_user: AdminUser,
 ) -> TemplateResponse:
     """Update template (admin only)."""
-    template_service = TemplateService(db)
+    template_service = TemplateService(uow)
 
     try:
         template = await template_service.update_template(template_id, template_data)
@@ -106,11 +106,11 @@ async def update_template(
 @router.delete("/{template_id}")
 async def delete_template(
     template_id: int,
-    db: DatabaseSession,
+    uow: UOWDep,
     _current_user: AdminUser,
 ) -> MessageResponse:
     """Delete template (admin only)."""
-    template_service = TemplateService(db)
+    template_service = TemplateService(uow)
 
     try:
         await template_service.delete_template(template_id)
@@ -125,11 +125,11 @@ async def delete_template(
 @router.post("/{template_id}/clone")
 async def clone_template(
     template_id: int,
-    db: DatabaseSession,
+    uow: UOWDep,
     _current_user: AdminUser,
 ) -> TemplateResponse:
     """Clone template with new version (admin only)."""
-    template_service = TemplateService(db)
+    template_service = TemplateService(uow)
 
     try:
         template = await template_service.clone_template(template_id)
@@ -145,11 +145,11 @@ async def clone_template(
 async def add_task_to_template(
     template_id: int,
     task_data: TaskTemplateCreate,
-    db: DatabaseSession,
+    uow: UOWDep,
     _current_user: AdminUser,
 ) -> TaskTemplateResponse:
     """Add task to template (admin only)."""
-    template_service = TemplateService(db)
+    template_service = TemplateService(uow)
 
     try:
         task = await template_service.add_task_to_template(template_id, task_data)
@@ -164,11 +164,11 @@ async def add_task_to_template(
 @router.post("/{template_id}/publish")
 async def publish_template(
     template_id: int,
-    db: DatabaseSession,
+    uow: UOWDep,
     _current_user: AdminUser,
 ) -> TemplateResponse:
     """Publish template (set to active) (admin only)."""
-    template_service = TemplateService(db)
+    template_service = TemplateService(uow)
 
     try:
         template = await template_service.publish_template(template_id)

@@ -1,0 +1,246 @@
+"""SQLAlchemy implementation of Checklist repository."""
+
+from collections.abc import Sequence
+from datetime import UTC, datetime
+from typing import Any, cast
+
+from sqlalchemy import and_, func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from checklists_service.core.enums import ChecklistStatus, TaskStatus
+from checklists_service.models import Checklist, Task, Template
+from checklists_service.repositories.implementations.base import SqlAlchemyBaseRepository
+from checklists_service.repositories.interfaces.checklist import IChecklistRepository
+
+
+class ChecklistRepository(SqlAlchemyBaseRepository[Checklist, int], IChecklistRepository):
+    """SQLAlchemy implementation of Checklist repository."""
+
+    def __init__(self, session: AsyncSession) -> None:
+        """Initialize ChecklistRepository with database session."""
+        super().__init__(session, Checklist)
+
+    async def find_checklists(
+        self,
+        *,
+        skip: int = 0,
+        limit: int = 100,
+        user_id: int | None = None,
+        status: ChecklistStatus | None = None,
+        department: str | None = None,
+        overdue_only: bool = False,
+    ) -> tuple[Sequence[Checklist], int]:
+        """Find checklists with filtering and return results with total count."""
+        count_stmt = select(func.count(Checklist.id))
+        stmt = select(Checklist)
+
+        if user_id is not None:
+            stmt = stmt.where(Checklist.user_id == user_id)
+            count_stmt = count_stmt.where(Checklist.user_id == user_id)
+
+        if status:
+            stmt = stmt.where(Checklist.status == status)
+            count_stmt = count_stmt.where(Checklist.status == status)
+
+        if department:
+            stmt = stmt.join(Template).where(Template.department == department)
+            count_stmt = count_stmt.join(Template).where(Template.department == department)
+
+        if overdue_only:
+            now = datetime.now(UTC)
+            overdue_filter = and_(
+                Checklist.due_date < now,
+                Checklist.status != ChecklistStatus.COMPLETED,
+            )
+            stmt = stmt.where(overdue_filter)
+            count_stmt = count_stmt.where(overdue_filter)
+
+        total_result = await self._session.execute(count_stmt)
+        total = cast("int", total_result.scalar_one())
+
+        stmt = stmt.offset(skip).limit(limit).order_by(Checklist.created_at.desc())
+        result = await self._session.execute(stmt)
+        checklists = result.scalars().all()
+
+        return checklists, total
+
+    async def get_active_by_user(self, user_id: int) -> Checklist | None:
+        """Get active (non-completed) checklist for a user."""
+        stmt = select(Checklist).where(
+            Checklist.user_id == user_id,
+            Checklist.status != ChecklistStatus.COMPLETED,
+        )
+        result = await self._session.execute(stmt)
+        return result.scalar_one_or_none()
+
+    async def get_progress(self, checklist_id: int) -> dict[str, Any]:
+        """Get detailed progress information for checklist."""
+        checklist = await self.get_by_id(checklist_id)
+        if not checklist:
+            return {}
+
+        status_stmt = (
+            select(Task.status, func.count(Task.id)).where(Task.checklist_id == checklist_id).group_by(Task.status)
+        )
+        result = await self._session.execute(status_stmt)
+        status_counts = dict(result.all())
+
+        category_stmt = (
+            select(Task.category, func.count(Task.id)).where(Task.checklist_id == checklist_id).group_by(Task.category)
+        )
+        result = await self._session.execute(category_stmt)
+        category_counts = dict(result.all())
+
+        now = datetime.now(UTC)
+        overdue_stmt = select(func.count(Task.id)).where(
+            Task.checklist_id == checklist_id,
+            Task.due_date < now,
+            Task.status != TaskStatus.COMPLETED,
+        )
+        result = await self._session.execute(overdue_stmt)
+        overdue_count = result.scalar_one() or 0
+
+        total_tasks = sum(status_counts.values())
+        completed_tasks = status_counts.get("completed", 0)
+        completion_rate = (completed_tasks / total_tasks * 100) if total_tasks > 0 else 0
+
+        blocked_tasks = []
+        if "blocked" in status_counts:
+            blocked_stmt = select(Task).where(
+                Task.checklist_id == checklist_id,
+                Task.status == TaskStatus.BLOCKED,
+            )
+            result = await self._session.execute(blocked_stmt)
+            blocked_tasks = [{"id": t.id, "title": t.title} for t in result.scalars().all()]
+
+        return {
+            "checklist_id": checklist_id,
+            "status": checklist.status,
+            "progress_percentage": checklist.progress_percentage,
+            "completed_tasks": completed_tasks,
+            "total_tasks": total_tasks,
+            "completion_rate": round(completion_rate, 2),
+            "overdue_tasks": overdue_count,
+            "by_status": status_counts,
+            "by_category": category_counts,
+            "blocked_tasks": blocked_tasks,
+            "start_date": checklist.start_date.isoformat() if checklist.start_date else None,
+            "due_date": checklist.due_date.isoformat() if checklist.due_date else None,
+            "days_remaining": (checklist.due_date - now).days if checklist.due_date and checklist.due_date > now else 0,
+        }
+
+    async def get_statistics(
+        self,
+        user_id: int | None = None,
+        department: str | None = None,
+    ) -> dict[str, Any]:
+        """Get checklist statistics."""
+        now = datetime.now(UTC)
+
+        total_stmt = select(func.count(Checklist.id))
+        completed_stmt = select(func.count(Checklist.id)).where(Checklist.status == ChecklistStatus.COMPLETED)
+        in_progress_stmt = select(func.count(Checklist.id)).where(Checklist.status == ChecklistStatus.IN_PROGRESS)
+        not_started_stmt = select(func.count(Checklist.id)).where(Checklist.status == ChecklistStatus.PENDING)
+        overdue_stmt = select(func.count(Checklist.id)).where(
+            and_(
+                Checklist.due_date < now,
+                Checklist.status != ChecklistStatus.COMPLETED,
+            )
+        )
+
+        if user_id is not None:
+            for st in [total_stmt, completed_stmt, in_progress_stmt, not_started_stmt, overdue_stmt]:
+                st = st.where(Checklist.user_id == user_id)
+
+        if department:
+            for st in [total_stmt, completed_stmt, in_progress_stmt, not_started_stmt, overdue_stmt]:
+                st = st.join(Template).where(Template.department == department)
+
+        total = cast("int", (await self._session.execute(total_stmt)).scalar_one() or 0)
+        completed = cast("int", (await self._session.execute(completed_stmt)).scalar_one() or 0)
+        in_progress = cast("int", (await self._session.execute(in_progress_stmt)).scalar_one() or 0)
+        not_started = cast("int", (await self._session.execute(not_started_stmt)).scalar_one() or 0)
+        overdue = cast("int", (await self._session.execute(overdue_stmt)).scalar_one() or 0)
+
+        avg_stmt = select(func.avg(func.extract("epoch", Checklist.completed_at - Checklist.start_date) / 86400)).where(
+            Checklist.status == ChecklistStatus.COMPLETED,
+            Checklist.completed_at.is_not(None),
+            Checklist.start_date.is_not(None),
+        )
+        if user_id is not None:
+            avg_stmt = avg_stmt.where(Checklist.user_id == user_id)
+
+        avg_completion_days = round(cast("float", (await self._session.execute(avg_stmt)).scalar_one() or 0), 2)
+        completion_rate = (completed / total * 100) if total > 0 else 0
+
+        dept_stmt = (
+            select(Template.department, func.count(Checklist.id))
+            .join(Checklist, Checklist.template_id == Template.id)
+            .group_by(Template.department)
+        )
+        if user_id is not None:
+            dept_stmt = dept_stmt.where(Checklist.user_id == user_id)
+
+        by_department = dict((await self._session.execute(dept_stmt)).all())
+
+        recent_stmt = (
+            select(Checklist.id, Checklist.user_id, Checklist.completed_at, Template.name.label("template_name"))
+            .join(Template, Checklist.template_id == Template.id)
+            .where(
+                Checklist.status == ChecklistStatus.COMPLETED,
+                Checklist.completed_at.is_not(None),
+            )
+            .order_by(Checklist.completed_at.desc())
+            .limit(10)
+        )
+        if user_id is not None:
+            recent_stmt = recent_stmt.where(Checklist.user_id == user_id)
+
+        recent_result = await self._session.execute(recent_stmt)
+        recent_completions = [
+            {
+                "id": row.id,
+                "user_id": row.user_id,
+                "completed_at": row.completed_at.isoformat() if row.completed_at else None,
+                "template_name": row.template_name,
+            }
+            for row in recent_result.all()
+        ]
+
+        return {
+            "total": total,
+            "completed": completed,
+            "in_progress": in_progress,
+            "not_started": not_started,
+            "overdue": overdue,
+            "avg_completion_days": avg_completion_days,
+            "completion_rate": round(completion_rate, 2),
+            "by_department": by_department,
+            "recent_completions": recent_completions,
+        }
+
+    async def recalculate_progress(self, checklist_id: int) -> None:
+        """Recalculate checklist progress based on task completion."""
+        stmt = select(
+            func.count(Task.id).label("total"),
+            func.count(Task.id).filter(Task.status == TaskStatus.COMPLETED).label("completed"),
+        ).where(Task.checklist_id == checklist_id)
+
+        result = await self._session.execute(stmt)
+        row = result.one()
+
+        total = row.total or 0
+        completed = row.completed or 0
+        progress = (completed / total * 100) if total > 0 else 0
+
+        checklist = await self.get_by_id(checklist_id)
+        if not checklist:
+            return
+
+        checklist.completed_tasks = completed
+        checklist.total_tasks = total
+        checklist.progress_percentage = round(progress)
+
+        if completed == total and total > 0:
+            checklist.status = ChecklistStatus.COMPLETED
+            checklist.completed_at = datetime.now(UTC)

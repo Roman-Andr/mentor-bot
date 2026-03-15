@@ -24,7 +24,7 @@ class AuthServiceClient:
         """Get user by Telegram ID (cached)."""
         try:
             response = await self.client.get(
-                f"/api/v1/users/by-telegram/{telegram_id}",
+                f"{settings.API_V1_PREFIX}/users/by-telegram/{telegram_id}",
                 headers={"Authorization": f"Bearer {auth_token}"},
             )
             if response.status_code == status.HTTP_200_OK:
@@ -37,7 +37,7 @@ class AuthServiceClient:
         """Authenticate user with Telegram data."""
         try:
             response = await self.client.post(
-                "/api/v1/auth/telegram",
+                f"{settings.API_V1_PREFIX}/auth/telegram",
                 json=telegram_data,
                 headers={"X-API-Key": settings.TELEGRAM_API_KEY},
             )
@@ -51,7 +51,7 @@ class AuthServiceClient:
         """Register user with invitation token."""
         try:
             response = await self.client.post(
-                f"/api/v1/auth/register/{token}",
+                f"{settings.API_V1_PREFIX}/auth/register/{token}",
                 json=telegram_data,
                 headers={"X-API-Key": settings.TELEGRAM_API_KEY},
             )
@@ -65,7 +65,7 @@ class AuthServiceClient:
         """Validate invitation token."""
         try:
             response = await self.client.get(
-                f"/api/v1/invitations/token/{token}",
+                f"{settings.API_V1_PREFIX}/invitations/token/{token}",
             )
             if response.status_code == status.HTTP_200_OK:
                 return response.json()
@@ -77,7 +77,7 @@ class AuthServiceClient:
         """Get current user info by token."""
         try:
             response = await self.client.get(
-                "/api/v1/auth/me",
+                f"{settings.API_V1_PREFIX}/auth/me",
                 headers={"Authorization": f"Bearer {token}"},
             )
             if response.status_code == status.HTTP_200_OK:

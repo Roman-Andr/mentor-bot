@@ -3,7 +3,8 @@
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import JSON, DateTime, Enum, ForeignKey, Integer, String, Text
+from sqlalchemy import DateTime, Enum, ForeignKey, Integer, String, Text
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
@@ -30,7 +31,7 @@ class Template(Base):
 
     # Configuration
     duration_days: Mapped[int] = mapped_column(Integer, default=30, nullable=False)
-    task_categories: Mapped[list[TaskCategory]] = mapped_column(JSON, default=list, nullable=False)
+    task_categories: Mapped[list[TaskCategory]] = mapped_column(JSONB, default=list, nullable=False)
     default_assignee_role: Mapped[str | None] = mapped_column(String(50), nullable=True)
 
     # Status
@@ -77,15 +78,15 @@ class TaskTemplate(Base):
     estimated_minutes: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     # Resources
-    resources: Mapped[list[dict]] = mapped_column(JSON, default=list, nullable=False)
-    required_documents: Mapped[list[str]] = mapped_column(JSON, default=list, nullable=False)
+    resources: Mapped[list[dict]] = mapped_column(JSONB, default=list, nullable=False)
+    required_documents: Mapped[list[str]] = mapped_column(JSONB, default=list, nullable=False)
 
     # Assignee
     assignee_role: Mapped[str | None] = mapped_column(String(50), nullable=True)
     auto_assign: Mapped[bool] = mapped_column(default=True, nullable=False)
 
     # Dependencies
-    depends_on: Mapped[list[int]] = mapped_column(JSON, default=list, nullable=False)
+    depends_on: Mapped[list[int]] = mapped_column(JSONB, default=list, nullable=False)
 
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)

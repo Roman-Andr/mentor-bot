@@ -1,9 +1,6 @@
-"""Template management service."""
+"""Template management service with repository pattern."""
 
 from datetime import UTC, datetime
-
-from sqlalchemy import func, select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from checklists_service.core import (
     ConflictException,
@@ -12,26 +9,23 @@ from checklists_service.core import (
     ValidationException,
 )
 from checklists_service.models import TaskTemplate, Template
+from checklists_service.repositories.unit_of_work import IUnitOfWork
 from checklists_service.schemas import TaskTemplateCreate, TemplateCreate, TemplateUpdate, TemplateWithTasks
 from checklists_service.schemas.template import TaskTemplateResponse, TemplateResponse
 
 
 class TemplateService:
-    """Service for template management operations."""
+    """Service for template management operations with repository pattern."""
 
-    def __init__(self, db: AsyncSession) -> None:
-        """Initialize template service with database session."""
-        self.db = db
+    def __init__(self, uow: IUnitOfWork) -> None:
+        """Initialize template service with Unit of Work."""
+        self._uow = uow
 
     async def create_template(self, template_data: TemplateCreate) -> Template:
         """Create new template."""
-        stmt = select(Template).where(
-            Template.name == template_data.name,
-            Template.department == template_data.department,
+        existing_template = await self._uow.templates.get_by_name_and_department(
+            template_data.name, template_data.department
         )
-        result = await self.db.execute(stmt)
-        existing_template = result.scalar_one_or_none()
-
         if existing_template:
             msg = "Template with this name already exists for the department"
             raise ConflictException(msg)
@@ -48,31 +42,21 @@ class TemplateService:
             status=template_data.status,
         )
 
-        self.db.add(template)
-        await self.db.commit()
-        await self.db.refresh(template)
-
-        return template
+        return await self._uow.templates.create(template)
 
     async def get_template(self, template_id: int) -> Template:
         """Get template by ID."""
-        stmt = select(Template).where(Template.id == template_id)
-        result = await self.db.execute(stmt)
-        template = result.scalar_one_or_none()
-
+        template = await self._uow.templates.get_by_id(template_id)
         if not template:
             msg = "Template"
             raise NotFoundException(msg)
-
         return template
 
     async def get_template_with_tasks(self, template_id: int) -> TemplateWithTasks:
         """Get template with its tasks."""
         template = await self.get_template(template_id)
 
-        stmt = select(TaskTemplate).where(TaskTemplate.template_id == template_id).order_by(TaskTemplate.order)
-        result = await self.db.execute(stmt)
-        tasks = list(result.scalars().all())
+        tasks = list(await self._uow.task_templates.find_by_template(template_id))
 
         return TemplateWithTasks(
             **TemplateResponse.model_validate(template).model_dump(),
@@ -84,25 +68,13 @@ class TemplateService:
         template = await self.get_template(template_id)
 
         if update_data.is_default and update_data.is_default != template.is_default:
-            stmt = select(Template).where(
-                Template.department == template.department,
-                Template.is_default,
-                Template.id != template_id,
-            )
-            result = await self.db.execute(stmt)
-            other_defaults = list(result.scalars().all())
-
-            for other in other_defaults:
-                other.is_default = False
+            await self._uow.templates.clear_other_defaults(template.department, template_id)
 
         for field, value in update_data.model_dump(exclude_unset=True).items():
             setattr(template, field, value)
 
         template.updated_at = datetime.now(UTC)
-        await self.db.commit()
-        await self.db.refresh(template)
-
-        return template
+        return await self._uow.templates.update(template)
 
     async def delete_template(self, template_id: int) -> None:
         """Delete template."""
@@ -112,12 +84,12 @@ class TemplateService:
             msg = "Cannot delete active template. Archive it first."
             raise ValidationException(msg)
 
-        if template.checklists:
+        has_checklists = await self._uow.templates.has_checklists(template_id)
+        if has_checklists:
             msg = "Cannot delete template with associated checklists"
             raise ValidationException(msg)
 
-        await self.db.delete(template)
-        await self.db.commit()
+        await self._uow.templates.delete(template_id)
 
     async def get_templates(
         self,
@@ -129,29 +101,16 @@ class TemplateService:
         is_default: bool | None = None,
     ) -> tuple[list[Template], int]:
         """Get paginated list of templates with filters."""
-        stmt = select(Template)
-        count_stmt = select(func.count(Template.id))
+        status_enum = TemplateStatus(status) if status else None
 
-        if department:
-            stmt = stmt.where(Template.department == department)
-            count_stmt = count_stmt.where(Template.department == department)
-
-        if status:
-            stmt = stmt.where(Template.status == status)
-            count_stmt = count_stmt.where(Template.status == status)
-
-        if is_default is not None:
-            stmt = stmt.where(Template.is_default == is_default)
-            count_stmt = count_stmt.where(Template.is_default == is_default)
-
-        result = await self.db.execute(count_stmt)
-        total = result.scalar_one()
-
-        stmt = stmt.offset(skip).limit(limit).order_by(Template.created_at.desc())
-        result = await self.db.execute(stmt)
-        templates = list(result.scalars().all())
-
-        return templates, total
+        templates, total = await self._uow.templates.find_templates(
+            skip=skip,
+            limit=limit,
+            department=department,
+            status=status_enum,
+            is_default=is_default,
+        )
+        return list(templates), total
 
     async def clone_template(self, template_id: int) -> Template:
         """Clone template with new version."""
@@ -170,33 +129,8 @@ class TemplateService:
             version=original.version + 1,
         )
 
-        self.db.add(new_template)
-        await self.db.flush()
-
-        stmt = select(TaskTemplate).where(TaskTemplate.template_id == template_id)
-        result = await self.db.execute(stmt)
-        original_tasks = list(result.scalars().all())
-
-        for task in original_tasks:
-            new_task = TaskTemplate(
-                template_id=new_template.id,
-                title=task.title,
-                description=task.description,
-                instructions=task.instructions,
-                category=task.category,
-                order=task.order,
-                due_days=task.due_days,
-                estimated_minutes=task.estimated_minutes,
-                resources=task.resources.copy(),
-                required_documents=task.required_documents.copy(),
-                assignee_role=task.assignee_role,
-                auto_assign=task.auto_assign,
-                depends_on=task.depends_on.copy(),
-            )
-            self.db.add(new_task)
-
-        await self.db.commit()
-        await self.db.refresh(new_template)
+        new_template = await self._uow.templates.create(new_template)
+        await self._uow.task_templates.clone_tasks(template_id, new_template.id)
 
         return new_template
 
@@ -209,13 +143,7 @@ class TemplateService:
             raise ValidationException(msg)
 
         if task_data.depends_on:
-            stmt = select(TaskTemplate.id).where(
-                TaskTemplate.template_id == template_id,
-                TaskTemplate.id.in_(task_data.depends_on),
-            )
-            result = await self.db.execute(stmt)
-            existing_ids = {row[0] for row in result.all()}
-
+            existing_ids = await self._uow.task_templates.find_existing_ids(template_id, task_data.depends_on)
             missing_ids = set(task_data.depends_on) - existing_ids
             if missing_ids:
                 msg = f"Invalid dependency IDs: {missing_ids}"
@@ -237,11 +165,7 @@ class TemplateService:
             depends_on=task_data.depends_on,
         )
 
-        self.db.add(task)
-        await self.db.commit()
-        await self.db.refresh(task)
-
-        return task
+        return await self._uow.task_templates.create(task)
 
     async def publish_template(self, template_id: int) -> Template:
         """Publish template (set to active)."""
@@ -250,10 +174,7 @@ class TemplateService:
         if template.status == TemplateStatus.ACTIVE:
             return template
 
-        stmt = select(func.count(TaskTemplate.id)).where(TaskTemplate.template_id == template_id)
-        result = await self.db.execute(stmt)
-        task_count = result.scalar_one()
-
+        task_count = await self._uow.templates.count_tasks(template_id)
         if task_count == 0:
             msg = "Cannot publish template without tasks"
             raise ValidationException(msg)
@@ -261,7 +182,4 @@ class TemplateService:
         template.status = TemplateStatus.ACTIVE
         template.updated_at = datetime.now(UTC)
 
-        await self.db.commit()
-        await self.db.refresh(template)
-
-        return template
+        return await self._uow.templates.update(template)

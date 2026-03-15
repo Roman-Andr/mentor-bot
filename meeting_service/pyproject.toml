@@ -24,6 +24,9 @@ dependencies = [
     "redis>=7.1.0",
     "python-slugify>=8.0.4",
     "slowapi>=0.1.9",
+    "google-api-python-client>=2.192.0",
+    "google-auth-httplib2>=0.3.0",
+    "google-auth-oauthlib>=1.2.0",
 ]
 
 [dependency-groups]

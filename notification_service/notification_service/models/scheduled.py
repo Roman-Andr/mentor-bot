@@ -2,7 +2,8 @@
 
 from datetime import datetime
 
-from sqlalchemy import JSON, DateTime, Enum, Integer, String, Text
+from sqlalchemy import DateTime, Enum, Integer, String, Text
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
 
@@ -27,7 +28,7 @@ class ScheduledNotification(Base):
     channel: Mapped[NotificationChannel] = mapped_column(Enum(NotificationChannel), nullable=False)
     subject: Mapped[str | None] = mapped_column(String(500), nullable=True)
     body: Mapped[str] = mapped_column(Text, nullable=False)
-    data: Mapped[dict] = mapped_column(JSON, default=dict, nullable=False)
+    data: Mapped[dict] = mapped_column(JSONB, default=dict, nullable=False)
 
     # Scheduling
     scheduled_time: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, index=True)

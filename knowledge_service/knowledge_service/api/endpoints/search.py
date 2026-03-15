@@ -4,13 +4,12 @@ from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Query, status
 
-from knowledge_service.api import CurrentUser, DatabaseSession
+from knowledge_service.api import CurrentUser, SearchServiceDep
 from knowledge_service.schemas import (
     SearchQuery,
     SearchResponse,
     SearchStats,
 )
-from knowledge_service.services import SearchService
 
 router = APIRouter()
 
@@ -18,13 +17,10 @@ router = APIRouter()
 @router.post("/")
 async def search_articles(
     search_query: SearchQuery,
-    db: DatabaseSession,
+    search_service: SearchServiceDep,
     current_user: CurrentUser,
 ) -> SearchResponse:
     """Search articles in knowledge base."""
-    search_service = SearchService(db)
-
-    # Apply user filters
     user_filters = {
         "department": current_user.department,
         "position": current_user.position,
@@ -65,13 +61,11 @@ async def search_articles(
 @router.get("/suggest")
 async def search_suggestions(
     query: Annotated[str, Query(min_length=1, max_length=100)],
-    db: DatabaseSession,
+    search_service: SearchServiceDep,
     current_user: CurrentUser,
     limit: Annotated[int, Query(ge=1, le=20)] = 10,
 ) -> list[str]:
     """Get search suggestions."""
-    search_service = SearchService(db)
-
     return await search_service.get_search_suggestions(
         query=query,
         department=current_user.department,
@@ -81,13 +75,11 @@ async def search_suggestions(
 
 @router.get("/popular")
 async def popular_searches(
-    db: DatabaseSession,
+    search_service: SearchServiceDep,
     current_user: CurrentUser,
     limit: Annotated[int, Query(ge=1, le=50)] = 10,
 ) -> list[dict]:
     """Get popular searches."""
-    search_service = SearchService(db)
-
     return await search_service.get_popular_searches(
         department=current_user.department,
         limit=limit,
@@ -96,14 +88,12 @@ async def popular_searches(
 
 @router.get("/history")
 async def search_history(
-    db: DatabaseSession,
+    search_service: SearchServiceDep,
     current_user: CurrentUser,
     skip: Annotated[int, Query(ge=0)] = 0,
     limit: Annotated[int, Query(ge=1, le=100)] = 50,
 ) -> list[dict]:
     """Get user's search history."""
-    search_service = SearchService(db)
-
     history, _total = await search_service.get_user_search_history(
         user_id=current_user.id,
         skip=skip,
@@ -124,25 +114,20 @@ async def search_history(
 
 @router.delete("/history")
 async def clear_search_history(
-    db: DatabaseSession,
+    search_service: SearchServiceDep,
     current_user: CurrentUser,
 ) -> dict:
     """Clear user's search history."""
-    search_service = SearchService(db)
-
     await search_service.clear_user_search_history(current_user.id)
-
     return {"message": "Search history cleared"}
 
 
 @router.get("/stats")
 async def get_search_stats(
-    db: DatabaseSession,
+    search_service: SearchServiceDep,
     current_user: CurrentUser,
 ) -> SearchStats:
     """Get search statistics (admin only)."""
-    search_service = SearchService(db)
-
     if current_user.role not in ["HR", "ADMIN"]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -150,5 +135,4 @@ async def get_search_stats(
         )
 
     stats = await search_service.get_search_stats()
-
     return SearchStats(**stats)
