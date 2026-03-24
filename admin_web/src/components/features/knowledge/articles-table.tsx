@@ -1,0 +1,167 @@
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { SearchInput } from "@/components/ui/search-input";
+import { Select } from "@/components/ui/select";
+import { StatusBadge } from "@/components/ui/status-badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { DataTable } from "@/components/ui/data-table";
+import { CardHeader, CardTitle } from "@/components/ui/card";
+import { BookOpen, Eye, Pin, Star, Trash2, MoreHorizontal } from "lucide-react";
+import { type Category } from "@/lib/api";
+import { ARTICLE_STATUSES } from "@/lib/constants";
+import type { ArticleRow } from "@/hooks/use-articles";
+
+export type { ArticleRow };
+
+interface ArticlesTableProps {
+  articles: ArticleRow[];
+  loading: boolean;
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
+  categoryFilter: string;
+  onCategoryFilterChange: (value: string) => void;
+  statusFilter: string;
+  onStatusFilterChange: (value: string) => void;
+  categories: Category[];
+  onEdit: (article: ArticleRow) => void;
+  onPublish: (id: number) => void;
+  onDelete: (id: number) => void;
+  currentPage?: number;
+  totalPages?: number;
+  totalCount?: number;
+  onPageChange?: (page: number) => void;
+}
+
+export function ArticlesTable({
+  articles,
+  loading,
+  searchQuery,
+  onSearchChange,
+  categoryFilter,
+  onCategoryFilterChange,
+  statusFilter,
+  onStatusFilterChange,
+  categories,
+  onEdit,
+  onPublish,
+  onDelete,
+  currentPage,
+  totalPages,
+  totalCount,
+  onPageChange,
+}: ArticlesTableProps) {
+  return (
+    <DataTable
+      loading={loading}
+      empty={articles.length === 0}
+      currentPage={currentPage}
+      totalPages={totalPages}
+      totalCount={totalCount}
+      onPageChange={onPageChange}
+      header={
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>Статьи</CardTitle>
+            <div className="flex gap-2">
+              <SearchInput placeholder="Поиск..." value={searchQuery} onChange={onSearchChange} />
+              <Select
+                value={categoryFilter}
+                onChange={(e) => onCategoryFilterChange(e.target.value)}
+                options={[
+                  { value: "ALL", label: "Все категории" },
+                  ...categories.map((cat) => ({ value: String(cat.id), label: cat.name })),
+                ]}
+              />
+              <Select
+                value={statusFilter}
+                onChange={(e) => onStatusFilterChange(e.target.value)}
+                options={ARTICLE_STATUSES}
+              />
+            </div>
+          </div>
+        </CardHeader>
+      }
+    >
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Статья</TableHead>
+            <TableHead>Категория</TableHead>
+            <TableHead>Автор</TableHead>
+            <TableHead>Просмотры</TableHead>
+            <TableHead>Статус</TableHead>
+            <TableHead>Дата</TableHead>
+            <TableHead className="w-[100px]">Действия</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {articles.map((article) => (
+            <TableRow
+              key={article.id}
+              className="hover:bg-muted cursor-pointer"
+              onClick={() => onEdit(article)}
+            >
+              <TableCell>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium">{article.title}</p>
+                    {article.isPinned && <Pin className="size-3 text-purple-500" />}
+                    {article.isFeatured && <Star className="size-3 text-yellow-500" />}
+                  </div>
+                    <p className="text-muted-foreground text-sm">{article.excerpt}</p>
+                </div>
+              </TableCell>
+              <TableCell>
+                <Badge variant="secondary">{article.category}</Badge>
+              </TableCell>
+              <TableCell>{article.author}</TableCell>
+              <TableCell>
+                <div className="flex items-center gap-1">
+                  <Eye className="text-muted-foreground size-4" />
+                  {article.viewCount}
+                </div>
+              </TableCell>
+              <TableCell>
+                <StatusBadge status={article.status} />
+              </TableCell>
+              <TableCell>{new Date(article.createdAt).toLocaleDateString("ru-RU")}</TableCell>
+              <TableCell onClick={(e) => e.stopPropagation()}>
+                <div className="flex gap-1">
+                  <Button variant="ghost" size="icon" onClick={() => onEdit(article)}>
+                    <MoreHorizontal className="size-4" />
+                  </Button>
+                  {article.status === "DRAFT" && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-green-500"
+                      onClick={() => onPublish(article.id)}
+                      title="Опубликовать"
+                    >
+                      <BookOpen className="size-4" />
+                    </Button>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-red-500"
+                    onClick={() => onDelete(article.id)}
+                  >
+                    <Trash2 className="size-4" />
+                  </Button>
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </DataTable>
+  );
+}

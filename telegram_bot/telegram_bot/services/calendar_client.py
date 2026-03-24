@@ -15,13 +15,19 @@ class CalendarClient:
     """Client for Meeting Service Calendar API."""
 
     def __init__(self, base_url: str | None = None) -> None:
+        """Initialize calendar client with meeting service URL."""
         self.base_url = base_url or settings.MEETING_SERVICE_URL
-        self.client = httpx.AsyncClient(base_url=self.base_url, timeout=settings.SERVICE_TIMEOUT)
+        self.client = httpx.AsyncClient(
+            base_url=self.base_url, timeout=settings.SERVICE_TIMEOUT
+        )
 
-    async def check_connection_status(self, user_id: int) -> dict[str, Any]:
+    async def check_connection_status(
+        self, user_id: int, auth_token: str
+    ) -> dict[str, Any]:
         """Check if user has connected Google Calendar."""
         response = await self.client.get(
             f"{settings.API_V1_PREFIX}/calendar/status/{user_id}",
+            headers={"Authorization": f"Bearer {auth_token}"},
         )
         response.raise_for_status()
         return response.json()
@@ -55,10 +61,13 @@ class CalendarClient:
 
         return authorization_url
 
-    async def disconnect_calendar(self, user_id: int) -> dict[str, Any]:
+    async def disconnect_calendar(
+        self, user_id: int, auth_token: str
+    ) -> dict[str, Any]:
         """Disconnect Google Calendar account."""
         response = await self.client.delete(
             f"{settings.API_V1_PREFIX}/calendar/{user_id}",
+            headers={"Authorization": f"Bearer {auth_token}"},
         )
         response.raise_for_status()
         return response.json()

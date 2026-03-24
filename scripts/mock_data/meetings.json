@@ -1,0 +1,112 @@
+[
+  {
+    "title": "HR Welcome Session",
+    "description": "Introduction to company culture, benefits, and HR processes. Learn about company values, HR policies, and available resources.",
+    "type": "HR",
+    "level": "JUNIOR",
+    "position": "Software Engineer",
+    "department": "Engineering",
+    "is_mandatory": true,
+    "deadline_days": 3,
+    "order": 1
+  },
+  {
+    "title": "Security Training",
+    "description": "Mandatory security awareness training covering data protection, password security, and compliance requirements.",
+    "type": "SECURITY",
+    "level": "JUNIOR",
+    "position": "Software Engineer",
+    "department": "Engineering",
+    "is_mandatory": true,
+    "deadline_days": 7,
+    "order": 2
+  },
+  {
+    "title": "Team Introduction",
+    "description": "Meet your team members and understand team workflows, processes, and project overview.",
+    "type": "TEAM",
+    "level": "JUNIOR",
+    "position": "Software Engineer",
+    "department": "Engineering",
+    "is_mandatory": true,
+    "deadline_days": 5,
+    "order": 3
+  },
+  {
+    "title": "Manager 1:1",
+    "description": "Weekly one-on-one meeting with your manager to discuss progress, challenges, and career development.",
+    "type": "MANAGER",
+    "level": "JUNIOR",
+    "position": "Software Engineer",
+    "department": "Engineering",
+    "is_mandatory": true,
+    "deadline_days": 7,
+    "order": 4
+  },
+  {
+    "title": "Product Demo",
+    "description": "Demonstrate your work or side project to the product team for feedback and visibility.",
+    "type": "OTHER",
+    "level": "JUNIOR",
+    "position": "Software Engineer",
+    "department": "Engineering",
+    "is_mandatory": false,
+    "deadline_days": 14,
+    "order": 5
+  },
+  {
+    "title": "Tech Review",
+    "description": "Technical review of your architecture, code quality, and technical decisions with senior engineers.",
+    "type": "OTHER",
+    "level": "SENIOR",
+    "position": "Software Engineer",
+    "department": "Engineering",
+    "is_mandatory": true,
+    "deadline_days": 21,
+    "order": 6
+  },
+  {
+    "title": "Sales Kickoff",
+    "description": "Review quarterly sales targets, strategies, and pipeline overview with the sales leadership.",
+    "type": "OTHER",
+    "level": "JUNIOR",
+    "position": "Sales Representative",
+    "department": "Sales",
+    "is_mandatory": true,
+    "deadline_days": 7,
+    "order": 7
+  },
+  {
+    "title": "Marketing Planning",
+    "description": "Marketing campaign planning and coordination session for upcoming quarter.",
+    "type": "OTHER",
+    "level": "JUNIOR",
+    "position": "Marketing Specialist",
+    "department": "Marketing",
+    "is_mandatory": true,
+    "deadline_days": 14,
+    "order": 8
+  },
+  {
+    "title": "Compliance Training",
+    "description": "Mandatory compliance and ethics training covering industry regulations and company policies.",
+    "type": "SECURITY",
+    "level": "JUNIOR",
+    "position": "Software Engineer",
+    "department": "Engineering",
+    "is_mandatory": true,
+    "deadline_days": 30,
+    "order": 9
+  },
+  {
+    "title": "All Hands",
+    "description": "Company-wide all hands meeting where leadership shares updates and celebrates achievements.",
+    "type": "OTHER",
+    "level": "JUNIOR",
+    "position": "Software Engineer",
+    "department": "Engineering",
+    "is_mandatory": true,
+    "deadline_days": 30,
+    "order": 10
+  }
+]

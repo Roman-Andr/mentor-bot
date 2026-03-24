@@ -1,6 +1,7 @@
 """Telegram authentication validation module."""
 
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth_service.config import settings
 from auth_service.models import User
@@ -13,7 +14,7 @@ def verify_telegram_api_key(api_key: str) -> bool:
     return api_key == settings.TELEGRAM_API_KEY
 
 
-async def verify_telegram_user_exists(db, telegram_id: int) -> bool:
+async def verify_telegram_user_exists(db: AsyncSession, telegram_id: int) -> bool:
     """Check if Telegram user exists in database."""
     stmt = select(User).where(User.telegram_id == telegram_id)
     result = await db.execute(stmt)

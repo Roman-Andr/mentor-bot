@@ -20,7 +20,7 @@ from knowledge_service.database import Base
 from knowledge_service.models.association import article_tags
 
 if TYPE_CHECKING:
-    from knowledge_service.models import Attachment, Category, Tag
+    from knowledge_service.models import Attachment, Category, Department, Tag
 
 
 class Article(Base):
@@ -42,7 +42,8 @@ class Article(Base):
     author_name: Mapped[str] = mapped_column(String(200), nullable=False)
 
     # Target audience filtering
-    department: Mapped[str | None] = mapped_column(String(100), nullable=True, index=True)
+    department_id: Mapped[int | None] = mapped_column(ForeignKey("departments.id"), nullable=True)
+    department: Mapped["Department | None"] = relationship("Department", back_populates="articles")
     position: Mapped[str | None] = mapped_column(String(100), nullable=True)
     level: Mapped[EmployeeLevel | None] = mapped_column(String(50), nullable=True, index=True)
 

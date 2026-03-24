@@ -1,8 +1,11 @@
+"""Experience rating model for feedback service."""
+
 from datetime import datetime
 
-from feedback_service.database import Base
 from sqlalchemy import DateTime, Integer
 from sqlalchemy.orm import Mapped, mapped_column
+
+from feedback_service.database import Base
 
 
 class ExperienceRating(Base):

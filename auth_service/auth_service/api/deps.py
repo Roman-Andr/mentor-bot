@@ -10,14 +10,14 @@ from auth_service.core import AuthException, PermissionDenied, UserRole
 from auth_service.database import AsyncSessionLocal
 from auth_service.models import User
 from auth_service.repositories.unit_of_work import SqlAlchemyUnitOfWork
-from auth_service.services import AuthService, InvitationService, UserService
+from auth_service.services import AuthService, DepartmentService, InvitationService, UserService
 
 # Security
 security = HTTPBearer(auto_error=False)
 
 
 # Unit of Work
-async def get_uow() -> AsyncGenerator[SqlAlchemyUnitOfWork, None]:
+async def get_uow() -> AsyncGenerator[SqlAlchemyUnitOfWork]:
     """Get Unit of Work instance for current request."""
     async with SqlAlchemyUnitOfWork(AsyncSessionLocal) as uow:
         try:
@@ -44,7 +44,13 @@ async def get_invitation_service(uow: Annotated[SqlAlchemyUnitOfWork, Depends(ge
     return InvitationService(uow)
 
 
+async def get_department_service(uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_uow)]) -> DepartmentService:
+    """Get DepartmentService instance with dependency injection."""
+    return DepartmentService(uow)
+
+
 AuthServiceDep = Annotated[AuthService, Depends(get_auth_service)]
+DepartmentServiceDep = Annotated[DepartmentService, Depends(get_department_service)]
 
 
 # User authentication

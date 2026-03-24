@@ -2,29 +2,26 @@
 
 from abc import abstractmethod
 from collections.abc import Sequence
-from typing import TYPE_CHECKING
 
 from auth_service.core import InvitationStatus
+from auth_service.models import Invitation
 from auth_service.repositories.interfaces.base import BaseRepository
 from auth_service.schemas.invitation import InvitationStats
-
-if TYPE_CHECKING:
-    from auth_service.models import Invitation
 
 
 class IInvitationRepository(BaseRepository["Invitation", int]):
     """Invitation repository interface with invitation-specific queries."""
 
     @abstractmethod
-    async def get_by_token(self, token: str) -> "Invitation" | None:
+    async def get_by_token(self, token: str) -> Invitation | None:
         """Get invitation by token."""
 
     @abstractmethod
-    async def get_valid_by_token(self, token: str) -> "Invitation" | None:
+    async def get_valid_by_token(self, token: str) -> Invitation | None:
         """Get valid (pending and not expired) invitation by token."""
 
     @abstractmethod
-    async def get_by_email(self, email: str) -> Sequence["Invitation"]:
+    async def get_by_email(self, email: str) -> Sequence[Invitation]:
         """Get all invitations for email address."""
 
     @abstractmethod
@@ -35,17 +32,17 @@ class IInvitationRepository(BaseRepository["Invitation", int]):
         limit: int = 100,
         email: str | None = None,
         status: InvitationStatus | None = None,
-        department: str | None = None,
+        department_id: int | None = None,
         expired_only: bool = False,
-    ) -> tuple[Sequence["Invitation"], int]:
+    ) -> tuple[Sequence[Invitation], int]:
         """Find invitations with filtering and return results with total count."""
 
     @abstractmethod
-    async def mark_as_used(self, invitation_id: int, user_id: int) -> "Invitation":
+    async def mark_as_used(self, invitation_id: int, user_id: int) -> Invitation:
         """Mark invitation as used and link to user."""
 
     @abstractmethod
-    async def update_status(self, invitation_id: int, status: InvitationStatus) -> "Invitation":
+    async def update_status(self, invitation_id: int, status: InvitationStatus) -> Invitation:
         """Update invitation status."""
 
     @abstractmethod

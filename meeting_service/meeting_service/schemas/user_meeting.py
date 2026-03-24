@@ -7,6 +7,9 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 from meeting_service.core.enums import MeetingStatus
 from meeting_service.schemas.meeting import MeetingResponse
 
+MIN_RATING = 1
+MAX_RATING = 5
+
 
 class UserMeetingBase(BaseModel):
     """Base user meeting schema."""
@@ -37,8 +40,8 @@ class UserMeetingComplete(BaseModel):
     @classmethod
     def validate_rating(cls, v: int | None) -> int | None:
         """Validate rating range."""
-        if v is not None and not 1 <= v <= 5:
-            msg = "Rating must be between 1 and 5"
+        if v is not None and not MIN_RATING <= v <= MAX_RATING:
+            msg = f"Rating must be between {MIN_RATING} and {MAX_RATING}"
             raise ValueError(msg)
         return v
 

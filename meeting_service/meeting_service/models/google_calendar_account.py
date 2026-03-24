@@ -31,4 +31,5 @@ class GoogleCalendarAccount(Base):
     updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), onupdate=func.now(), nullable=True)
 
     def __repr__(self) -> str:
+        """Return string representation of the account."""
         return f"<GoogleCalendarAccount(user_id={self.user_id}, calendar_id={self.calendar_id})>"

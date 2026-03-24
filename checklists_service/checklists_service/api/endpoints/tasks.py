@@ -8,6 +8,7 @@ from fastapi import APIRouter, HTTPException, Query, status
 from checklists_service.api.deps import CurrentUser, HRUser, UOWDep
 from checklists_service.core import NotFoundException, PermissionDenied, ValidationException
 from checklists_service.core.enums import TaskStatus
+from checklists_service.models import Task
 from checklists_service.schemas import (
     MessageResponse,
     TaskBulkUpdate,
@@ -20,7 +21,7 @@ from checklists_service.services import ChecklistService, TaskService
 router = APIRouter()
 
 
-async def _build_task_response(task, uow: UOWDep) -> TaskResponse:
+async def _build_task_response(task: Task, uow: UOWDep) -> TaskResponse:
     """Build a TaskResponse with computed fields from a Task ORM object."""
     now = datetime.now(UTC)
 

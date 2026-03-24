@@ -4,7 +4,7 @@ from collections.abc import AsyncGenerator
 from typing import Annotated
 
 import httpx
-from fastapi import Depends, HTTPException, Request, status
+from fastapi import Depends, Header, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from checklists_service.config import settings
@@ -40,7 +40,7 @@ class UserInfo:
 
 
 async def get_current_user(
-    request: Request,
+    _request: Request,
     credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)],
 ) -> UserInfo:
     """Dependency to get current authenticated user via auth service."""
@@ -51,7 +51,7 @@ async def get_current_user(
     async with httpx.AsyncClient() as client:
         try:
 
-            async def call_auth_service():
+            async def call_auth_service() -> httpx.Response:
                 return await client.get(
                     f"{settings.AUTH_SERVICE_URL}/api/v1/auth/me",
                     headers={"Authorization": f"Bearer {credentials.credentials}"},
@@ -125,8 +125,23 @@ async def get_auth_token(request: Request) -> str | None:
     return getattr(request.state, "auth_token", None)
 
 
+async def verify_service_api_key(
+    x_api_key: Annotated[str | None, Header(alias="X-Service-Api-Key")] = None,
+) -> bool:
+    """Verify service-to-service API key."""
+    if not settings.SERVICE_API_KEY:
+        return False
+    if not x_api_key or x_api_key != settings.SERVICE_API_KEY:
+        msg = "Invalid service API key"
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=msg)
+    return True
+
+
+ServiceAuth = Annotated[bool, Depends(verify_service_api_key)]
+
+
 # Unit of Work dependency
-async def get_uow() -> AsyncGenerator[SqlAlchemyUnitOfWork, None]:
+async def get_uow() -> AsyncGenerator[SqlAlchemyUnitOfWork]:
     """Get Unit of Work instance for current request."""
     async with SqlAlchemyUnitOfWork(AsyncSessionLocal) as uow:
         try:

@@ -1,5 +1,6 @@
 """SQLAlchemy implementation for Google Calendar account repository."""
 
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -11,6 +12,7 @@ class SQLAlchemyGoogleCalendarAccountRepository(IGoogleCalendarAccountRepository
     """SQLAlchemy implementation of IGoogleCalendarAccountRepository."""
 
     def __init__(self, session: AsyncSession) -> None:
+        """Initialize repository with database session."""
         self._session = session
 
     async def get_by_user_id(self, user_id: int) -> GoogleCalendarAccount | None:

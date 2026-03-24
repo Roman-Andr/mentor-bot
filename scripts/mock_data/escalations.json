@@ -1,0 +1,56 @@
+[
+  {
+    "type": "HR",
+    "source": "MANUAL",
+    "reason": "Need clarification on leave policy",
+    "context": {
+      "category": "leave_policy",
+      "priority": "normal"
+    },
+    "related_entity_type": "checklist",
+    "related_entity_id": 1
+  },
+  {
+    "type": "MENTOR",
+    "source": "MANUAL",
+    "reason": "Need additional help with technical task",
+    "context": {
+      "task_id": 5,
+      "priority": "high"
+    },
+    "related_entity_type": "task",
+    "related_entity_id": 5
+  },
+  {
+    "type": "IT",
+    "source": "MANUAL",
+    "reason": "Cannot access development environment",
+    "context": {
+      "issue": "permission_denied",
+      "system": "github"
+    },
+    "related_entity_type": null,
+    "related_entity_id": null
+  },
+  {
+    "type": "GENERAL",
+    "source": "MANUAL",
+    "reason": "Question about team processes",
+    "context": {
+      "topic": "standup_schedule"
+    },
+    "related_entity_type": null,
+    "related_entity_id": null
+  },
+  {
+    "type": "HR",
+    "source": "AUTO_OVERDUE",
+    "reason": "Overdue checklist items",
+    "context": {
+      "overdue_count": 3,
+      "checklist_id": 1
+    },
+    "related_entity_type": "checklist",
+    "related_entity_id": 1
+  }
+]

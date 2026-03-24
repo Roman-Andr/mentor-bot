@@ -3,23 +3,20 @@
 from abc import abstractmethod
 from collections.abc import Sequence
 from datetime import date
-from typing import TYPE_CHECKING
 
+from knowledge_service.models import Article
 from knowledge_service.repositories.interfaces.base import BaseRepository
-
-if TYPE_CHECKING:
-    from knowledge_service.models import Article
 
 
 class IArticleRepository(BaseRepository["Article", int]):
     """Article repository interface with specific queries."""
 
     @abstractmethod
-    async def get_by_slug(self, slug: str) -> "Article | None":
+    async def get_by_slug(self, slug: str) -> Article | None:
         """Get article by slug with eager-loaded relationships."""
 
     @abstractmethod
-    async def get_by_id_with_relations(self, entity_id: int) -> "Article | None":
+    async def get_by_id_with_relations(self, entity_id: int) -> Article | None:
         """Get article by ID with eager-loaded category, tags, attachments."""
 
     @abstractmethod
@@ -30,18 +27,18 @@ class IArticleRepository(BaseRepository["Article", int]):
         limit: int = 100,
         category_id: int | None = None,
         tag_id: int | None = None,
-        department: str | None = None,
+        department_id: int | None = None,
         status: str | None = None,
         user_filters: dict | None = None,
         featured_only: bool = False,
         pinned_only: bool = False,
-    ) -> tuple[Sequence["Article"], int]:
+    ) -> tuple[Sequence[Article], int]:
         """Find articles with filtering, return results + total count."""
 
     @abstractmethod
     async def find_department_articles(
-        self, department: str, *, skip: int = 0, limit: int = 100
-    ) -> tuple[Sequence["Article"], int]:
+        self, department_id: int, *, skip: int = 0, limit: int = 100
+    ) -> tuple[Sequence[Article], int]:
         """Find published articles for a specific department."""
 
     @abstractmethod

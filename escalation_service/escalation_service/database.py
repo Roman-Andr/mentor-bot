@@ -42,7 +42,7 @@ class Base(DeclarativeBase):
     metadata = metadata_obj
 
 
-async def get_db() -> AsyncGenerator[AsyncSession, None]:
+async def get_db() -> AsyncGenerator[AsyncSession]:
     """Dependency for getting async database session."""
     async with AsyncSessionLocal() as session:
         try:

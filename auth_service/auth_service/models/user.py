@@ -4,9 +4,11 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy import (
+    BigInteger,
     Boolean,
     DateTime,
     Enum,
+    ForeignKey,
     Integer,
     String,
 )
@@ -17,7 +19,8 @@ from auth_service.core import EmployeeLevel, UserRole
 from auth_service.database import Base
 
 if TYPE_CHECKING:
-    from auth_service.models import Invitation
+    from auth_service.models import Department, Invitation
+    from auth_service.models.user_mentor import UserMentor
 
 
 class User(Base):
@@ -26,7 +29,7 @@ class User(Base):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    telegram_id: Mapped[int | None] = mapped_column(Integer, unique=True, index=True, nullable=True)
+    telegram_id: Mapped[int | None] = mapped_column(BigInteger, unique=True, index=True, nullable=True)
     username: Mapped[str | None] = mapped_column(String(100), nullable=True)
     first_name: Mapped[str] = mapped_column(String(100), nullable=False)
     last_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
@@ -35,7 +38,8 @@ class User(Base):
 
     # Company information
     employee_id: Mapped[str] = mapped_column(String(50), unique=True, index=True, nullable=False)
-    department: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    department_id: Mapped[int | None] = mapped_column(ForeignKey("departments.id"), nullable=True)
+    department: Mapped["Department | None"] = relationship("Department", back_populates="users")
     position: Mapped[str | None] = mapped_column(String(100), nullable=True)
     level: Mapped[EmployeeLevel | None] = mapped_column(Enum(EmployeeLevel), nullable=True)
     hire_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
@@ -53,7 +57,13 @@ class User(Base):
 
     # Relationships
     invitations: Mapped[list["Invitation"]] = relationship(
-        "Invitation", back_populates="user", cascade="all, delete-orphan"
+        "Invitation", foreign_keys="Invitation.user_id", back_populates="user", cascade="all, delete-orphan"
+    )
+    mentor_assignments: Mapped[list["UserMentor"]] = relationship(
+        "UserMentor", foreign_keys="UserMentor.user_id", back_populates="user", cascade="all, delete-orphan"
+    )
+    mentee_assignments: Mapped[list["UserMentor"]] = relationship(
+        "UserMentor", foreign_keys="UserMentor.mentor_id", back_populates="mentor", cascade="all, delete-orphan"
     )
 
     def __repr__(self) -> str:

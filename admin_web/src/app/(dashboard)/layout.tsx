@@ -1,16 +1,12 @@
-import { AuthCheck } from "@/components/auth-check";
-import { Sidebar } from "@/components/sidebar";
+import { AuthCheck } from "@/components/layout/auth-check";
+import { Sidebar } from "@/components/layout/sidebar";
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <AuthCheck>
       <div className="flex h-screen">
         <Sidebar />
-        <div className="flex-1 overflow-y-auto bg-gray-50">{children}</div>
+        <div className="bg-background flex-1 overflow-y-auto">{children}</div>
       </div>
     </AuthCheck>
   );

@@ -3,12 +3,13 @@
 from collections.abc import Sequence
 from typing import cast
 
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from escalation_service.core.enums import EscalationStatus, EscalationType
 from escalation_service.models import EscalationRequest
 from escalation_service.repositories.implementations.base import SqlAlchemyBaseRepository
-from escalation_service.repositories.interfaces.escalation import IEscalationRepository
-from sqlalchemy import func, select
-from sqlalchemy.ext.asyncio import AsyncSession
+from escalation_service.repositories.interfaces import IEscalationRepository
 
 
 class EscalationRepository(SqlAlchemyBaseRepository[EscalationRequest, int], IEscalationRepository):

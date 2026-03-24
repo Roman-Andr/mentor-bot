@@ -39,7 +39,7 @@ metadata_obj = MetaData(schema=settings.DATABASE_SCHEMA)
 Base.metadata = metadata_obj
 
 
-async def get_db() -> AsyncGenerator[AsyncSession, None]:
+async def get_db() -> AsyncGenerator[AsyncSession]:
     """Dependency for getting async database session."""
     async with AsyncSessionLocal() as session:
         try:
@@ -57,7 +57,9 @@ async def init_db() -> None:
     async with engine.begin() as conn:
         # Create schema if it does not exist
         await conn.run_sync(
-            lambda sync_conn: sync_conn.execute(schema.CreateSchema(settings.DATABASE_SCHEMA, if_not_exists=True))
+            lambda sync_conn: sync_conn.execute(
+                schema.CreateSchema(settings.DATABASE_SCHEMA, if_not_exists=True)
+            )
         )
 
         # Create all tables

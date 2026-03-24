@@ -25,6 +25,7 @@ router = APIRouter()
 
 
 @router.get("/")
+@router.get("")
 async def get_escalations(
     escalation_service: EscalationServiceDep,
     current_user: CurrentUser,
@@ -67,6 +68,7 @@ async def get_escalations(
 
 
 @router.post("/")
+@router.post("")
 async def create_escalation(
     data: EscalationRequestCreate,
     escalation_service: EscalationServiceDep,

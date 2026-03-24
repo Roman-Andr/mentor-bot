@@ -1,7 +1,7 @@
 """Invitation database model."""
 
 from datetime import datetime
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from sqlalchemy import (
     DateTime,
@@ -13,11 +13,11 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
-from auth_service.core import EmployeeLevel, InvitationStatus
+from auth_service.core import EmployeeLevel, InvitationStatus, UserRole
 from auth_service.database import Base
 
 if TYPE_CHECKING:
-    from auth_service.models import User
+    from auth_service.models import Department, User
 
 
 class Invitation(Base):
@@ -33,9 +33,15 @@ class Invitation(Base):
     # User information
     first_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
     last_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
-    department: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    department_id: Mapped[int | None] = mapped_column(ForeignKey("departments.id"), nullable=True)
+    department: Mapped["Department | None"] = relationship("Department", back_populates="invitations")
     position: Mapped[str | None] = mapped_column(String(100), nullable=True)
     level: Mapped[EmployeeLevel | None] = mapped_column(Enum(EmployeeLevel), nullable=True)
+    role: Mapped[UserRole] = mapped_column(Enum(UserRole), default=UserRole.NEWBIE, nullable=False)
+
+    # Mentor assignment
+    mentor_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    mentor: Mapped["User | None"] = relationship("User", foreign_keys=[mentor_id])
 
     # Status
     status: Mapped[InvitationStatus] = mapped_column(
@@ -49,7 +55,7 @@ class Invitation(Base):
 
     # Relationships
     user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
-    user: Mapped[Optional["User"]] = relationship("User", back_populates="invitations")
+    user: Mapped["User | None"] = relationship("User", foreign_keys=[user_id], back_populates="invitations")
 
     def __repr__(self) -> str:
         """Representation of Invitation."""

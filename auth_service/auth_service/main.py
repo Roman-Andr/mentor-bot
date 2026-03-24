@@ -13,7 +13,7 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
 
-from auth_service.api import auth, invitations, users
+from auth_service.api import auth, departments, invitations, user_mentors, users
 from auth_service.config import settings
 from auth_service.database import init_db
 from auth_service.schemas import HealthCheck, ServiceStatus
@@ -45,6 +45,7 @@ app = FastAPI(
     redoc_url="/redoc" if settings.DEBUG else None,
     openapi_url=f"{settings.API_V1_PREFIX}/openapi.json",
     lifespan=lifespan,
+    redirect_slashes=False,
 )
 
 # Add middleware
@@ -68,6 +69,8 @@ app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.ALLOWED_HOSTS)
 app.include_router(auth.router, prefix=f"{settings.API_V1_PREFIX}/auth", tags=["authentication"])
 app.include_router(users.router, prefix=f"{settings.API_V1_PREFIX}/users", tags=["users"])
 app.include_router(invitations.router, prefix=f"{settings.API_V1_PREFIX}/invitations", tags=["invitations"])
+app.include_router(departments.router, prefix=f"{settings.API_V1_PREFIX}/departments", tags=["departments"])
+app.include_router(user_mentors.router, prefix=f"{settings.API_V1_PREFIX}/user-mentors", tags=["user-mentors"])
 
 
 @app.get("/")

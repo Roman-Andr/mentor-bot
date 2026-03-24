@@ -16,6 +16,7 @@ class SearchHistoryRepository(SqlAlchemyBaseRepository[SearchHistory, int], ISea
     """SQLAlchemy implementation of SearchHistory repository."""
 
     def __init__(self, session: AsyncSession) -> None:
+        """Initialize search history repository."""
         super().__init__(session, SearchHistory)
 
     async def record_search(
@@ -24,20 +25,22 @@ class SearchHistoryRepository(SqlAlchemyBaseRepository[SearchHistory, int], ISea
         query: str,
         results_count: int,
         filters: dict,
-        department: str | None = None,
+        department_id: int | None = None,
     ) -> SearchHistory:
+        """Record a search query."""
         search_history = SearchHistory(
             user_id=user_id,
             query=query,
             filters=filters,
             results_count=results_count,
-            department=department,
+            department_id=department_id,
         )
         return await self.create(search_history)
 
     async def find_by_user(
         self, user_id: int, *, skip: int = 0, limit: int = 100
     ) -> tuple[Sequence[SearchHistory], int]:
+        """Find search history entries for a user."""
         stmt = select(SearchHistory).where(SearchHistory.user_id == user_id)
         count_stmt = select(func.count(SearchHistory.id)).where(SearchHistory.user_id == user_id)
 
@@ -48,6 +51,7 @@ class SearchHistoryRepository(SqlAlchemyBaseRepository[SearchHistory, int], ISea
         return result.scalars().all(), total
 
     async def clear_user_history(self, user_id: int) -> int:
+        """Clear all search history for a user."""
         stmt = select(SearchHistory).where(SearchHistory.user_id == user_id)
         result = await self._session.execute(stmt)
         history_items = list(result.scalars().all())
@@ -57,13 +61,14 @@ class SearchHistoryRepository(SqlAlchemyBaseRepository[SearchHistory, int], ISea
         await self._session.flush()
         return count
 
-    async def get_suggestions(self, query: str, department: str | None = None, limit: int = 10) -> Sequence[str]:
+    async def get_suggestions(self, query: str, department_id: int | None = None, limit: int = 10) -> Sequence[str]:
+        """Get search suggestions based on query prefix."""
         conditions = [
             SearchHistory.query.ilike(f"%{query}%"),
             SearchHistory.created_at >= datetime.now(UTC) - timedelta(days=30),
         ]
-        if department is not None:
-            conditions.append(SearchHistory.department == department)
+        if department_id is not None:
+            conditions.append(SearchHistory.department_id == department_id)
 
         stmt = (
             select(SearchHistory.query, func.count(SearchHistory.id).label("count"))
@@ -75,12 +80,13 @@ class SearchHistoryRepository(SqlAlchemyBaseRepository[SearchHistory, int], ISea
         result = await self._session.execute(stmt)
         return [row[0] for row in result.all()]
 
-    async def get_popular_searches(self, department: str | None = None, limit: int = 10) -> list[dict[str, Any]]:
+    async def get_popular_searches(self, department_id: int | None = None, limit: int = 10) -> list[dict[str, Any]]:
+        """Get popular search queries from the last 7 days."""
         conditions = [
             SearchHistory.created_at >= datetime.now(UTC) - timedelta(days=7),
         ]
-        if department is not None:
-            conditions.append(SearchHistory.department == department)
+        if department_id is not None:
+            conditions.append(SearchHistory.department_id == department_id)
 
         stmt = (
             select(
@@ -104,6 +110,7 @@ class SearchHistoryRepository(SqlAlchemyBaseRepository[SearchHistory, int], ISea
         ]
 
     async def get_search_stats(self) -> dict[str, Any]:
+        """Get aggregate search statistics."""
         total_stmt = select(func.count(SearchHistory.id))
         total_result = await self._session.execute(total_stmt)
         total_searches = total_result.scalar_one() or 0
@@ -135,11 +142,11 @@ class SearchHistoryRepository(SqlAlchemyBaseRepository[SearchHistory, int], ISea
 
         dept_stmt = (
             select(
-                SearchHistory.department,
+                SearchHistory.department_id,
                 func.count(SearchHistory.id).label("count"),
             )
-            .where(SearchHistory.department.is_not(None))
-            .group_by(SearchHistory.department)
+            .where(SearchHistory.department_id.is_not(None))
+            .group_by(SearchHistory.department_id)
         )
         dept_result = await self._session.execute(dept_stmt)
         searches_by_department = {row[0]: row[1] for row in dept_result.all()}

@@ -3,8 +3,9 @@
 from collections.abc import Sequence
 from typing import cast
 
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload
 
 from checklists_service.core.enums import TemplateStatus
 from checklists_service.models import Checklist, TaskTemplate, Template
@@ -19,12 +20,18 @@ class TemplateRepository(SqlAlchemyBaseRepository[Template, int], ITemplateRepos
         """Initialize TemplateRepository with database session."""
         super().__init__(session, Template)
 
+    async def get_by_id(self, entity_id: int) -> Template | None:
+        """Get template by ID with department eagerly loaded."""
+        stmt = select(Template).options(joinedload(Template.department)).where(Template.id == entity_id)
+        result = await self._session.execute(stmt)
+        return result.scalar_one_or_none()
+
     async def find_templates(
         self,
         *,
         skip: int = 0,
         limit: int = 100,
-        department: str | None = None,
+        department_id: int | None = None,
         status: TemplateStatus | None = None,
         is_default: bool | None = None,
     ) -> tuple[Sequence[Template], int]:
@@ -32,9 +39,9 @@ class TemplateRepository(SqlAlchemyBaseRepository[Template, int], ITemplateRepos
         count_stmt = select(func.count(Template.id))
         stmt = select(Template)
 
-        if department:
-            stmt = stmt.where(Template.department == department)
-            count_stmt = count_stmt.where(Template.department == department)
+        if department_id is not None:
+            stmt = stmt.where(Template.department_id == department_id)
+            count_stmt = count_stmt.where(Template.department_id == department_id)
 
         if status:
             stmt = stmt.where(Template.status == status)
@@ -46,25 +53,27 @@ class TemplateRepository(SqlAlchemyBaseRepository[Template, int], ITemplateRepos
 
         total = cast("int", (await self._session.execute(count_stmt)).scalar_one())
 
-        stmt = stmt.offset(skip).limit(limit).order_by(Template.created_at.desc())
+        stmt = (
+            stmt.options(joinedload(Template.department)).offset(skip).limit(limit).order_by(Template.created_at.desc())
+        )
         result = await self._session.execute(stmt)
         templates = result.scalars().all()
 
         return templates, total
 
-    async def get_by_name_and_department(self, name: str, department: str | None) -> Template | None:
+    async def get_by_name_and_department(self, name: str, department_id: int | None) -> Template | None:
         """Get template by name and department."""
         stmt = select(Template).where(
             Template.name == name,
-            Template.department == department,
+            Template.department_id == department_id,
         )
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none()
 
-    async def clear_other_defaults(self, department: str | None, exclude_id: int) -> None:
+    async def clear_other_defaults(self, department_id: int | None, exclude_id: int) -> None:
         """Clear is_default flag on other templates in the same department."""
         stmt = select(Template).where(
-            Template.department == department,
+            Template.department_id == department_id,
             Template.is_default,
             Template.id != exclude_id,
         )
@@ -87,15 +96,38 @@ class TemplateRepository(SqlAlchemyBaseRepository[Template, int], ITemplateRepos
     async def get_department_stats(self, user_id: int | None = None) -> dict[str, int]:
         """Get checklist count grouped by department."""
         stmt = (
-            select(Template.department, func.count(Checklist.id))
+            select(Template.department_id, func.count(Checklist.id))
             .join(Checklist, Checklist.template_id == Template.id)
-            .group_by(Template.department)
+            .group_by(Template.department_id)
         )
         if user_id is not None:
             stmt = stmt.where(Checklist.user_id == user_id)
 
         result = await self._session.execute(stmt)
         return dict(result.all())
+
+    async def find_matching(
+        self,
+        department_id: int | None,
+        position: str | None,
+    ) -> Sequence[Template]:
+        """Find active templates matching department and/or position."""
+        stmt = select(Template).where(Template.status == TemplateStatus.ACTIVE)
+
+        # Department: template has no department (applies to all) OR matches user's department
+        if department_id is not None:
+            stmt = stmt.where(or_(Template.department_id.is_(None), Template.department_id == department_id))
+        else:
+            stmt = stmt.where(Template.department_id.is_(None))
+
+        # Position: template has no position (applies to all) OR matches user's position
+        if position is not None:
+            stmt = stmt.where(or_(Template.position.is_(None), Template.position == position))
+        else:
+            stmt = stmt.where(Template.position.is_(None))
+
+        result = await self._session.execute(stmt)
+        return result.scalars().all()
 
 
 class TaskTemplateRepository(SqlAlchemyBaseRepository[TaskTemplate, int], ITaskTemplateRepository):

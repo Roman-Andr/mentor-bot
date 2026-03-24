@@ -11,6 +11,7 @@ from knowledge_service.schemas.article import (
 from knowledge_service.schemas.attachment import (
     AttachmentBase,
     AttachmentCreate,
+    AttachmentListResponse,
     AttachmentResponse,
 )
 from knowledge_service.schemas.category import (
@@ -43,6 +44,7 @@ __all__ = [
     "ArticleViewStats",
     "AttachmentBase",
     "AttachmentCreate",
+    "AttachmentListResponse",
     "AttachmentResponse",
     "CategoryBase",
     "CategoryCreate",

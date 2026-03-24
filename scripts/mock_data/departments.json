@@ -1,0 +1,22 @@
+[
+  {
+    "name": "Engineering",
+    "description": "Software engineering department"
+  },
+  {
+    "name": "Product",
+    "description": "Product management and design"
+  },
+  {
+    "name": "Sales",
+    "description": "Sales and business development"
+  },
+  {
+    "name": "Marketing",
+    "description": "Marketing and communications"
+  },
+  {
+    "name": "Operations",
+    "description": "Operations and support"
+  }
+]

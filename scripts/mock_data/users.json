@@ -1,0 +1,70 @@
+{
+  "admin": {
+    "email": "admin@company.com",
+    "first_name": "Admin",
+    "last_name": "Adminov",
+    "employee_id": "admin001",
+    "password": "admin123",
+    "role": "ADMIN",
+    "department": "Engineering",
+    "position": "System Administrator",
+    "level": "SENIOR"
+  },
+  "hr": {
+    "email": "hr@company.com",
+    "first_name": "Jane",
+    "last_name": "Smith",
+    "employee_id": "HR001",
+    "password": "mentor123",
+    "role": "HR",
+    "department": "Engineering",
+    "position": "HR Manager",
+    "level": "SENIOR"
+  },
+  "mentor": {
+    "email": "mentor@company.com",
+    "first_name": "Alex",
+    "last_name": "Johnson",
+    "employee_id": "MEN001",
+    "password": "mentor123",
+    "role": "MENTOR",
+    "department": "Engineering",
+    "position": "Senior Software Engineer",
+    "level": "SENIOR"
+  },
+  "newbie": {
+    "email": "user@company.com",
+    "first_name": "John",
+    "last_name": "Doe",
+    "employee_id": "EMP001",
+    "password": "user1234",
+    "role": "NEWBIE",
+    "department": "Engineering",
+    "position": "Software Engineer",
+    "level": "JUNIOR",
+    "telegram_id": 769517888,
+    "telegram_username": "romanandr"
+  },
+  "extra_hr": {
+    "email": "hr2@company.com",
+    "first_name": "Sarah",
+    "last_name": "Williams",
+    "employee_id": "HR002",
+    "password": "mentor123",
+    "role": "HR",
+    "department": "Operations",
+    "position": "HR Specialist",
+    "level": "MIDDLE"
+  },
+  "extra_mentor": {
+    "email": "mentor2@company.com",
+    "first_name": "Mike",
+    "last_name": "Brown",
+    "employee_id": "MEN002",
+    "password": "mentor123",
+    "role": "MENTOR",
+    "department": "Product",
+    "position": "Product Lead",
+    "level": "SENIOR"
+  }
+}

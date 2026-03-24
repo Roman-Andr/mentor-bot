@@ -1,15 +1,17 @@
 """Authentication middleware for Telegram updates."""
 
 from collections.abc import Awaitable, Callable
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from aiogram import BaseMiddleware, Bot
 from aiogram.types import TelegramObject
-from aiogram.types import User as TgUser
 
 from telegram_bot.config import settings
 from telegram_bot.services.auth_client import auth_client
 from telegram_bot.services.cache import user_cache
+
+if TYPE_CHECKING:
+    from aiogram.types import User as TgUser
 
 
 class AuthMiddleware(BaseMiddleware):
@@ -25,7 +27,7 @@ class AuthMiddleware(BaseMiddleware):
         handler: Callable[[TelegramObject, dict[str, Any]], Awaitable[Any]],
         event: TelegramObject,
         data: dict[str, Any],
-    ) -> Any:
+    ) -> object:
         """Process update to authenticate user."""
         tg_user: TgUser = None
         if event.message:
@@ -51,7 +53,9 @@ class AuthMiddleware(BaseMiddleware):
             auth_result = await auth_client.authenticate_with_telegram(telegram_data)
 
             if auth_result and "access_token" in auth_result:
-                user_data = await auth_client.get_current_user(auth_result["access_token"])
+                user_data = await auth_client.get_current_user(
+                    auth_result["access_token"]
+                )
 
                 if user_data:
                     await user_cache.set_user(

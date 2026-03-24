@@ -12,6 +12,12 @@ from auth_service.schemas.auth import (
     Token,
     TokenPayload,
 )
+from auth_service.schemas.department import (
+    DepartmentCreate,
+    DepartmentListResponse,
+    DepartmentResponse,
+    DepartmentUpdate,
+)
 from auth_service.schemas.invitation import (
     InvitationBase,
     InvitationCreate,
@@ -31,9 +37,19 @@ from auth_service.schemas.user import (
     UserResponse,
     UserUpdate,
 )
+from auth_service.schemas.user_mentor import (
+    UserMentorCreate,
+    UserMentorListResponse,
+    UserMentorResponse,
+    UserMentorUpdate,
+)
 
 __all__ = [
     "ChangePasswordRequest",
+    "DepartmentCreate",
+    "DepartmentListResponse",
+    "DepartmentResponse",
+    "DepartmentUpdate",
     "HealthCheck",
     "InvitationBase",
     "InvitationCreate",
@@ -54,6 +70,10 @@ __all__ = [
     "UserBase",
     "UserCreate",
     "UserListResponse",
+    "UserMentorCreate",
+    "UserMentorListResponse",
+    "UserMentorResponse",
+    "UserMentorUpdate",
     "UserResponse",
     "UserUpdate",
 ]

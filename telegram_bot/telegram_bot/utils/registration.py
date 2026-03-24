@@ -24,16 +24,23 @@ async def register_by_token(
     invitation = await auth_client.validate_invitation_token(token)
 
     if not invitation:
-        return False, "❌ Invalid or expired invitation token.\nPlease check your invitation link or contact HR."
+        return (
+            False,
+            "❌ Invalid or expired invitation token.\nPlease check your invitation link or contact HR.",
+        )
 
     telegram_data = {
         "api_key": auth_client.client.headers.get("X-API-Key"),
         "telegram_id": tg_user.id,
         "username": tg_user.username,
+        "first_name": tg_user.first_name,
+        "last_name": tg_user.last_name,
         "phone": None,
     }
 
-    registration_result = await auth_client.register_with_invitation(token, telegram_data)
+    registration_result = await auth_client.register_with_invitation(
+        token, telegram_data
+    )
 
     if not registration_result:
         return False, "❌ Registration failed. Please try again or contact HR."

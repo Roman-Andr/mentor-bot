@@ -1,0 +1,53 @@
+[
+  {
+    "type": "TASK_REMINDER",
+    "channel": "TELEGRAM",
+    "subject": "Task Reminder",
+    "body": "You have a pending task: {{task_title}}. Due date is {{due_date}}.",
+    "sample_data": {
+      "task_id": 1,
+      "task_title": "Complete HR Documentation",
+      "due_date": "2024-01-15"
+    }
+  },
+  {
+    "type": "MEETING_REMINDER",
+    "channel": "BOTH",
+    "subject": "Meeting Reminder",
+    "body": "You have a meeting scheduled: {{meeting_title}} at {{meeting_time}}.",
+    "sample_data": {
+      "meeting_id": 1,
+      "meeting_title": "HR Welcome Session",
+      "meeting_time": "2024-01-10T10:00:00Z"
+    }
+  },
+  {
+    "type": "ONBOARDING_EVENT",
+    "channel": "TELEGRAM",
+    "subject": "Onboarding Update",
+    "body": "Welcome! Your onboarding checklist progress: {{progress}}% complete.",
+    "sample_data": {
+      "checklist_id": 1,
+      "progress": 50
+    }
+  },
+  {
+    "type": "GENERAL",
+    "channel": "EMAIL",
+    "subject": "Company Announcement",
+    "body": "Important announcement: {{message}}",
+    "sample_data": {
+      "message": "New office policies effective next month"
+    }
+  },
+  {
+    "type": "ESCALATION",
+    "channel": "BOTH",
+    "subject": "Escalation Update",
+    "body": "Your escalation request #{{escalation_id}} has been updated to status: {{status}}",
+    "sample_data": {
+      "escalation_id": 1,
+      "status": "IN_PROGRESS"
+    }
+  }
+]

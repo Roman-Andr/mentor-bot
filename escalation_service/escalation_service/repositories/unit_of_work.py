@@ -4,9 +4,10 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from typing import Protocol, Self, runtime_checkable
 
-from escalation_service.repositories.implementations.escalation import EscalationRepository
-from escalation_service.repositories.interfaces.escalation import IEscalationRepository
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+
+from escalation_service.repositories.implementations import EscalationRepository
+from escalation_service.repositories.interfaces import IEscalationRepository
 
 
 @runtime_checkable
@@ -68,7 +69,7 @@ class SqlAlchemyUnitOfWork(IUnitOfWork):
 
 
 @asynccontextmanager
-async def sqlalchemy_uow(session_factory: async_sessionmaker) -> AsyncGenerator[SqlAlchemyUnitOfWork, None]:
+async def sqlalchemy_uow(session_factory: async_sessionmaker) -> AsyncGenerator[SqlAlchemyUnitOfWork]:
     """Async context manager for SqlAlchemyUnitOfWork."""
     async with SqlAlchemyUnitOfWork(session_factory) as uow:
         yield uow

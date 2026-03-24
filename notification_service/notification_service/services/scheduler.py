@@ -23,12 +23,12 @@ class Scheduler:
     async def run(self) -> None:
         """Start the scheduler loop."""
         self._running = True
-        logger.info(f"Scheduler started with poll interval {self.poll_interval}s")
+        logger.info("Scheduler started with poll interval %ss", self.poll_interval)
         while self._running:
             try:
                 await self._process()
-            except Exception as e:
-                logger.exception(f"Error in scheduler loop: {e}")
+            except Exception:
+                logger.exception("Error in scheduler loop")
             await asyncio.sleep(self.poll_interval)
 
     async def stop(self) -> None:
@@ -44,7 +44,7 @@ class Scheduler:
             service = NotificationService(uow)
             sent = await service.process_scheduled()
             if sent:
-                logger.info(f"Processed {len(sent)} scheduled notifications")
+                logger.info("Processed %s scheduled notifications", len(sent))
 
 
 # Global scheduler instance

@@ -30,10 +30,10 @@ class AuthServiceClient:
             )
             if response.status_code == status.HTTP_200_OK:
                 return response.json()
-        except httpx.RequestError as e:
-            logger.exception(f"Auth service request failed: {e}")
-        except Exception as e:
-            logger.exception(f"Token validation error: {e}")
+        except httpx.RequestError:
+            logger.exception("Auth service request failed")
+        except Exception:
+            logger.exception("Token validation error")
         return None
 
     @cached(ttl=600, key_prefix="auth_user")
@@ -46,10 +46,10 @@ class AuthServiceClient:
             )
             if response.status_code == status.HTTP_200_OK:
                 return response.json()
-        except httpx.RequestError as e:
-            logger.exception(f"Auth service request failed: {e}")
-        except Exception as e:
-            logger.exception(f"Get user error: {e}")
+        except httpx.RequestError:
+            logger.exception("Auth service request failed")
+        except Exception:
+            logger.exception("Get user error")
         return None
 
     async def invalidate_user_cache(self, user_id: int) -> None:

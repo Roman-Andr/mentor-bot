@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
-async def lifespan(bot: Bot) -> AsyncGenerator[None, None]:
+async def lifespan(bot: Bot) -> AsyncGenerator[None]:
     """Handle application startup and shutdown events."""
     logger.info("Starting Telegram Bot...")
 
@@ -70,6 +70,7 @@ async def setup_bot_commands(bot: Bot) -> None:
         BotCommand(command="/documents", description="Access documents"),
         BotCommand(command="/feedback", description="Provide feedback"),
         BotCommand(command="/progress", description="View onboarding progress"),
+        BotCommand(command="/language", description="Change language"),
         BotCommand(command="/help", description="Show help"),
     ]
 
@@ -86,7 +87,10 @@ async def main() -> None:
     storage = RedisStorage(redis=redis)
 
     # Create bot and dispatcher
-    bot = Bot(token=settings.TELEGRAM_BOT_TOKEN, default=DefaultBotProperties(parse_mode="Markdown"))
+    bot = Bot(
+        token=settings.TELEGRAM_BOT_TOKEN,
+        default=DefaultBotProperties(parse_mode="Markdown"),
+    )
     dp = Dispatcher(storage=storage)
 
     # Setup bot handlers and middleware

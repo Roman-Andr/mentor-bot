@@ -1,5 +1,6 @@
 """FastAPI dependencies for authentication and authorization via HTTP."""
 
+from collections.abc import AsyncGenerator
 from typing import Annotated
 
 import httpx
@@ -9,7 +10,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from meeting_service.config import settings
 from meeting_service.core.exceptions import AuthException, PermissionDenied
-from meeting_service.database import get_db
+from meeting_service.database import AsyncSessionLocal, get_db
+from meeting_service.repositories.unit_of_work import SqlAlchemyUnitOfWork
 
 security = HTTPBearer(auto_error=False)
 
@@ -102,3 +104,18 @@ CurrentUser = Annotated[UserInfo, Depends(get_current_active_user)]
 AdminUser = Annotated[UserInfo, Depends(require_admin)]
 HRUser = Annotated[UserInfo, Depends(require_hr)]
 DatabaseSession = Annotated[AsyncSession, Depends(get_db)]
+
+
+# Unit of Work dependency
+async def get_uow() -> AsyncGenerator[SqlAlchemyUnitOfWork]:
+    """Get Unit of Work instance for current request."""
+    async with SqlAlchemyUnitOfWork(AsyncSessionLocal) as uow:
+        try:
+            yield uow
+            await uow.commit()
+        except Exception:
+            await uow.rollback()
+            raise
+
+
+UOWDep = Annotated[SqlAlchemyUnitOfWork, Depends(get_uow)]

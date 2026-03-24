@@ -25,7 +25,7 @@ class MeetingRepository(SqlAlchemyBaseRepository[Meeting, int], IMeetingReposito
         skip: int = 0,
         limit: int = 100,
         meeting_type: MeetingType | None = None,
-        department: str | None = None,
+        department_id: int | None = None,
         position: str | None = None,
         level: EmployeeLevel | None = None,
         is_mandatory: bool | None = None,
@@ -37,9 +37,9 @@ class MeetingRepository(SqlAlchemyBaseRepository[Meeting, int], IMeetingReposito
         if meeting_type:
             stmt = stmt.where(Meeting.type == meeting_type)
             count_stmt = count_stmt.where(Meeting.type == meeting_type)
-        if department:
-            stmt = stmt.where(Meeting.department == department)
-            count_stmt = count_stmt.where(Meeting.department == department)
+        if department_id is not None:
+            stmt = stmt.where(Meeting.department_id == department_id)
+            count_stmt = count_stmt.where(Meeting.department_id == department_id)
         if position:
             stmt = stmt.where(Meeting.position == position)
             count_stmt = count_stmt.where(Meeting.position == position)

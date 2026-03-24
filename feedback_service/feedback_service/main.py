@@ -8,14 +8,15 @@ from datetime import UTC, datetime
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from feedback_service.api.endpoints import feedback_router
-from feedback_service.config import settings
-from feedback_service.database import init_db
-from feedback_service.schemas import HealthCheck, ServiceStatus
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
+
+from feedback_service.api.endpoints import feedback_router
+from feedback_service.config import settings
+from feedback_service.database import init_db
+from feedback_service.schemas import HealthCheck, ServiceStatus
 
 # Configure logging
 logging.basicConfig(
@@ -44,6 +45,7 @@ app = FastAPI(
     redoc_url="/redoc" if settings.DEBUG else None,
     openapi_url=f"{settings.API_V1_PREFIX}/openapi.json",
     lifespan=lifespan,
+    redirect_slashes=False,
 )
 
 # Add middleware

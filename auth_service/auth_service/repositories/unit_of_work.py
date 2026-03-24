@@ -6,10 +6,14 @@ from typing import Protocol, Self, runtime_checkable
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from auth_service.repositories.implementations.department import DepartmentRepository
 from auth_service.repositories.implementations.invitation import InvitationRepository
 from auth_service.repositories.implementations.user import UserRepository
+from auth_service.repositories.implementations.user_mentor import UserMentorRepository
+from auth_service.repositories.interfaces.department import IDepartmentRepository
 from auth_service.repositories.interfaces.invitation import IInvitationRepository
 from auth_service.repositories.interfaces.user import IUserRepository
+from auth_service.repositories.interfaces.user_mentor import IUserMentorRepository
 
 
 @runtime_checkable
@@ -18,6 +22,8 @@ class IUnitOfWork(Protocol):
 
     users: IUserRepository
     invitations: IInvitationRepository
+    departments: IDepartmentRepository
+    user_mentors: IUserMentorRepository
 
     async def commit(self) -> None:
         """Commit all changes made in this unit of work."""
@@ -49,6 +55,8 @@ class SqlAlchemyUnitOfWork(IUnitOfWork):
         self._session = self._session_factory()
         self.users = UserRepository(self._session)
         self.invitations = InvitationRepository(self._session)
+        self.departments = DepartmentRepository(self._session)
+        self.user_mentors = UserMentorRepository(self._session)
         return self
 
     async def __aexit__(self, *args: object) -> None:
@@ -73,7 +81,7 @@ class SqlAlchemyUnitOfWork(IUnitOfWork):
 
 
 @asynccontextmanager
-async def sqlalchemy_uow(session_factory: async_sessionmaker) -> AsyncGenerator[SqlAlchemyUnitOfWork, None]:
+async def sqlalchemy_uow(session_factory: async_sessionmaker) -> AsyncGenerator[SqlAlchemyUnitOfWork]:
     """Async context manager for SqlAlchemyUnitOfWork."""
     async with SqlAlchemyUnitOfWork(session_factory) as uow:
         yield uow

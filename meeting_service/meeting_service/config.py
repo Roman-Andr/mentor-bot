@@ -39,6 +39,7 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_ID: str = Field(default="")
     GOOGLE_CLIENT_SECRET: str = Field(default="")
     GOOGLE_REDIRECT_URI: str = Field(default="")
+    GOOGLE_TOKEN_URI: str = Field(default="https://oauth2.googleapis.com/token")
     GOOGLE_CALENDAR_SCOPES: list[str] = Field(default=["https://www.googleapis.com/auth/calendar.events"])
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", case_sensitive=True, extra="ignore")

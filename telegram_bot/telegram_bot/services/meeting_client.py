@@ -16,7 +16,9 @@ class MeetingServiceClient:
     def __init__(self, base_url: str | None = None) -> None:
         """Initialize meeting service HTTP client."""
         self.base_url = base_url or settings.MEETING_SERVICE_URL
-        self.client = httpx.AsyncClient(base_url=self.base_url, timeout=settings.SERVICE_TIMEOUT)
+        self.client = httpx.AsyncClient(
+            base_url=self.base_url, timeout=settings.SERVICE_TIMEOUT
+        )
 
     async def create_meeting(
         self,
@@ -25,6 +27,7 @@ class MeetingServiceClient:
         description: str,
         participant_ids: list[int],
         scheduled_at: str,
+        auth_token: str,
         duration_minutes: int = 60,
         meeting_type: str = "onboarding",
     ) -> dict | None:
@@ -41,69 +44,82 @@ class MeetingServiceClient:
                     "duration_minutes": duration_minutes,
                     "meeting_type": meeting_type,
                 },
+                headers={"Authorization": f"Bearer {auth_token}"},
             )
             if response.status_code == status.HTTP_201_CREATED:
                 return response.json()
-        except httpx.RequestError as e:
-            logger.exception(f"Meeting service request failed: {e}")
+        except httpx.RequestError:
+            logger.exception("Meeting service request failed")
         return None
 
-    async def get_user_meetings(self, user_id: int, limit: int = 10) -> list[dict]:
+    async def get_user_meetings(
+        self, user_id: int, auth_token: str, limit: int = 10
+    ) -> list[dict]:
         """Get user meetings."""
         try:
             response = await self.client.get(
                 f"{settings.API_V1_PREFIX}/meetings/user/{user_id}",
                 params={"limit": limit},
+                headers={"Authorization": f"Bearer {auth_token}"},
             )
             if response.status_code == status.HTTP_200_OK:
                 data = response.json()
                 return data.get("meetings", [])
-        except httpx.RequestError as e:
-            logger.exception(f"Meeting service get meetings failed: {e}")
+        except httpx.RequestError:
+            logger.exception("Meeting service get meetings failed")
         return []
 
-    async def get_upcoming_meetings(self, user_id: int, limit: int = 5) -> list[dict]:
+    async def get_upcoming_meetings(
+        self, user_id: int, auth_token: str, limit: int = 5
+    ) -> list[dict]:
         """Get upcoming meetings for user."""
         try:
             response = await self.client.get(
                 f"{settings.API_V1_PREFIX}/meetings/user/{user_id}/upcoming",
                 params={"limit": limit},
+                headers={"Authorization": f"Bearer {auth_token}"},
             )
             if response.status_code == status.HTTP_200_OK:
                 data = response.json()
                 return data.get("meetings", [])
-        except httpx.RequestError as e:
-            logger.exception(f"Meeting service get upcoming meetings failed: {e}")
+        except httpx.RequestError:
+            logger.exception("Meeting service get upcoming meetings failed")
         return []
 
-    async def confirm_meeting(self, meeting_id: int, user_id: int) -> dict | None:
+    async def confirm_meeting(
+        self, meeting_id: int, user_id: int, auth_token: str
+    ) -> dict | None:
         """Confirm meeting attendance."""
         try:
             response = await self.client.post(
                 f"{settings.API_V1_PREFIX}/meetings/{meeting_id}/confirm",
                 json={"user_id": user_id},
+                headers={"Authorization": f"Bearer {auth_token}"},
             )
             if response.status_code == status.HTTP_200_OK:
                 return response.json()
-        except httpx.RequestError as e:
-            logger.exception(f"Meeting service confirm meeting failed: {e}")
+        except httpx.RequestError:
+            logger.exception("Meeting service confirm meeting failed")
         return None
 
-    async def cancel_meeting(self, meeting_id: int, user_id: int, reason: str | None = None) -> dict | None:
+    async def cancel_meeting(
+        self, meeting_id: int, user_id: int, auth_token: str, reason: str | None = None
+    ) -> dict | None:
         """Cancel meeting."""
         try:
-            json_data = {"user_id": user_id}
+            json_data: dict[str, int | str] = {"user_id": user_id}
             if reason:
                 json_data["reason"] = reason
 
             response = await self.client.post(
                 f"{settings.API_V1_PREFIX}/meetings/{meeting_id}/cancel",
                 json=json_data,
+                headers={"Authorization": f"Bearer {auth_token}"},
             )
             if response.status_code == status.HTTP_200_OK:
                 return response.json()
-        except httpx.RequestError as e:
-            logger.exception(f"Meeting service cancel meeting failed: {e}")
+        except httpx.RequestError:
+            logger.exception("Meeting service cancel meeting failed")
         return None
 
 

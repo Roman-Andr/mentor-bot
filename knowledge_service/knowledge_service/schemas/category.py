@@ -16,7 +16,7 @@ class CategoryBase(BaseModel):
     description: str | None = None
     parent_id: int | None = None
     order: int = Field(0, ge=0)
-    department: str | None = Field(None, max_length=100)
+    department_id: int | None = None
     position: str | None = Field(None, max_length=100)
     level: EmployeeLevel | None = None
     icon: str | None = Field(None, max_length=50)
@@ -34,7 +34,7 @@ class CategoryUpdate(BaseModel):
     description: str | None = None
     parent_id: int | None = None
     order: int | None = Field(None, ge=0)
-    department: str | None = Field(None, max_length=100)
+    department_id: int | None = None
     position: str | None = Field(None, max_length=100)
     level: EmployeeLevel | None = None
     icon: str | None = Field(None, max_length=50)

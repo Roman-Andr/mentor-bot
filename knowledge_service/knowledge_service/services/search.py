@@ -13,6 +13,9 @@ from knowledge_service.models import Article, Tag
 from knowledge_service.repositories import IUnitOfWork
 from knowledge_service.utils import cache
 
+MIN_QUERY_LENGTH = 2
+MIN_WORD_LENGTH_HIGHLIGHT = 2
+
 
 class SearchService:
     """Service for search operations."""
@@ -55,8 +58,8 @@ class SearchService:
             where_conditions.append(Article.category_id == filters["category_id"])
         if filters.get("tag_ids"):
             where_conditions.append(Article.tags.any(Tag.id.in_(filters["tag_ids"])))
-        if filters.get("department"):
-            where_conditions.append(Article.department == filters["department"])
+        if filters.get("department_id"):
+            where_conditions.append(Article.department_id == filters["department_id"])
         if filters.get("position"):
             where_conditions.append(Article.position == filters["position"])
         if filters.get("level"):
@@ -66,8 +69,8 @@ class SearchService:
 
         if user_filters:
             user_filter_conditions = []
-            if user_filters.get("department"):
-                user_filter_conditions.append(Article.department == user_filters["department"])
+            if user_filters.get("department_id"):
+                user_filter_conditions.append(Article.department_id == user_filters["department_id"])
             if user_filters.get("position"):
                 user_filter_conditions.append(Article.position == user_filters["position"])
             if user_filters.get("level"):
@@ -75,7 +78,7 @@ class SearchService:
             if user_filter_conditions:
                 where_conditions.append(or_(*user_filter_conditions))
 
-        session = self._uow._session
+        session = self._uow.session
 
         count_stmt = select(func.count(Article.id))
         if where_conditions:
@@ -110,7 +113,7 @@ class SearchService:
                     query=query,
                     results_count=0,
                     filters=filters,
-                    department=user_filters.get("department") if user_filters else None,
+                    department_id=user_filters.get("department_id") if user_filters else None,
                 )
                 await self._uow.commit()
             return empty_result
@@ -167,7 +170,7 @@ class SearchService:
                 query=query,
                 results_count=total,
                 filters=filters,
-                department=user_filters.get("department") if user_filters else None,
+                department_id=user_filters.get("department_id") if user_filters else None,
             )
             await self._uow.commit()
 
@@ -186,29 +189,29 @@ class SearchService:
     async def get_search_suggestions(
         self,
         query: str,
-        department: str | None = None,
+        department_id: int | None = None,
         limit: int = 10,
     ) -> list[str]:
         """Get search suggestions based on query."""
-        if not query or len(query) < 2:
+        if not query or len(query) < MIN_QUERY_LENGTH:
             return []
 
-        cache_key = f"suggestions:{query}:{department}"
+        cache_key = f"suggestions:{query}:{department_id}"
         cached = await cache.get(cache_key)
         if cached:
             return cached
 
-        search_suggestions = await self._uow.search_history.get_suggestions(query, department, limit)
+        search_suggestions = await self._uow.search_history.get_suggestions(query, department_id, limit)
         suggestions = list(search_suggestions)
 
         if len(suggestions) < limit:
-            session = self._uow._session
+            session = self._uow.session
             title_conditions = [
                 Article.title.ilike(f"%{query}%"),
                 Article.status == ArticleStatus.PUBLISHED,
             ]
-            if department is not None:
-                title_conditions.append(Article.department == department)
+            if department_id is not None:
+                title_conditions.append(Article.department_id == department_id)
 
             stmt = select(Article.title).where(and_(*title_conditions)).limit(limit - len(suggestions))
             result = await session.execute(stmt)
@@ -223,16 +226,16 @@ class SearchService:
 
     async def get_popular_searches(
         self,
-        department: str | None = None,
+        department_id: int | None = None,
         limit: int = 10,
     ) -> list[dict]:
         """Get popular searches."""
-        cache_key = f"popular_searches:{department}"
+        cache_key = f"popular_searches:{department_id}"
         cached = await cache.get(cache_key)
         if cached:
             return cached
 
-        popular = await self._uow.search_history.get_popular_searches(department, limit)
+        popular = await self._uow.search_history.get_popular_searches(department_id, limit)
         await cache.set(cache_key, popular, ttl=3600)
 
         return popular
@@ -260,7 +263,7 @@ class SearchService:
         highlighted = text
 
         for word in words:
-            if len(word) > 2:
+            if len(word) > MIN_WORD_LENGTH_HIGHLIGHT:
                 pattern = re.compile(re.escape(word), re.IGNORECASE)
                 highlighted = pattern.sub(f"<mark>{word}</mark>", highlighted)
 

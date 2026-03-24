@@ -1,5 +1,6 @@
 """Tag management service with repository pattern."""
 
+
 from knowledge_service.core import NotFoundException, ValidationException
 from knowledge_service.models import Tag
 from knowledge_service.repositories import IUnitOfWork

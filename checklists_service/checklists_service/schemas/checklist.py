@@ -3,7 +3,7 @@
 from datetime import datetime, timedelta
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validator
 
 from checklists_service.core import ChecklistStatus
 
@@ -26,7 +26,7 @@ class ChecklistCreate(ChecklistBase):
 
     @field_validator("due_date")
     @classmethod
-    def set_due_date(cls, v: datetime | None, info: Any) -> datetime | None:
+    def set_due_date(cls, v: datetime | None, info: ValidationInfo) -> datetime | None:
         """Set due date if not provided."""
         if v is None and "start_date" in info.data:
             return info.data["start_date"] + timedelta(days=30)
@@ -84,3 +84,13 @@ class ChecklistListResponse(BaseModel):
     size: int
     pages: int
     stats: ChecklistStats
+
+
+class AutoCreateChecklistsRequest(BaseModel):
+    """Request schema for auto-creating checklists from matching templates."""
+
+    user_id: int
+    employee_id: str = Field(..., min_length=1, max_length=50)
+    department_id: int | None = None
+    position: str | None = None
+    mentor_id: int | None = None

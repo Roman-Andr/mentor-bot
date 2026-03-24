@@ -24,7 +24,7 @@ class TemplateService:
     async def create_template(self, template_data: TemplateCreate) -> Template:
         """Create new template."""
         existing_template = await self._uow.templates.get_by_name_and_department(
-            template_data.name, template_data.department
+            template_data.name, template_data.department_id
         )
         if existing_template:
             msg = "Template with this name already exists for the department"
@@ -33,7 +33,7 @@ class TemplateService:
         template = Template(
             name=template_data.name,
             description=template_data.description,
-            department=template_data.department,
+            department_id=template_data.department_id,
             position=template_data.position,
             level=template_data.level,
             duration_days=template_data.duration_days,
@@ -42,7 +42,8 @@ class TemplateService:
             status=template_data.status,
         )
 
-        return await self._uow.templates.create(template)
+        created = await self._uow.templates.create(template)
+        return await self.get_template(created.id)
 
     async def get_template(self, template_id: int) -> Template:
         """Get template by ID."""
@@ -68,13 +69,14 @@ class TemplateService:
         template = await self.get_template(template_id)
 
         if update_data.is_default and update_data.is_default != template.is_default:
-            await self._uow.templates.clear_other_defaults(template.department, template_id)
+            await self._uow.templates.clear_other_defaults(template.department_id, template_id)
 
         for field, value in update_data.model_dump(exclude_unset=True).items():
             setattr(template, field, value)
 
         template.updated_at = datetime.now(UTC)
-        return await self._uow.templates.update(template)
+        await self._uow.templates.update(template)
+        return await self.get_template(template_id)
 
     async def delete_template(self, template_id: int) -> None:
         """Delete template."""
@@ -95,7 +97,7 @@ class TemplateService:
         self,
         skip: int = 0,
         limit: int = 50,
-        department: str | None = None,
+        department_id: int | None = None,
         status: str | None = None,
         *,
         is_default: bool | None = None,
@@ -106,7 +108,7 @@ class TemplateService:
         templates, total = await self._uow.templates.find_templates(
             skip=skip,
             limit=limit,
-            department=department,
+            department_id=department_id,
             status=status_enum,
             is_default=is_default,
         )
@@ -119,7 +121,7 @@ class TemplateService:
         new_template = Template(
             name=f"{original.name} (Copy)",
             description=original.description,
-            department=original.department,
+            department_id=original.department_id,
             position=original.position,
             level=original.level,
             duration_days=original.duration_days,
@@ -132,7 +134,7 @@ class TemplateService:
         new_template = await self._uow.templates.create(new_template)
         await self._uow.task_templates.clone_tasks(template_id, new_template.id)
 
-        return new_template
+        return await self.get_template(new_template.id)
 
     async def add_task_to_template(self, template_id: int, task_data: TaskTemplateCreate) -> TaskTemplate:
         """Add task to template."""
@@ -182,4 +184,5 @@ class TemplateService:
         template.status = TemplateStatus.ACTIVE
         template.updated_at = datetime.now(UTC)
 
-        return await self._uow.templates.update(template)
+        await self._uow.templates.update(template)
+        return await self.get_template(template_id)

@@ -35,7 +35,7 @@ class ArticleService:
             category_id=article_data.category_id,
             author_id=author_id,
             author_name=author_name,
-            department=article_data.department,
+            department_id=article_data.department_id,
             position=article_data.position,
             level=article_data.level,
             status=article_data.status,
@@ -146,7 +146,7 @@ class ArticleService:
         limit: int = 50,
         category_id: int | None = None,
         tag_id: int | None = None,
-        department: str | None = None,
+        department_id: int | None = None,
         status: str | None = None,
         user_filters: dict | None = None,
         *,
@@ -159,7 +159,7 @@ class ArticleService:
             limit=limit,
             category_id=category_id,
             tag_id=tag_id,
-            department=department,
+            department_id=department_id,
             status=status,
             featured_only=featured_only,
             pinned_only=pinned_only,
@@ -187,10 +187,10 @@ class ArticleService:
         await self._uow.commit()
 
     async def get_department_articles(
-        self, department: str, skip: int = 0, limit: int = 50
+        self, department_id: int, skip: int = 0, limit: int = 50
     ) -> tuple[list[Article], int]:
         """Get articles for specific department."""
-        items, total = await self._uow.articles.find_department_articles(department, skip=skip, limit=limit)
+        items, total = await self._uow.articles.find_department_articles(department_id, skip=skip, limit=limit)
         return list(items), total
 
     async def get_article_stats(self, article_id: int) -> dict[str, Any]:

@@ -3,7 +3,7 @@
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, Enum, Integer, String, Text
+from sqlalchemy import DateTime, Enum, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
@@ -11,6 +11,7 @@ from meeting_service.core.enums import EmployeeLevel, MeetingType
 from meeting_service.database import Base
 
 if TYPE_CHECKING:
+    from meeting_service.models.department import Department
     from meeting_service.models.material import MeetingMaterial
     from meeting_service.models.user_meeting import UserMeeting
 
@@ -28,7 +29,8 @@ class Meeting(Base):
     type: Mapped[MeetingType] = mapped_column(Enum(MeetingType), nullable=False, index=True)
 
     # Targeting (who this meeting is for)
-    department: Mapped[str | None] = mapped_column(String(100), nullable=True, index=True)
+    department_id: Mapped[int | None] = mapped_column(ForeignKey("departments.id"), nullable=True)
+    department: Mapped["Department | None"] = relationship("Department", back_populates="meetings")
     position: Mapped[str | None] = mapped_column(String(100), nullable=True, index=True)
     level: Mapped[EmployeeLevel | None] = mapped_column(Enum(EmployeeLevel), nullable=True, index=True)
 

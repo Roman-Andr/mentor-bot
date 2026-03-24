@@ -23,6 +23,7 @@ class AttachmentService:
         mime_type: str | None = None,
         description: str | None = None,
         order: int = 0,
+        *,
         is_downloadable: bool = True,
     ) -> Attachment:
         """Create new attachment."""
@@ -48,6 +49,11 @@ class AttachmentService:
             msg = "Attachment"
             raise NotFoundException(msg)
         return attachment
+
+    async def get_attachments_by_article(self, article_id: int) -> list[Attachment]:
+        """Get all attachments for an article."""
+        attachments = await self._uow.attachments.get_by_article(article_id)
+        return list(attachments)
 
     async def delete_attachment(self, attachment_id: int) -> None:
         """Delete attachment."""

@@ -5,14 +5,14 @@ from collections.abc import Sequence
 from typing import TypeVar
 
 T = TypeVar("T")
-I = TypeVar("I", bound=int | str)
+V = TypeVar("V", bound=int | str)
 
 
-class BaseRepository[T, I: int | str](ABC):
+class BaseRepository[T, V: int | str](ABC):
     """Base repository interface."""
 
     @abstractmethod
-    async def get_by_id(self, entity_id: I) -> T | None:
+    async def get_by_id(self, entity_id: V) -> T | None:
         """Get entity by its primary key."""
         raise NotImplementedError
 
@@ -32,6 +32,6 @@ class BaseRepository[T, I: int | str](ABC):
         raise NotImplementedError
 
     @abstractmethod
-    async def delete(self, entity_id: I) -> bool:
+    async def delete(self, entity_id: V) -> bool:
         """Delete entity by ID."""
         raise NotImplementedError

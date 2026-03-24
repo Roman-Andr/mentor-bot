@@ -6,10 +6,19 @@ from telegram_bot.services.checklists_client import (
     ChecklistsServiceClient,
     checklists_client,
 )
-from telegram_bot.services.escalation_client import EscalationServiceClient, escalation_client
-from telegram_bot.services.knowledge_client import KnowledgeServiceClient, knowledge_client
+from telegram_bot.services.escalation_client import (
+    EscalationServiceClient,
+    escalation_client,
+)
+from telegram_bot.services.knowledge_client import (
+    KnowledgeServiceClient,
+    knowledge_client,
+)
 from telegram_bot.services.meeting_client import MeetingServiceClient, meeting_client
-from telegram_bot.services.notification_client import NotificationServiceClient, notification_client
+from telegram_bot.services.notification_client import (
+    NotificationServiceClient,
+    notification_client,
+)
 
 __all__ = [
     "AuthServiceClient",

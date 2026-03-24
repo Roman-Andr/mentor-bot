@@ -17,9 +17,10 @@ router = APIRouter()
 
 
 @router.get("/")
+@router.get("")
 async def get_tags(
     tag_service: TagServiceDep,
-    current_user: CurrentUser,
+    _current_user: CurrentUser,
     skip: Annotated[int, Query(ge=0)] = 0,
     limit: Annotated[int, Query(ge=1, le=100)] = 50,
     search: Annotated[str | None, Query()] = None,
@@ -42,7 +43,7 @@ async def get_tags(
 @router.get("/popular")
 async def get_popular_tags(
     tag_service: TagServiceDep,
-    current_user: CurrentUser,
+    _current_user: CurrentUser,
     limit: Annotated[int, Query(ge=1, le=50)] = 20,
 ) -> list[TagResponse]:
     """Get most popular tags."""
@@ -51,6 +52,7 @@ async def get_popular_tags(
 
 
 @router.post("/")
+@router.post("")
 async def create_tag(
     tag_data: TagCreate,
     tag_service: TagServiceDep,
@@ -71,7 +73,7 @@ async def create_tag(
 async def get_tag(
     tag_id_or_slug: str,
     tag_service: TagServiceDep,
-    current_user: CurrentUser,
+    _current_user: CurrentUser,
 ) -> TagResponse:
     """Get tag by ID or slug."""
     try:
@@ -161,7 +163,7 @@ async def merge_tags(
 async def get_article_tags(
     article_id: int,
     tag_service: TagServiceDep,
-    current_user: CurrentUser,
+    _current_user: CurrentUser,
 ) -> list[TagResponse]:
     """Get tags for a specific article."""
     try:

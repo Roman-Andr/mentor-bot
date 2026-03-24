@@ -11,7 +11,7 @@ from knowledge_service.core import EmployeeLevel
 from knowledge_service.database import Base
 
 if TYPE_CHECKING:
-    from knowledge_service.models import Article, Category
+    from knowledge_service.models import Article, Category, Department
 
 
 class Category(Base):
@@ -29,7 +29,8 @@ class Category(Base):
     order: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
 
     # Target audience filtering
-    department: Mapped[str | None] = mapped_column(String(100), nullable=True, index=True)
+    department_id: Mapped[int | None] = mapped_column(ForeignKey("departments.id"), nullable=True)
+    department: Mapped["Department | None"] = relationship("Department", back_populates="categories")
     position: Mapped[str | None] = mapped_column(String(100), nullable=True)
     level: Mapped[EmployeeLevel | None] = mapped_column(String(50), nullable=True, index=True)
 

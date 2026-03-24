@@ -27,7 +27,7 @@ class ChecklistRepository(SqlAlchemyBaseRepository[Checklist, int], IChecklistRe
         limit: int = 100,
         user_id: int | None = None,
         status: ChecklistStatus | None = None,
-        department: str | None = None,
+        department_id: int | None = None,
         overdue_only: bool = False,
     ) -> tuple[Sequence[Checklist], int]:
         """Find checklists with filtering and return results with total count."""
@@ -42,9 +42,9 @@ class ChecklistRepository(SqlAlchemyBaseRepository[Checklist, int], IChecklistRe
             stmt = stmt.where(Checklist.status == status)
             count_stmt = count_stmt.where(Checklist.status == status)
 
-        if department:
-            stmt = stmt.join(Template).where(Template.department == department)
-            count_stmt = count_stmt.join(Template).where(Template.department == department)
+        if department_id is not None:
+            stmt = stmt.join(Template).where(Template.department_id == department_id)
+            count_stmt = count_stmt.join(Template).where(Template.department_id == department_id)
 
         if overdue_only:
             now = datetime.now(UTC)
@@ -132,7 +132,7 @@ class ChecklistRepository(SqlAlchemyBaseRepository[Checklist, int], IChecklistRe
     async def get_statistics(
         self,
         user_id: int | None = None,
-        department: str | None = None,
+        department_id: int | None = None,
     ) -> dict[str, Any]:
         """Get checklist statistics."""
         now = datetime.now(UTC)
@@ -149,12 +149,16 @@ class ChecklistRepository(SqlAlchemyBaseRepository[Checklist, int], IChecklistRe
         )
 
         if user_id is not None:
-            for st in [total_stmt, completed_stmt, in_progress_stmt, not_started_stmt, overdue_stmt]:
-                st = st.where(Checklist.user_id == user_id)
+            (total_stmt, completed_stmt, in_progress_stmt, not_started_stmt, overdue_stmt) = [
+                st.where(Checklist.user_id == user_id)
+                for st in (total_stmt, completed_stmt, in_progress_stmt, not_started_stmt, overdue_stmt)
+            ]
 
-        if department:
-            for st in [total_stmt, completed_stmt, in_progress_stmt, not_started_stmt, overdue_stmt]:
-                st = st.join(Template).where(Template.department == department)
+        if department_id is not None:
+            (total_stmt, completed_stmt, in_progress_stmt, not_started_stmt, overdue_stmt) = [
+                st.join(Template).where(Template.department_id == department_id)
+                for st in (total_stmt, completed_stmt, in_progress_stmt, not_started_stmt, overdue_stmt)
+            ]
 
         total = cast("int", (await self._session.execute(total_stmt)).scalar_one() or 0)
         completed = cast("int", (await self._session.execute(completed_stmt)).scalar_one() or 0)
@@ -174,14 +178,14 @@ class ChecklistRepository(SqlAlchemyBaseRepository[Checklist, int], IChecklistRe
         completion_rate = (completed / total * 100) if total > 0 else 0
 
         dept_stmt = (
-            select(Template.department, func.count(Checklist.id))
+            select(Template.department_id, func.count(Checklist.id))
             .join(Checklist, Checklist.template_id == Template.id)
-            .group_by(Template.department)
+            .group_by(Template.department_id)
         )
         if user_id is not None:
             dept_stmt = dept_stmt.where(Checklist.user_id == user_id)
 
-        by_department = dict((await self._session.execute(dept_stmt)).all())
+        by_department = {str(k): v for k, v in (await self._session.execute(dept_stmt)).all()}
 
         recent_stmt = (
             select(Checklist.id, Checklist.user_id, Checklist.completed_at, Template.name.label("template_name"))
@@ -244,3 +248,12 @@ class ChecklistRepository(SqlAlchemyBaseRepository[Checklist, int], IChecklistRe
         if completed == total and total > 0:
             checklist.status = ChecklistStatus.COMPLETED
             checklist.completed_at = datetime.now(UTC)
+
+    async def get_by_user_and_template(self, user_id: int, template_id: int) -> Checklist | None:
+        """Get checklist by user and template ID."""
+        stmt = select(Checklist).where(
+            Checklist.user_id == user_id,
+            Checklist.template_id == template_id,
+        )
+        result = await self._session.execute(stmt)
+        return result.scalar_one_or_none()

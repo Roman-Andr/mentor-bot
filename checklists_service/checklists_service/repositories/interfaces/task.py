@@ -2,12 +2,10 @@
 
 from abc import abstractmethod
 from collections.abc import Sequence
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
+from checklists_service.models import Task
 from checklists_service.repositories.interfaces.base import BaseRepository
-
-if TYPE_CHECKING:
-    from checklists_service.models import Task
 
 
 class ITaskRepository(BaseRepository["Task", int]):
@@ -21,7 +19,7 @@ class ITaskRepository(BaseRepository["Task", int]):
         status: str | None = None,
         category: str | None = None,
         overdue_only: bool = False,
-    ) -> Sequence["Task"]:
+    ) -> Sequence[Task]:
         """Find tasks for a specific checklist with optional filters."""
 
     @abstractmethod
@@ -32,7 +30,7 @@ class ITaskRepository(BaseRepository["Task", int]):
         skip: int = 0,
         limit: int = 100,
         status: str | None = None,
-    ) -> tuple[Sequence["Task"], int]:
+    ) -> tuple[Sequence[Task], int]:
         """Find tasks assigned to a specific user."""
 
     @abstractmethod
@@ -40,11 +38,11 @@ class ITaskRepository(BaseRepository["Task", int]):
         """Get task dependencies and blockers."""
 
     @abstractmethod
-    async def get_incomplete_dependencies(self, task_id: int) -> Sequence["Task"]:
+    async def get_incomplete_dependencies(self, task_id: int) -> Sequence[Task]:
         """Get incomplete tasks that this task depends on."""
 
     @abstractmethod
-    async def get_blocked_by(self, task_id: int) -> Sequence["Task"]:
+    async def get_blocked_by(self, task_id: int) -> Sequence[Task]:
         """Get tasks that are blocked by this task."""
 
     @abstractmethod
@@ -60,9 +58,9 @@ class ITaskRepository(BaseRepository["Task", int]):
         """Count overdue tasks for a checklist."""
 
     @abstractmethod
-    async def get_blocked_tasks(self, checklist_id: int) -> Sequence["Task"]:
+    async def get_blocked_tasks(self, checklist_id: int) -> Sequence[Task]:
         """Get blocked tasks for a checklist."""
 
     @abstractmethod
-    async def find_by_ids(self, task_ids: list[int]) -> Sequence["Task"]:
+    async def find_by_ids(self, task_ids: list[int]) -> Sequence[Task]:
         """Find tasks by a list of IDs."""

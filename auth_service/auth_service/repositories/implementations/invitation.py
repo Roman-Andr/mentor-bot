@@ -6,6 +6,7 @@ from typing import cast
 
 from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from auth_service.core import InvitationStatus
 from auth_service.models import Invitation
@@ -21,27 +22,37 @@ class InvitationRepository(SqlAlchemyBaseRepository[Invitation, int], IInvitatio
         """Initialize InvitationRepository with database session."""
         super().__init__(session, Invitation)
 
+    async def get_by_id(self, entity_id: int) -> Invitation | None:
+        """Get invitation by ID with department relationship."""
+        stmt = select(Invitation).where(Invitation.id == entity_id).options(selectinload(Invitation.department))
+        result = await self._session.execute(stmt)
+        return result.scalar_one_or_none()
+
     async def get_by_token(self, token: str) -> Invitation | None:
         """Get invitation by token."""
-        stmt = select(Invitation).where(Invitation.token == token)
+        stmt = select(Invitation).where(Invitation.token == token).options(selectinload(Invitation.department))
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none()
 
     async def get_valid_by_token(self, token: str) -> Invitation | None:
         """Get valid (pending and not expired) invitation by token."""
-        stmt = select(Invitation).where(
-            and_(
-                Invitation.token == token,
-                Invitation.status == InvitationStatus.PENDING,
-                Invitation.expires_at > datetime.now(UTC),
+        stmt = (
+            select(Invitation)
+            .where(
+                and_(
+                    Invitation.token == token,
+                    Invitation.status == InvitationStatus.PENDING,
+                    Invitation.expires_at > datetime.now(UTC),
+                )
             )
+            .options(selectinload(Invitation.department))
         )
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none()
 
     async def get_by_email(self, email: str) -> Sequence[Invitation]:
         """Get all invitations for email address."""
-        stmt = select(Invitation).where(Invitation.email == email)
+        stmt = select(Invitation).where(Invitation.email == email).options(selectinload(Invitation.department))
         result = await self._session.execute(stmt)
         return result.scalars().all()
 
@@ -52,13 +63,13 @@ class InvitationRepository(SqlAlchemyBaseRepository[Invitation, int], IInvitatio
         limit: int = 100,
         email: str | None = None,
         status: InvitationStatus | None = None,
-        department: str | None = None,
+        department_id: int | None = None,
         expired_only: bool = False,
     ) -> tuple[Sequence[Invitation], int]:
         """Find invitations with filtering and return results with total count."""
         count_stmt = select(func.count(Invitation.id))
 
-        stmt = select(Invitation)
+        stmt = select(Invitation).options(selectinload(Invitation.department))
 
         if email:
             stmt = stmt.where(Invitation.email.ilike(f"%{email}%"))
@@ -68,9 +79,9 @@ class InvitationRepository(SqlAlchemyBaseRepository[Invitation, int], IInvitatio
             stmt = stmt.where(Invitation.status == status)
             count_stmt = count_stmt.where(Invitation.status == status)
 
-        if department:
-            stmt = stmt.where(Invitation.department == department)
-            count_stmt = count_stmt.where(Invitation.department == department)
+        if department_id is not None:
+            stmt = stmt.where(Invitation.department_id == department_id)
+            count_stmt = count_stmt.where(Invitation.department_id == department_id)
 
         if expired_only:
             expired_filter = and_(
@@ -88,6 +99,12 @@ class InvitationRepository(SqlAlchemyBaseRepository[Invitation, int], IInvitatio
         invitations = result.scalars().all()
 
         return invitations, total
+
+    async def create(self, entity: Invitation) -> Invitation:
+        """Create invitation and reload with department relationship."""
+        self._session.add(entity)
+        await self._session.flush()
+        return await self.get_by_id(entity.id) or entity  # type: ignore[return-value]
 
     async def mark_as_used(self, invitation_id: int, user_id: int) -> Invitation:
         """Mark invitation as used and link to user."""
@@ -109,8 +126,7 @@ class InvitationRepository(SqlAlchemyBaseRepository[Invitation, int], IInvitatio
         invitation.user_id = user_id
 
         await self._session.flush()
-        await self._session.refresh(invitation)
-        return invitation
+        return await self.get_by_id(invitation_id) or invitation  # type: ignore[return-value]
 
     async def update_status(self, invitation_id: int, status: InvitationStatus) -> Invitation:
         """Update invitation status."""
@@ -121,8 +137,7 @@ class InvitationRepository(SqlAlchemyBaseRepository[Invitation, int], IInvitatio
 
         invitation.status = status
         await self._session.flush()
-        await self._session.refresh(invitation)
-        return invitation
+        return await self.get_by_id(invitation_id) or invitation  # type: ignore[return-value]
 
     async def get_statistics(self) -> InvitationStats:
         """Get invitation statistics."""

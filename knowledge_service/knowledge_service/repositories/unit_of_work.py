@@ -31,20 +31,46 @@ class IUnitOfWork(Protocol):
     search_history: ISearchHistoryRepository
     tags: ITagRepository
 
-    async def commit(self) -> None: ...
-    async def rollback(self) -> None: ...
-    async def __aenter__(self) -> Self: ...
-    async def __aexit__(self, *args: object) -> None: ...
+    @property
+    def session(self) -> AsyncSession:
+        """Get the current database session."""
+        ...
+
+    async def commit(self) -> None:
+        """Commit the current transaction."""
+        ...
+
+    async def rollback(self) -> None:
+        """Rollback the current transaction."""
+        ...
+
+    async def __aenter__(self) -> Self:
+        """Enter async context manager."""
+        ...
+
+    async def __aexit__(self, *args: object) -> None:
+        """Exit async context manager."""
+        ...
 
 
 class SqlAlchemyUnitOfWork(IUnitOfWork):
     """SQLAlchemy implementation of Unit of Work."""
 
     def __init__(self, session_factory: async_sessionmaker[AsyncSession]) -> None:
+        """Initialize unit of work with session factory."""
         self._session_factory = session_factory
         self._session: AsyncSession | None = None
 
+    @property
+    def session(self) -> AsyncSession:
+        """Get the current database session."""
+        if not self._session:
+            msg = "Session not initialized"
+            raise RuntimeError(msg)
+        return self._session
+
     async def __aenter__(self) -> Self:
+        """Initialize session and repositories."""
         self._session = self._session_factory()
         self.articles = ArticleRepository(self._session)
         self.article_views = ArticleViewRepository(self._session)
@@ -55,17 +81,20 @@ class SqlAlchemyUnitOfWork(IUnitOfWork):
         return self
 
     async def __aexit__(self, *args: object) -> None:
+        """Close session on context exit."""
         if self._session:
             await self._session.close()
             self._session = None
 
     async def commit(self) -> None:
+        """Commit the current transaction."""
         if not self._session:
             msg = "Session not initialized"
             raise RuntimeError(msg)
         await self._session.commit()
 
     async def rollback(self) -> None:
+        """Rollback the current transaction."""
         if not self._session:
             msg = "Session not initialized"
             raise RuntimeError(msg)
@@ -73,7 +102,7 @@ class SqlAlchemyUnitOfWork(IUnitOfWork):
 
 
 @asynccontextmanager
-async def sqlalchemy_uow(session_factory: async_sessionmaker) -> AsyncGenerator[SqlAlchemyUnitOfWork, None]:
+async def sqlalchemy_uow(session_factory: async_sessionmaker) -> AsyncGenerator[SqlAlchemyUnitOfWork]:
     """Async context manager for SqlAlchemyUnitOfWork."""
     async with SqlAlchemyUnitOfWork(session_factory) as uow:
         yield uow

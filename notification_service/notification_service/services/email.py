@@ -39,7 +39,7 @@ class EmailService:
                 password=self.password,
                 use_tls=self.use_tls,
             )
-            logger.info(f"Email sent to {to_email}")
-        except Exception as e:
-            logger.exception(f"Failed to send email: {e}")
+            logger.info("Email sent to %s", to_email)
+        except Exception:
+            logger.exception("Failed to send email")
             raise

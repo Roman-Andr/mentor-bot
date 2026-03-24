@@ -42,7 +42,7 @@ class Base(DeclarativeBase):
     metadata = metadata_obj
 
 
-async def get_db() -> AsyncGenerator[AsyncSession, None]:
+async def get_db() -> AsyncGenerator[AsyncSession]:
     """Dependency for getting async database session."""
     async with AsyncSessionLocal() as session:
         try:
@@ -64,6 +64,6 @@ async def init_db() -> None:
         )
 
         # Create all tables
-        from auth_service.models import Invitation, User  # noqa: F401, PLC0415
+        from auth_service.models import Department, Invitation, User, UserMentor  # noqa: F401, PLC0415
 
         await conn.run_sync(Base.metadata.create_all)

@@ -1,29 +1,24 @@
 """Security utilities for file validation and sanitization."""
 
-import os
 import re
 import time
-from hashlib import md5
+from hashlib import sha256
 from pathlib import Path
 
 from knowledge_service.config import settings
 
+MAX_FILENAME_LENGTH = 255
+
 
 def validate_filename(filename: str) -> str:
     """Sanitize filename to prevent path traversal."""
-    # Remove any directory components
     filename = Path(filename).name
-
-    # Remove any non-alphanumeric characters except dots and hyphens
     sanitized = re.sub(r"[^\w\s\.\-]", "", filename)
-
-    # Replace spaces with underscores
     sanitized = sanitized.replace(" ", "_")
 
-    # Limit length
-    if len(sanitized) > 255:
-        name, ext = os.path.splitext(sanitized)
-        sanitized = name[: 255 - len(ext)] + ext
+    if len(sanitized) > MAX_FILENAME_LENGTH:
+        path = Path(sanitized)
+        sanitized = path.stem[: MAX_FILENAME_LENGTH - len(path.suffix)] + path.suffix
 
     return sanitized
 
@@ -54,11 +49,11 @@ def sanitize_html(content: str) -> str:
 
 def generate_secure_filename(filename: str, user_id: int) -> str:
     """Generate secure filename with timestamp and user ID."""
-    _name, ext = os.path.splitext(filename)
     timestamp = int(time.time())
+    _name, ext = Path(filename).stem, Path(filename).suffix
 
     # Create hash for uniqueness
     hash_input = f"{filename}{user_id}{timestamp}"
-    file_hash = md5(hash_input.encode()).hexdigest()[:8]
+    file_hash = sha256(hash_input.encode()).hexdigest()[:8]
 
     return f"{user_id}_{timestamp}_{file_hash}{ext}"

@@ -2,12 +2,14 @@
 
 from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime, timedelta
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from aiogram import BaseMiddleware
 from aiogram.dispatcher.flags import get_flag
 from aiogram.types import TelegramObject
-from aiogram.types import User as TgUser
+
+if TYPE_CHECKING:
+    from aiogram.types import User as TgUser
 
 
 class ThrottlingMiddleware(BaseMiddleware):
@@ -23,7 +25,7 @@ class ThrottlingMiddleware(BaseMiddleware):
         handler: Callable[[TelegramObject, dict[str, Any]], Awaitable[Any]],
         event: TelegramObject,
         data: dict[str, Any],
-    ) -> Any:
+    ) -> object:
         """Process update with throttling."""
         rate_limit = get_flag(data, "rate_limit")
         if rate_limit is None:
@@ -41,18 +43,23 @@ class ThrottlingMiddleware(BaseMiddleware):
             if user_id in self.user_limiters:
                 last_call, calls = self.user_limiters[user_id]
                 if (
-                    datetime.now(UTC) - last_call < timedelta(seconds=rate_limit["period"])
+                    datetime.now(UTC) - last_call
+                    < timedelta(seconds=rate_limit["period"])
                     and calls >= rate_limit["calls"]
                 ):
                     if hasattr(event, "answer"):
-                        await event.answer("Too many requests. Please wait a moment.", show_alert=True)
+                        await event.answer(
+                            "Too many requests. Please wait a moment.", show_alert=True
+                        )
                     return None
 
             if user_id not in self.user_limiters:
                 self.user_limiters[user_id] = [datetime.now(UTC), 1]
             else:
                 last_call, calls = self.user_limiters[user_id]
-                if datetime.now(UTC) - last_call < timedelta(seconds=rate_limit["period"]):
+                if datetime.now(UTC) - last_call < timedelta(
+                    seconds=rate_limit["period"]
+                ):
                     self.user_limiters[user_id] = [last_call, calls + 1]
                 else:
                     self.user_limiters[user_id] = [datetime.now(UTC), 1]

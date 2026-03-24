@@ -101,7 +101,7 @@ async def require_hr(
 
 
 # UoW dependency
-async def get_uow() -> AsyncGenerator[SqlAlchemyUnitOfWork, None]:
+async def get_uow() -> AsyncGenerator[SqlAlchemyUnitOfWork]:
     """Get Unit of Work instance for current request."""
     async with SqlAlchemyUnitOfWork(AsyncSessionLocal) as uow:
         try:

@@ -32,28 +32,3 @@ export function getInitials(firstName: string, lastName?: string): string {
   const last = lastName?.[0]?.toUpperCase() || "";
   return first + last || first;
 }
-
-export function getStatusColor(status: string): string {
-  const colors: Record<string, string> = {
-    ACTIVE: "bg-green-100 text-green-800",
-    INACTIVE: "bg-gray-100 text-gray-800",
-    DRAFT: "bg-yellow-100 text-yellow-800",
-    PUBLISHED: "bg-blue-100 text-blue-800",
-    ARCHIVED: "bg-red-100 text-red-800",
-    COMPLETED: "bg-green-100 text-green-800",
-    PENDING: "bg-yellow-100 text-yellow-800",
-    IN_PROGRESS: "bg-blue-100 text-blue-800",
-    OVERDUE: "bg-red-100 text-red-800",
-  };
-  return colors[status?.toUpperCase()] || "bg-gray-100 text-gray-800";
-}
-
-export function getRoleColor(role: string): string {
-  const colors: Record<string, string> = {
-    ADMIN: "bg-purple-100 text-purple-800",
-    HR: "bg-blue-100 text-blue-800",
-    MENTOR: "bg-green-100 text-green-800",
-    NEWBIE: "bg-gray-100 text-gray-800",
-  };
-  return colors[role?.toUpperCase()] || "bg-gray-100 text-gray-800";
-}

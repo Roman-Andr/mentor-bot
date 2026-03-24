@@ -1,0 +1,28 @@
+{
+  "pulse_surveys": [
+    {"rating": 8, "note": "Feeling good about the onboarding process"},
+    {"rating": 7, "note": "Getting comfortable with the team"},
+    {"rating": 9, "note": "Really enjoying the work so far"},
+    {"rating": 6, "note": "A bit overwhelmed but managing"},
+    {"rating": 8, "note": "Great support from my mentor"}
+  ],
+  "experience_ratings": [
+    {"rating": 5, "note": "Excellent onboarding experience"},
+    {"rating": 4, "note": "Good overall, could use more hands-on tasks"},
+    {"rating": 5, "note": "Very well structured onboarding"},
+    {"rating": 4, "note": "Helpful team members throughout"},
+    {"rating": 5, "note": "Would recommend to others"}
+  ],
+  "comments": [
+    {"comment": "The onboarding checklist was very helpful and guided me through everything smoothly."},
+    {"comment": "I wish there was more hands-on training in the first week."},
+    {"comment": "My mentor was extremely supportive and answered all my questions."},
+    {"comment": "The documentation could be more detailed for the development setup."},
+    {"comment": "Great company culture and very welcoming team members!"},
+    {"comment": "It would be helpful to have a buddy system in addition to the mentor program."},
+    {"comment": "The HR welcome session provided all the information I needed about benefits."},
+    {"comment": "Security training was comprehensive but a bit lengthy."},
+    {"comment": "I appreciated the flexibility to work remotely from day one."},
+    {"comment": "Overall a very positive onboarding experience. Thank you!"}
+  ]
+}

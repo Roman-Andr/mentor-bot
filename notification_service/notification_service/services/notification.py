@@ -135,9 +135,9 @@ class NotificationService:
                 chat_id=notification.recipient_telegram_id,
                 text=notification.body,
             )
-        except Exception as e:
-            logger.exception(f"Telegram send failed for notification {notification.id}: {e}")
-            return False, str(e)
+        except Exception:
+            logger.exception("Telegram send failed for notification %s", notification.id)
+            return False, "Telegram send failed"
         else:
             return success, None if success else "Telegram send failed"
 
@@ -151,9 +151,9 @@ class NotificationService:
                 subject=notification.subject or "Notification",
                 body=notification.body,
             )
-        except Exception as e:
-            logger.exception(f"Email send failed for notification {notification.id}: {e}")
-            return False, str(e)
+        except Exception:
+            logger.exception("Email send failed for notification %s", notification.id)
+            return False, "Email send failed"
         else:
             return True, None
 

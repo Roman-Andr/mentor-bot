@@ -73,6 +73,8 @@ class TelegramRegistrationRequest(BaseModel):
 
     telegram_id: int
     username: str | None = None
+    first_name: str | None = None
+    last_name: str | None = None
     phone: str | None = Field(None, max_length=20)
 
 

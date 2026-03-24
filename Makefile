@@ -1,4 +1,4 @@
-.PHONY: help start stop restart logs clean reset-db create-invitation shell-auth shell-checklist shell-knowledge shell-postgres shell-redis status full-reboot logs-notification logs-escalation shell-notification shell-escalation restart-notification restart-escalation
+.PHONY: help start stop restart logs clean reset-db create-invitation shell-auth shell-checklist shell-knowledge shell-postgres shell-redis status full-reboot logs-notification logs-escalation logs-meeting shell-notification shell-escalation shell-meeting restart-notification restart-escalation restart-meeting reboot-notification reboot-escalation reboot-meeting logs-admin restart-admin reboot-admin shell-admin logs-telegram restart-telegram reboot-telegram shell-telegram dev-admin dev-meeting reset-locks update-deps
 
 # Docker compose project name
 PROJECT_NAME = mentor-bot
@@ -9,7 +9,7 @@ help:
 	@echo "Main commands:"
 	@echo "  make start             - Start the project (docker compose up -d --build)"
 	@echo "  make stop              - Stop the project (docker compose stop)"
-	@echo "  make restart           - Restart the entire project"
+	@echo "  make restart           - Rebuild the entire project (down + up --build)"
 	@echo "  make full-reboot       - Restart the entire project with full clean"
 	@echo "  make logs              - Show logs for all services"
 	@echo "  make logs-auth         - Show logs for auth service"
@@ -17,11 +17,17 @@ help:
 	@echo "  make logs-knowledge    - Show logs for knowledge service"
 	@echo "  make logs-notification - Show logs for notification service"
 	@echo "  make logs-escalation   - Show logs for escalation service"
+	@echo "  make logs-meeting      - Show logs for meeting service"
+	@echo "  make logs-admin        - Show logs for admin web service"
+	@echo "  make logs-telegram     - Show logs for telegram bot"
 	@echo "  make status            - Show status of all containers"
 	@echo ""
 	@echo "Database management:"
 	@echo "  make reset-db          - Full database reset (remove volume)"
 	@echo "  make clean             - Clean project (containers, volumes, images)"
+	@echo "  make reset-locks       - Delete all uv.lock files and regenerate with uv sync"
+	@echo "  make update-deps       - Check PyPI and update outdated deps (uv remove/add)"
+
 	@echo ""
 	@echo "Service access:"
 	@echo "  make shell-auth        - Enter auth service container"
@@ -29,16 +35,32 @@ help:
 	@echo "  make shell-knowledge   - Enter knowledge service container"
 	@echo "  make shell-notification - Enter notification service container"
 	@echo "  make shell-escalation  - Enter escalation service container"
+	@echo "  make shell-meeting     - Enter meeting service container"
+	@echo "  make shell-admin       - Enter admin web container"
+	@echo "  make shell-telegram    - Enter telegram bot container"
 	@echo "  make shell-postgres    - Enter PostgreSQL container"
 	@echo "  make shell-redis       - Enter Redis container"
 	@echo "  make shell-pgadmin     - Enter pgAdmin container"
 	@echo ""
-	@echo "Service restart:"
-	@echo "  make restart-auth      - Restart auth service"
-	@echo "  make restart-checklist - Restart checklists service"
-	@echo "  make restart-knowledge - Restart knowledge service"
-	@echo "  make restart-notification - Restart notification service"
-	@echo "  make restart-escalation - Restart escalation service"
+	@echo "Service restart (down + up --build):"
+	@echo "  make restart-auth      - Rebuild auth service"
+	@echo "  make restart-checklist - Rebuild checklists service"
+	@echo "  make restart-knowledge - Rebuild knowledge service"
+	@echo "  make restart-notification - Rebuild notification service"
+	@echo "  make restart-escalation - Rebuild escalation service"
+	@echo "  make restart-meeting   - Rebuild meeting service"
+	@echo "  make restart-admin     - Rebuild admin web service"
+	@echo "  make restart-telegram  - Rebuild telegram bot"
+	@echo ""
+	@echo "Service reboot (quick restart, no rebuild):"
+	@echo "  make reboot-auth       - Quick restart auth service"
+	@echo "  make reboot-checklist  - Quick restart checklists service"
+	@echo "  make reboot-knowledge  - Quick restart knowledge service"
+	@echo "  make reboot-notification - Quick restart notification service"
+	@echo "  make reboot-escalation - Quick restart escalation service"
+	@echo "  make reboot-meeting    - Quick restart meeting service"
+	@echo "  make reboot-admin      - Quick restart admin web service"
+	@echo "  make reboot-telegram   - Quick restart telegram bot"
 	@echo ""
 
 start:
@@ -63,22 +85,55 @@ stop:
 restart: stop start
 
 restart-auth:
-	docker compose restart auth_service
+	docker compose stop auth_service && docker compose up -d --build auth_service
 
 restart-checklist:
-	docker compose restart checklists_service
+	docker compose stop checklists_service && docker compose up -d --build checklists_service
 
 restart-knowledge:
-	docker compose restart knowledge_service
+	docker compose stop knowledge_service && docker compose up -d --build knowledge_service
 
 restart-notification:
-	docker compose restart notification_service
+	docker compose stop notification_service && docker compose up -d --build notification_service
 
 restart-escalation:
+	docker compose stop escalation_service && docker compose up -d --build escalation_service
+
+restart-meeting:
+	docker compose stop meeting_service && docker compose up -d --build meeting_service
+
+restart-admin:
+	docker compose stop admin_web && docker compose up -d --build admin_web
+
+restart-telegram:
+	docker compose stop telegram_bot && docker compose up -d --build telegram_bot
+
+reboot-auth:
+	docker compose restart auth_service
+
+reboot-checklist:
+	docker compose restart checklists_service
+
+reboot-knowledge:
+	docker compose restart knowledge_service
+
+reboot-notification:
+	docker compose restart notification_service
+
+reboot-escalation:
 	docker compose restart escalation_service
 
+reboot-meeting:
+	docker compose restart meeting_service
+
+reboot-admin:
+	docker compose restart admin_web
+
+reboot-telegram:
+	docker compose restart telegram_bot
+
 logs:
-	docker compose logs -f
+	docker compose logs -f auth_service checklists_service knowledge_service notification_service escalation_service meeting_service feedback_service telegram_bot admin_web
 
 logs-auth:
 	docker compose logs -f auth_service
@@ -94,6 +149,15 @@ logs-notification:
 
 logs-escalation:
 	docker compose logs -f escalation_service
+
+logs-meeting:
+	docker compose logs -f meeting_service
+
+logs-admin:
+	docker compose logs -f admin_web
+
+logs-telegram:
+	docker compose logs -f telegram_bot
 
 status:
 	docker compose ps
@@ -112,6 +176,15 @@ shell-notification:
 
 shell-escalation:
 	docker compose exec escalation_service /bin/bash
+
+shell-meeting:
+	docker compose exec meeting_service /bin/bash
+
+shell-admin:
+	docker compose exec admin_web /bin/sh
+
+shell-telegram:
+	docker compose exec telegram_bot /bin/bash
 
 shell-postgres:
 	docker compose exec postgres psql -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-mentor_bot}
@@ -150,6 +223,19 @@ clean:
 	docker compose down -v --rmi all --remove-orphans
 	@echo "Project cleaned successfully"
 
+reset-locks:
+	@for dir in auth_service checklists_service knowledge_service notification_service escalation_service feedback_service meeting_service telegram_bot; do \
+		echo "Rebuilding $$dir..."; \
+		rm -f $$dir/uv.lock; \
+		uv sync --directory $$dir; \
+	done
+	@echo "All uv.lock files rebuilt"
+
+update-deps:
+	python scripts/update_deps.py
+
+
+
 # Health check commands
 health:
 	@echo "Checking service health..."
@@ -158,6 +244,8 @@ health:
 	@echo "Knowledge Service: $$(docker compose exec knowledge_service curl -s -o /dev/null -w '%{http_code}' http://localhost:8000/health)"
 	@echo "Notification Service: $$(docker compose exec notification_service curl -s -o /dev/null -w '%{http_code}' http://localhost:8000/health)"
 	@echo "Escalation Service: $$(docker compose exec escalation_service curl -s -o /dev/null -w '%{http_code}' http://localhost:8000/health)"
+	@echo "Meeting Service: $$(docker compose exec meeting_service curl -s -o /dev/null -w '%{http_code}' http://localhost:8000/health)"
+	@echo "Admin Web: $$(docker compose exec admin_web wget -q -O /dev/null -S 'http://localhost:3000/' 2>&1 | head -1 | awk '{print $$2}' || echo 'unhealthy')"
 	@echo "PostgreSQL: $$(docker compose exec postgres pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-mentor_bot} >/dev/null 2>&1 && echo 'healthy' || echo 'unhealthy')"
 	@echo "Redis: $$(docker compose exec redis redis-cli ping | grep -q PONG && echo 'healthy' || echo 'unhealthy')"
 
@@ -173,6 +261,14 @@ dev-checklist:
 dev-knowledge:
 	docker compose up -d postgres redis auth_service
 	docker compose logs -f knowledge_service
+
+dev-meeting:
+	docker compose up -d postgres redis auth_service
+	docker compose logs -f meeting_service
+
+dev-admin:
+	docker compose up -d postgres redis auth_service checklists_service knowledge_service notification_service escalation_service meeting_service feedback_service
+	cd admin_web && npm install && npm run dev
 
 # Database backup/restore commands
 backup-db:

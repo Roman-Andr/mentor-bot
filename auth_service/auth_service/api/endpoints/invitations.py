@@ -20,12 +20,14 @@ from auth_service.schemas import (
     InvitationListResponse,
     InvitationResponse,
     InvitationStats,
+    MessageResponse,
 )
 
 router = APIRouter()
 
 
 @router.get("/")
+@router.get("")
 async def get_invitations(
     invitation_service: InvitationServiceDep,
     _current_user: HRUser,
@@ -33,7 +35,7 @@ async def get_invitations(
     limit: Annotated[int, Query(ge=1, le=1000)] = 100,
     email: Annotated[str | None, Query()] = None,
     status: Annotated[InvitationStatus | None, Query()] = None,
-    department: Annotated[str | None, Query()] = None,
+    department_id: Annotated[int | None, Query()] = None,
     *,
     expired_only: Annotated[bool, Query()] = False,
 ) -> InvitationListResponse:
@@ -43,7 +45,7 @@ async def get_invitations(
         limit=limit,
         email=email,
         status=status,
-        department=department,
+        department_id=department_id,
         expired_only=expired_only,
     )
 
@@ -68,6 +70,7 @@ async def get_invitations(
 
 
 @router.post("/")
+@router.post("")
 async def create_invitation(
     invitation_data: InvitationCreate,
     invitation_service: InvitationServiceDep,
@@ -178,3 +181,20 @@ async def get_invitation_stats(
 ) -> InvitationStats:
     """Get invitation statistics (HR/admin only)."""
     return await invitation_service.get_invitation_stats()
+
+
+@router.delete("/{invitation_id}")
+async def delete_invitation(
+    invitation_id: int,
+    invitation_service: InvitationServiceDep,
+    _current_user: HRUser,
+) -> MessageResponse:
+    """Delete invitation (HR/admin only)."""
+    try:
+        await invitation_service.delete_invitation(invitation_id)
+        return MessageResponse(message="Invitation deleted successfully")
+    except NotFoundException as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e.detail),
+        ) from e

@@ -9,10 +9,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from auth_service.repositories.interfaces.base import BaseRepository
 
 T = TypeVar("T")
-I = TypeVar("I", bound=int | str)
+V = TypeVar("V", bound=int | str)
 
 
-class SqlAlchemyBaseRepository[T, I: int | str](BaseRepository[T, I]):
+class SqlAlchemyBaseRepository[T, V: int | str](BaseRepository[T, V]):
     """Base SQLAlchemy repository implementation."""
 
     def __init__(self, session: AsyncSession, model_class: type[T]) -> None:
@@ -20,7 +20,7 @@ class SqlAlchemyBaseRepository[T, I: int | str](BaseRepository[T, I]):
         self._session = session
         self._model_class = model_class
 
-    async def get_by_id(self, entity_id: I) -> T | None:
+    async def get_by_id(self, entity_id: V) -> T | None:
         """Get entity by its primary key."""
         stmt = select(self._model_class).where(self._model_class.id == entity_id)
         result = await self._session.execute(stmt)
@@ -45,7 +45,7 @@ class SqlAlchemyBaseRepository[T, I: int | str](BaseRepository[T, I]):
         await self._session.refresh(entity)
         return entity
 
-    async def delete(self, entity_id: I) -> bool:
+    async def delete(self, entity_id: V) -> bool:
         """Delete entity by ID."""
         entity = await self.get_by_id(entity_id)
         if not entity:

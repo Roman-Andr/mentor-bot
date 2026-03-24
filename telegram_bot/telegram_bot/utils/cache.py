@@ -5,9 +5,10 @@ import pickle
 from collections.abc import Awaitable, Callable
 from datetime import timedelta
 from functools import wraps
-from typing import Any, TypeVar
+from typing import TypeVar
 
 from fastapi import status
+from redis import RedisError
 from redis.asyncio import Redis
 
 from telegram_bot.config import settings
@@ -36,7 +37,7 @@ class RedisCache:
             await self.redis.close()
             self._is_connected = False
 
-    def _make_key(self, prefix: str, *args, **kwargs) -> str:
+    def _make_key(self, prefix: str, *args: object, **kwargs: object) -> str:
         """Generate cache key from function arguments."""
         key_parts = [prefix] + [str(arg) for arg in args]
 
@@ -47,11 +48,11 @@ class RedisCache:
         key_string = ":".join(key_parts)
         # Hash long keys
         if len(key_string) > status.HTTP_200_OK:
-            key_string = f"{prefix}:{hashlib.md5(key_string.encode()).hexdigest()}"
+            key_string = f"{prefix}:{hashlib.sha256(key_string.encode()).hexdigest()}"
 
         return key_string
 
-    async def get(self, key: str) -> Any:
+    async def get(self, key: str) -> object:
         """Get value from cache."""
         if not self._is_connected:
             return None
@@ -60,11 +61,13 @@ class RedisCache:
             data = await self.redis.get(key)
             if data:
                 return pickle.loads(data)
-        except Exception:
+        except pickle.UnpicklingError, RedisError:
             return None
         return None
 
-    async def set(self, key: str, value: Any, ttl: int | timedelta | None = None) -> bool:
+    async def set(
+        self, key: str, value: object, ttl: int | timedelta | None = None
+    ) -> bool:
         """Set value in cache with TTL."""
         if not self._is_connected:
             return False
@@ -80,9 +83,10 @@ class RedisCache:
                 pickle.dumps(value),
                 ex=int(ttl_seconds) if ttl_seconds > 0 else None,
             )
-            return True
-        except Exception:
+        except RedisError:
             return False
+        else:
+            return True
 
     async def delete(self, key: str) -> bool:
         """Delete key from cache."""
@@ -91,9 +95,10 @@ class RedisCache:
 
         try:
             result = await self.redis.delete(key)
-            return result > 0
-        except Exception:
+        except RedisError:
             return False
+        else:
+            return result > 0
 
     async def delete_pattern(self, pattern: str) -> int:
         """Delete keys matching pattern."""
@@ -101,14 +106,12 @@ class RedisCache:
             return 0
 
         try:
-            keys = []
-            async for key in self.redis.scan_iter(match=pattern):
-                keys.append(key)
-
+            keys = [key async for key in self.redis.scan_iter(match=pattern)]
+        except RedisError:
+            return 0
+        else:
             if keys:
                 return await self.redis.delete(*keys)
-            return 0
-        except Exception:
             return 0
 
     async def exists(self, key: str) -> bool:
@@ -118,7 +121,7 @@ class RedisCache:
 
         try:
             return await self.redis.exists(key) == 1
-        except Exception:
+        except RedisError:
             return False
 
     async def flush(self) -> bool:
@@ -128,9 +131,10 @@ class RedisCache:
 
         try:
             await self.redis.flushdb()
-            return True
-        except Exception:
+        except RedisError:
             return False
+        else:
+            return True
 
 
 # Global cache instance
@@ -146,14 +150,14 @@ def cached(
 
     def decorator(func: Callable[..., Awaitable[T]]) -> Callable[..., Awaitable[T]]:
         @wraps(func)
-        async def wrapper(*args, **kwargs) -> T:
+        async def wrapper(*args: object, **kwargs: object) -> T:
             # Create cache key
             cache_kwargs = kwargs.copy()
             if ignore_args:
                 for arg in ignore_args:
                     cache_kwargs.pop(arg, None)
 
-            key = cache._make_key(
+            key = cache._make_key(  # noqa: SLF001
                 f"{key_prefix}:{func.__module__}:{func.__name__}",
                 *args,
                 **cache_kwargs,

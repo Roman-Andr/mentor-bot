@@ -1,9 +1,9 @@
 """Enum definitions for the Telegram Bot."""
 
-from enum import Enum
+from enum import StrEnum
 
 
-class ButtonStyle(str, Enum):
+class ButtonStyle(StrEnum):
     """Button style enumeration for inline and reply keyboards."""
 
     DANGER = "danger"  # Red

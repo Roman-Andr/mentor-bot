@@ -20,6 +20,7 @@ router = APIRouter()
 
 
 @router.get("/")
+@router.get("")
 async def get_articles(
     article_service: ArticleServiceDep,
     current_user: CurrentUser,
@@ -27,7 +28,7 @@ async def get_articles(
     limit: Annotated[int, Query(ge=1, le=100)] = 50,
     category_id: Annotated[int | None, Query()] = None,
     tag_id: Annotated[int | None, Query()] = None,
-    department: Annotated[str | None, Query()] = None,
+    department_id: Annotated[int | None, Query()] = None,
     status: Annotated[str | None, Query()] = None,
     *,
     featured_only: Annotated[bool, Query()] = False,
@@ -37,7 +38,7 @@ async def get_articles(
     user_filters = {}
     if current_user.role not in ["HR", "ADMIN"]:
         user_filters = {
-            "department": current_user.department,
+            "department_id": current_user.department_id,
             "position": current_user.position,
             "level": current_user.level,
         }
@@ -47,7 +48,7 @@ async def get_articles(
         limit=limit,
         category_id=category_id,
         tag_id=tag_id,
-        department=department,
+        department_id=department_id,
         status=status,
         featured_only=featured_only,
         pinned_only=pinned_only,
@@ -66,6 +67,7 @@ async def get_articles(
 
 
 @router.post("/")
+@router.post("")
 async def create_article(
     article_data: ArticleCreate,
     article_service: ArticleServiceDep,
@@ -106,8 +108,8 @@ async def get_article(
 
         if (
             current_user.role not in ["HR", "ADMIN"]
-            and article.department
-            and article.department != current_user.department
+            and article.department_id
+            and article.department_id != current_user.department_id
         ):
             msg = "Access to articles from other departments is not allowed"
             raise PermissionDenied(msg)
@@ -203,20 +205,20 @@ async def get_article_stats(
         ) from e
 
 
-@router.get("/department/{department}")
+@router.get("/department/{department_id}")
 async def get_department_articles(
-    department: str,
+    department_id: int,
     article_service: ArticleServiceDep,
     current_user: CurrentUser,
     skip: Annotated[int, Query(ge=0)] = 0,
     limit: Annotated[int, Query(ge=1, le=100)] = 50,
 ) -> ArticleListResponse:
     """Get articles for specific department."""
-    if current_user.department != department and current_user.role not in ["HR", "ADMIN"]:
+    if current_user.department_id != department_id and current_user.role not in ["HR", "ADMIN"]:
         msg = "Cannot view other departments' articles"
         raise PermissionDenied(msg)
 
-    articles, total = await article_service.get_department_articles(department, skip, limit)
+    articles, total = await article_service.get_department_articles(department_id, skip, limit)
 
     pages = (total + limit - 1) // limit if limit > 0 else 0
 

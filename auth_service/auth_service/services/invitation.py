@@ -48,9 +48,11 @@ class InvitationService:
             employee_id=invitation_data.employee_id,
             first_name=invitation_data.first_name,
             last_name=invitation_data.last_name,
-            department=invitation_data.department,
+            department_id=invitation_data.department_id,
             position=invitation_data.position,
             level=invitation_data.level,
+            role=invitation_data.role,
+            mentor_id=invitation_data.mentor_id,
             expires_at=datetime.now(UTC) + timedelta(days=invitation_data.expires_in_days),
             status=InvitationStatus.PENDING,
         )
@@ -107,7 +109,7 @@ class InvitationService:
         limit: int = 100,
         email: str | None = None,
         status: InvitationStatus | None = None,
-        department: str | None = None,
+        department_id: int | None = None,
         *,
         expired_only: bool = False,
     ) -> tuple[list[Invitation], int]:
@@ -117,7 +119,7 @@ class InvitationService:
             limit=limit,
             email=email,
             status=status,
-            department=department,
+            department_id=department_id,
             expired_only=expired_only,
         )
         return list(invitations), total
@@ -126,6 +128,14 @@ class InvitationService:
         """Get invitation statistics."""
         return await self._uow.invitations.get_statistics()
 
+    async def delete_invitation(self, invitation_id: int) -> bool:
+        """Delete invitation by ID."""
+        invitation = await self._uow.invitations.get_by_id(invitation_id)
+        if not invitation:
+            msg = "Invitation"
+            raise NotFoundException(msg)
+        return await self._uow.invitations.delete(invitation_id)
+
     def generate_invitation_url(self, token: str) -> str:
         """Generate invitation URL for Telegram bot."""
-        return f"https://t.me/your_bot_username?start={token}"
+        return f"https://t.me/company_hr_mentor_bot?start={token}"

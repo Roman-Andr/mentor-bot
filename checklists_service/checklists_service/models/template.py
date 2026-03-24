@@ -13,6 +13,7 @@ from checklists_service.database import Base
 
 if TYPE_CHECKING:
     from checklists_service.models import Checklist
+    from checklists_service.models.department import Department
 
 
 class Template(Base):
@@ -25,7 +26,8 @@ class Template(Base):
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     # Target audience
-    department: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    department_id: Mapped[int | None] = mapped_column(ForeignKey("departments.id"), nullable=True)
+    department: Mapped["Department | None"] = relationship("Department", back_populates="templates")
     position: Mapped[str | None] = mapped_column(String(100), nullable=True)
     level: Mapped[EmployeeLevel | None] = mapped_column(Enum(EmployeeLevel), nullable=True)
 
@@ -55,7 +57,7 @@ class Template(Base):
 
     def __repr__(self) -> str:
         """Representation of Template."""
-        return f"<Template(id={self.id}, name={self.name}, department={self.department})>"
+        return f"<Template(id={self.id}, name={self.name}, department_id={self.department_id})>"
 
 
 class TaskTemplate(Base):

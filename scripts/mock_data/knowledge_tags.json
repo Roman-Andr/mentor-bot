@@ -1,0 +1,12 @@
+[
+  {"name": "Onboarding", "slug": "onboarding", "description": "Role introduction and onboarding materials"},
+  {"name": "Engineering", "slug": "engineering", "description": "Development and engineering topics"},
+  {"name": "Setup", "slug": "setup", "description": "Environment and tools setup guides"},
+  {"name": "Policies", "slug": "policies", "description": "Company policies and rules"},
+  {"name": "Guide", "slug": "guide", "description": "Step-by-step guides and tutorials"},
+  {"name": "Tools", "slug": "tools", "description": "Software tools and utilities"},
+  {"name": "Process", "slug": "process", "description": "Business processes and workflows"},
+  {"name": "Best Practices", "slug": "best-practices", "description": "Industry and company best practices"},
+  {"name": "Compliance", "slug": "compliance", "description": "Compliance and regulatory requirements"},
+  {"name": "Training", "slug": "training", "description": "Training materials and courses"}
+]

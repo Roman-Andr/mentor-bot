@@ -1,0 +1,678 @@
+[
+  {
+    "name": "Onboarding Checklist",
+    "description": "Standard onboarding checklist for new employees",
+    "department": "Engineering",
+    "position": "Software Engineer",
+    "level": "JUNIOR",
+    "duration_days": 30,
+    "task_categories": ["INTRODUCTION", "DOCUMENTATION", "TECHNICAL"],
+    "default_assignee_role": "MENTOR",
+    "tasks": [
+      {
+        "title": "Welcome Meeting",
+        "description": "Meet with your manager and team lead to discuss your onboarding plan",
+        "instructions": "Schedule a 30-minute meeting with your manager on your first day.",
+        "category": "INTRODUCTION",
+        "order": 1,
+        "due_days": 1,
+        "estimated_minutes": 30,
+        "assignee_role": "MENTOR"
+      },
+      {
+        "title": "HR Documentation",
+        "description": "Complete all required HR forms and paperwork",
+        "instructions": "Fill out tax forms, emergency contacts, and sign employment agreements.",
+        "category": "DOCUMENTATION",
+        "order": 2,
+        "due_days": 3,
+        "estimated_minutes": 60,
+        "assignee_role": "HR"
+      },
+      {
+        "title": "Dev Environment Setup",
+        "description": "Set up your local development environment",
+        "instructions": "Install Docker, VS Code, clone repositories, and run the project locally.",
+        "category": "TECHNICAL",
+        "order": 3,
+        "due_days": 5,
+        "estimated_minutes": 120,
+        "assignee_role": "MENTOR"
+      },
+      {
+        "title": "Team Introduction",
+        "description": "Meet all team members and understand team dynamics",
+        "instructions": "Schedule short 15-minute intro calls with each team member.",
+        "category": "INTRODUCTION",
+        "order": 4,
+        "due_days": 7,
+        "estimated_minutes": 90,
+        "assignee_role": "MENTOR"
+      },
+      {
+        "title": "First Code Review",
+        "description": "Submit your first pull request and participate in code review",
+        "instructions": "Pick a starter task, implement the solution, and submit a PR.",
+        "category": "TECHNICAL",
+        "order": 5,
+        "due_days": 10,
+        "estimated_minutes": 180,
+        "assignee_role": "MENTOR"
+      },
+      {
+        "title": "Security Training",
+        "description": "Complete mandatory security awareness training",
+        "instructions": "Watch the security training videos and pass the quiz.",
+        "category": "DOCUMENTATION",
+        "order": 6,
+        "due_days": 14,
+        "estimated_minutes": 60,
+        "assignee_role": "MENTOR"
+      },
+      {
+        "title": "Codebase Walkthrough",
+        "description": "Get a guided walkthrough of the main codebase architecture",
+        "instructions": "Schedule a session with your mentor to review the architecture.",
+        "category": "TECHNICAL",
+        "order": 7,
+        "due_days": 21,
+        "estimated_minutes": 90,
+        "assignee_role": "MENTOR"
+      },
+      {
+        "title": "Onboarding Survey",
+        "description": "Complete the 30-day onboarding feedback survey",
+        "instructions": "Fill out the survey honestly to help us improve the onboarding process.",
+        "category": "INTRODUCTION",
+        "order": 8,
+        "due_days": 28,
+        "estimated_minutes": 15,
+        "assignee_role": "MENTOR"
+      },
+      {
+        "title": "Final Review",
+        "description": "Final check-in with manager to review onboarding progress",
+        "instructions": "Discuss your onboarding experience and set goals for the next quarter.",
+        "category": "INTRODUCTION",
+        "order": 9,
+        "due_days": 30,
+        "estimated_minutes": 30,
+        "assignee_role": "MENTOR"
+      }
+    ]
+  },
+  {
+    "name": "Engineering Onboarding",
+    "description": "Technical onboarding for engineering team members",
+    "department": "Engineering",
+    "position": "Software Engineer",
+    "level": "MIDDLE",
+    "duration_days": 21,
+    "task_categories": ["TECHNICAL", "DOCUMENTATION"],
+    "default_assignee_role": "MENTOR",
+    "tasks": [
+      {
+        "title": "Architecture Overview",
+        "description": "Learn the system architecture and microservices design",
+        "instructions": "Review the architecture docs and attend the architecture walkthrough session.",
+        "category": "TECHNICAL",
+        "order": 1,
+        "due_days": 2,
+        "estimated_minutes": 90,
+        "assignee_role": "MENTOR"
+      },
+      {
+        "title": "CI/CD Pipeline Setup",
+        "description": "Understand and configure the CI/CD pipeline for your projects",
+        "instructions": "Review the Jenkins/GitHub Actions configuration and run a test deployment.",
+        "category": "TECHNICAL",
+        "order": 2,
+        "due_days": 5,
+        "estimated_minutes": 60,
+        "assignee_role": "MENTOR"
+      },
+      {
+        "title": "Database Schema Review",
+        "description": "Review the database schema and understand data models",
+        "instructions": "Study the ER diagrams and run sample queries against the dev database.",
+        "category": "TECHNICAL",
+        "order": 3,
+        "due_days": 7,
+        "estimated_minutes": 90,
+        "assignee_role": "MENTOR"
+      },
+      {
+        "title": "API Documentation Review",
+        "description": "Read through all API documentation and test endpoints",
+        "instructions": "Use the Swagger docs to test each service endpoint.",
+        "category": "DOCUMENTATION",
+        "order": 4,
+        "due_days": 10,
+        "estimated_minutes": 120,
+        "assignee_role": "MENTOR"
+      },
+      {
+        "title": "First Feature Implementation",
+        "description": "Implement a small feature from the backlog independently",
+        "instructions": "Pick a starter story, implement, test, and deploy to staging.",
+        "category": "TECHNICAL",
+        "order": 5,
+        "due_days": 14,
+        "estimated_minutes": 240,
+        "assignee_role": "MENTOR"
+      },
+      {
+        "title": "Code Review Participation",
+        "description": "Review 5 PRs from other team members",
+        "instructions": "Provide constructive feedback on code quality, performance, and style.",
+        "category": "TECHNICAL",
+        "order": 6,
+        "due_days": 18,
+        "estimated_minutes": 150,
+        "assignee_role": "MENTOR"
+      },
+      {
+        "title": "Production Readiness Checklist",
+        "description": "Complete the production deployment readiness checklist",
+        "instructions": "Review monitoring, alerting, rollback procedures, and runbooks.",
+        "category": "DOCUMENTATION",
+        "order": 7,
+        "due_days": 21,
+        "estimated_minutes": 60,
+        "assignee_role": "MENTOR"
+      }
+    ]
+  },
+  {
+    "name": "Sales Onboarding",
+    "description": "Onboarding program for sales team members",
+    "department": "Sales",
+    "position": "Sales Representative",
+    "level": "JUNIOR",
+    "duration_days": 14,
+    "task_categories": ["INTRODUCTION", "DOCUMENTATION", "OTHER"],
+    "default_assignee_role": "HR",
+    "tasks": [
+      {
+        "title": "Welcome Meeting",
+        "description": "Meet with your sales manager and team",
+        "instructions": "Attend the welcome meeting and learn about team structure.",
+        "category": "INTRODUCTION",
+        "order": 1,
+        "due_days": 1,
+        "estimated_minutes": 30,
+        "assignee_role": "HR"
+      },
+      {
+        "title": "CRM Training",
+        "description": "Learn to use the company CRM system",
+        "instructions": "Complete the CRM training modules and practice entering leads.",
+        "category": "DOCUMENTATION",
+        "order": 2,
+        "due_days": 3,
+        "estimated_minutes": 120,
+        "assignee_role": "HR"
+      },
+      {
+        "title": "Product Knowledge",
+        "description": "Study all product offerings and pricing",
+        "instructions": "Review product sheets, pricing guides, and competitor comparisons.",
+        "category": "DOCUMENTATION",
+        "order": 3,
+        "due_days": 5,
+        "estimated_minutes": 90,
+        "assignee_role": "HR"
+      },
+      {
+        "title": "Sales Process Training",
+        "description": "Learn the company sales process end-to-end",
+        "instructions": "Study the sales playbook and attend the process training session.",
+        "category": "INTRODUCTION",
+        "order": 4,
+        "due_days": 7,
+        "estimated_minutes": 60,
+        "assignee_role": "HR"
+      },
+      {
+        "title": "Shadow Senior Rep",
+        "description": "Shadow a senior sales representative on client calls",
+        "instructions": "Join 3 client calls with a senior rep and take notes.",
+        "category": "OTHER",
+        "order": 5,
+        "due_days": 10,
+        "estimated_minutes": 180,
+        "assignee_role": "MENTOR"
+      },
+      {
+        "title": "First Independent Calls",
+        "description": "Make your first solo prospecting calls",
+        "instructions": "Complete 20 cold calls using the provided scripts and leads.",
+        "category": "OTHER",
+        "order": 6,
+        "due_days": 12,
+        "estimated_minutes": 120,
+        "assignee_role": "MENTOR"
+      },
+      {
+        "title": "Sales Certification",
+        "description": "Pass the sales certification assessment",
+        "instructions": "Complete the online sales certification exam with 80%+ score.",
+        "category": "DOCUMENTATION",
+        "order": 7,
+        "due_days": 14,
+        "estimated_minutes": 60,
+        "assignee_role": "HR"
+      }
+    ]
+  },
+  {
+    "name": "Product Onboarding",
+    "description": "Onboarding program for product team members",
+    "department": "Product",
+    "position": "Product Manager",
+    "level": "MIDDLE",
+    "duration_days": 21,
+    "task_categories": ["INTRODUCTION", "DOCUMENTATION", "OTHER"],
+    "default_assignee_role": "MENTOR",
+    "tasks": [
+      {
+        "title": "Product Overview",
+        "description": "Learn the full product suite and value proposition",
+        "instructions": "Review product documentation and attend the product overview session.",
+        "category": "OTHER",
+        "order": 1,
+        "due_days": 2,
+        "estimated_minutes": 90,
+        "assignee_role": "MENTOR"
+      },
+      {
+        "title": "Roadmap Review",
+        "description": "Review the current product roadmap and priorities",
+        "instructions": "Study the Q1-Q4 roadmap and understand strategic priorities.",
+        "category": "OTHER",
+        "order": 2,
+        "due_days": 5,
+        "estimated_minutes": 60,
+        "assignee_role": "MENTOR"
+      },
+      {
+        "title": "Stakeholder Introductions",
+        "description": "Meet key stakeholders across departments",
+        "instructions": "Schedule 30-min intro meetings with engineering, sales, and support leads.",
+        "category": "INTRODUCTION",
+        "order": 3,
+        "due_days": 7,
+        "estimated_minutes": 120,
+        "assignee_role": "MENTOR"
+      },
+      {
+        "title": "Analytics Setup",
+        "description": "Get access to analytics tools and dashboards",
+        "instructions": "Set up access to Mixpanel, Amplitude, and internal dashboards.",
+        "category": "DOCUMENTATION",
+        "order": 4,
+        "due_days": 10,
+        "estimated_minutes": 60,
+        "assignee_role": "MENTOR"
+      },
+      {
+        "title": "First Feature Spec",
+        "description": "Write your first feature specification document",
+        "instructions": "Draft a PRD for a small feature improvement.",
+        "category": "OTHER",
+        "order": 5,
+        "due_days": 14,
+        "estimated_minutes": 180,
+        "assignee_role": "MENTOR"
+      },
+      {
+        "title": "User Research Observation",
+        "description": "Observe a user research session",
+        "instructions": "Join a user interview or usability test session.",
+        "category": "OTHER",
+        "order": 6,
+        "due_days": 17,
+        "estimated_minutes": 60,
+        "assignee_role": "MENTOR"
+      },
+      {
+        "title": "PM Certification",
+        "description": "Complete the internal PM certification",
+        "instructions": "Pass the product management assessment with 80%+ score.",
+        "category": "DOCUMENTATION",
+        "order": 7,
+        "due_days": 21,
+        "estimated_minutes": 90,
+        "assignee_role": "MENTOR"
+      }
+    ]
+  },
+  {
+    "name": "Marketing Onboarding",
+    "description": "Onboarding program for marketing team members",
+    "department": "Marketing",
+    "position": "Marketing Specialist",
+    "level": "JUNIOR",
+    "duration_days": 14,
+    "task_categories": ["INTRODUCTION", "DOCUMENTATION", "OTHER"],
+    "default_assignee_role": "HR",
+    "tasks": [
+      {
+        "title": "Brand Guidelines Review",
+        "description": "Study the company brand guidelines and style guide",
+        "instructions": "Read the brand book and review past campaigns for reference.",
+        "category": "DOCUMENTATION",
+        "order": 1,
+        "due_days": 2,
+        "estimated_minutes": 60,
+        "assignee_role": "HR"
+      },
+      {
+        "title": "Marketing Tools Setup",
+        "description": "Set up access to all marketing tools and platforms",
+        "instructions": "Get access to HubSpot, Canva, Google Analytics, and social media accounts.",
+        "category": "OTHER",
+        "order": 2,
+        "due_days": 3,
+        "estimated_minutes": 45,
+        "assignee_role": "HR"
+      },
+      {
+        "title": "Campaign Review",
+        "description": "Review past and current marketing campaigns",
+        "instructions": "Study the last 3 major campaigns including results and learnings.",
+        "category": "OTHER",
+        "order": 3,
+        "due_days": 5,
+        "estimated_minutes": 90,
+        "assignee_role": "MENTOR"
+      },
+      {
+        "title": "Content Calendar Training",
+        "description": "Learn the content planning and scheduling process",
+        "instructions": "Review the content calendar and create a sample post.",
+        "category": "DOCUMENTATION",
+        "order": 4,
+        "due_days": 7,
+        "estimated_minutes": 60,
+        "assignee_role": "MENTOR"
+      },
+      {
+        "title": "First Campaign Contribution",
+        "description": "Contribute to an active marketing campaign",
+        "instructions": "Write 3 social media posts or 1 blog draft for review.",
+        "category": "OTHER",
+        "order": 5,
+        "due_days": 10,
+        "estimated_minutes": 120,
+        "assignee_role": "MENTOR"
+      },
+      {
+        "title": "Marketing Certification",
+        "description": "Complete the marketing fundamentals certification",
+        "instructions": "Pass the internal marketing certification exam.",
+        "category": "DOCUMENTATION",
+        "order": 6,
+        "due_days": 14,
+        "estimated_minutes": 60,
+        "assignee_role": "HR"
+      }
+    ]
+  },
+  {
+    "name": "Operations Onboarding",
+    "description": "Onboarding program for operations team members",
+    "department": "Operations",
+    "position": "Operations Analyst",
+    "level": "JUNIOR",
+    "duration_days": 14,
+    "task_categories": ["INTRODUCTION", "DOCUMENTATION", "OTHER"],
+    "default_assignee_role": "HR",
+    "tasks": [
+      {
+        "title": "Operations Overview",
+        "description": "Learn the operations team structure and responsibilities",
+        "instructions": "Attend the operations overview session and review the org chart.",
+        "category": "INTRODUCTION",
+        "order": 1,
+        "due_days": 1,
+        "estimated_minutes": 60,
+        "assignee_role": "HR"
+      },
+      {
+        "title": "Systems Access Setup",
+        "description": "Get access to all operations systems and tools",
+        "instructions": "Set up access to ticketing, monitoring, and reporting tools.",
+        "category": "OTHER",
+        "order": 2,
+        "due_days": 3,
+        "estimated_minutes": 45,
+        "assignee_role": "HR"
+      },
+      {
+        "title": "Process Documentation Review",
+        "description": "Review all standard operating procedures",
+        "instructions": "Read through the SOPs for key operations processes.",
+        "category": "DOCUMENTATION",
+        "order": 3,
+        "due_days": 5,
+        "estimated_minutes": 90,
+        "assignee_role": "HR"
+      },
+      {
+        "title": "Compliance Training",
+        "description": "Complete mandatory compliance training modules",
+        "instructions": "Complete all compliance training courses and pass assessments.",
+        "category": "DOCUMENTATION",
+        "order": 4,
+        "due_days": 7,
+        "estimated_minutes": 120,
+        "assignee_role": "HR"
+      },
+      {
+        "title": "First Independent Tasks",
+        "description": "Handle your first set of operations tickets independently",
+        "instructions": "Process 5 support tickets with minimal supervision.",
+        "category": "OTHER",
+        "order": 5,
+        "due_days": 10,
+        "estimated_minutes": 180,
+        "assignee_role": "MENTOR"
+      },
+      {
+        "title": "Operations Certification",
+        "description": "Complete the operations team certification",
+        "instructions": "Pass the operations certification exam with 80%+ score.",
+        "category": "DOCUMENTATION",
+        "order": 6,
+        "due_days": 14,
+        "estimated_minutes": 60,
+        "assignee_role": "HR"
+      }
+    ]
+  },
+  {
+    "name": "Manager Onboarding",
+    "description": "Onboarding program for new team managers",
+    "department": "Engineering",
+    "position": "Engineering Manager",
+    "level": "MIDDLE",
+    "duration_days": 21,
+    "task_categories": ["INTRODUCTION", "DOCUMENTATION", "OTHER"],
+    "default_assignee_role": "HR",
+    "tasks": [
+      {
+        "title": "Manager Welcome",
+        "description": "Executive welcome session with leadership",
+        "instructions": "Attend the manager welcome meeting with VP of Engineering.",
+        "category": "INTRODUCTION",
+        "order": 1,
+        "due_days": 1,
+        "estimated_minutes": 60,
+        "assignee_role": "HR"
+      },
+      {
+        "title": "Team Overview",
+        "description": "Review your team's current projects and performance",
+        "instructions": "Meet with outgoing manager and review team dashboard.",
+        "category": "INTRODUCTION",
+        "order": 2,
+        "due_days": 3,
+        "estimated_minutes": 90,
+        "assignee_role": "HR"
+      },
+      {
+        "title": "HR Processes Training",
+        "description": "Learn HR processes for managers (hiring, reviews, PTO)",
+        "instructions": "Complete the manager HR training modules.",
+        "category": "DOCUMENTATION",
+        "order": 3,
+        "due_days": 5,
+        "estimated_minutes": 60,
+        "assignee_role": "HR"
+      },
+      {
+        "title": "Performance Review Training",
+        "description": "Learn how to conduct performance reviews",
+        "instructions": "Complete the performance management training course.",
+        "category": "OTHER",
+        "order": 4,
+        "due_days": 7,
+        "estimated_minutes": 90,
+        "assignee_role": "HR"
+      },
+      {
+        "title": "Budget Training",
+        "description": "Learn budget planning and expense management",
+        "instructions": "Review the budget planning process and tools.",
+        "category": "OTHER",
+        "order": 5,
+        "due_days": 10,
+        "estimated_minutes": 60,
+        "assignee_role": "HR"
+      },
+      {
+        "title": "First 1:1 Meetings",
+        "description": "Conduct initial 1:1 meetings with all team members",
+        "instructions": "Schedule and hold 30-min 1:1s with each direct report.",
+        "category": "INTRODUCTION",
+        "order": 6,
+        "due_days": 14,
+        "estimated_minutes": 180,
+        "assignee_role": "MENTOR"
+      },
+      {
+        "title": "Hiring Process Training",
+        "description": "Learn the interview and hiring process",
+        "instructions": "Complete interviewer training and shadow an interview.",
+        "category": "OTHER",
+        "order": 7,
+        "due_days": 17,
+        "estimated_minutes": 120,
+        "assignee_role": "HR"
+      },
+      {
+        "title": "Manager Certification",
+        "description": "Complete the management certification program",
+        "instructions": "Pass the leadership certification assessment.",
+        "category": "DOCUMENTATION",
+        "order": 8,
+        "due_days": 21,
+        "estimated_minutes": 90,
+        "assignee_role": "HR"
+      }
+    ]
+  },
+  {
+    "name": "General Onboarding",
+    "description": "Basic onboarding checklist applicable to any role",
+    "department": null,
+    "position": null,
+    "level": "JUNIOR",
+    "duration_days": 7,
+    "task_categories": ["INTRODUCTION", "DOCUMENTATION"],
+    "default_assignee_role": "HR",
+    "tasks": [
+      {
+        "title": "Welcome Email",
+        "description": "Read the welcome email and onboarding guide",
+        "instructions": "Read all welcome communications and save important links.",
+        "category": "INTRODUCTION",
+        "order": 1,
+        "due_days": 1,
+        "estimated_minutes": 15,
+        "assignee_role": "HR"
+      },
+      {
+        "title": "HR Paperwork",
+        "description": "Complete all required HR paperwork",
+        "instructions": "Fill out tax forms, emergency contacts, and sign agreements.",
+        "category": "DOCUMENTATION",
+        "order": 2,
+        "due_days": 1,
+        "estimated_minutes": 60,
+        "assignee_role": "HR"
+      },
+      {
+        "title": "IT Equipment Setup",
+        "description": "Receive and set up your IT equipment",
+        "instructions": "Collect laptop, monitor, and peripherals from IT desk.",
+        "category": "TECHNICAL",
+        "order": 3,
+        "due_days": 1,
+        "estimated_minutes": 30,
+        "assignee_role": "HR"
+      },
+      {
+        "title": "Badge and Access",
+        "description": "Get your employee badge and building access",
+        "instructions": "Visit security to get your badge and access card.",
+        "category": "INTRODUCTION",
+        "order": 4,
+        "due_days": 1,
+        "estimated_minutes": 15,
+        "assignee_role": "HR"
+      },
+      {
+        "title": "Building Tour",
+        "description": "Take a tour of the office building",
+        "instructions": "Join the guided office tour at 10 AM on your first day.",
+        "category": "INTRODUCTION",
+        "order": 5,
+        "due_days": 1,
+        "estimated_minutes": 30,
+        "assignee_role": "HR"
+      },
+      {
+        "title": "Team Introduction",
+        "description": "Meet your immediate team members",
+        "instructions": "Attend the team standup and introduce yourself.",
+        "category": "INTRODUCTION",
+        "order": 6,
+        "due_days": 2,
+        "estimated_minutes": 30,
+        "assignee_role": "MENTOR"
+      },
+      {
+        "title": "First Week Check-in",
+        "description": "Check-in with your manager about your first week",
+        "instructions": "Schedule a 15-minute check-in to discuss your first week experience.",
+        "category": "INTRODUCTION",
+        "order": 7,
+        "due_days": 5,
+        "estimated_minutes": 15,
+        "assignee_role": "MENTOR"
+      },
+      {
+        "title": "Completion Survey",
+        "description": "Complete the onboarding feedback survey",
+        "instructions": "Fill out the survey to help us improve the onboarding experience.",
+        "category": "DOCUMENTATION",
+        "order": 8,
+        "due_days": 7,
+        "estimated_minutes": 10,
+        "assignee_role": "HR"
+      }
+    ]
+  }
+]

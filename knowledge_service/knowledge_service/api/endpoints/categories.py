@@ -20,23 +20,24 @@ router = APIRouter()
 
 
 @router.get("/")
+@router.get("")
 async def get_categories(
     category_service: CategoryServiceDep,
     current_user: CurrentUser,
     skip: Annotated[int, Query(ge=0)] = 0,
     limit: Annotated[int, Query(ge=1, le=100)] = 50,
     parent_id: Annotated[int | None, Query()] = None,
-    department: Annotated[str | None, Query()] = None,
+    department_id: Annotated[int | None, Query()] = None,
     *,
     include_tree: Annotated[bool, Query()] = False,
 ) -> CategoryListResponse:
     """Get paginated list of categories."""
-    user_department = current_user.department
+    user_department_id = current_user.department_id
     if current_user.role not in ["HR", "ADMIN"]:
-        department = user_department
+        department_id = user_department_id
 
     if include_tree:
-        tree, total = await category_service.get_category_tree(department)
+        tree, total = await category_service.get_category_tree(department_id)
 
         flattened_categories = [
             CategoryResponse(
@@ -47,7 +48,7 @@ async def get_categories(
                 parent_id=category_dict["parent_id"],
                 parent_name=category_dict["parent_name"],
                 order=category_dict["order"],
-                department=category_dict["department"],
+                department_id=category_dict["department_id"],
                 position=category_dict.get("position"),
                 level=category_dict.get("level"),
                 icon=category_dict.get("icon"),
@@ -74,7 +75,7 @@ async def get_categories(
         skip=skip,
         limit=limit,
         parent_id=parent_id,
-        department=department,
+        department_id=department_id,
     )
 
     pages = (total + limit - 1) // limit if limit > 0 else 0
@@ -89,6 +90,7 @@ async def get_categories(
 
 
 @router.post("/")
+@router.post("")
 async def create_category(
     category_data: CategoryCreate,
     category_service: CategoryServiceDep,
@@ -122,8 +124,8 @@ async def get_category(
             category = await category_service.get_category_by_slug(category_id_or_slug)
 
         if (
-            category.department
-            and current_user.department != category.department
+            category.department_id
+            and current_user.department_id != category.department_id
             and current_user.role not in ["HR", "ADMIN"]
         ):
             raise HTTPException(
@@ -136,7 +138,7 @@ async def get_category(
                 article
                 for article in category.articles
                 if current_user.role in ["HR", "ADMIN"]
-                or (article.status == ArticleStatus.PUBLISHED and article.department == current_user.department)
+                or (article.status == ArticleStatus.PUBLISHED and article.department_id == current_user.department_id)
             ]
 
             return CategoryWithArticles(
@@ -206,35 +208,35 @@ async def delete_category(
         ) from e
 
 
-@router.get("/department/{department}")
+@router.get("/department/{department_id}")
 async def get_department_categories(
-    department: str,
+    department_id: int,
     category_service: CategoryServiceDep,
     current_user: CurrentUser,
 ) -> list[CategoryResponse]:
     """Get all categories for specific department."""
-    if current_user.department != department and current_user.role not in ["HR", "ADMIN"]:
+    if current_user.department_id != department_id and current_user.role not in ["HR", "ADMIN"]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Cannot access other departments' categories",
         )
 
-    categories = await category_service.get_department_categories(department)
+    categories = await category_service.get_department_categories(department_id)
     return [CategoryResponse.model_validate(category) for category in categories]
 
 
-@router.get("/tree/{department}")
+@router.get("/tree/{department_id}")
 async def get_category_tree(
-    department: str,
+    department_id: int,
     category_service: CategoryServiceDep,
     current_user: CurrentUser,
 ) -> list[dict]:
     """Get category tree for specific department."""
-    if current_user.department != department and current_user.role not in ["HR", "ADMIN"]:
+    if current_user.department_id != department_id and current_user.role not in ["HR", "ADMIN"]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Cannot access other departments' categories",
         )
 
-    tree, _ = await category_service.get_category_tree(department)
+    tree, _ = await category_service.get_category_tree(department_id)
     return tree

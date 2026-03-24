@@ -7,12 +7,21 @@ from pydantic import BaseModel, ConfigDict, Field
 from checklists_service.core import EmployeeLevel, TaskCategory, TemplateStatus
 
 
+class DepartmentInfo(BaseModel):
+    """Minimal department info for embedding in responses."""
+
+    id: int
+    name: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class TemplateBase(BaseModel):
     """Base template schema."""
 
     name: str = Field(..., min_length=1, max_length=200)
     description: str | None = None
-    department: str | None = Field(None, max_length=100)
+    department_id: int | None = None
     position: str | None = Field(None, max_length=100)
     level: EmployeeLevel | None = Field(None, max_length=50)
     duration_days: int = Field(30, ge=1, le=365)
@@ -42,6 +51,7 @@ class TemplateResponse(TemplateBase):
     status: TemplateStatus
     version: int
     is_default: bool
+    department: DepartmentInfo | None = None
     created_at: datetime
     updated_at: datetime | None = None
 

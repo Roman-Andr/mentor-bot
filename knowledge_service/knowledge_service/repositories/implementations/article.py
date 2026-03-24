@@ -21,9 +21,42 @@ class ArticleRepository(SqlAlchemyBaseRepository[Article, int], IArticleReposito
     """SQLAlchemy implementation of Article repository."""
 
     def __init__(self, session: AsyncSession) -> None:
+        """Initialize article repository."""
         super().__init__(session, Article)
 
+    async def create(self, entity: Article) -> Article:
+        """Create article with eager-loaded relations."""
+        self._session.add(entity)
+        await self._session.flush()
+        stmt = (
+            select(Article)
+            .where(Article.id == entity.id)
+            .options(
+                selectinload(Article.category),
+                selectinload(Article.tags),
+                selectinload(Article.attachments),
+            )
+        )
+        result = await self._session.execute(stmt)
+        return result.scalar_one()
+
+    async def update(self, entity: Article) -> Article:
+        """Update article with eager-loaded relations."""
+        await self._session.flush()
+        stmt = (
+            select(Article)
+            .where(Article.id == entity.id)
+            .options(
+                selectinload(Article.category),
+                selectinload(Article.tags),
+                selectinload(Article.attachments),
+            )
+        )
+        result = await self._session.execute(stmt)
+        return result.scalar_one()
+
     async def get_by_slug(self, slug: str) -> Article | None:
+        """Retrieve article by slug with relations."""
         stmt = (
             select(Article)
             .where(Article.slug == slug)
@@ -37,6 +70,7 @@ class ArticleRepository(SqlAlchemyBaseRepository[Article, int], IArticleReposito
         return result.scalar_one_or_none()
 
     async def get_by_id_with_relations(self, entity_id: int) -> Article | None:
+        """Retrieve article by ID with category, tags, and attachments."""
         stmt = (
             select(Article)
             .where(Article.id == entity_id)
@@ -56,12 +90,13 @@ class ArticleRepository(SqlAlchemyBaseRepository[Article, int], IArticleReposito
         limit: int = 100,
         category_id: int | None = None,
         tag_id: int | None = None,
-        department: str | None = None,
+        department_id: int | None = None,
         status: str | None = None,
         user_filters: dict | None = None,
         featured_only: bool = False,
         pinned_only: bool = False,
     ) -> tuple[Sequence[Article], int]:
+        """Find articles with filters and return total count."""
         stmt = select(Article)
         count_stmt = select(func.count(Article.id))
 
@@ -73,9 +108,9 @@ class ArticleRepository(SqlAlchemyBaseRepository[Article, int], IArticleReposito
             stmt = stmt.where(Article.tags.any(id=tag_id))
             count_stmt = count_stmt.where(Article.tags.any(id=tag_id))
 
-        if department:
-            stmt = stmt.where(Article.department == department)
-            count_stmt = count_stmt.where(Article.department == department)
+        if department_id:
+            stmt = stmt.where(Article.department_id == department_id)
+            count_stmt = count_stmt.where(Article.department_id == department_id)
 
         if status:
             stmt = stmt.where(Article.status == status)
@@ -91,8 +126,8 @@ class ArticleRepository(SqlAlchemyBaseRepository[Article, int], IArticleReposito
 
         if user_filters:
             filters = []
-            if user_filters.get("department"):
-                filters.append(Article.department == user_filters["department"])
+            if user_filters.get("department_id"):
+                filters.append(Article.department_id == user_filters["department_id"])
             if user_filters.get("position"):
                 filters.append(Article.position == user_filters["position"])
             if user_filters.get("level"):
@@ -117,10 +152,11 @@ class ArticleRepository(SqlAlchemyBaseRepository[Article, int], IArticleReposito
         return result.scalars().all(), total
 
     async def find_department_articles(
-        self, department: str, *, skip: int = 0, limit: int = 100
+        self, department_id: int, *, skip: int = 0, limit: int = 100
     ) -> tuple[Sequence[Article], int]:
+        """Find published articles for a department."""
         condition = and_(
-            Article.department == department,
+            Article.department_id == department_id,
             Article.status == ArticleStatus.PUBLISHED,
         )
         stmt = select(Article).where(condition)
@@ -142,6 +178,7 @@ class ArticleRepository(SqlAlchemyBaseRepository[Article, int], IArticleReposito
         return result.scalars().all(), total
 
     async def slug_exists(self, slug: str, *, exclude_id: int | None = None) -> bool:
+        """Check if slug exists, optionally excluding an article ID."""
         stmt = select(Article).where(Article.slug == slug)
         if exclude_id is not None:
             stmt = stmt.where(Article.id != exclude_id)
@@ -149,10 +186,12 @@ class ArticleRepository(SqlAlchemyBaseRepository[Article, int], IArticleReposito
         return result.scalar_one_or_none() is not None
 
     async def increment_view_count(self, article_id: int) -> None:
+        """Increment view count for an article."""
         stmt = update(Article).where(Article.id == article_id).values(view_count=Article.view_count + 1)
         await self._session.execute(stmt)
 
     async def update_search_vector(self, article_id: int) -> None:
+        """Update full-text search vector for an article."""
         stmt = text(f"""
             UPDATE {settings.DATABASE_SCHEMA}.articles
             SET search_vector =
@@ -160,10 +199,11 @@ class ArticleRepository(SqlAlchemyBaseRepository[Article, int], IArticleReposito
                 setweight(to_tsvector('russian', coalesce(content, '')), 'B') ||
                 setweight(to_tsvector('russian', coalesce(excerpt, '')), 'C')
             WHERE id = :article_id
-        """)
+        """)  # noqa: S608
         await self._session.execute(stmt, {"article_id": article_id})
 
     async def get_daily_views(self, article_id: int, start_date: date) -> dict[date, int]:
+        """Get daily view counts for an article since start date."""
         stmt = (
             select(
                 func.date(ArticleView.viewed_at).label("view_date"),
@@ -182,6 +222,7 @@ class ArticleRepository(SqlAlchemyBaseRepository[Article, int], IArticleReposito
         return {row.view_date: row.count for row in result.all()}
 
     async def get_previous_week_views(self, article_id: int, before_date: date) -> int:
+        """Get view count for the 7 days before a given date."""
         stmt = select(func.count(ArticleView.id)).where(
             and_(
                 ArticleView.article_id == article_id,

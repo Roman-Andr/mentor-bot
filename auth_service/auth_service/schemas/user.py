@@ -5,6 +5,7 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 from auth_service.core import EmployeeLevel, UserRole
+from auth_service.schemas.department import DepartmentResponse
 
 
 class UserBase(BaseModel):
@@ -14,7 +15,7 @@ class UserBase(BaseModel):
     first_name: str = Field(..., min_length=1, max_length=100)
     last_name: str | None = Field(None, max_length=100)
     phone: str | None = Field(None, max_length=20)
-    department: str | None = Field(None, max_length=100)
+    department_id: int | None = None
     position: str | None = Field(None, max_length=100)
     level: EmployeeLevel | None = Field(None, max_length=50)
 
@@ -34,7 +35,7 @@ class UserUpdate(BaseModel):
     first_name: str | None = Field(None, min_length=1, max_length=100)
     last_name: str | None = Field(None, max_length=100)
     phone: str | None = Field(None, max_length=20)
-    department: str | None = Field(None, max_length=100)
+    department_id: int | None = None
     position: str | None = Field(None, max_length=100)
     level: EmployeeLevel | None = Field(None, max_length=50)
     role: UserRole | None = None
@@ -55,6 +56,7 @@ class UserResponse(UserBase):
     created_at: datetime
     updated_at: datetime | None = None
     last_login_at: datetime | None = None
+    department: DepartmentResponse | None = None
 
     model_config = ConfigDict(from_attributes=True)
 

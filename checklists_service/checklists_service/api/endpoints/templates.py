@@ -21,12 +21,13 @@ router = APIRouter()
 
 
 @router.get("/")
+@router.get("")
 async def get_templates(
     uow: UOWDep,
     _current_user: HRUser,
     skip: Annotated[int, Query(ge=0)] = 0,
     limit: Annotated[int, Query(ge=1, le=100)] = 50,
-    department: Annotated[str | None, Query()] = None,
+    department_id: Annotated[int | None, Query()] = None,
     status: Annotated[str | None, Query()] = None,
     is_default: Annotated[bool | None, Query()] = None,
 ) -> list[TemplateResponse]:
@@ -36,7 +37,7 @@ async def get_templates(
     templates, _ = await template_service.get_templates(
         skip=skip,
         limit=limit,
-        department=department,
+        department_id=department_id,
         status=status,
         is_default=is_default,
     )
@@ -45,6 +46,7 @@ async def get_templates(
 
 
 @router.post("/")
+@router.post("")
 async def create_template(
     template_data: TemplateCreate,
     uow: UOWDep,

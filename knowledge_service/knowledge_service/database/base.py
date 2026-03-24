@@ -2,7 +2,7 @@
 
 from collections.abc import AsyncGenerator
 
-from sqlalchemy import MetaData, schema, text
+from sqlalchemy import Connection, MetaData, schema, text
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
     async_sessionmaker,
@@ -42,7 +42,7 @@ class Base(DeclarativeBase):
     metadata = metadata_obj
 
 
-async def get_db() -> AsyncGenerator[AsyncSession, None]:
+async def get_db() -> AsyncGenerator[AsyncSession]:
     """Dependency for getting async database session."""
     async with AsyncSessionLocal() as session:
         try:
@@ -79,7 +79,7 @@ async def init_db() -> None:
         await conn.run_sync(_create_search_indexes)
 
 
-def _create_search_indexes(sync_conn) -> None:
+def _create_search_indexes(sync_conn: Connection) -> None:
     """Create full-text search indexes for PostgreSQL."""
     # Create search vector column for articles
     sync_conn.execute(
@@ -99,8 +99,8 @@ def _create_search_indexes(sync_conn) -> None:
 
     sync_conn.execute(
         text(f"""
-        CREATE INDEX IF NOT EXISTS idx_articles_department
-        ON {settings.DATABASE_SCHEMA}.articles(department);
+        CREATE INDEX IF NOT EXISTS idx_articles_department_id
+        ON {settings.DATABASE_SCHEMA}.articles(department_id);
         """)
     )
 

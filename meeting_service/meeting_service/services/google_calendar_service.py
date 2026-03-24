@@ -21,6 +21,7 @@ class GoogleCalendarService:
     """Service for managing Google Calendar integration."""
 
     def __init__(self, uow: IUnitOfWork) -> None:
+        """Initialize service with unit of work."""
         self._uow = uow
 
     async def get_credentials(self, user_id: int) -> GoogleCalendarAccount | None:
@@ -53,7 +54,7 @@ class GoogleCalendarService:
         return Credentials(
             token=token_data.access_token,
             refresh_token=token_data.refresh_token,
-            token_uri="https://oauth2.googleapis.com/token",
+            token_uri=settings.GOOGLE_TOKEN_URI,
             client_id=settings.GOOGLE_CLIENT_ID,
             client_secret=settings.GOOGLE_CLIENT_SECRET,
             scopes=settings.GOOGLE_CALENDAR_SCOPES,
@@ -92,9 +93,9 @@ class GoogleCalendarService:
                 .execute()
             )
         except HttpError as error:
-            logger.exception(f"Google Calendar API error: {error}")
+            logger.exception("Google Calendar API error")
             msg = f"Failed to create calendar event: {error}"
-            raise ValidationException(msg)
+            raise ValidationException(msg) from error
 
     async def update_event(self, user_id: int, event_id: str, event_data: dict[str, Any]) -> dict[str, Any]:
         """Update a Google Calendar event."""
@@ -109,9 +110,9 @@ class GoogleCalendarService:
                 .execute()
             )
         except HttpError as error:
-            logger.exception(f"Google Calendar API error: {error}")
+            logger.exception("Google Calendar API error")
             msg = f"Failed to update calendar event: {error}"
-            raise ValidationException(msg)
+            raise ValidationException(msg) from error
 
     async def delete_event(self, user_id: int, event_id: str) -> None:
         """Delete a Google Calendar event."""
@@ -122,6 +123,6 @@ class GoogleCalendarService:
             service = build("calendar", "v3", credentials=creds)
             service.events().delete(calendarId=account.calendar_id, eventId=event_id).execute()
         except HttpError as error:
-            logger.exception(f"Google Calendar API error: {error}")
+            logger.exception("Google Calendar API error")
             msg = f"Failed to delete calendar event: {error}"
-            raise ValidationException(msg)
+            raise ValidationException(msg) from error

@@ -1,0 +1,57 @@
+[
+  {
+    "name": "Onboarding",
+    "slug": "onboarding",
+    "description": "General onboarding materials and guides",
+    "department": "Engineering",
+    "position": "Software Engineer",
+    "level": "JUNIOR",
+    "order": 1,
+    "icon": "book-open",
+    "color": "#4CAF50"
+  },
+  {
+    "name": "Development",
+    "slug": "development",
+    "description": "Development guides, tools, and best practices",
+    "department": "Engineering",
+    "position": "Software Engineer",
+    "level": "JUNIOR",
+    "order": 2,
+    "icon": "code",
+    "color": "#2196F3"
+  },
+  {
+    "name": "Company Policies",
+    "slug": "company-policies",
+    "description": "HR policies, procedures, and compliance",
+    "department": "Engineering",
+    "position": "Software Engineer",
+    "level": "JUNIOR",
+    "order": 3,
+    "icon": "shield-check",
+    "color": "#FF9800"
+  },
+  {
+    "name": "Product",
+    "slug": "product",
+    "description": "Product management and design resources",
+    "department": "Product",
+    "position": "Product Manager",
+    "level": "MIDDLE",
+    "order": 4,
+    "icon": "layers",
+    "color": "#9C27B0"
+  },
+  {
+    "name": "Sales & Marketing",
+    "slug": "sales-marketing",
+    "description": "Sales and marketing guides and strategies",
+    "department": "Sales",
+    "position": "Sales Representative",
+    "level": "JUNIOR",
+    "order": 5,
+    "icon": "trending-up",
+    "color": "#F44336"
+  }
+]

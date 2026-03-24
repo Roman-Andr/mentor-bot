@@ -16,24 +16,29 @@ class TagRepository(SqlAlchemyBaseRepository[Tag, int], ITagRepository):
     """SQLAlchemy implementation of Tag repository."""
 
     def __init__(self, session: AsyncSession) -> None:
+        """Initialize tag repository."""
         super().__init__(session, Tag)
 
     async def get_by_slug(self, slug: str) -> Tag | None:
+        """Retrieve tag by slug with articles."""
         stmt = select(Tag).where(Tag.slug == slug).options(selectinload(Tag.articles))
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none()
 
     async def get_by_id_with_articles(self, entity_id: int) -> Tag | None:
+        """Retrieve tag by ID with associated articles."""
         stmt = select(Tag).where(Tag.id == entity_id).options(selectinload(Tag.articles))
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none()
 
     async def find_by_name_or_slug(self, name: str, slug: str) -> Tag | None:
+        """Find tag by name or slug."""
         stmt = select(Tag).where(or_(Tag.name == name, Tag.slug == slug))
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none()
 
     async def find_by_name_or_slug_excluding(self, name: str, slug: str, exclude_id: int) -> Tag | None:
+        """Find tag by name or slug, excluding a specific ID."""
         stmt = select(Tag).where(
             or_(Tag.name == name, Tag.slug == slug),
             Tag.id != exclude_id,
@@ -50,6 +55,7 @@ class TagRepository(SqlAlchemyBaseRepository[Tag, int], ITagRepository):
         sort_by: str = "usage_count",
         sort_desc: bool = True,
     ) -> tuple[Sequence[Tag], int]:
+        """Find tags with search and sorting options."""
         stmt = select(Tag)
         count_stmt = select(func.count(Tag.id))
 
@@ -72,11 +78,13 @@ class TagRepository(SqlAlchemyBaseRepository[Tag, int], ITagRepository):
         return result.scalars().all(), total
 
     async def get_popular(self, limit: int = 20) -> Sequence[Tag]:
+        """Get most popular tags by usage count."""
         stmt = select(Tag).order_by(Tag.usage_count.desc(), Tag.name).limit(limit)
         result = await self._session.execute(stmt)
         return result.scalars().all()
 
     async def find_by_article(self, article_id: int) -> Sequence[Tag]:
+        """Find all tags associated with an article."""
         stmt = select(Tag).where(Tag.articles.any(id=article_id))
         result = await self._session.execute(stmt)
         return result.scalars().all()

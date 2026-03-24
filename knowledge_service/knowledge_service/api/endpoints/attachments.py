@@ -1,5 +1,6 @@
 """Attachment management endpoints."""
 
+import mimetypes
 import shutil
 from pathlib import Path
 from typing import Annotated
@@ -12,9 +13,43 @@ from knowledge_service.config import settings
 from knowledge_service.core import NotFoundException, PermissionDenied, ValidationException
 from knowledge_service.core.enums import ArticleStatus, AttachmentType
 from knowledge_service.core.security import validate_file_size, validate_file_type, validate_filename
-from knowledge_service.schemas import AttachmentResponse, MessageResponse
+from knowledge_service.schemas import AttachmentListResponse, AttachmentResponse, MessageResponse
 
 router = APIRouter(prefix="/attachments", tags=["attachments"])
+
+
+@router.get("/article/{article_id}")
+async def list_article_attachments(
+    article_id: int,
+    article_service: ArticleServiceDep,
+    attachment_service: AttachmentServiceDep,
+    current_user: CurrentUser,
+) -> AttachmentListResponse:
+    """List all attachments for an article."""
+    article = await article_service.get_article_by_id(article_id)
+
+    if (
+        article.status != ArticleStatus.PUBLISHED
+        and article.author_id != current_user.id
+        and current_user.role not in ["HR", "ADMIN"]
+    ):
+        msg = "Access denied"
+        raise PermissionDenied(msg)
+
+    if (
+        current_user.role not in ["HR", "ADMIN"]
+        and article.author_id != current_user.id
+        and article.department_id
+        and article.department_id != current_user.department_id
+    ):
+        msg = "Access to attachments from other departments is not allowed"
+        raise PermissionDenied(msg)
+
+    attachments = await attachment_service.get_attachments_by_article(article_id)
+    return AttachmentListResponse(
+        total=len(attachments),
+        attachments=[AttachmentResponse.model_validate(a) for a in attachments],
+    )
 
 
 @router.post("/upload")
@@ -26,6 +61,7 @@ async def upload_attachment(
     file: Annotated[UploadFile, File()],
     description: Annotated[str | None, Form()] = None,
     order: Annotated[int, Form()] = 0,
+    *,
     is_downloadable: Annotated[bool, Form()] = True,
 ) -> AttachmentResponse:
     """Upload a file as attachment to an article."""
@@ -66,6 +102,57 @@ async def upload_attachment(
     return AttachmentResponse.model_validate(attachment)
 
 
+@router.post("/batch-upload")
+async def batch_upload_attachments(
+    article_service: ArticleServiceDep,
+    attachment_service: AttachmentServiceDep,
+    current_user: CurrentUser,
+    article_id: Annotated[int, Form()],
+    files: Annotated[list[UploadFile], File()],
+) -> AttachmentListResponse:
+    """Upload multiple files as attachments to an article."""
+    article = await article_service.get_article_by_id(article_id)
+    if article.author_id != current_user.id and current_user.role not in ["HR", "ADMIN"]:
+        msg = "Cannot attach files to other users' articles"
+        raise PermissionDenied(msg)
+
+    storage_path = Path(settings.STORAGE_PATH) / str(article_id)
+    storage_path.mkdir(parents=True, exist_ok=True)
+
+    created_attachments = []
+    for file in files:
+        if not validate_file_size(file.size or 0):
+            continue
+        if not validate_file_type(file.filename or ""):
+            continue
+
+        safe_filename = validate_filename(file.filename or "unknown")
+        file_path = storage_path / safe_filename
+        try:
+            with file_path.open("wb") as buffer:
+                shutil.copyfileobj(file.file, buffer)
+        except Exception:
+            continue
+
+        attachment = await attachment_service.create_attachment(
+            article_id=article_id,
+            name=safe_filename,
+            attachment_type=AttachmentType.FILE,
+            url=f"/api/v1/attachments/file/{article_id}/{safe_filename}",
+            file_size=file.size,
+            mime_type=file.content_type,
+            description=None,
+            order=0,
+            is_downloadable=True,
+        )
+        created_attachments.append(AttachmentResponse.model_validate(attachment))
+
+    return AttachmentListResponse(
+        total=len(created_attachments),
+        attachments=created_attachments,
+    )
+
+
 @router.get("/file/{article_id}/{filename}")
 async def get_attachment_file(
     article_id: int,
@@ -86,8 +173,8 @@ async def get_attachment_file(
     if (
         current_user.role not in ["HR", "ADMIN"]
         and article.author_id != current_user.id
-        and article.department
-        and article.department != current_user.department
+        and article.department_id
+        and article.department_id != current_user.department_id
     ):
         msg = "Access to attachments from other departments is not allowed"
         raise PermissionDenied(msg)
@@ -97,10 +184,11 @@ async def get_attachment_file(
         msg = "File not found"
         raise NotFoundException(msg)
 
+    mime_type, _ = mimetypes.guess_type(filename)
     return FileResponse(
         path=file_path,
         filename=filename,
-        media_type="application/octet-stream",
+        media_type=mime_type or "application/octet-stream",
     )
 
 

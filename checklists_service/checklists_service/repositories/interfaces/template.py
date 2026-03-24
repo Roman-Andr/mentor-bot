@@ -2,13 +2,10 @@
 
 from abc import abstractmethod
 from collections.abc import Sequence
-from typing import TYPE_CHECKING
 
 from checklists_service.core.enums import TemplateStatus
+from checklists_service.models import TaskTemplate, Template
 from checklists_service.repositories.interfaces.base import BaseRepository
-
-if TYPE_CHECKING:
-    from checklists_service.models import TaskTemplate, Template
 
 
 class ITemplateRepository(BaseRepository["Template", int]):
@@ -20,18 +17,18 @@ class ITemplateRepository(BaseRepository["Template", int]):
         *,
         skip: int = 0,
         limit: int = 100,
-        department: str | None = None,
+        department_id: int | None = None,
         status: TemplateStatus | None = None,
         is_default: bool | None = None,
-    ) -> tuple[Sequence["Template"], int]:
+    ) -> tuple[Sequence[Template], int]:
         """Find templates with filtering and return results with total count."""
 
     @abstractmethod
-    async def get_by_name_and_department(self, name: str, department: str | None) -> "Template | None":
+    async def get_by_name_and_department(self, name: str, department_id: int | None) -> Template | None:
         """Get template by name and department."""
 
     @abstractmethod
-    async def clear_other_defaults(self, department: str | None, exclude_id: int) -> None:
+    async def clear_other_defaults(self, department_id: int | None, exclude_id: int) -> None:
         """Clear is_default flag on other templates in the same department."""
 
     @abstractmethod
@@ -46,12 +43,20 @@ class ITemplateRepository(BaseRepository["Template", int]):
     async def get_department_stats(self, user_id: int | None = None) -> dict[str, int]:
         """Get checklist count grouped by department."""
 
+    @abstractmethod
+    async def find_matching(
+        self,
+        department_id: int | None,
+        position: str | None,
+    ) -> Sequence[Template]:
+        """Find active templates matching department and/or position."""
+
 
 class ITaskTemplateRepository(BaseRepository["TaskTemplate", int]):
     """Task template repository interface."""
 
     @abstractmethod
-    async def find_by_template(self, template_id: int) -> Sequence["TaskTemplate"]:
+    async def find_by_template(self, template_id: int) -> Sequence[TaskTemplate]:
         """Find task templates for a template, ordered by order field."""
 
     @abstractmethod

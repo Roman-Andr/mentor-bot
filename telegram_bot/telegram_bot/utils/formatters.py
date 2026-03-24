@@ -5,42 +5,42 @@ from typing import Any
 
 from aiogram.types import User as TgUser
 
+from telegram_bot.i18n import t
 
-def format_welcome_message(tg_user: TgUser, user_data: dict[str, Any] | None = None) -> str:
+MAX_DISPLAYED_TASKS = 10
+MAX_SEARCH_RESULTS_DISPLAY = 5
+DAYS_THRESHOLD_OLD = 7
+MAX_DISPLAYED_MEETINGS = 5
+MAX_DISPLAYED_ESCALATIONS = 5
+
+
+def format_welcome_message(
+    tg_user: TgUser, user_data: dict[str, Any] | None = None, *, locale: str = "en"
+) -> str:
     """Format welcome message for user."""
-    name = tg_user.first_name
+    name = tg_user.first_name or ""
     if tg_user.last_name:
         name += f" {tg_user.last_name}"
 
     if user_data:
-        welcome = (
-            f"👋 Welcome back, *{name}!*\n\n"
-            f"🎯 *Employee ID:* {user_data.get('employee_id', 'N/A')}\n"
-            f"🏢 *Department:* {user_data.get('department', 'N/A')}\n"
-            f"👨‍💼 *Position:* {user_data.get('position', 'N/A')}\n\n"
-            "I'm here to help you with your onboarding process. "
-            "Use the menu below to get started!"
+        eid = user_data.get("employee_id", "N/A")
+        dept = user_data.get("department", "N/A")
+        pos = user_data.get("position", "N/A")
+        welcome = "\U0001f44b " + t(
+            "start.welcome_back",
+            locale=locale,
+            name=name,
+            employee_id=eid,
+            department=dept,
+            position=pos,
         )
     else:
-        welcome = (
-            f"👋 Welcome, *{name}!*\n\n"
-            "I'm Mentor Bot, your personal onboarding assistant.\n\n"
-            "I can help you with:\n"
-            "• 📋 Onboarding checklist and tasks\n"
-            "• 🔍 Knowledge base and FAQ search\n"
-            "• 📅 Schedule meetings with mentor/HR\n"
-            "• 📁 Access department documents\n"
-            "• 👨‍🏫 Mentor communication\n"
-            "• 📞 HR support and escalation\n"
-            "• 📊 Track your progress\n"
-            "• 📊 Share feedback\n\n"
-            "Let's get started!"
-        )
+        welcome = t("start.welcome_new", locale=locale)
 
     return welcome
 
 
-def format_checklist_progress(checklist: dict[str, Any]) -> str:
+def format_checklist_progress(checklist: dict[str, Any], *, locale: str = "en") -> str:
     """Format checklist progress for display."""
     name = checklist.get("name", f"Checklist #{checklist['id']}")
     progress = checklist.get("progress_percentage", 0)
@@ -48,109 +48,99 @@ def format_checklist_progress(checklist: dict[str, Any]) -> str:
     total = checklist.get("total_tasks", 0)
     completed = checklist.get("completed_tasks", 0)
 
-    # Status emoji
     if status == "completed":
-        status_emoji = "✅"
+        status_emoji = "\u2705"
     elif status == "in_progress":
-        status_emoji = "🔄"
+        status_emoji = "\U0001f504"
     elif status == "overdue":
-        status_emoji = "⚠️"
+        status_emoji = "\u26a0\ufe0f"
     else:
-        status_emoji = "📋"
+        status_emoji = "\U0001f4cb"
 
-    # Progress bar
     bars = 10
     filled = int(progress / 100 * bars)
-    bar = "█" * filled + "░" * (bars - filled)
+    bar = "\u2588" * filled + "\u2591" * (bars - filled)
 
-    return f"{status_emoji} *{name}*\n`{bar}` {progress}%\n📊 {completed}/{total} tasks completed\n\n"
+    return f"{status_emoji} *{name}*\n`{bar}` {progress}%\n\U0001f4ca {completed}/{total} tasks completed\n\n"
 
 
-def format_task_list(tasks: list[dict[str, Any]]) -> str:
+def format_task_list(tasks: list[dict[str, Any]], *, locale: str = "en") -> str:
     """Format task list for display."""
     if not tasks:
-        return "📭 No tasks found."
+        return t("checklists.no_tasks_general", locale=locale)
 
-    text = "📋 *Tasks*\n\n"
+    text = f"\U0001f4cb *{t('checklists.tasks_title', locale=locale)}*\n\n"
 
-    for i, task in enumerate(tasks[:10], 1):  # Show first 10 tasks
+    for i, task in enumerate(tasks[:MAX_DISPLAYED_TASKS], 1):
         title = task.get("title", f"Task #{task['id']}")
         status = task.get("status", "pending").lower()
         category = task.get("category", "general")
 
-        # Status emoji
         if status == "completed":
-            emoji = "✅"
+            emoji = "\u2705"
         elif status == "in_progress":
-            emoji = "🔄"
+            emoji = "\U0001f504"
         elif status == "blocked":
-            emoji = "⛔"
+            emoji = "\u26d4"
         elif status == "overdue":
-            emoji = "⚠️"
+            emoji = "\u26a0\ufe0f"
         else:
-            emoji = "📝"
+            emoji = "\U0001f4dd"
 
-        # Due date if available
         due_date = task.get("due_date")
         due_text = ""
         if due_date:
             try:
                 due_dt = datetime.fromisoformat(due_date)
                 due_text = f" | Due: {due_dt.strftime('%b %d')}"
-            except:
+            except ValueError:
                 pass
 
         text += f"{i}. {emoji} *{title}*\n"
-        text += f"   📁 {category}{due_text}\n\n"
+        text += f"   \U0001f4c1 {category}{due_text}\n\n"
 
-    if len(tasks) > 10:
-        text += f"... and {len(tasks) - 10} more tasks\n\n"
+    if len(tasks) > MAX_DISPLAYED_TASKS:
+        text += f"... and {len(tasks) - MAX_DISPLAYED_TASKS} more tasks\n\n"
 
     return text
 
 
-def format_task_detail(task: dict[str, Any]) -> str:
+def format_task_detail(task: dict[str, Any], *, locale: str = "en") -> str:
     """Format task details for display."""
     title = task.get("title", f"Task #{task['id']}")
     description = task.get("description", "No description provided.")
     status = task.get("status", "pending").lower()
     category = task.get("category", "general")
 
-    # Status text
     status_text = {
-        "pending": "⏳ Pending",
-        "in_progress": "🔄 In Progress",
-        "completed": "✅ Completed",
-        "blocked": "⛔ Blocked",
-        "overdue": "⚠️ Overdue",
-    }.get(status, "❓ Unknown")
+        "pending": "\u23f3 Pending",
+        "in_progress": "\U0001f504 In Progress",
+        "completed": "\u2705 Completed",
+        "blocked": "\u26d4 Blocked",
+        "overdue": "\u26a0\ufe0f Overdue",
+    }.get(status, "\u2753 Unknown")
 
-    text = f"📋 *{title}*\n\n"
+    text = f"\U0001f4cb *{title}*\n\n"
     text += f"*Status:* {status_text}\n"
     text += f"*Category:* {category}\n"
 
-    # Due date
     due_date = task.get("due_date")
     if due_date:
         try:
             due_dt = datetime.fromisoformat(due_date)
             text += f"*Due Date:* {due_dt.strftime('%B %d, %Y')}\n"
 
-            # Check if overdue
             if status == "pending" and due_dt < datetime.now(UTC):
-                text += "⚠️ *This task is overdue!*\n"
-        except:
+                text += "\u26a0\ufe0f *This task is overdue!*\n"
+        except ValueError:
             pass
 
-    # Description
     text += f"\n*Description:*\n{description}\n"
 
-    # Dependencies
     dependencies = task.get("depends_on", [])
     if dependencies:
         text += f"\n*Depends on:* {len(dependencies)} task(s)\n"
 
-    # Assignee
     assignee = task.get("assignee")
     if assignee:
         text += f"\n*Assigned to:* {assignee}\n"
@@ -158,29 +148,29 @@ def format_task_detail(task: dict[str, Any]) -> str:
     return text
 
 
-def format_search_results(query: str, results: list[dict[str, Any]]) -> str:
+def format_search_results(
+    query: str, results: list[dict[str, Any]], *, locale: str = "en"
+) -> str:
     """Format search results for display."""
     if not results:
-        return f"🔍 No results found for '*{query}*'"
+        return f"\U0001f50d No results found for '*{query}*'"
 
-    text = f"🔍 *Search Results for '{query}'*\n\n"
+    text = f"\U0001f50d *{t('knowledge.search_results_title', locale=locale, query=query)}*\n\n"
 
-    for i, result in enumerate(results[:5], 1):
+    for i, result in enumerate(results[:MAX_SEARCH_RESULTS_DISPLAY], 1):
         title = result.get("title", "Untitled")
         snippet = result.get("snippet", "")
         category = result.get("category", "General")
         relevance = result.get("relevance", 0)
 
-        rel_bar = "★" * int(relevance * 5) + "☆" * (5 - int(relevance * 5))
+        rel_bar = "\u2605" * int(relevance * 5) + "\u2606" * (5 - int(relevance * 5))
 
         text += f"{i}. *{title}*\n"
-        text += f"   📁 {category} | {rel_bar}\n"
+        text += f"   \U0001f4c1 {category} | {rel_bar}\n"
         text += f"   {snippet[:100]}...\n\n"
 
-    if len(results) > 5:
-        text += f"📄 *{len(results) - 5} more results not shown*\n"
-
-    text += "\n*Select a result number or refine your search.*"
+    if len(results) > MAX_SEARCH_RESULTS_DISPLAY:
+        text += f"\U0001f4c4 *{len(results) - MAX_SEARCH_RESULTS_DISPLAY} more results not shown*\n"
 
     return text
 
@@ -194,7 +184,7 @@ def format_date(dt: datetime) -> str:
         return "Today"
     if diff.days == 1:
         return "Yesterday"
-    if diff.days < 7:
+    if diff.days < DAYS_THRESHOLD_OLD:
         return f"{diff.days} days ago"
     return dt.strftime("%b %d, %Y")
 
@@ -204,87 +194,85 @@ def format_percentage(value: float) -> str:
     return f"{value:.1f}%"
 
 
-def format_feedback_menu() -> str:
+def format_feedback_menu(*, locale: str = "en") -> str:
     """Format feedback menu for display."""
     return (
-        "📊 *Feedback & Surveys*\n\n"
-        "Help us improve your onboarding experience!\n\n"
-        "*Available options:*\n"
-        "• 😊 Daily Pulse Survey - Quick well-being check\n"
-        "• ⭐ Rate Experience - Rate your onboarding\n"
-        "• 💬 Comments & Suggestions - Share your thoughts\n\n"
-        "Your feedback is anonymous and helps us serve you better."
+        f"*\U0001f4ca {t('feedback.title', locale=locale)}*\n\n"
+        f"{t('feedback.description', locale=locale)}\n\n"
+        f"*{t('feedback.options', locale=locale)}*\n"
+        f"  \U0001f60a {t('feedback.opt_pulse', locale=locale)}\n"
+        f"  \u2b50 {t('feedback.opt_experience', locale=locale)}\n"
+        f"  \U0001f4ac {t('feedback.opt_comments', locale=locale)}\n\n"
+        f"{t('feedback.anonymous', locale=locale)}"
     )
 
 
-def format_meeting_list(meetings: list[dict[str, Any]]) -> str:
+def format_meeting_list(meetings: list[dict[str, Any]], *, locale: str = "en") -> str:
     """Format meeting list for display."""
     if not meetings:
-        return "📭 No meetings found."
+        return t("meetings.no_meetings_list", locale=locale)
 
-    text = "📅 *Upcoming Meetings*\n\n"
+    text = "\U0001f4c5 *Upcoming Meetings*\n\n"
 
-    for i, meeting in enumerate(meetings[:5], 1):
+    for i, meeting in enumerate(meetings[:MAX_DISPLAYED_MEETINGS], 1):
         title = meeting.get("title", f"Meeting #{meeting['id']}")
         scheduled_at = meeting.get("scheduled_at", "TBD")
         meeting_type = meeting.get("meeting_type", "general")
 
-        # Parse and format datetime
         try:
             dt = datetime.fromisoformat(scheduled_at)
             formatted_date = dt.strftime("%b %d, %Y %H:%M")
-        except:
+        except ValueError:
             formatted_date = scheduled_at
 
-        # Type emoji
         type_emoji = {
-            "onboarding": "👋",
-            "mentor": "👨‍🏫",
-            "hr": "📞",
-            "technical": "💻",
-        }.get(meeting_type, "📅")
+            "onboarding": "\U0001f44b",
+            "mentor": "\U0001f468\u200d\U0001f3eb",
+            "hr": "\U0001f4de",
+            "technical": "\U0001f4bb",
+        }.get(meeting_type, "\U0001f4c5")
 
         text += f"{i}. {type_emoji} *{title}*\n"
-        text += f"   📅 {formatted_date}\n\n"
+        text += f"   \U0001f4c5 {formatted_date}\n\n"
 
-    if len(meetings) > 5:
-        text += f"... and {len(meetings) - 5} more meetings\n\n"
+    if len(meetings) > MAX_DISPLAYED_MEETINGS:
+        text += f"... and {len(meetings) - MAX_DISPLAYED_MEETINGS} more meetings\n\n"
 
     return text
 
 
-def format_escalation_list(escalations: list[dict[str, Any]]) -> str:
+def format_escalation_list(
+    escalations: list[dict[str, Any]], *, locale: str = "en"
+) -> str:
     """Format escalation list for display."""
     if not escalations:
-        return "📭 No escalations found."
+        return t("escalation.no_escalations", locale=locale)
 
-    text = "📞 *Your Escalations*\n\n"
+    text = "\U0001f4de *Your Escalations*\n\n"
 
-    for i, escalation in enumerate(escalations[:5], 1):
+    for i, escalation in enumerate(escalations[:MAX_DISPLAYED_ESCALATIONS], 1):
         title = escalation.get("title", f"Escalation #{escalation['id']}")
         status = escalation.get("status", "open").lower()
         category = escalation.get("category", "General")
         created_at = escalation.get("created_at", "N/A")
 
-        # Status emoji
         status_emoji = {
-            "open": "⏳",
-            "in_progress": "🔄",
-            "resolved": "✅",
-            "closed": "🔒",
-        }.get(status, "❓")
+            "open": "\u23f3",
+            "in_progress": "\U0001f504",
+            "resolved": "\u2705",
+            "closed": "\U0001f512",
+        }.get(status, "\u2753")
 
-        # Parse and format datetime
         try:
             dt = datetime.fromisoformat(created_at)
             formatted_date = dt.strftime("%b %d")
-        except:
+        except ValueError:
             formatted_date = created_at
 
         text += f"{i}. {status_emoji} *{title}*\n"
-        text += f"   📁 {category} | 📅 {formatted_date}\n\n"
+        text += f"   \U0001f4c1 {category} | \U0001f4c5 {formatted_date}\n\n"
 
-    if len(escalations) > 5:
-        text += f"... and {len(escalations) - 5} more escalations\n\n"
+    if len(escalations) > MAX_DISPLAYED_ESCALATIONS:
+        text += f"... and {len(escalations) - MAX_DISPLAYED_ESCALATIONS} more escalations\n\n"
 
     return text

@@ -4,9 +4,11 @@ import json
 import logging
 from collections.abc import Callable
 from functools import wraps
-from typing import Any, TypeVar
+from json import JSONDecodeError
+from typing import TypeVar
 
 import redis.asyncio as redis
+from redis import RedisError
 
 from checklists_service.config import settings
 
@@ -32,8 +34,8 @@ class CacheManager:
             await self.redis_client.ping()
             self.is_connected = True
             logger.info("Redis cache connected")
-        except Exception as e:
-            logger.warning(f"Redis cache not available: {e}")
+        except RedisError as e:
+            logger.warning("Redis cache not available: %s", e)
             self.is_connected = False
 
     async def disconnect(self) -> None:
@@ -42,7 +44,7 @@ class CacheManager:
             await self.redis_client.close()
             self.is_connected = False
 
-    async def get(self, key: str) -> Any | None:
+    async def get(self, key: str) -> object | None:
         """Get value from cache."""
         if not self.is_connected:
             return None
@@ -51,11 +53,11 @@ class CacheManager:
             value = await self.redis_client.get(key)
             if value:
                 return json.loads(value)
-        except Exception as e:
-            logger.exception(f"Cache get error: {e}")
+        except (RedisError, JSONDecodeError):
+            logger.exception("Cache get error")
         return None
 
-    async def set(self, key: str, value: Any, ttl: int = 3600) -> None:
+    async def set(self, key: str, value: object, ttl: int = 3600) -> None:
         """Set value in cache with TTL."""
         if not self.is_connected:
             return
@@ -66,8 +68,8 @@ class CacheManager:
                 ttl,
                 json.dumps(value, default=str),
             )
-        except Exception as e:
-            logger.exception(f"Cache set error: {e}")
+        except RedisError:
+            logger.exception("Cache set error")
 
     async def delete(self, key: str) -> None:
         """Delete value from cache."""
@@ -76,8 +78,8 @@ class CacheManager:
 
         try:
             await self.redis_client.delete(key)
-        except Exception as e:
-            logger.exception(f"Cache delete error: {e}")
+        except RedisError:
+            logger.exception("Cache delete error")
 
     async def delete_pattern(self, pattern: str) -> None:
         """Delete all keys matching pattern."""
@@ -88,13 +90,13 @@ class CacheManager:
             keys = await self.redis_client.keys(pattern)
             if keys:
                 await self.redis_client.delete(*keys)
-        except Exception as e:
-            logger.exception(f"Cache delete pattern error: {e}")
+        except RedisError:
+            logger.exception("Cache delete pattern error")
 
 
 # Global cache instance
 cache = CacheManager()
-T = TypeVar("T", bound=Callable[..., Any])
+T = TypeVar("T", bound=Callable[..., object])
 
 
 def cached(ttl: int = 300, key_prefix: str = "cache") -> Callable[[T], T]:
@@ -102,7 +104,7 @@ def cached(ttl: int = 300, key_prefix: str = "cache") -> Callable[[T], T]:
 
     def decorator(func: T) -> T:
         @wraps(func)
-        async def wrapper(*args: Any, **kwargs: Any) -> Any:
+        async def wrapper(*args: object, **kwargs: object) -> object:
             # Generate cache key
             cache_key = f"{key_prefix}:{func.__name__}:{args!s}:{kwargs!s}"
 

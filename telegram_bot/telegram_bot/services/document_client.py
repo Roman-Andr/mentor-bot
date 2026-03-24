@@ -17,10 +17,14 @@ class DocumentServiceClient:
     def __init__(self, base_url: str | None = None) -> None:
         """Initialize document service HTTP client."""
         self.base_url = base_url or settings.KNOWLEDGE_SERVICE_URL
-        self.client = httpx.AsyncClient(base_url=self.base_url, timeout=settings.SERVICE_TIMEOUT)
+        self.client = httpx.AsyncClient(
+            base_url=self.base_url, timeout=settings.SERVICE_TIMEOUT
+        )
 
     @cached(ttl=60, key_prefix="dept_docs")
-    async def get_department_documents(self, department: str, auth_token: str) -> list[dict]:
+    async def get_department_documents(
+        self, department: str, auth_token: str
+    ) -> list[dict]:
         """Get documents for department (cached)."""
         try:
             response = await self.client.get(
@@ -69,6 +73,21 @@ class DocumentServiceClient:
         except httpx.RequestError:
             logger.exception("Document service request failed")
         return []
+
+    async def get_article_details(
+        self, article_id: int, auth_token: str
+    ) -> dict | None:
+        """Get article details with attachments."""
+        try:
+            response = await self.client.get(
+                f"{settings.API_V1_PREFIX}/articles/{article_id}",
+                headers={"Authorization": f"Bearer {auth_token}"},
+            )
+            if response.status_code == status.HTTP_200_OK:
+                return response.json()
+        except httpx.RequestError:
+            logger.exception("Document service request failed")
+        return None
 
 
 # Singleton instance

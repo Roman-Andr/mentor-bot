@@ -33,7 +33,7 @@ class CategoryService:
             description=category_data.description,
             parent_id=category_data.parent_id,
             order=category_data.order,
-            department=category_data.department,
+            department_id=category_data.department_id,
             position=category_data.position,
             level=category_data.level,
             icon=category_data.icon,
@@ -102,30 +102,30 @@ class CategoryService:
         skip: int = 0,
         limit: int = 50,
         parent_id: int | None = None,
-        department: str | None = None,
+        department_id: int | None = None,
         *,
         include_tree: bool = False,
     ) -> tuple[list[Category], int]:
         """Get paginated list of categories with filters."""
         if include_tree:
-            return await self._get_category_tree(department)
+            return await self._get_category_tree(department_id)
 
         items, total = await self._uow.categories.find_categories(
             skip=skip,
             limit=limit,
             parent_id=parent_id,
-            department=department,
+            department_id=department_id,
         )
         return list(items), total
 
-    async def get_department_categories(self, department: str) -> list[Category]:
+    async def get_department_categories(self, department_id: int) -> list[Category]:
         """Get all categories for a specific department."""
-        items = await self._uow.categories.find_by_department(department)
+        items = await self._uow.categories.find_by_department(department_id)
         return list(items)
 
-    async def get_category_tree(self, department: str | None = None) -> tuple[list[dict[str, Any]], int]:
+    async def get_category_tree(self, department_id: int | None = None) -> tuple[list[dict[str, Any]], int]:
         """Get category tree structure and total count."""
-        all_categories = await self._uow.categories.find_all_for_tree(department)
+        all_categories = await self._uow.categories.find_all_for_tree(department_id)
 
         category_map = {cat.id: cat for cat in all_categories}
         tree = []
@@ -151,7 +151,7 @@ class CategoryService:
             "parent_id": category.parent_id,
             "parent_name": parent_name,
             "order": category.order,
-            "department": category.department,
+            "department_id": category.department_id,
             "position": category.position,
             "level": category.level,
             "icon": category.icon,
@@ -169,9 +169,9 @@ class CategoryService:
 
         return category_dict
 
-    async def _get_category_tree(self, department: str | None = None) -> tuple[list[Category], int]:
+    async def _get_category_tree(self, department_id: int | None = None) -> tuple[list[Category], int]:
         """Get category tree structure (legacy method)."""
-        tree, total = await self.get_category_tree(department)
+        tree, total = await self.get_category_tree(department_id)
         flattened = self._flatten_tree(tree)
         return flattened, total
 

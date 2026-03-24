@@ -1,5 +1,6 @@
 """Authentication endpoints with repository pattern."""
 
+import logging
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Header, HTTPException, status
@@ -28,6 +29,8 @@ from auth_service.schemas import (
     Token,
     UserResponse,
 )
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -122,7 +125,13 @@ async def register_with_invitation(
     try:
         user = await auth_service.register_with_invitation_and_telegram(invitation_token, telegram_data)
 
-        token = auth_service._create_token_for_user(user)
+        # Auto-create checklists from matching templates
+        try:
+            await auth_service.auto_create_user_checklists(user)
+        except Exception:
+            logger.exception("Failed to auto-create checklists for user %s", user.id)
+
+        token = auth_service.create_token_for_user(user)
     except (ValidationException, ConflictException) as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

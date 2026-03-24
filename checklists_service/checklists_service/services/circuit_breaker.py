@@ -4,7 +4,6 @@ import asyncio
 import time
 from collections.abc import Callable
 from enum import Enum
-from typing import Any
 
 import httpx
 
@@ -17,6 +16,10 @@ class CircuitState(Enum):
     CLOSED = "CLOSED"
     OPEN = "OPEN"
     HALF_OPEN = "HALF_OPEN"
+
+
+class CircuitBreakerOpenError(Exception):
+    """Raised when circuit breaker is open and rejects the call."""
 
 
 class CircuitBreaker:
@@ -38,7 +41,7 @@ class CircuitBreaker:
         self.last_failure_time = 0
         self._lock = asyncio.Lock()
 
-    async def call(self, func: Callable, *args, **kwargs) -> Any:
+    async def call(self, func: Callable, *args: object, **kwargs: object) -> object:
         """Execute function with circuit breaker protection."""
         async with self._lock:
             if self.state == CircuitState.OPEN:
@@ -46,18 +49,10 @@ class CircuitBreaker:
                     self.state = CircuitState.HALF_OPEN
                 else:
                     msg = "Circuit breaker is OPEN"
-                    raise Exception(msg)
+                    raise CircuitBreakerOpenError(msg)
 
         try:
             result = await func(*args, **kwargs)
-
-            async with self._lock:
-                if self.state == CircuitState.HALF_OPEN:
-                    self.state = CircuitState.CLOSED
-                    self.failure_count = 0
-
-            return result
-
         except self.expected_exceptions:
             async with self._lock:
                 self.failure_count += 1
@@ -67,6 +62,13 @@ class CircuitBreaker:
                     self.state = CircuitState.OPEN
 
             raise
+        else:
+            async with self._lock:
+                if self.state == CircuitState.HALF_OPEN:
+                    self.state = CircuitState.CLOSED
+                    self.failure_count = 0
+
+            return result
 
 
 # Circuit breaker for auth service

@@ -13,7 +13,7 @@ class SearchQuery(BaseModel):
     query: str = Field(..., min_length=1, max_length=500, description="Search query")
     category_id: int | None = Field(None, description="Filter by category ID")
     tag_ids: list[int] | None = Field(None, description="Filter by tag IDs")
-    department: str | None = Field(None, description="Filter by department")
+    department_id: int | None = Field(None, description="Filter by department ID")
     position: str | None = Field(None, description="Filter by position")
     level: str | None = Field(None, description="Filter by employee level")
     only_published: bool = Field(default=True, description="Only show published articles")

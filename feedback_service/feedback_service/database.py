@@ -2,7 +2,6 @@
 
 from collections.abc import AsyncGenerator
 
-from feedback_service.config import settings
 from sqlalchemy import MetaData, schema
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
@@ -10,6 +9,8 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 from sqlalchemy.orm import DeclarativeBase
+
+from feedback_service.config import settings
 
 # Create async engine
 engine = create_async_engine(
@@ -41,7 +42,7 @@ class Base(DeclarativeBase):
     metadata = metadata_obj
 
 
-async def get_db() -> AsyncGenerator[AsyncSession, None]:
+async def get_db() -> AsyncGenerator[AsyncSession]:
     """Dependency for getting async database session."""
     async with AsyncSessionLocal() as session:
         try:

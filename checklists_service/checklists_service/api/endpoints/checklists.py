@@ -5,10 +5,11 @@ from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Query, status
 
-from checklists_service.api.deps import AuthToken, CurrentUser, HRUser, UOWDep
+from checklists_service.api.deps import AuthToken, CurrentUser, HRUser, ServiceAuth, UOWDep
 from checklists_service.core import NotFoundException, PermissionDenied, ValidationException
 from checklists_service.core.enums import ChecklistStatus
 from checklists_service.schemas import (
+    AutoCreateChecklistsRequest,
     ChecklistCreate,
     ChecklistListResponse,
     ChecklistResponse,
@@ -22,6 +23,7 @@ router = APIRouter()
 
 
 @router.get("/")
+@router.get("")
 async def get_checklists(
     uow: UOWDep,
     current_user: CurrentUser,
@@ -29,7 +31,7 @@ async def get_checklists(
     limit: Annotated[int, Query(ge=1, le=100)] = 50,
     user_id: Annotated[int | None, Query()] = None,
     status: Annotated[str | None, Query()] = None,
-    department: Annotated[str | None, Query()] = None,
+    department_id: Annotated[int | None, Query()] = None,
     *,
     overdue_only: Annotated[bool, Query()] = False,
 ) -> ChecklistListResponse:
@@ -40,12 +42,17 @@ async def get_checklists(
         msg = "Cannot view other users' checklists"
         raise PermissionDenied(msg)
 
+    # HR/Admin can see all checklists; others only see their own
+    effective_user_id = (
+        user_id if user_id is not None else (None if current_user.role in ["HR", "ADMIN"] else current_user.id)
+    )
+
     checklists, total = await checklist_service.get_checklists(
         skip=skip,
         limit=limit,
-        user_id=user_id or current_user.id,
+        user_id=effective_user_id,
         status=status,
-        department=department,
+        department_id=department_id,
         overdue_only=overdue_only,
     )
 
@@ -71,6 +78,7 @@ async def get_checklists(
 
 
 @router.post("/")
+@router.post("")
 async def create_checklist(
     checklist_data: ChecklistCreate,
     uow: UOWDep,
@@ -238,3 +246,35 @@ async def get_checklist_stats(
     checklist_service = ChecklistService(uow)
 
     return await checklist_service.get_checklist_stats(user_id, department)
+
+
+@router.post("/auto-create")
+async def auto_create_checklists(
+    request: AutoCreateChecklistsRequest,
+    uow: UOWDep,
+    _service_auth: ServiceAuth,
+) -> list[ChecklistResponse]:
+    """
+    Auto-create checklists for a user from matching templates.
+
+    Service-to-service endpoint. Finds all ACTIVE templates matching the
+    user's department and position, then creates a checklist from each template.
+    """
+    checklist_service = ChecklistService(uow)
+
+    checklists = await checklist_service.auto_create_checklists(
+        user_id=request.user_id,
+        employee_id=request.employee_id,
+        department_id=request.department_id,
+        position=request.position,
+        mentor_id=request.mentor_id,
+    )
+
+    return [
+        ChecklistResponse(
+            **checklist.__dict__,
+            is_overdue=False,
+            days_remaining=(checklist.due_date - datetime.now(UTC)).days if checklist.due_date else None,
+        )
+        for checklist in checklists
+    ]

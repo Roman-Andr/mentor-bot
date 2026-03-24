@@ -1,5 +1,6 @@
 """SQLAlchemy implementation of ArticleView repository."""
 
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from knowledge_service.models.article_view import ArticleView
@@ -11,8 +12,10 @@ class ArticleViewRepository(SqlAlchemyBaseRepository[ArticleView, int], IArticle
     """SQLAlchemy implementation of ArticleView repository."""
 
     def __init__(self, session: AsyncSession) -> None:
+        """Initialize article view repository."""
         super().__init__(session, ArticleView)
 
     async def record_view(self, article_id: int, user_id: int | None = None) -> ArticleView:
+        """Record a view event for an article."""
         view = ArticleView(article_id=article_id, user_id=user_id)
         return await self.create(view)

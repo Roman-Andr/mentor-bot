@@ -129,7 +129,6 @@ class ChecklistService:
         checklist.total_tasks = len(tasks)
         return await self._uow.checklists.update(checklist)
 
-
     async def get_checklist(self, checklist_id: int) -> Checklist:
         """Get checklist by ID."""
         checklist = await self._uow.checklists.get_by_id(checklist_id)
@@ -167,7 +166,6 @@ class ChecklistService:
         checklist.updated_at = datetime.now(UTC)
         return await self._uow.checklists.update(checklist)
 
-
     async def delete_checklist(self, checklist_id: int) -> None:
         """Delete checklist."""
         checklist = await self.get_checklist(checklist_id)
@@ -184,7 +182,7 @@ class ChecklistService:
         limit: int = 50,
         user_id: int | None = None,
         status: str | None = None,
-        department: str | None = None,
+        department_id: int | None = None,
         *,
         overdue_only: bool = False,
     ) -> tuple[list[Checklist], int]:
@@ -196,7 +194,7 @@ class ChecklistService:
             limit=limit,
             user_id=user_id,
             status=status_enum,
-            department=department,
+            department_id=department_id,
             overdue_only=overdue_only,
         )
         return list(checklists), total
@@ -224,7 +222,6 @@ class ChecklistService:
 
         return await self._uow.checklists.update(checklist)
 
-
     async def get_checklist_progress(self, checklist_id: int) -> dict[str, Any]:
         """Get detailed progress information for checklist."""
         await self.get_checklist(checklist_id)
@@ -233,8 +230,90 @@ class ChecklistService:
     async def get_checklist_stats(
         self,
         user_id: int | None = None,
-        department: str | None = None,
+        department_id: int | None = None,
     ) -> ChecklistStats:
         """Get checklist statistics."""
-        stats = await self._uow.checklists.get_statistics(user_id=user_id, department=department)
+        stats = await self._uow.checklists.get_statistics(user_id=user_id, department_id=department_id)
         return ChecklistStats(**stats)
+
+    async def auto_create_checklists(
+        self,
+        user_id: int,
+        employee_id: str,
+        department_id: int | None,
+        position: str | None,
+        mentor_id: int | None,
+    ) -> list[Checklist]:
+        """
+        Auto-create checklists for a user from matching templates.
+
+        Finds all ACTIVE templates matching the user's department and position,
+        then creates a checklist from each template that the user doesn't already have.
+        """
+        matching_templates = list(await self._uow.templates.find_matching(department_id, position))
+        if not matching_templates:
+            return []
+
+        created_checklists: list[Checklist] = []
+
+        for template in matching_templates:
+            existing = await self._uow.checklists.get_by_user_and_template(user_id, template.id)
+            if existing:
+                continue
+
+            start_date = datetime.now(UTC)
+            due_date = start_date + timedelta(days=template.duration_days)
+
+            checklist = Checklist(
+                user_id=user_id,
+                employee_id=employee_id,
+                template_id=template.id,
+                start_date=start_date,
+                due_date=due_date,
+                mentor_id=mentor_id,
+                status=ChecklistStatus.IN_PROGRESS,
+                total_tasks=0,
+            )
+
+            checklist = await self._uow.checklists.create(checklist)
+
+            task_templates = list(await self._uow.task_templates.find_by_template(template.id))
+
+            tasks: list[Task] = []
+            for idx, task_template in enumerate(task_templates):
+                task_due_date = start_date + timedelta(days=task_template.due_days)
+                task_due_date = min(task_due_date, due_date)
+
+                assignee_id = None
+                if task_template.auto_assign and task_template.assignee_role == "MENTOR" and checklist.mentor_id:
+                    assignee_id = checklist.mentor_id
+
+                task = Task(
+                    checklist_id=checklist.id,
+                    template_task_id=task_template.id,
+                    title=task_template.title,
+                    description=task_template.description,
+                    category=task_template.category,
+                    order=idx,
+                    due_date=task_due_date,
+                    assignee_id=assignee_id,
+                    assignee_role=task_template.assignee_role or template.default_assignee_role,
+                    depends_on=task_template.depends_on.copy(),
+                )
+                tasks.append(task)
+
+            task_map = {task.template_task_id: task for task in tasks if task.template_task_id}
+            for task in tasks:
+                if task.template_task_id and task.template_task_id in task_map:
+                    for dep_id in task.depends_on:
+                        if dep_id in task_map:
+                            task_map[dep_id].blocks.append(task.template_task_id)
+
+            for task in tasks:
+                await self._uow.tasks.create(task)
+
+            checklist.total_tasks = len(tasks)
+            checklist = await self._uow.checklists.update(checklist)
+            created_checklists.append(checklist)
+
+        return created_checklists

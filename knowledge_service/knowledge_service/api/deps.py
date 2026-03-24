@@ -35,6 +35,7 @@ class UserInfo:
         self.is_active = data.get("is_active", True)
         self.is_verified = data.get("is_verified", False)
         self.department = data.get("department")
+        self.department_id = self.department.get("id") if self.department else None
         self.position = data.get("position")
         self.level = data.get("level")
         self.first_name = data.get("first_name")
@@ -132,7 +133,7 @@ async def get_auth_token(request: Request) -> str | None:
     return getattr(request.state, "auth_token", None)
 
 
-async def get_uow() -> AsyncGenerator[SqlAlchemyUnitOfWork, None]:
+async def get_uow() -> AsyncGenerator[SqlAlchemyUnitOfWork]:
     """Get Unit of Work instance for current request."""
     async with SqlAlchemyUnitOfWork(AsyncSessionLocal) as uow:
         try:

@@ -1,7 +1,7 @@
 """Google Calendar integration endpoints."""
 
 import logging
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Query, status
@@ -21,7 +21,7 @@ router = APIRouter()
 @router.get("/connect")
 async def connect_calendar(
     state: Annotated[str, Query()],
-    db: DatabaseSession,
+    _db: DatabaseSession,
 ) -> RedirectResponse:
     """Initiate Google Calendar OAuth2 connection."""
     # Parse state to extract user_id and CSRF token
@@ -32,7 +32,7 @@ async def connect_calendar(
         user_id_str, _csrf_token = state.split(":", 1)
         int(user_id_str)
     except ValueError:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid state parameter format")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid state parameter format") from None
 
     if not settings.GOOGLE_CLIENT_ID or not settings.GOOGLE_REDIRECT_URI:
         raise HTTPException(
@@ -118,7 +118,7 @@ async def oauth_callback(
         }
 
     except Exception as e:
-        logger.exception(f"OAuth callback error: {e}")
+        logger.exception("OAuth callback error")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail=f"Failed to connect Google Calendar: {e!s}"
         ) from e

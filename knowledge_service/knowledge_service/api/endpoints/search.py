@@ -15,6 +15,7 @@ router = APIRouter()
 
 
 @router.post("/")
+@router.post("")
 async def search_articles(
     search_query: SearchQuery,
     search_service: SearchServiceDep,
@@ -22,7 +23,7 @@ async def search_articles(
 ) -> SearchResponse:
     """Search articles in knowledge base."""
     user_filters = {
-        "department": current_user.department,
+        "department_id": current_user.department_id,
         "position": current_user.position,
         "level": current_user.level,
     }
@@ -32,7 +33,7 @@ async def search_articles(
         filters={
             "category_id": search_query.category_id,
             "tag_ids": search_query.tag_ids,
-            "department": search_query.department or current_user.department,
+            "department_id": search_query.department_id or current_user.department_id,
             "position": search_query.position,
             "level": search_query.level,
             "only_published": search_query.only_published,
@@ -68,7 +69,7 @@ async def search_suggestions(
     """Get search suggestions."""
     return await search_service.get_search_suggestions(
         query=query,
-        department=current_user.department,
+        department_id=current_user.department_id,
         limit=limit,
     )
 
@@ -81,7 +82,7 @@ async def popular_searches(
 ) -> list[dict]:
     """Get popular searches."""
     return await search_service.get_popular_searches(
-        department=current_user.department,
+        department_id=current_user.department_id,
         limit=limit,
     )
 

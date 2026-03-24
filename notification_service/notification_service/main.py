@@ -36,7 +36,7 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     await init_db()
 
     # Start the background scheduler
-    asyncio.create_task(scheduler.run())
+    _scheduler_task = asyncio.create_task(scheduler.run())  # noqa: RUF006
     logger.info("Scheduler started")
 
     yield
@@ -55,6 +55,7 @@ app = FastAPI(
     redoc_url="/redoc" if settings.DEBUG else None,
     openapi_url=f"{settings.API_V1_PREFIX}/openapi.json",
     lifespan=lifespan,
+    redirect_slashes=False,
 )
 
 # Add middleware

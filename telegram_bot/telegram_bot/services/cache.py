@@ -4,6 +4,7 @@ import pickle
 from datetime import timedelta
 from typing import Any
 
+from redis import RedisError
 from redis.asyncio import Redis
 
 from telegram_bot.config import settings
@@ -48,7 +49,7 @@ class UserCache:
             data = await self.redis.get(self._user_key(telegram_id))
             if data:
                 return pickle.loads(data)
-        except Exception:
+        except pickle.UnpicklingError, RedisError:
             return None
         return None
 
@@ -69,7 +70,7 @@ class UserCache:
                 pickle.dumps(user_data),
                 ex=int(ttl_seconds),
             )
-        except Exception:
+        except RedisError:
             return False
         else:
             return True
@@ -84,9 +85,10 @@ class UserCache:
                 self._user_key(telegram_id),
                 self._user_session_key(telegram_id),
             )
-            return True
-        except Exception:
+        except RedisError:
             return False
+        else:
+            return True
 
     async def get_session(self, telegram_id: int) -> dict[str, Any] | None:
         """Get user session data."""
@@ -97,7 +99,7 @@ class UserCache:
             data = await self.redis.get(self._user_session_key(telegram_id))
             if data:
                 return pickle.loads(data)
-        except Exception:
+        except pickle.UnpicklingError, RedisError:
             return None
         return None
 
@@ -118,15 +120,16 @@ class UserCache:
                 pickle.dumps(session_data),
                 ex=int(ttl_seconds),
             )
-            return True
-        except Exception:
+        except RedisError:
             return False
+        else:
+            return True
 
     async def update_user_field(
         self,
         telegram_id: int,
         field: str,
-        value: Any,
+        value: object,
     ) -> bool:
         """Update specific field in user data."""
         user_data = await self.get_user(telegram_id)
@@ -149,11 +152,12 @@ class UserCache:
                         # Extract telegram_id from key
                         telegram_id = int(key.decode().split(":")[1])
                         users[telegram_id] = pickle.loads(data)
-                except Exception:
+                except pickle.UnpicklingError, RedisError, ValueError:
                     continue
-            return users
-        except Exception:
+        except RedisError:
             return {}
+        else:
+            return users
 
     async def cleanup_expired(self) -> int:
         """Cleanup expired sessions (Redis handles TTL automatically)."""

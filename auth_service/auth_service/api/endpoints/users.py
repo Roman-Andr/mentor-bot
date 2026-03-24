@@ -29,13 +29,14 @@ router = APIRouter()
 
 
 @router.get("/")
+@router.get("")
 async def get_users(
     user_service: UserServiceDep,
     _current_user: AdminUser,
     skip: Annotated[int, Query(ge=0)] = 0,
     limit: Annotated[int, Query(ge=1, le=1000)] = 100,
     search: Annotated[str | None, Query()] = None,
-    department: Annotated[str | None, Query()] = None,
+    department_id: Annotated[int | None, Query()] = None,
     role: Annotated[UserRole | None, Query()] = None,
     is_active: Annotated[bool | None, Query()] = None,
 ) -> UserListResponse:
@@ -44,7 +45,7 @@ async def get_users(
         skip=skip,
         limit=limit,
         search=search,
-        department=department,
+        department_id=department_id,
         role=role,
         is_active=is_active,
     )
@@ -61,6 +62,7 @@ async def get_users(
 
 
 @router.post("/")
+@router.post("")
 async def create_user(
     user_data: UserCreate,
     user_service: UserServiceDep,

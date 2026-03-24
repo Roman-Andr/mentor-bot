@@ -64,7 +64,7 @@ class MeetingService:
         skip: int = 0,
         limit: int = 100,
         meeting_type: MeetingType | None = None,
-        department: str | None = None,
+        department_id: int | None = None,
         position: str | None = None,
         level: EmployeeLevel | None = None,
         *,
@@ -75,7 +75,7 @@ class MeetingService:
             skip=skip,
             limit=limit,
             meeting_type=meeting_type,
-            department=department,
+            department_id=department_id,
             position=position,
             level=level,
             is_mandatory=is_mandatory,
@@ -141,10 +141,10 @@ class MeetingService:
                 event = await gc_service.create_event(assignment_data.user_id, event_data)
                 created_assignment.google_calendar_event_id = event["id"]
                 await self._uow.user_meetings.update(created_assignment)
-                logger.info(f"Created Google Calendar event {event['id']} for user {assignment_data.user_id}")
-            except Exception as e:
+                logger.info("Created Google Calendar event %s for user %s", event["id"], assignment_data.user_id)
+            except (ValidationException, NotFoundException) as e:
                 # Don't fail the assignment if calendar sync fails
-                logger.warning(f"Failed to create Google Calendar event: {e}")
+                logger.warning("Failed to create Google Calendar event: %s", e)
 
         return created_assignment
 
@@ -158,6 +158,23 @@ class MeetingService:
         """Get meetings assigned to a specific user."""
         items, total = await self._uow.user_meetings.find_by_user(
             user_id=user_id,
+            skip=skip,
+            limit=limit,
+            status=status,
+        )
+        return list(items), total
+
+    async def get_meeting_assignments(
+        self,
+        meeting_id: int,
+        skip: int = 0,
+        limit: int = 100,
+        status: MeetingStatus | None = None,
+    ) -> tuple[list[UserMeeting], int]:
+        """Get all user assignments for a specific meeting template."""
+        await self.get_meeting(meeting_id)  # ensure meeting exists
+        items, total = await self._uow.user_meetings.find_by_meeting(
+            meeting_id=meeting_id,
             skip=skip,
             limit=limit,
             status=status,
@@ -192,11 +209,12 @@ class MeetingService:
                         try:
                             await gc_service.delete_event(assignment.user_id, assignment.google_calendar_event_id)
                             logger.info(
-                                f"Deleted Google Calendar event {assignment.google_calendar_event_id} due to unscheduling"
+                                "Deleted Google Calendar event %s due to unscheduling",
+                                assignment.google_calendar_event_id,
                             )
                             assignment.google_calendar_event_id = None
-                        except Exception as e:
-                            logger.warning(f"Failed to delete Google Calendar event: {e}")
+                        except (ValidationException, NotFoundException) as e:
+                            logger.warning("Failed to delete Google Calendar event: %s", e)
                 else:
                     # Need meeting details for event data
                     meeting = await self.get_meeting(assignment.meeting_id)
@@ -219,17 +237,17 @@ class MeetingService:
                             await gc_service.update_event(
                                 assignment.user_id, assignment.google_calendar_event_id, event_data
                             )
-                            logger.info(f"Updated Google Calendar event {assignment.google_calendar_event_id}")
-                        except Exception as e:
-                            logger.warning(f"Failed to update Google Calendar event: {e}")
+                            logger.info("Updated Google Calendar event %s", assignment.google_calendar_event_id)
+                        except (ValidationException, NotFoundException) as e:
+                            logger.warning("Failed to update Google Calendar event: %s", e)
                     else:
                         # Create new event
                         try:
                             event = await gc_service.create_event(assignment.user_id, event_data)
                             assignment.google_calendar_event_id = event["id"]
-                            logger.info(f"Created Google Calendar event {event['id']} for user {assignment.user_id}")
-                        except Exception as e:
-                            logger.warning(f"Failed to create Google Calendar event: {e}")
+                            logger.info("Created Google Calendar event %s for user %s", event["id"], assignment.user_id)
+                        except (ValidationException, NotFoundException) as e:
+                            logger.warning("Failed to create Google Calendar event: %s", e)
 
         for field, value in update_dict.items():
             setattr(assignment, field, value)
@@ -260,10 +278,12 @@ class MeetingService:
                 gc_service = GoogleCalendarService(self._uow)
                 await gc_service.delete_event(assignment.user_id, assignment.google_calendar_event_id)
                 logger.info(
-                    f"Deleted Google Calendar event {assignment.google_calendar_event_id} for user {assignment.user_id}"
+                    "Deleted Google Calendar event %s for user %s",
+                    assignment.google_calendar_event_id,
+                    assignment.user_id,
                 )
-            except Exception as e:
-                logger.warning(f"Failed to delete Google Calendar event: {e}")
+            except (ValidationException, NotFoundException) as e:
+                logger.warning("Failed to delete Google Calendar event: %s", e)
 
         await self._uow.user_meetings.delete(assignment.id)
 
@@ -271,7 +291,7 @@ class MeetingService:
     async def assign_meetings_for_user(
         self,
         user_id: int,
-        department: str | None = None,
+        department_id: int | None = None,
         position: str | None = None,
         level: EmployeeLevel | None = None,
     ) -> list[UserMeeting]:
@@ -279,7 +299,7 @@ class MeetingService:
         # Find all meetings that match the user's attributes (or have null targeting)
         meetings, _ = await self._uow.meetings.find_meetings(
             is_mandatory=True,
-            department=department,
+            department_id=department_id,
             position=position,
             level=level,
         )

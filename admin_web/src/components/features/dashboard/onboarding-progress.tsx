@@ -1,0 +1,49 @@
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { OnboardingProgress as OnboardingProgressType } from "@/lib/api";
+
+interface OnboardingProgressProps {
+  progress: OnboardingProgressType[];
+}
+
+export function OnboardingProgress({ progress }: OnboardingProgressProps) {
+  return (
+    <Card className="col-span-4">
+      <CardHeader>
+        <CardTitle>Прогресс онбординга</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {progress.length > 0 ? (
+            progress.map((item) => (
+              <div key={item.user_id} className="flex items-center gap-4">
+                <div className="min-w-0 flex-1">
+                  <div className="mb-1 flex items-center justify-between">
+                    <p className="truncate text-sm font-medium">{item.user_name}</p>
+                    <p className="text-muted-foreground text-xs">{item.completion_percentage}%</p>
+                  </div>
+                  <div className="bg-muted h-2 w-full rounded-full">
+                    <div
+                      className={`h-2 rounded-full ${
+                        item.completion_percentage >= 80
+                          ? "bg-green-500"
+                          : item.completion_percentage >= 50
+                            ? "bg-yellow-500"
+                            : "bg-red-500"
+                      }`}
+                      style={{ width: `${item.completion_percentage}%` }}
+                    />
+                  </div>
+                </div>
+                <span className="text-muted-foreground text-xs whitespace-nowrap">
+                  {item.days_remaining} дн.
+                </span>
+              </div>
+            ))
+          ) : (
+            <p className="text-muted-foreground py-4 text-center text-sm">Нет данных о прогрессе</p>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}

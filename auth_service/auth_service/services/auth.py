@@ -13,8 +13,7 @@ from auth_service.core import (
     decode_token,
     verify_password,
 )
-from auth_service.core.enums import UserRole
-from auth_service.models import User
+from auth_service.models import User, UserMentor
 from auth_service.repositories.unit_of_work import IUnitOfWork
 from auth_service.schemas import (
     LoginRequest,
@@ -23,6 +22,7 @@ from auth_service.schemas import (
     TelegramRegistrationRequest,
     Token,
 )
+from auth_service.utils.integrations import checklists_service_client
 
 
 class AuthService:
@@ -54,7 +54,7 @@ class AuthService:
         await self._uow.users.update_last_login(user.id, datetime.now(UTC))
 
         # Generate tokens
-        token = self._create_token_for_user(user)
+        token = self.create_token_for_user(user)
         return user, token
 
     async def refresh_access_token(self, refresh_data: RefreshTokenRequest) -> Token:
@@ -74,7 +74,7 @@ class AuthService:
                 raise AuthException(msg)
 
             # Generate new token
-            return self._create_token_for_user(user)
+            return self.create_token_for_user(user)
 
         except Exception as e:
             msg = "Invalid refresh token"
@@ -106,7 +106,7 @@ class AuthService:
 
         await self._uow.users.update(user)
 
-        return user, self._create_token_for_user(user)
+        return user, self.create_token_for_user(user)
 
     async def register_with_invitation_and_telegram(
         self, invitation_token: str, telegram_data: TelegramRegistrationRequest
@@ -133,14 +133,14 @@ class AuthService:
         # Create new user
         user = User(
             email=invitation.email,
-            first_name=invitation.first_name or "",
-            last_name=invitation.last_name,
+            first_name=invitation.first_name or telegram_data.first_name or "Unknown",
+            last_name=invitation.last_name or telegram_data.last_name,
             phone=telegram_data.phone,
             employee_id=invitation.employee_id,
-            department=invitation.department,
+            department_id=invitation.department_id,
             position=invitation.position,
             level=invitation.level,
-            role=UserRole.NEWBIE,
+            role=invitation.role,
             telegram_id=telegram_data.telegram_id,
             username=telegram_data.username,
             password_hash=None,  # Telegram users don't have password
@@ -152,7 +152,38 @@ class AuthService:
         created_user = await self._uow.users.create(user)
         await self._uow.invitations.mark_as_used(invitation.id, created_user.id)
 
+        # Create user-mentor relation if mentor was specified in invitation
+        if invitation.mentor_id:
+            user_mentor = UserMentor(
+                user_id=created_user.id,
+                mentor_id=invitation.mentor_id,
+                is_active=True,
+            )
+            await self._uow.user_mentors.create(user_mentor)
+
         return created_user
+
+    async def auto_create_user_checklists(self, user: User) -> None:
+        """
+        Auto-create checklists for a user from matching templates.
+
+        Calls the checklists service to create checklists based on the user's
+        department and position, with their assigned mentor if any.
+        """
+        if not user.department_id and not user.position:
+            return
+
+        # Find the user's active mentor
+        mentor_relation = await self._uow.user_mentors.get_active_by_user_id(user.id)
+        mentor_id = mentor_relation.mentor_id if mentor_relation else None
+
+        await checklists_service_client.auto_create_checklists(
+            user_id=user.id,
+            employee_id=user.employee_id,
+            department_id=user.department_id,
+            position=user.position,
+            mentor_id=mentor_id,
+        )
 
     async def get_current_user(self, token: str) -> User:
         """Get current user from JWT token."""
@@ -169,7 +200,7 @@ class AuthService:
 
         return user
 
-    def _create_token_for_user(self, user: User) -> Token:
+    def create_token_for_user(self, user: User) -> Token:
         """Create Token schema for a user."""
         token_data = {
             "sub": str(user.id),

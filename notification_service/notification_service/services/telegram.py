@@ -32,8 +32,7 @@ class TelegramService:
                 result = response.json()
                 if result.get("ok"):
                     return True
-                logger.error(f"Telegram API error: {result}")
-                return False
-            except Exception as e:
-                logger.exception(f"Failed to send Telegram message: {e}")
-                return False
+                logger.error("Telegram API error: %s", result)
+            except Exception:
+                logger.exception("Failed to send Telegram message")
+            return False

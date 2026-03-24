@@ -2,13 +2,10 @@
 
 from abc import abstractmethod
 from collections.abc import Sequence
-from typing import TYPE_CHECKING
 
 from escalation_service.core.enums import EscalationStatus, EscalationType
+from escalation_service.models import EscalationRequest
 from escalation_service.repositories.interfaces.base import BaseRepository
-
-if TYPE_CHECKING:
-    from escalation_service.models import EscalationRequest
 
 
 class IEscalationRepository(BaseRepository["EscalationRequest", int]):
@@ -24,15 +21,15 @@ class IEscalationRepository(BaseRepository["EscalationRequest", int]):
         assigned_to: int | None = None,
         escalation_type: EscalationType | None = None,
         status: EscalationStatus | None = None,
-    ) -> tuple[Sequence["EscalationRequest"], int]:
+    ) -> tuple[Sequence[EscalationRequest], int]:
         """Find escalation requests with filtering and return results with total count."""
 
     @abstractmethod
-    async def get_user_requests(self, user_id: int, skip: int = 0, limit: int = 100) -> Sequence["EscalationRequest"]:
+    async def get_user_requests(self, user_id: int, skip: int = 0, limit: int = 100) -> Sequence[EscalationRequest]:
         """Get requests created by a specific user."""
 
     @abstractmethod
     async def get_assigned_requests(
         self, assignee_id: int, skip: int = 0, limit: int = 100
-    ) -> Sequence["EscalationRequest"]:
+    ) -> Sequence[EscalationRequest]:
         """Get requests assigned to a specific user."""

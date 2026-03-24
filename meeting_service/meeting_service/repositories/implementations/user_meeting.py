@@ -44,11 +44,30 @@ class UserMeetingRepository(SqlAlchemyBaseRepository[UserMeeting, int], IUserMee
 
         return items, total
 
-    async def find_by_meeting(self, meeting_id: int) -> Sequence[UserMeeting]:
-        """Find all assignments for a specific meeting template."""
+    async def find_by_meeting(
+        self,
+        meeting_id: int,
+        *,
+        skip: int = 0,
+        limit: int = 100,
+        status: MeetingStatus | None = None,
+    ) -> tuple[Sequence[UserMeeting], int]:
+        """Find all assignments for a specific meeting template with pagination."""
+        count_stmt = select(func.count(UserMeeting.id)).where(UserMeeting.meeting_id == meeting_id)
         stmt = select(UserMeeting).where(UserMeeting.meeting_id == meeting_id)
+
+        if status:
+            stmt = stmt.where(UserMeeting.status == status)
+            count_stmt = count_stmt.where(UserMeeting.status == status)
+
+        total_result = await self._session.execute(count_stmt)
+        total = cast("int", total_result.scalar_one())
+
+        stmt = stmt.order_by(UserMeeting.created_at.desc()).offset(skip).limit(limit)
         result = await self._session.execute(stmt)
-        return result.scalars().all()
+        items = result.scalars().all()
+
+        return items, total
 
     async def get_user_meeting(self, user_id: int, meeting_id: int) -> UserMeeting | None:
         """Get specific assignment of a meeting to a user."""

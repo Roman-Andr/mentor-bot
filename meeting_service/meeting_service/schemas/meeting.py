@@ -13,7 +13,7 @@ class MeetingBase(BaseModel):
     title: str = Field(..., min_length=1, max_length=200)
     description: str | None = Field(None, max_length=1000)
     type: MeetingType
-    department: str | None = Field(None, max_length=100)
+    department_id: int | None = None
     position: str | None = Field(None, max_length=100)
     level: EmployeeLevel | None = None
     is_mandatory: bool = True
@@ -31,7 +31,7 @@ class MeetingUpdate(BaseModel):
     title: str | None = Field(None, min_length=1, max_length=200)
     description: str | None = Field(None, max_length=1000)
     type: MeetingType | None = None
-    department: str | None = Field(None, max_length=100)
+    department_id: int | None = None
     position: str | None = Field(None, max_length=100)
     level: EmployeeLevel | None = None
     is_mandatory: bool | None = None

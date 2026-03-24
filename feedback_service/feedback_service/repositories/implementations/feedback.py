@@ -2,15 +2,16 @@
 
 from collections.abc import Sequence
 
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from feedback_service.models import Comment, ExperienceRating, PulseSurvey
 from feedback_service.repositories.implementations.base import SqlAlchemyBaseRepository
-from feedback_service.repositories.interfaces.feedback import (
+from feedback_service.repositories.interfaces import (
     ICommentRepository,
     IExperienceRatingRepository,
     IPulseSurveyRepository,
 )
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class PulseSurveyRepository(SqlAlchemyBaseRepository[PulseSurvey, int], IPulseSurveyRepository):

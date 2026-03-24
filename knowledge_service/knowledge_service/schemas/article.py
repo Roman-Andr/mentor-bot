@@ -6,6 +6,7 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict, Field
 
 from knowledge_service.core import ArticleStatus, EmployeeLevel
+from knowledge_service.schemas.attachment import AttachmentResponse
 from knowledge_service.schemas.tag import TagResponse
 
 
@@ -16,7 +17,7 @@ class ArticleBase(BaseModel):
     content: str = Field(..., min_length=1)
     excerpt: str | None = Field(None, max_length=1000)
     category_id: int | None = None
-    department: str | None = Field(None, max_length=100)
+    department_id: int | None = None
     position: str | None = Field(None, max_length=100)
     level: EmployeeLevel | None = None
     is_pinned: bool = False
@@ -40,7 +41,7 @@ class ArticleUpdate(BaseModel):
     content: str | None = Field(None, min_length=1)
     excerpt: str | None = Field(None, max_length=1000)
     category_id: int | None = None
-    department: str | None = Field(None, max_length=100)
+    department_id: int | None = None
     position: str | None = Field(None, max_length=100)
     level: EmployeeLevel | None = None
     status: ArticleStatus | None = None
@@ -63,7 +64,7 @@ class ArticleResponse(ArticleBase):
     view_count: int
     category_name: str | None = None
     tags: list[TagResponse] = Field(default_factory=list)
-    attachments: list[dict[str, Any]] = Field(default_factory=list)
+    attachments: list[AttachmentResponse] = Field(default_factory=list)
     created_at: datetime
     updated_at: datetime | None = None
     published_at: datetime | None = None

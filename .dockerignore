@@ -1,0 +1,17 @@
+.git
+.venv
+.mypy_cache
+.ruff_cache
+__pycache__
+*.pyc
+*.pyo
+*.egg-info
+.env
+.env.*
+!.env.example
+.vscode
+*.md
+scripts/
+admin_web/
+Makefile
+.dockerignore

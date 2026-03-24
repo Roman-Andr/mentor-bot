@@ -4,189 +4,223 @@ from aiogram import F, Router
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
-from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from telegram_bot.core.enums import ButtonStyle
-from telegram_bot.keyboards.utils import create_inline_button
+from telegram_bot.i18n import t
+from telegram_bot.keyboards.escalation_kb import (
+    get_escalation_details_keyboard,
+    get_escalation_menu_keyboard,
+    get_my_escalations_keyboard,
+    get_new_escalation_keyboard,
+)
 from telegram_bot.services.escalation_client import escalation_client
 from telegram_bot.states.escalation_states import EscalationStates
 from telegram_bot.utils.formatters import format_escalation_list
 
 router = Router()
 
+MIN_DESCRIPTION_LENGTH = 10
+MIN_TITLE_LENGTH = 3
+
 
 @router.message(Command("escalate"))
-@router.message(F.text == "📞 Escalate")
+@router.message(F.text == "\U0001f4de Escalate")
 @router.callback_query(F.data == "escalate_menu")
-async def escalation_menu(update: Message | CallbackQuery, user: dict, auth_token: str) -> None:
+async def escalation_menu(
+    update: Message | CallbackQuery, user: dict, auth_token: str, *, locale: str = "en"
+) -> None:
     """Show escalation menu."""
     if isinstance(update, CallbackQuery):
-        message = update.message
+        msg = update.message
         await update.answer()
     else:
-        message = update
+        msg = update
 
     if not user or not auth_token:
-        await message.answer("You need to be registered to escalate issues.\nUse /start to register.")
+        await msg.answer(t("common.auth_required", locale=locale))
         return
 
-    # Get user escalations
-    escalations = await escalation_client.get_user_escalations(user["id"], limit=5)
-
-    builder = InlineKeyboardBuilder()
-    builder.add(
-        create_inline_button("➕ New Escalation", callback_data="new_escalation", style=ButtonStyle.PRIMARY),
-        create_inline_button("📋 My Escalations", callback_data="my_escalations", style=ButtonStyle.PRIMARY),
-        create_inline_button("← Menu", callback_data="menu"),
+    escalations = await escalation_client.get_user_escalations(
+        user["id"], auth_token, limit=5
     )
-    builder.adjust(1)
 
-    text = "📞 *Escalation Center*\n\n"
+    text = f"*\U0001f4de {t('escalation.title', locale=locale)}*\n\n"
     if escalations:
-        text += format_escalation_list(escalations)
+        text += format_escalation_list(escalations, locale=locale)
         text += "\n"
     else:
-        text += "You have no active escalations.\n\n"
+        text += f"{t('escalation.no_escalations', locale=locale)}\n\n"
 
-    text += "Use the options below to escalate an issue or view your existing escalations."
+    text += t("escalation.use_options", locale=locale)
 
+    keyboard = get_escalation_menu_keyboard(locale=locale)
     if isinstance(update, CallbackQuery):
-        await message.edit_text(text, reply_markup=builder.as_markup(), parse_mode="Markdown")
+        await msg.edit_text(
+            text, reply_markup=keyboard.as_markup(), parse_mode="Markdown"
+        )
     else:
-        await message.answer(text, reply_markup=builder.as_markup(), parse_mode="Markdown")
+        await msg.answer(text, reply_markup=keyboard.as_markup(), parse_mode="Markdown")
 
 
 @router.callback_query(F.data == "new_escalation")
-async def new_escalation(callback: CallbackQuery, state: FSMContext) -> None:
+async def new_escalation(
+    callback: CallbackQuery, state: FSMContext, *, locale: str = "en"
+) -> None:
     """Start new escalation."""
-    builder = InlineKeyboardBuilder()
-    builder.add(
-        create_inline_button("❓ Question not answered", callback_data="escalate_question", style=ButtonStyle.PRIMARY),
-        create_inline_button("👥 Contact Mentor", callback_data="escalate_mentor", style=ButtonStyle.PRIMARY),
-        create_inline_button("📞 Contact HR", callback_data="escalate_hr", style=ButtonStyle.PRIMARY),
-        create_inline_button("⚠️ Technical Issue", callback_data="escalate_technical", style=ButtonStyle.DANGER),
-        create_inline_button("← Back", callback_data="escalate_menu"),
-    )
-    builder.adjust(1)
-
-    await callback.message.edit_text(
-        "📞 *New Escalation*\n\nPlease select the type of escalation:",
-        reply_markup=builder.as_markup(),
-        parse_mode="Markdown",
-    )
+    if callback.message:
+        await callback.message.edit_text(
+            f"*\U0001f4de {t('escalation.new_title', locale=locale)}*\n\n{t('escalation.select_type', locale=locale)}",
+            reply_markup=get_new_escalation_keyboard(locale=locale).as_markup(),
+            parse_mode="Markdown",
+        )
     await callback.answer()
 
 
-@router.callback_query(F.data.startswith("escalate_"))
-async def process_escalation_type(callback: CallbackQuery, state: FSMContext) -> None:
+@router.callback_query(
+    F.data.startswith("escalate_") & ~F.data.startswith("escalate_menu")
+)
+async def process_escalation_type(
+    callback: CallbackQuery, state: FSMContext, *, locale: str = "en"
+) -> None:
     """Process escalation type selection."""
     escalation_type = callback.data.split("_")[1]
 
     type_map = {
-        "question": "Question not answered",
-        "mentor": "Contact Mentor",
-        "hr": "Contact HR",
-        "technical": "Technical Issue",
+        "question": t("escalation.type_question", locale=locale),
+        "mentor": t("escalation.type_mentor", locale=locale),
+        "hr": t("escalation.type_hr", locale=locale),
+        "technical": t("escalation.type_technical", locale=locale),
     }
 
     category = type_map.get(escalation_type, "General")
 
     await state.update_data(category=category)
-    await callback.message.edit_text(
-        f"📚 *Escalation: {category}*\n\nPlease describe your issue or question in detail:",
-        parse_mode="Markdown",
-    )
+    if callback.message:
+        await callback.message.edit_text(
+            t("escalation.describe_issue", locale=locale, category=category),
+            parse_mode="Markdown",
+        )
     await state.set_state(EscalationStates.waiting_for_description)
     await callback.answer()
 
 
 @router.message(EscalationStates.waiting_for_description)
-async def process_escalation_description(message: Message, state: FSMContext) -> None:
+async def process_escalation_description(
+    message: Message, state: FSMContext, *, locale: str = "en"
+) -> None:
     """Process escalation description."""
-    description = message.text.strip()
+    description = (message.text or "").strip()
 
-    if len(description) < 10:
-        await message.answer("❌ Please provide more details (at least 10 characters).")
+    if len(description) < MIN_DESCRIPTION_LENGTH:
+        await message.answer(
+            t(
+                "escalation.description_too_short",
+                locale=locale,
+                min=MIN_DESCRIPTION_LENGTH,
+            )
+        )
         return
 
     await state.update_data(description=description)
-    await message.answer(
-        "✅ Thank you! Now please provide a brief title for your escalation:",
-    )
+    await message.answer(t("escalation.enter_title", locale=locale))
     await state.set_state(EscalationStates.waiting_for_title)
 
 
 @router.message(EscalationStates.waiting_for_title)
-async def process_escalation_title(message: Message, state: FSMContext, user: dict, auth_token: str) -> None:
+async def process_escalation_title(
+    message: Message,
+    state: FSMContext,
+    user: dict,
+    auth_token: str,
+    *,
+    locale: str = "en",
+) -> None:
     """Process escalation title."""
-    title = message.text.strip()
+    title = (message.text or "").strip()
 
-    if len(title) < 3:
-        await message.answer("❌ Title must be at least 3 characters long.")
+    if len(title) < MIN_TITLE_LENGTH:
+        await message.answer(
+            t("escalation.title_too_short", locale=locale, min=MIN_TITLE_LENGTH)
+        )
         return
 
-    # Get data from state
     data = await state.get_data()
     category = data.get("category", "General")
     description = data.get("description", "")
 
-    # Create escalation
     escalation = await escalation_client.create_escalation(
         user_id=user["id"],
         title=title,
         description=description,
         category=category,
+        auth_token=auth_token,
         priority="normal",
     )
 
     if escalation:
         escalation_id = escalation.get("id", "N/A")
         await message.answer(
-            f"✅ Escalation created successfully!\n\n"
-            f"*Title:* {title}\n"
-            f"*Category:* {category}\n"
-            f"*Escalation ID:* {escalation_id}\n\n"
-            f"You will receive a notification when your escalation is being processed.",
+            t(
+                "escalation.created",
+                locale=locale,
+                title=title,
+                category=category,
+                id=escalation_id,
+            ),
             parse_mode="Markdown",
         )
     else:
-        await message.answer("❌ Failed to create escalation. Please try again.")
+        await message.answer(t("escalation.create_failed", locale=locale))
 
     await state.clear()
 
 
 @router.callback_query(F.data == "my_escalations")
-async def my_escalations(callback: CallbackQuery, user: dict, auth_token: str) -> None:
+async def my_escalations(
+    callback: CallbackQuery, user: dict, auth_token: str, *, locale: str = "en"
+) -> None:
     """Show user's escalations."""
     if not user or not auth_token:
-        await callback.answer("Authentication required", show_alert=True)
+        await callback.answer(t("common.auth_required_short", locale=locale))
         return
 
-    escalations = await escalation_client.get_user_escalations(user["id"], limit=20)
+    escalations = await escalation_client.get_user_escalations(
+        user["id"], auth_token, limit=20
+    )
 
-    builder = InlineKeyboardBuilder()
-    builder.add(create_inline_button("← Back", callback_data="escalate_menu"))
+    text = (
+        format_escalation_list(escalations, locale=locale)
+        if escalations
+        else t("escalation.no_escalations", locale=locale)
+    )
 
-    text = format_escalation_list(escalations) if escalations else "📭 You have no active escalations."
-
-    await callback.message.edit_text(text, reply_markup=builder.as_markup(), parse_mode="Markdown")
+    if callback.message:
+        await callback.message.edit_text(
+            text,
+            reply_markup=get_my_escalations_keyboard(locale=locale).as_markup(),
+            parse_mode="Markdown",
+        )
     await callback.answer()
 
 
-@router.callback_query(F.data.startswith("escalation_"))
-async def escalation_details(callback: CallbackQuery, auth_token: str) -> None:
+@router.callback_query(
+    F.data.startswith("escalation_") & ~F.data.startswith("escalation_menu")
+)
+async def escalation_details(
+    callback: CallbackQuery, auth_token: str, *, locale: str = "en"
+) -> None:
     """Show escalation details."""
     if not auth_token:
-        await callback.answer("Authentication required", show_alert=True)
+        await callback.answer(t("common.auth_required_short", locale=locale))
         return
 
     escalation_id = int(callback.data.split("_")[1])
 
-    # Fetch escalation details
-    escalation = await escalation_client.get_escalation_status(escalation_id)
+    escalation = await escalation_client.get_escalation_status(
+        escalation_id, auth_token
+    )
 
     if not escalation:
-        await callback.answer("Escalation not found", show_alert=True)
+        await callback.answer(t("common.error_generic", locale=locale), show_alert=True)
         return
 
     status = escalation.get("status", "unknown")
@@ -195,25 +229,33 @@ async def escalation_details(callback: CallbackQuery, auth_token: str) -> None:
     created_at = escalation.get("created_at", "N/A")
     description = escalation.get("description", "No description")
 
-    # Status emoji
+    status_map = {
+        "open": t("escalation.status_open", locale=locale),
+        "in_progress": t("escalation.status_in_progress", locale=locale),
+        "resolved": t("escalation.status_resolved", locale=locale),
+        "closed": t("escalation.status_closed", locale=locale),
+    }
+
     status_emoji = {
-        "open": "⏳",
-        "in_progress": "🔄",
-        "resolved": "✅",
-        "closed": "🔒",
-    }.get(status, "❓")
+        "open": "\u23f3",
+        "in_progress": "\U0001f504",
+        "resolved": "\u2705",
+        "closed": "\U0001f512",
+    }.get(status, "\u2753")
 
     text = (
-        f"📞 *Escalation Details*\n\n"
+        f"*\U0001f4de {t('escalation.details_title', locale=locale)}*\n\n"
         f"*Title:* {title}\n"
         f"*Category:* {category}\n"
-        f"*Status:* {status_emoji} {status}\n"
+        f"*Status:* {status_emoji} {status_map.get(status, status)}\n"
         f"*Created:* {created_at}\n\n"
         f"*Description:*\n{description}"
     )
 
-    builder = InlineKeyboardBuilder()
-    builder.add(create_inline_button("← Back", callback_data="my_escalations"))
-
-    await callback.message.edit_text(text, reply_markup=builder.as_markup(), parse_mode="Markdown")
+    if callback.message:
+        await callback.message.edit_text(
+            text,
+            reply_markup=get_escalation_details_keyboard(locale=locale).as_markup(),
+            parse_mode="Markdown",
+        )
     await callback.answer()

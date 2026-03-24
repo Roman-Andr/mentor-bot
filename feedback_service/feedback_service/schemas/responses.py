@@ -1,3 +1,5 @@
+"""Common response schemas for feedback service."""
+
 from typing import Any
 
 from pydantic import BaseModel
