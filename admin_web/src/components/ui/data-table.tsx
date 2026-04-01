@@ -1,3 +1,6 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Pagination } from "@/components/ui/pagination";
@@ -18,8 +21,8 @@ interface DataTableProps {
 export function DataTable({
   loading,
   empty,
-  emptyMessage = "Ничего не найдено",
-  loadingMessage = "Загрузка...",
+  emptyMessage,
+  loadingMessage,
   currentPage,
   totalPages,
   totalCount,
@@ -27,31 +30,31 @@ export function DataTable({
   header,
   children,
 }: DataTableProps) {
+  const t = useTranslations("common");
+
   return (
     <Card>
       <CardContent className="p-0">
         {header}
         {loading ? (
           <div className="text-muted-foreground flex items-center justify-center py-12">
-            {loadingMessage}
+            {loadingMessage ?? t("loading")}
           </div>
         ) : empty ? (
-          <div className="text-muted-foreground flex items-center justify-center py-12">{emptyMessage}</div>
+          <div className="text-muted-foreground flex items-center justify-center py-12">
+            {emptyMessage ?? t("noData")}
+          </div>
         ) : (
           children
         )}
-        {!loading &&
-          !empty &&
-          currentPage !== undefined &&
-          totalPages !== undefined &&
-          onPageChange && (
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              totalCount={totalCount}
-              onPageChange={onPageChange}
-            />
-          )}
+        {!loading && currentPage !== undefined && totalPages !== undefined && onPageChange && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalCount={totalCount}
+            onPageChange={onPageChange}
+          />
+        )}
       </CardContent>
     </Card>
   );

@@ -31,6 +31,7 @@ ESCALATION_SERVICE_URL = os.getenv("ESCALATION_SERVICE_URL", "http://localhost:8
 MEETING_SERVICE_URL = os.getenv("MEETING_SERVICE_URL", "http://localhost:8006")
 FEEDBACK_SERVICE_URL = os.getenv("FEEDBACK_SERVICE_URL", "http://localhost:8007")
 
+
 POSTGRES_USER = os.getenv("POSTGRES_USER", "roman")
 POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "test_password")
 POSTGRES_DB = os.getenv("POSTGRES_DB", "mentor_bot")
@@ -197,7 +198,7 @@ def create_admin_user_direct() -> bool:
         return False
 
 
-async def wait_for_service(url: str, name: str, max_attempts: int = 30, delay: int = 2) -> bool:
+async def wait_for_service(url: str, name: str, max_attempts: int = 30, delay: int = 1) -> bool:
     """Wait for a service to become available."""
     log_step(f"Waiting for {name} to be available")
     async with httpx.AsyncClient(timeout=5.0) as client:
@@ -709,6 +710,33 @@ async def create_knowledge_articles(
     return article_ids
 
 
+async def create_dialogue_scenarios(
+    token: str,
+    scenario_data: list[dict],
+) -> None:
+    """Create dialogue scenarios with steps."""
+    log_step("Creating dialogue scenarios with steps")
+    headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+
+    async with httpx.AsyncClient() as client:
+        for scenario in scenario_data:
+            scenario_title = scenario["title"]
+            try:
+                response = await client.post(
+                    f"{KNOWLEDGE_SERVICE_URL}/api/v1/dialogue-scenarios/",
+                    headers=headers,
+                    json=scenario,
+                )
+                if response.status_code in (200, 201):
+                    log_success(f"  Scenario '{scenario_title}' created")
+                else:
+                    log_warning(
+                        f"  Failed to create scenario '{scenario_title}': {response.status_code} - {response.text}"
+                    )
+            except Exception as e:
+                log_warning(f"  Error creating scenario '{scenario_title}': {e}")
+
+
 async def create_meetings(
     token: str,
     dept_ids: dict[str, int],
@@ -1056,6 +1084,10 @@ async def main(skip_services: list[str] | None = None, dry_run: bool = False) ->
         feedback = load_json("feedback.json")
         await create_feedback(user_ids, feedback)
 
+    if "knowledge" not in skip_services:
+        scenarios = load_json("dialogue_scenarios.json")
+        await create_dialogue_scenarios(token, scenarios)
+
     log_divider()
     log_success("Mock data setup completed successfully!")
     log_divider()
@@ -1063,13 +1095,14 @@ async def main(skip_services: list[str] | None = None, dry_run: bool = False) ->
     log_info(f"  Departments:      {len(dept_ids)}")
     log_info(f"  Users:            {len(user_ids)}")
     if "checklists" not in skip_services:
-        log_info(f"  Templates:         {len(load_json('templates.json'))}")
+        log_info(f"  Templates:        {len(load_json('templates.json'))}")
     if "knowledge" not in skip_services:
         log_info(f"  Categories:       {len(load_json('knowledge_categories.json'))}")
         log_info(f"  Tags:             {len(load_json('knowledge_tags.json'))}")
         log_info(f"  Articles:         {len(load_json('knowledge_articles.json'))}")
+        log_info(f"  Dialogue scenarios: {len(load_json('dialogue_scenarios.json'))}")
     if "meeting" not in skip_services:
-        log_info(f"  Meetings:          {len(load_json('meetings.json'))}")
+        log_info(f"  Meetings:         {len(load_json('meetings.json'))}")
     if "notification" not in skip_services:
         log_info(f"  Notifications:    {len(load_json('notifications.json'))}")
     if "escalation" not in skip_services:

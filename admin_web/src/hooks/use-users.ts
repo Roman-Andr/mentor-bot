@@ -1,13 +1,14 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useDebounce } from "@/hooks/useDebounce";
-import { useConfirm } from "@/components/ui/confirm-dialog";
 import { useToast } from "@/components/ui/toast";
-import { api, type User, type Department } from "@/lib/api";
+import { api, type User } from "@/lib/api";
 
 export interface UserItem {
   id: number;
   name: string;
   email: string;
+  employee_id: string;
   role: string;
   department_id: number | null;
   department: string;
@@ -51,6 +52,7 @@ function mapUser(u: User): UserItem {
     id: u.id,
     name: `${u.first_name} ${u.last_name || ""}`.trim(),
     email: u.email,
+    employee_id: u.employee_id,
     role: u.role,
     department_id: u.department_id,
     department: u.department?.name || "",
@@ -60,12 +62,13 @@ function mapUser(u: User): UserItem {
   };
 }
 
+const USERS_KEY = ["users"] as const;
+const DEPARTMENTS_KEY = ["departments"] as const;
+
 export function useUsers() {
-  const confirm = useConfirm();
   const { toast } = useToast();
-  const [users, setUsers] = useState<UserItem[]>([]);
-  const [totalUsers, setTotalUsers] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState("ALL");
@@ -74,129 +77,123 @@ export function useUsers() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserItem | null>(null);
   const [formData, setFormData] = useState<UserFormData>(INITIAL_FORM);
-  const [departments, setDepartments] = useState<Department[]>([]);
 
   const debouncedSearch = useDebounce(searchQuery);
 
-  const loadDepartments = useCallback(async () => {
-    try {
-      const response = await api.departments.list({ limit: 1000 });
-      if (response.data) {
-        setDepartments(response.data.departments);
-      }
-    } catch (err) {
-      console.error("Failed to load departments:", err);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadDepartments();
-  }, [loadDepartments]);
-
-  const loadUsers = useCallback(async () => {
-    setLoading(true);
-    try {
-      const params: Record<string, string | number> = {};
-      if (roleFilter !== "ALL") params.role = roleFilter;
-      if (departmentFilter !== "ALL") params.department_id = parseInt(departmentFilter);
-      if (debouncedSearch) params.search = debouncedSearch;
-      params.skip = (currentPage - 1) * PAGE_SIZE;
-      params.limit = PAGE_SIZE;
-
-      const response = await api.users.list(params);
-      if (response.data) {
-        setUsers(response.data.users.map(mapUser));
-        setTotalUsers(response.data.total);
-      }
-    } catch (err) {
-      console.error("Failed to load users:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, [roleFilter, departmentFilter, currentPage, debouncedSearch]);
-
-  useEffect(() => {
-    loadUsers();
-  }, [loadUsers]);
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [debouncedSearch]);
-
-  const handleCreateUser = async () => {
-    try {
-      const response = await api.users.create({
-        first_name: formData.first_name,
-        last_name: formData.last_name || null,
-        email: formData.email,
-        phone: formData.phone || null,
-        employee_id: formData.employee_id,
-        department_id: formData.department_id || undefined,
-        position: formData.position || null,
-        level: formData.level || null,
-        role: formData.role,
-        is_active: formData.is_active,
-        password: formData.password,
-      });
-
-      if (response.data) {
-        setTotalUsers((t) => t + 1);
-        setIsCreateDialogOpen(false);
-        setFormData(INITIAL_FORM);
-        loadUsers();
-        toast("Пользователь успешно создан", "success");
-      } else {
-        toast(response.error || "Ошибка создания пользователя", "error");
-      }
-    } catch (err) {
-      console.error("Failed to create user:", err);
-      toast("Ошибка создания пользователя", "error");
-    }
+  const queryParams = {
+    skip: (currentPage - 1) * PAGE_SIZE,
+    limit: PAGE_SIZE,
+    ...(roleFilter !== "ALL" && { role: roleFilter }),
+    ...(departmentFilter !== "ALL" && { department_id: parseInt(departmentFilter) }),
+    ...(debouncedSearch && { search: debouncedSearch }),
   };
 
-  const handleUpdateUser = async () => {
-    if (!selectedUser) return;
-    try {
-      const response = await api.users.update(selectedUser.id, {
-        first_name: formData.first_name,
-        last_name: formData.last_name || null,
-        email: formData.email,
-        phone: formData.phone || null,
-        employee_id: formData.employee_id,
-        department_id: formData.department_id || undefined,
-        position: formData.position || null,
-        level: formData.level || null,
-        role: formData.role,
-        is_active: formData.is_active,
-      });
+  const { data: usersData, isLoading: loading } = useQuery({
+    queryKey: [...USERS_KEY, queryParams],
+    queryFn: () => api.users.list(queryParams),
+    select: (result) =>
+      result.data
+        ? {
+            users: result.data.users.map(mapUser),
+            total: result.data.total,
+          }
+        : undefined,
+  });
 
-      if (response.data) {
-        setUsers((prev) =>
-          prev.map((u) => (u.id === selectedUser.id ? mapUser(response.data!) : u)),
-        );
+  const { data: departmentsData } = useQuery({
+    queryKey: DEPARTMENTS_KEY,
+    queryFn: () => api.departments.list({ limit: 1000 }),
+    select: (result) => result.data?.departments || [],
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (data: Parameters<typeof api.users.create>[0]) => api.users.create(data),
+    onSuccess: (result) => {
+      if (result.data) {
+        queryClient.invalidateQueries({ queryKey: USERS_KEY });
+        setIsCreateDialogOpen(false);
+        setFormData(INITIAL_FORM);
+        toast("Пользователь успешно создан", "success");
+      } else if (result.error) {
+        toast(result.error, "error");
+      }
+    },
+    onError: () => {
+      toast("Ошибка создания пользователя", "error");
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: Parameters<typeof api.users.update>[1] }) =>
+      api.users.update(id, data),
+    onSuccess: (result) => {
+      if (result.data) {
+        queryClient.invalidateQueries({ queryKey: USERS_KEY });
         setIsEditDialogOpen(false);
         setSelectedUser(null);
         setFormData(INITIAL_FORM);
         toast("Пользователь обновлён", "success");
-      } else {
-        toast(response.error || "Ошибка обновления", "error");
+      } else if (result.error) {
+        toast(result.error, "error");
       }
-    } catch (err) {
-      console.error("Failed to update user:", err);
+    },
+    onError: () => {
       toast("Ошибка обновления пользователя", "error");
-    }
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => api.users.delete(id),
+    onSuccess: (result) => {
+      if (!result.error) {
+        queryClient.invalidateQueries({ queryKey: USERS_KEY });
+        toast("Пользователь удалён", "success");
+      } else {
+        toast(result.error, "error");
+      }
+    },
+    onError: () => {
+      toast("Ошибка удаления пользователя", "error");
+    },
+  });
+
+  const handleCreateUser = () => {
+    createMutation.mutate({
+      first_name: formData.first_name,
+      last_name: formData.last_name || null,
+      email: formData.email,
+      phone: formData.phone || null,
+      employee_id: formData.employee_id,
+      department_id: formData.department_id || undefined,
+      position: formData.position || null,
+      level: formData.level || null,
+      role: formData.role,
+      is_active: formData.is_active,
+      password: formData.password,
+    });
   };
 
-  const handleDeleteUser = async (id: number) => {
-    if (!(await confirm({ title: "Удаление пользователя", description: "Вы уверены, что хотите удалить этого пользователя?", variant: "destructive", confirmText: "Удалить" }))) return;
-    try {
-      await api.users.delete(id);
-      setUsers((prev) => prev.filter((u) => u.id !== id));
-      toast("Пользователь удалён", "success");
-    } catch (err) {
-      console.error("Failed to delete user:", err);
-      toast("Ошибка удаления пользователя", "error");
-    }
+  const handleUpdateUser = () => {
+    if (!selectedUser) return;
+    updateMutation.mutate({
+      id: selectedUser.id,
+      data: {
+        first_name: formData.first_name,
+        last_name: formData.last_name || null,
+        email: formData.email,
+        phone: formData.phone || null,
+        employee_id: formData.employee_id,
+        department_id: formData.department_id || undefined,
+        position: formData.position || null,
+        level: formData.level || null,
+        role: formData.role,
+        is_active: formData.is_active,
+      },
+    });
+  };
+
+  const handleDeleteUser = (id: number) => {
+    deleteMutation.mutate(id);
   };
 
   const openEditDialog = (user: UserItem) => {
@@ -207,7 +204,7 @@ export function useUsers() {
       last_name: nameParts.slice(1).join(" ") || "",
       email: user.email,
       phone: "",
-      employee_id: "",
+      employee_id: user.employee_id || "",
       department_id: user.department_id || 0,
       position: user.position,
       level: "",
@@ -223,7 +220,17 @@ export function useUsers() {
     setSelectedUser(null);
   };
 
+  const resetFilters = () => {
+    setSearchQuery("");
+    setRoleFilter("ALL");
+    setDepartmentFilter("ALL");
+    setCurrentPage(1);
+  };
+
+  const users = usersData?.users || [];
+  const totalUsers = usersData?.total || 0;
   const totalPages = Math.ceil(totalUsers / PAGE_SIZE) || 1;
+  const departments = departmentsData || [];
 
   return {
     users,
@@ -247,12 +254,15 @@ export function useUsers() {
     departmentFilter,
     setDepartmentFilter,
     departments,
-    loadUsers,
-    loadDepartments,
+    loadDepartments: () => queryClient.invalidateQueries({ queryKey: DEPARTMENTS_KEY }),
     handleCreateUser,
     handleUpdateUser,
     handleDeleteUser,
     openEditDialog,
     resetForm,
+    resetFilters,
+    isCreating: createMutation.isPending,
+    isUpdating: updateMutation.isPending,
+    isDeleting: deleteMutation.isPending,
   };
 }

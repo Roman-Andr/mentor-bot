@@ -6,6 +6,7 @@ from auth_service.core import (
     ConflictException,
     InvitationStatus,
     NotFoundException,
+    UserRole,
     ValidationException,
     generate_invitation_token,
 )
@@ -108,6 +109,7 @@ class InvitationService:
         skip: int = 0,
         limit: int = 100,
         email: str | None = None,
+        role: UserRole | None = None,
         status: InvitationStatus | None = None,
         department_id: int | None = None,
         *,
@@ -118,6 +120,7 @@ class InvitationService:
             skip=skip,
             limit=limit,
             email=email,
+            role=role,
             status=status,
             department_id=department_id,
             expired_only=expired_only,

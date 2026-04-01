@@ -1,10 +1,18 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import { SearchInput } from "@/components/ui/search-input";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -25,6 +33,8 @@ import { useToast } from "@/components/ui/toast";
 import { api, type User, type UserMeeting } from "@/lib/api";
 
 export default function MeetingsPage() {
+  const t = useTranslations("meetings");
+  const tCommon = useTranslations("common");
   const m = useMeetings();
   const { toast } = useToast();
 
@@ -82,7 +92,7 @@ export default function MeetingsPage() {
         }
       }
     } catch {
-      toast("Ошибка загрузки назначенных пользователей", "error");
+      toast(t("errorLoadingUsers"), "error");
     } finally {
       setAssignmentsLoading(false);
     }
@@ -92,9 +102,9 @@ export default function MeetingsPage() {
     try {
       await api.userMeetings.delete(assignmentId);
       setAssignments((prev) => prev.filter((a) => a.id !== assignmentId));
-      toast("Назначение удалено", "success");
+      toast(t("assignmentRemoved"), "success");
     } catch {
-      toast("Ошибка удаления назначения", "error");
+      toast(t("errorRemovingAssignment"), "error");
     }
   };
 
@@ -107,13 +117,13 @@ export default function MeetingsPage() {
         meeting_id: assignMeetingId,
       });
       if (resp.data) {
-        toast("Встреча назначена", "success");
+        toast(t("meetingAssigned"), "success");
         setIsAssignDialogOpen(false);
       } else {
-        toast(resp.error || "Ошибка назначения", "error");
+        toast(resp.error || t("errorAssigning"), "error");
       }
     } catch {
-      toast("Ошибка назначения встречи", "error");
+      toast(t("errorAssigning"), "error");
     } finally {
       setAssigning(false);
     }
@@ -121,8 +131,8 @@ export default function MeetingsPage() {
 
   return (
     <PageContent
-      title="Встречи"
-      subtitle="Управление шаблонами встреч для онбординга"
+      title={t("title")}
+      subtitle={t("title")}
       actions={
         <Button
           className="gap-2"
@@ -132,7 +142,7 @@ export default function MeetingsPage() {
           }}
         >
           <Plus className="size-4" />
-          Создать встречу
+          {t("scheduleMeeting")}
         </Button>
       }
     >
@@ -166,14 +176,14 @@ export default function MeetingsPage() {
       <Dialog open={isAssignDialogOpen} onOpenChange={setIsAssignDialogOpen}>
         <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Назначить встречу</DialogTitle>
+            <DialogTitle>{t("assignMeeting")}</DialogTitle>
             <DialogDescription>
-              Назначить &quot;{assignMeetingTitle}&quot; пользователю
+              {t("assignToUser", { title: assignMeetingTitle })}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <label className="mb-1 block text-sm font-medium">Пользователь</label>
+              <label className="mb-1 block text-sm font-medium">{t("participant")}</label>
               <AsyncSearchableSelect
                 value={selectedUserId}
                 onChange={(v) => {
@@ -182,8 +192,8 @@ export default function MeetingsPage() {
                 }}
                 onSearch={searchUsers}
                 selectedLabel={selectedUserLabel}
-                placeholder="Выберите пользователя"
-                searchPlaceholder="Поиск по имени или email..."
+                placeholder={t("selectUser")}
+                searchPlaceholder={t("searchUser")}
                 minSearchLength={2}
                 onOptionSelect={(opt) => setSelectedUserLabel(opt.label)}
               />
@@ -191,10 +201,10 @@ export default function MeetingsPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAssignDialogOpen(false)}>
-              Отмена
+              {tCommon("cancel")}
             </Button>
             <Button onClick={handleAssign} disabled={!selectedUserId || assigning}>
-              {assigning ? "Назначение..." : "Назначить"}
+              {assigning ? t("assigning") : t("assign")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -203,25 +213,28 @@ export default function MeetingsPage() {
       <Dialog open={isAssignmentsDialogOpen} onOpenChange={setIsAssignmentsDialogOpen}>
         <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Назначенные пользователи</DialogTitle>
+            <DialogTitle>{t("assignedUsers")}</DialogTitle>
             <DialogDescription>
-              Пользователи, назначенные на &quot;{assignmentsMeetingTitle}&quot;
+              {t("usersAssignedTo", { title: assignmentsMeetingTitle })}
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
             {assignmentsLoading ? (
-              <p className="text-muted-foreground text-sm">Загрузка...</p>
+              <p className="text-muted-foreground text-sm">{t("loading")}</p>
             ) : assignments.length === 0 ? (
-              <p className="text-muted-foreground text-sm">Нет назначенных пользователей</p>
+              <p className="text-muted-foreground text-sm">{t("noAssignedUsers")}</p>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Пользователь</TableHead>
-                    <TableHead>Статус</TableHead>
-                    <TableHead>Запланирована</TableHead>
-                    <TableHead>Завершена</TableHead>
-                    <TableHead className="w-[60px]"></TableHead>
+                    <TableHead>{t("name")}</TableHead>
+                    <TableHead>{t("type")}</TableHead>
+                    <TableHead>{t("department")}</TableHead>
+                    <TableHead>{t("deadlineDays")}</TableHead>
+                    <TableHead>{t("isMandatory")}</TableHead>
+                    <TableHead>{t("order")}</TableHead>
+                    <TableHead>{tCommon("created")}</TableHead>
+                    <TableHead className="w-[180px]">{tCommon("actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -242,22 +255,20 @@ export default function MeetingsPage() {
                           )}
                         </TableCell>
                         <TableCell>
-                          <span className={
-                            a.status === "COMPLETED"
-                              ? "text-green-600"
-                              : a.status === "SCHEDULED"
-                                ? "text-blue-600"
-                                 : "text-muted-foreground"
-                          }>
+                          <span
+                            className={
+                              a.status === "COMPLETED"
+                                ? "text-green-600"
+                                : a.status === "SCHEDULED"
+                                  ? "text-blue-600"
+                                  : "text-muted-foreground"
+                            }
+                          >
                             {a.status}
                           </span>
                         </TableCell>
-                        <TableCell>
-                          {a.scheduled_at ? formatDate(a.scheduled_at) : "-"}
-                        </TableCell>
-                        <TableCell>
-                          {a.completed_at ? formatDate(a.completed_at) : "-"}
-                        </TableCell>
+                        <TableCell>{a.scheduled_at ? formatDate(a.scheduled_at) : "-"}</TableCell>
+                        <TableCell>{a.completed_at ? formatDate(a.completed_at) : "-"}</TableCell>
                         <TableCell>
                           <Button
                             variant="ghost"
@@ -277,7 +288,7 @@ export default function MeetingsPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAssignmentsDialogOpen(false)}>
-              Закрыть
+              {tCommon("close")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -286,7 +297,7 @@ export default function MeetingsPage() {
       <DataTable
         loading={m.loading}
         empty={m.meetings.length === 0}
-        emptyMessage="Встречи не найдены"
+        emptyMessage={t("noMeetings")}
         currentPage={m.currentPage}
         totalPages={m.totalPages}
         totalCount={m.totalCount}
@@ -295,16 +306,15 @@ export default function MeetingsPage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle>
-                Встречи{" "}
+                {t("meetings")}{" "}
                 <span className="text-muted-foreground text-sm font-normal">({m.totalCount})</span>
               </CardTitle>
               <div className="flex gap-2">
                 <SearchInput value={m.searchQuery} onChange={m.setSearchQuery} />
-                <Select
-                  value={m.typeFilter}
-                  onChange={(ev) => m.setTypeFilter(ev.target.value)}
-                  options={MEETING_TYPES}
-                />
+                <Select value={m.typeFilter} onChange={m.setTypeFilter} options={MEETING_TYPES} />
+                <Button variant="outline" onClick={m.resetFilters}>
+                  {tCommon("reset")}
+                </Button>
               </div>
             </div>
           </CardHeader>
@@ -313,14 +323,14 @@ export default function MeetingsPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Название</TableHead>
-              <TableHead>Тип</TableHead>
-              <TableHead>Департамент</TableHead>
-              <TableHead>Дедлайн</TableHead>
-              <TableHead>Обязательная</TableHead>
-              <TableHead>Порядок</TableHead>
-              <TableHead>Создана</TableHead>
-              <TableHead className="w-[180px]">Действия</TableHead>
+              <TableHead>{t("name")}</TableHead>
+              <TableHead>{t("type")}</TableHead>
+              <TableHead>{t("department")}</TableHead>
+              <TableHead>{t("deadlineDays")}</TableHead>
+              <TableHead>{t("isMandatory")}</TableHead>
+              <TableHead>{t("order")}</TableHead>
+              <TableHead>{tCommon("created")}</TableHead>
+              <TableHead className="w-[180px]">{tCommon("actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -345,14 +355,14 @@ export default function MeetingsPage() {
                 <TableCell>
                   <div className="flex items-center gap-1">
                     <Calendar className="text-muted-foreground size-4" />
-                    {meeting.deadlineDays} дн.
+                    {meeting.deadlineDays} {tCommon("days")}
                   </div>
                 </TableCell>
                 <TableCell>
                   {meeting.isMandatory ? (
-                    <span className="text-green-600">Да</span>
+                    <span className="text-green-600">{tCommon("yes")}</span>
                   ) : (
-                    <span className="text-muted-foreground">Нет</span>
+                    <span className="text-muted-foreground">{tCommon("no")}</span>
                   )}
                 </TableCell>
                 <TableCell>{meeting.order}</TableCell>
@@ -362,7 +372,7 @@ export default function MeetingsPage() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      title="Назначенные пользователи"
+                      title={t("assignedUsers")}
                       onClick={() => openAssignmentsDialog(meeting.id, meeting.title)}
                     >
                       <Users className="size-4" />
@@ -370,7 +380,7 @@ export default function MeetingsPage() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      title="Назначить пользователю"
+                      title={t("assignMeeting")}
                       onClick={() => openAssignDialog(meeting.id, meeting.title)}
                     >
                       <UserPlus className="size-4" />
@@ -422,21 +432,22 @@ function MeetingFormDialog({
   onSubmit,
   onCancel,
 }: MeetingFormDialogProps) {
+  const t = useTranslations("meetings");
+  const tCommon = useTranslations("common");
+
   return (
     <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto">
       <DialogHeader>
         <DialogTitle>
-          {mode === "create" ? "Создание встречи" : "Редактирование встречи"}
+          {mode === "create" ? t("createMeeting") : t("editMeetingTitle")}
         </DialogTitle>
         <DialogDescription>
-          {mode === "create"
-            ? "Создайте новый шаблон встречи"
-            : "Измените параметры встречи"}
+          {mode === "create" ? t("createNewMeeting") : t("editMeetingParams")}
         </DialogDescription>
       </DialogHeader>
       <div className="space-y-4 py-4">
         <div>
-          <label className="mb-1 block text-sm font-medium">Название</label>
+          <label className="mb-1 block text-sm font-medium">{t("name")}</label>
           <input
             className="w-full rounded-md border px-3 py-2 text-sm"
             value={formData.title}
@@ -444,7 +455,7 @@ function MeetingFormDialog({
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">Описание</label>
+          <label className="mb-1 block text-sm font-medium">{t("description")}</label>
           <textarea
             className="w-full rounded-md border px-3 py-2 text-sm"
             rows={3}
@@ -453,21 +464,15 @@ function MeetingFormDialog({
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">Тип</label>
-          <select
-            className="w-full rounded-md border px-3 py-2 text-sm"
+          <label className="mb-1 block text-sm font-medium">{t("type")}</label>
+          <Select
             value={formData.type}
-            onChange={(e) => onFormDataChange({ ...formData, type: e.target.value })}
-          >
-            {MEETING_TYPES.filter((t) => t.value !== "ALL").map((t) => (
-              <option key={t.value} value={t.value}>
-                {t.label}
-              </option>
-            ))}
-          </select>
+            onChange={(val) => onFormDataChange({ ...formData, type: val })}
+            options={MEETING_TYPES.filter((t) => t.value !== "ALL")}
+          />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">Дедлайн (дней от начала)</label>
+          <label className="mb-1 block text-sm font-medium">{t("deadlineDays")}</label>
           <input
             type="number"
             className="w-full rounded-md border px-3 py-2 text-sm"
@@ -485,11 +490,11 @@ function MeetingFormDialog({
             onChange={(e) => onFormDataChange({ ...formData, is_mandatory: e.target.checked })}
           />
           <label htmlFor="is_mandatory" className="text-sm font-medium">
-            Обязательная встреча
+            {t("isMandatory")}
           </label>
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">Порядок</label>
+          <label className="mb-1 block text-sm font-medium">{t("order")}</label>
           <input
             type="number"
             className="w-full rounded-md border px-3 py-2 text-sm"
@@ -502,11 +507,9 @@ function MeetingFormDialog({
       </div>
       <DialogFooter>
         <Button variant="outline" onClick={onCancel}>
-          Отмена
+          {tCommon("cancel")}
         </Button>
-        <Button onClick={onSubmit}>
-          {mode === "create" ? "Создать" : "Сохранить"}
-        </Button>
+        <Button onClick={onSubmit}>{mode === "create" ? tCommon("create") : tCommon("save")}</Button>
       </DialogFooter>
     </DialogContent>
   );

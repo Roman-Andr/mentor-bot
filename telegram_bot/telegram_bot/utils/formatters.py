@@ -220,10 +220,12 @@ def format_meeting_list(meetings: list[dict[str, Any]], *, locale: str = "en") -
         meeting_type = meeting.get("meeting_type", "general")
 
         try:
+            if not scheduled_at:
+                raise ValueError("scheduled_at is None or empty")
             dt = datetime.fromisoformat(scheduled_at)
             formatted_date = dt.strftime("%b %d, %Y %H:%M")
-        except ValueError:
-            formatted_date = scheduled_at
+        except ValueError, TypeError:
+            formatted_date = "TBD"
 
         type_emoji = {
             "onboarding": "\U0001f44b",

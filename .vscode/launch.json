@@ -2,7 +2,112 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Attach to Knowledge Service (Docker)",
+      "name": "telegram_bot_debug",
+      "type": "debugpy",
+      "request": "attach",
+      "connect": {
+        "host": "localhost",
+        "port": 5670
+      },
+      "pathMappings": [
+        {
+          "localRoot": "${workspaceFolder}/telegram_bot/telegram_bot",
+          "remoteRoot": "/app/telegram_bot"
+        }
+      ]
+    },
+    {
+      "name": "auth_service_debug",
+      "type": "debugpy",
+      "request": "attach",
+      "connect": {
+        "host": "localhost",
+        "port": 5672
+      },
+      "pathMappings": [
+        {
+          "localRoot": "${workspaceFolder}/auth_service/auth_service",
+          "remoteRoot": "/app/auth_service"
+        }
+      ]
+    },
+    {
+      "name": "checklists_service_debug",
+      "type": "debugpy",
+      "request": "attach",
+      "connect": {
+        "host": "localhost",
+        "port": 5673
+      },
+      "pathMappings": [
+        {
+          "localRoot": "${workspaceFolder}/checklists_service/checklists_service",
+          "remoteRoot": "/app/checklists_service"
+        }
+      ]
+    },
+    {
+      "name": "knowledge_service_debug",
+      "type": "debugpy",
+      "request": "attach",
+      "connect": {
+        "host": "localhost",
+        "port": 5674
+      },
+      "pathMappings": [
+        {
+          "localRoot": "${workspaceFolder}/knowledge_service/knowledge_service",
+          "remoteRoot": "/app/knowledge_service"
+        }
+      ]
+    },
+    {
+      "name": "notification_service_debug",
+      "type": "debugpy",
+      "request": "attach",
+      "connect": {
+        "host": "localhost",
+        "port": 5675
+      },
+      "pathMappings": [
+        {
+          "localRoot": "${workspaceFolder}/notification_service/notification_service",
+          "remoteRoot": "/app/notification_service"
+        }
+      ]
+    },
+    {
+      "name": "feedback_service_debug",
+      "type": "debugpy",
+      "request": "attach",
+      "connect": {
+        "host": "localhost",
+        "port": 5676
+      },
+      "pathMappings": [
+        {
+          "localRoot": "${workspaceFolder}/feedback_service/feedback_service",
+          "remoteRoot": "/app/feedback_service"
+        }
+      ]
+    },
+    {
+      "name": "escalation_service_debug",
+      "type": "debugpy",
+      "request": "attach",
+      "connect": {
+        "host": "localhost",
+        "port": 5677
+      },
+      "pathMappings": [
+        {
+          "localRoot": "${workspaceFolder}/escalation_service/escalation_service",
+          "remoteRoot": "/app/escalation_service"
+        }
+      ]
+    },
+    {
+      "name": "meeting_service_debug",
       "type": "debugpy",
       "request": "attach",
       "connect": {
@@ -11,20 +116,23 @@
       },
       "pathMappings": [
         {
-          "localRoot": "${workspaceFolder}/knowledge_service/knowledge_service",
-          "remoteRoot": "/knowledge_service/knowledge_service"
+          "localRoot": "${workspaceFolder}/meeting_service/meeting_service",
+          "remoteRoot": "/app/meeting_service"
         }
       ]
     },
     {
-      "name": "Next.js: debug server-side",
-      "type": "node-terminal",
-      "request": "launch",
-      "command": "npm run dev",
-      "cwd": "${workspaceFolder}/admin_web"
+      "name": "admin_web_debug_server",
+      "type": "node",
+      "request": "attach",
+      "address": "localhost",
+      "port": 9229,
+      "localRoot": "${workspaceFolder}/admin_web",
+      "remoteRoot": "/app",
+      "restart": true
     },
     {
-      "name": "Next.js: debug client-side",
+      "name": "admin_web_debug_client",
       "type": "chrome",
       "request": "launch",
       "url": "http://localhost:3000",

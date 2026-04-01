@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -35,7 +36,6 @@ function formatUserDescription(user: User): string {
   return [user.department, user.position].filter(Boolean).join(" · ");
 }
 
-/** Dialog for creating or editing a checklist with searchable selects. */
 export function ChecklistFormDialog({
   open,
   onOpenChange,
@@ -45,6 +45,9 @@ export function ChecklistFormDialog({
   onSubmit,
   onCancel,
 }: ChecklistFormDialogProps) {
+  const t = useTranslations("checklists");
+  const tCommon = useTranslations("common");
+
   const isCreate = mode === "create";
 
   const [users, setUsers] = useState<User[]>([]);
@@ -113,28 +116,30 @@ export function ChecklistFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{isCreate ? "Создание чек-листа" : "Редактирование чек-листа"}</DialogTitle>
+          <DialogTitle>{isCreate ? t("addChecklist") : t("editChecklist")}</DialogTitle>
           <DialogDescription>
-            {isCreate ? "Назначьте чек-лист сотруднику" : "Измените параметры чек-листа"}
+            {isCreate ? t("assignChecklist") : t("changeChecklistParams")}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
-            <label className="text-sm font-medium">Сотрудник *</label>
+            <label className="text-sm font-medium">{t("employee")} *</label>
             <SearchableSelect
               options={employeeOptions}
               value={formData.user_id ? String(formData.user_id) : ""}
               onChange={handleUserSelect}
-              placeholder={loading ? "Загрузка..." : "Выберите сотрудника"}
-              searchPlaceholder="Поиск по имени или ID..."
+              placeholder={loading ? tCommon("loading") : t("selectEmployee")}
+              searchPlaceholder={t("searchByNameOrId")}
               disabled={!isCreate || loading}
             />
             {formData.employee_id && (
-              <p className="text-muted-foreground text-xs">ID сотрудника: {formData.employee_id}</p>
+              <p className="text-muted-foreground text-xs">
+                {t("employeeId")}: {formData.employee_id}
+              </p>
             )}
           </div>
           <div className="grid gap-2">
-            <label className="text-sm font-medium">Шаблон *</label>
+            <label className="text-sm font-medium">{t("template")} *</label>
             <SearchableSelect
               options={isCreate ? allTemplateOptions : allTemplateOptions}
               value={formData.template_id ? String(formData.template_id) : ""}
@@ -144,14 +149,14 @@ export function ChecklistFormDialog({
                   template_id: v ? parseInt(v) : 0,
                 })
               }
-              placeholder={loading ? "Загрузка..." : "Выберите шаблон"}
-              searchPlaceholder="Поиск шаблона..."
+              placeholder={loading ? tCommon("loading") : t("selectTemplate")}
+              searchPlaceholder={t("searchTemplate")}
               disabled={!isCreate || loading}
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
-              <label className="text-sm font-medium">Дата начала *</label>
+              <label className="text-sm font-medium">{t("startDate")} *</label>
               <Input
                 type="date"
                 value={formData.start_date}
@@ -165,7 +170,7 @@ export function ChecklistFormDialog({
               />
             </div>
             <div className="grid gap-2">
-              <label className="text-sm font-medium">Дедлайн</label>
+              <label className="text-sm font-medium">{t("dueDate")}</label>
               <Input
                 type="date"
                 value={formData.due_date}
@@ -180,7 +185,7 @@ export function ChecklistFormDialog({
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
-              <label className="text-sm font-medium">Наставник</label>
+              <label className="text-sm font-medium">{t("mentor")}</label>
               <SearchableSelect
                 options={mentorOptions}
                 value={formData.mentor_id ? String(formData.mentor_id) : ""}
@@ -190,8 +195,8 @@ export function ChecklistFormDialog({
                     mentor_id: v ? parseInt(v) : null,
                   })
                 }
-                placeholder={loading ? "Загрузка..." : "Выберите наставника"}
-                searchPlaceholder="Поиск по имени..."
+                placeholder={loading ? tCommon("loading") : t("selectMentor")}
+                searchPlaceholder={t("searchByName")}
                 disabled={loading}
               />
             </div>
@@ -206,16 +211,16 @@ export function ChecklistFormDialog({
                     hr_id: v ? parseInt(v) : null,
                   })
                 }
-                placeholder={loading ? "Загрузка..." : "Выберите HR"}
-                searchPlaceholder="Поиск по имени..."
+                placeholder={loading ? tCommon("loading") : t("selectHr")}
+                searchPlaceholder={t("searchByName")}
                 disabled={loading}
               />
             </div>
           </div>
           <div className="grid gap-2">
-            <label className="text-sm font-medium">Заметки</label>
+            <label className="text-sm font-medium">{t("notes")}</label>
             <Textarea
-              placeholder="Дополнительные заметки..."
+              placeholder={t("notesPlaceholder")}
               value={formData.notes}
               onChange={(e) =>
                 onFormDataChange({
@@ -228,7 +233,7 @@ export function ChecklistFormDialog({
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onCancel}>
-            Отмена
+            {tCommon("cancel")}
           </Button>
           <Button
             onClick={onSubmit}
@@ -239,7 +244,7 @@ export function ChecklistFormDialog({
               !formData.start_date
             }
           >
-            {isCreate ? "Создать" : "Сохранить"}
+            {isCreate ? tCommon("create") : tCommon("save")}
           </Button>
         </DialogFooter>
       </DialogContent>

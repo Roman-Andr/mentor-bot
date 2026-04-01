@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select } from "@/components/ui/select";
@@ -29,6 +30,7 @@ interface TemplatesTableProps {
   onSearchChange: (query: string) => void;
   statusFilter: string;
   onStatusFilterChange: (status: string) => void;
+  onReset: () => void;
   currentPage?: number;
   totalPages?: number;
   totalCount?: number;
@@ -45,11 +47,15 @@ export function TemplatesTable({
   onSearchChange,
   statusFilter,
   onStatusFilterChange,
+  onReset,
   currentPage,
   totalPages,
   totalCount,
   onPageChange,
 }: TemplatesTableProps) {
+  const t = useTranslations("templates");
+  const tCommon = useTranslations("common");
+
   return (
     <DataTable
       loading={loading}
@@ -58,32 +64,40 @@ export function TemplatesTable({
       totalPages={totalPages}
       totalCount={totalCount}
       onPageChange={onPageChange}
-    >
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle>
-            Шаблоны <span className="text-muted-foreground text-sm font-normal">({totalCount ?? templates.length})</span>
-          </CardTitle>
-          <div className="flex gap-2">
-            <SearchInput value={searchQuery} onChange={onSearchChange} />
-            <Select
-              value={statusFilter}
-              onChange={(e) => onStatusFilterChange(e.target.value)}
-              options={TEMPLATE_STATUSES}
-            />
+      header={
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>
+              {t("title")}{" "}
+              <span className="text-muted-foreground text-sm font-normal">
+                ({totalCount ?? templates.length})
+              </span>
+            </CardTitle>
+            <div className="flex gap-2">
+              <SearchInput value={searchQuery} onChange={onSearchChange} />
+              <Select
+                value={statusFilter}
+                onChange={onStatusFilterChange}
+                options={TEMPLATE_STATUSES}
+              />
+              <Button variant="outline" onClick={onReset}>
+                {tCommon("reset")}
+              </Button>
+            </div>
           </div>
-        </div>
-      </CardHeader>
+        </CardHeader>
+      }
+    >
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Название</TableHead>
-            <TableHead>Отдел</TableHead>
-            <TableHead>Должность</TableHead>
-            <TableHead>Дней</TableHead>
-            <TableHead>Задач</TableHead>
-            <TableHead>Статус</TableHead>
-            <TableHead className="w-[100px]">Действия</TableHead>
+            <TableHead>{t("name")}</TableHead>
+            <TableHead>{tCommon("department")}</TableHead>
+            <TableHead>{t("position")}</TableHead>
+            <TableHead>{t("days")}</TableHead>
+            <TableHead>{t("tasks")}</TableHead>
+            <TableHead>{tCommon("status")}</TableHead>
+            <TableHead className="w-[100px]">{tCommon("actions")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -99,11 +113,11 @@ export function TemplatesTable({
                     <p className="font-medium">{template.name}</p>
                     {template.isDefault && (
                       <Badge variant="secondary" className="text-xs">
-                        По умолч.
+                        {t("default")}
                       </Badge>
                     )}
                   </div>
-                    <p className="text-muted-foreground text-sm">{template.description}</p>
+                  <p className="text-muted-foreground text-sm">{template.description}</p>
                 </div>
               </TableCell>
               <TableCell>{template.department}</TableCell>
@@ -129,7 +143,7 @@ export function TemplatesTable({
                       size="icon"
                       className="text-green-500"
                       onClick={() => onPublish(template.id)}
-                      title="Опубликовать"
+                      title={t("publish")}
                     >
                       <CheckCircle className="size-4" />
                     </Button>

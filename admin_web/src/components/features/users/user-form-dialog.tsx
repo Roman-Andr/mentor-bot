@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,15 +37,19 @@ export function UserFormDialog({
   onCancel,
   departments = [],
 }: UserFormDialogProps) {
+  const t = useTranslations("users");
+  const tCommon = useTranslations("common");
+
   const updateField = <K extends keyof UserFormData>(key: K, value: UserFormData[K]) => {
     onFormDataChange({ ...formData, [key]: value });
   };
 
   const isEdit = mode === "edit";
-  const canSubmit = formData.first_name && formData.email && (isEdit || formData.password);
+  const canSubmit =
+    formData.first_name && formData.email && formData.employee_id && (isEdit || formData.password);
 
   const departmentOptions = [
-    { value: "0", label: "Не выбран" },
+    { value: "0", label: t("notSelected") },
     ...departments.map((d) => ({ value: String(d.id), label: d.name })),
   ];
 
@@ -52,36 +57,34 @@ export function UserFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
-            {isEdit ? "Редактирование пользователя" : "Добавление пользователя"}
-          </DialogTitle>
+          <DialogTitle>{isEdit ? t("editUserTitle") : t("addUserTitle")}</DialogTitle>
           <DialogDescription>
-            {isEdit ? "Измените данные пользователя" : "Добавьте нового пользователя в систему"}
+            {isEdit ? t("changeUserData") : t("addNewUser")}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="firstName">Имя *</Label>
+              <Label htmlFor="firstName">{t("firstName")} *</Label>
               <Input
                 id="firstName"
-                placeholder="Иван"
+                placeholder={t("firstName")}
                 value={formData.first_name}
                 onChange={(e) => updateField("first_name", e.target.value)}
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="lastName">Фамилия</Label>
+              <Label htmlFor="lastName">{t("lastName")}</Label>
               <Input
                 id="lastName"
-                placeholder="Петров"
+                placeholder={t("lastName")}
                 value={formData.last_name}
                 onChange={(e) => updateField("last_name", e.target.value)}
               />
             </div>
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="email">Email *</Label>
+            <Label htmlFor="email">{tCommon("email")} *</Label>
             <Input
               id="email"
               type="email"
@@ -91,7 +94,7 @@ export function UserFormDialog({
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="phone">Телефон</Label>
+            <Label htmlFor="phone">{tCommon("phone")}</Label>
             <Input
               id="phone"
               placeholder="+7 (999) 123-45-67"
@@ -100,7 +103,7 @@ export function UserFormDialog({
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="employeeId">Табельный номер *</Label>
+            <Label htmlFor="employeeId">{t("employeeId")} *</Label>
             <Input
               id="employeeId"
               placeholder="EMP-001"
@@ -110,11 +113,11 @@ export function UserFormDialog({
           </div>
           {!isEdit && (
             <div className="grid gap-2">
-              <Label htmlFor="password">Пароль *</Label>
+              <Label htmlFor="password">{t("password")} *</Label>
               <Input
                 id="password"
                 type="password"
-                placeholder="Минимум 8 символов"
+                placeholder={t("passwordHint")}
                 value={formData.password}
                 onChange={(e) => updateField("password", e.target.value)}
               />
@@ -122,17 +125,17 @@ export function UserFormDialog({
           )}
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="department">Отдел</Label>
+              <Label htmlFor="department">{tCommon("department")}</Label>
               <Select
                 id="department"
-                value={formData.department_id}
-                onChange={(e) => updateField("department_id", parseInt(e.target.value) || 0)}
-                placeholder="Выберите отдел"
+                value={formData.department_id ? String(formData.department_id) : ""}
+                onChange={(val) => updateField("department_id", parseInt(val) || 0)}
+                placeholder={t("selectDepartment")}
                 options={departmentOptions}
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="position">Должность</Label>
+              <Label htmlFor="position">{t("position")}</Label>
               <Input
                 id="position"
                 placeholder="Backend Developer"
@@ -143,21 +146,23 @@ export function UserFormDialog({
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="role">Роль</Label>
+              <Label htmlFor="role">{tCommon("role")}</Label>
               <Select
                 id="role"
                 value={formData.role}
-                onChange={(e) => updateField("role", e.target.value)}
+                onChange={updateField.bind(null, "role")}
                 options={ROLES}
+                placeholder={t("selectRole")}
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="level">Уровень</Label>
+              <Label htmlFor="level">{t("level")}</Label>
               <Select
                 id="level"
-                value={formData.level}
-                onChange={(e) => updateField("level", e.target.value)}
+                value={formData.level || ""}
+                onChange={(val) => updateField("level", val)}
                 options={LEVELS_WITH_EMPTY}
+                placeholder={t("selectLevel")}
               />
             </div>
           </div>
@@ -167,17 +172,17 @@ export function UserFormDialog({
               id="isActive"
               checked={formData.is_active}
               onChange={(e) => updateField("is_active", e.target.checked)}
-               className="border-input rounded"
+              className="border-input rounded"
             />
-            <Label htmlFor="isActive">Активен</Label>
+            <Label htmlFor="isActive">{t("isActive")}</Label>
           </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onCancel}>
-            Отмена
+            {tCommon("cancel")}
           </Button>
           <Button onClick={onSubmit} disabled={!canSubmit}>
-            {isEdit ? "Сохранить" : "Добавить"}
+            {isEdit ? tCommon("save") : tCommon("create")}
           </Button>
         </DialogFooter>
       </DialogContent>

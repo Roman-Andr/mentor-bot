@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
-import { useDebounce } from "@/hooks/useDebounce";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { useToast } from "@/components/ui/toast";
 import { api, type TaskTemplate } from "@/lib/api";
@@ -66,75 +66,95 @@ function mapTemplateToItem(
   };
 }
 
-/** Manages all template CRUD state and operations. */
+const TEMPLATES_KEY = ["templates"] as const;
+
 export function useTemplates() {
   const confirm = useConfirm();
   const { toast } = useToast();
-  const [templates, setTemplates] = useState<TemplateItem[]>([]);
+  const queryClient = useQueryClient();
+
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
-  const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateItem | null>(null);
   const [formData, setFormData] = useState<TemplateFormData>({ ...defaultFormData });
   const [tasks, setTasks] = useState<TaskTemplate[]>([]);
 
-  const debouncedSearch = useDebounce(searchQuery);
   const pageSize = 20;
 
-  const resetForm = useCallback(() => {
-    setFormData({ ...defaultFormData });
-    setTasks([]);
-  }, []);
-
-  const loadTemplates = useCallback(async () => {
-    setLoading(true);
-    try {
-      const params: Record<string, unknown> = {};
-      if (statusFilter !== "ALL") params.status = statusFilter;
-      params.skip = (currentPage - 1) * pageSize;
-      params.limit = pageSize;
-
-      const response = await api.templates.list(params);
-      if (response.data) {
-        const items: TemplateItem[] = [];
-        for (const t of response.data) {
-          let taskCount = 0;
-          try {
-            const detail = await api.templates.get(t.id);
-            if (detail.data?.tasks) taskCount = detail.data.tasks.length;
-          } catch {
-            /* ignore */
-          }
-          items.push(mapTemplateToItem(t, taskCount));
-        }
-        setTemplates(items);
-        setTotalCount(response.data.length);
-        setTotalPages(Math.max(1, Math.ceil(response.data.length / pageSize)));
-      }
-    } catch (err) {
-      console.error("Failed to load templates:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, [currentPage, statusFilter]);
-
-  useEffect(() => {
-    loadTemplates();
-  }, [loadTemplates]);
-
-  const loadTemplateTasks = async (templateId: number) => {
-    try {
-      const response = await api.templates.get(templateId);
-      if (response.data?.tasks) setTasks(response.data.tasks);
-    } catch (err) {
-      console.error("Failed to load template tasks:", err);
-    }
+  const queryParams = {
+    skip: (currentPage - 1) * pageSize,
+    limit: pageSize,
+    ...(statusFilter !== "ALL" && { status: statusFilter }),
   };
+
+  const { data: templatesData, isLoading: loading } = useQuery({
+    queryKey: [...TEMPLATES_KEY, queryParams],
+    queryFn: () => api.templates.list(queryParams),
+    select: (result) => result.data?.map((t) => mapTemplateToItem(t, 0)) || [],
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (data: Parameters<typeof api.templates.create>[0]) => api.templates.create(data),
+    onSuccess: (result) => {
+      if (result.data) {
+        queryClient.invalidateQueries({ queryKey: TEMPLATES_KEY });
+        setIsCreateDialogOpen(false);
+        setFormData(defaultFormData);
+        setTasks([]);
+        toast("Шаблон создан", "success");
+      } else if (result.error) {
+        toast(result.error, "error");
+      }
+    },
+    onError: () => toast("Ошибка создания шаблона", "error"),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: Parameters<typeof api.templates.update>[1] }) =>
+      api.templates.update(id, data),
+    onSuccess: (result) => {
+      if (result.data) {
+        queryClient.invalidateQueries({ queryKey: TEMPLATES_KEY });
+        setIsEditDialogOpen(false);
+        setSelectedTemplate(null);
+        setFormData(defaultFormData);
+        setTasks([]);
+        toast("Шаблон обновлён", "success");
+      } else if (result.error) {
+        toast(result.error, "error");
+      }
+    },
+    onError: () => toast("Ошибка обновления шаблона", "error"),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => api.templates.delete(id),
+    onSuccess: (result) => {
+      if (!result.error) {
+        queryClient.invalidateQueries({ queryKey: TEMPLATES_KEY });
+        toast("Шаблон удалён", "success");
+      } else {
+        toast(result.error, "error");
+      }
+    },
+    onError: () => toast("Ошибка удаления шаблона", "error"),
+  });
+
+  const publishMutation = useMutation({
+    mutationFn: (id: number) => api.templates.publish(id),
+    onSuccess: (result) => {
+      if (result.data) {
+        queryClient.invalidateQueries({ queryKey: TEMPLATES_KEY });
+        toast("Шаблон опубликован", "success");
+      } else if (result.error) {
+        toast(result.error, "error");
+      }
+    },
+    onError: () => toast("Ошибка публикации шаблона", "error"),
+  });
 
   const addTasksToTemplate = async (templateId: number) => {
     for (const task of tasks) {
@@ -153,7 +173,7 @@ export function useTemplates() {
 
   const handleCreate = async () => {
     try {
-      const response = await api.templates.create({
+      const response = await createMutation.mutateAsync({
         name: formData.name,
         description: formData.description,
         department_id: formData.department_id || null,
@@ -165,28 +185,23 @@ export function useTemplates() {
       });
       if (response.data) {
         await addTasksToTemplate(response.data.id);
-        setTemplates([...templates, mapTemplateToItem(response.data, tasks.length)]);
-        setTotalCount((c) => c + 1);
-        setIsCreateDialogOpen(false);
-        resetForm();
-        toast("Шаблон создан", "success");
-      } else {
-        toast(response.error || "Ошибка создания шаблона", "error");
       }
-    } catch (err) {
-      console.error("Failed to create template:", err);
-      toast("Ошибка создания шаблона", "error");
+    } catch {
+      // Error handled by mutation
     }
   };
 
   const handleUpdate = async () => {
     if (!selectedTemplate) return;
     try {
-      const response = await api.templates.update(selectedTemplate.id, {
-        name: formData.name,
-        description: formData.description,
-        status: (formData.status || "DRAFT") as "DRAFT" | "ACTIVE" | "ARCHIVED",
-        is_default: formData.is_default,
+      const response = await updateMutation.mutateAsync({
+        id: selectedTemplate.id,
+        data: {
+          name: formData.name,
+          description: formData.description,
+          status: (formData.status || "DRAFT") as "DRAFT" | "ACTIVE" | "ARCHIVED",
+          is_default: formData.is_default,
+        },
       });
       if (response.data) {
         const newTasks = tasks.filter((t) => !t.id || t.id === 0);
@@ -202,51 +217,27 @@ export function useTemplates() {
             estimated_minutes: task.estimated_minutes,
           });
         }
-        const updatedCount = selectedTemplate.taskCount + newTasks.length;
-        setTemplates(
-          templates.map((t) =>
-            t.id === selectedTemplate.id ? mapTemplateToItem(response.data!, updatedCount) : t,
-          ),
-        );
-        setIsEditDialogOpen(false);
-        setSelectedTemplate(null);
-        resetForm();
-        toast("Шаблон обновлён", "success");
-      } else {
-        toast(response.error || "Ошибка обновления", "error");
       }
-    } catch (err) {
-      console.error("Failed to update template:", err);
-      toast("Ошибка обновления шаблона", "error");
+    } catch {
+      // Error handled by mutation
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (!(await confirm({ title: "Удаление шаблона", description: "Вы уверены, что хотите удалить этот шаблон?", variant: "destructive", confirmText: "Удалить" }))) return;
-    try {
-      await api.templates.delete(id);
-      setTemplates(templates.filter((t) => t.id !== id));
-      setTotalCount((c) => c - 1);
-      toast("Шаблон удалён", "success");
-    } catch (err) {
-      console.error("Failed to delete template:", err);
-      toast("Ошибка удаления шаблона", "error");
-    }
+    if (
+      !(await confirm({
+        title: "Удаление шаблона",
+        description: "Вы уверены, что хотите удалить этот шаблон?",
+        variant: "destructive",
+        confirmText: "Удалить",
+      }))
+    )
+      return;
+    deleteMutation.mutate(id);
   };
 
-  const handlePublish = async (id: number) => {
-    try {
-      const response = await api.templates.publish(id);
-      if (response.data) {
-        setTemplates(templates.map((t) => (t.id === id ? { ...t, status: "ACTIVE" } : t)));
-        toast("Шаблон опубликован", "success");
-      } else {
-        toast(response.error || "Ошибка публикации", "error");
-      }
-    } catch (err) {
-      console.error("Failed to publish template:", err);
-      toast("Ошибка публикации шаблона", "error");
-    }
+  const handlePublish = (id: number) => {
+    publishMutation.mutate(id);
   };
 
   const openEditDialog = (template: TemplateItem) => {
@@ -260,9 +251,17 @@ export function useTemplates() {
       status: template.status,
       is_default: template.isDefault,
     });
-    loadTemplateTasks(template.id);
     setIsEditDialogOpen(true);
   };
+
+  const resetForm = () => {
+    setFormData(defaultFormData);
+    setTasks([]);
+  };
+
+  const templates = templatesData || [];
+  const totalCount = templates.length;
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
 
   return {
     templates,
@@ -291,5 +290,13 @@ export function useTemplates() {
     handlePublish,
     openEditDialog,
     resetForm,
+    resetFilters: () => {
+      setSearchQuery("");
+      setStatusFilter("ALL");
+      setCurrentPage(1);
+    },
+    isCreating: createMutation.isPending,
+    isUpdating: updateMutation.isPending,
+    isDeleting: deleteMutation.isPending,
   };
 }

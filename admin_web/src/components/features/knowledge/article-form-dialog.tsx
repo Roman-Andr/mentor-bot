@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -47,6 +48,9 @@ export function ArticleFormDialog({
   onSubmit,
   onCancel,
 }: ArticleFormDialogProps) {
+  const t = useTranslations("knowledge");
+  const tCommon = useTranslations("common");
+
   const isEdit = mode === "edit";
 
   const update = (field: keyof ArticleFormData, value: string | number | boolean) => {
@@ -56,32 +60,32 @@ export function ArticleFormDialog({
   return (
     <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
       <DialogHeader>
-        <DialogTitle>{isEdit ? "Редактирование статьи" : "Создание статьи"}</DialogTitle>
+        <DialogTitle>{isEdit ? t("editArticleTitle") : t("addArticleTitle")}</DialogTitle>
         <DialogDescription>
-          {isEdit ? "Измените статью в базе знаний" : "Создайте новую статью в базе знаний"}
+          {isEdit ? t("changeArticle") : t("createNewArticle")}
         </DialogDescription>
       </DialogHeader>
       <div className="grid gap-4 py-4">
         <div className="grid gap-2">
-          <label className="text-sm font-medium">Заголовок *</label>
+          <label className="text-sm font-medium">{t("articleTitle")} *</label>
           <Input
-            placeholder="Заголовок статьи"
+            placeholder={t("articleTitle")}
             value={formData.title}
             onChange={(e) => update("title", e.target.value)}
           />
         </div>
         <div className="grid gap-2">
-          <label className="text-sm font-medium">Краткое описание</label>
+          <label className="text-sm font-medium">{t("excerpt")}</label>
           <Textarea
-            placeholder="Краткое описание для списка статей"
+            placeholder={t("excerpt")}
             value={formData.excerpt}
             onChange={(e) => update("excerpt", e.target.value)}
           />
         </div>
         <div className="grid gap-2">
-          <label className="text-sm font-medium">Содержание</label>
+          <label className="text-sm font-medium">{t("content")}</label>
           <Textarea
-            placeholder="Полный текст статьи (поддерживается Markdown)"
+            placeholder={t("articleContent")}
             value={formData.content}
             onChange={(e) => update("content", e.target.value)}
             className="min-h-[200px]"
@@ -89,58 +93,58 @@ export function ArticleFormDialog({
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div className="grid gap-2">
-            <label className="text-sm font-medium">Категория</label>
+            <label className="text-sm font-medium">{t("category")}</label>
             <Select
-              value={formData.category_id}
-              onChange={(e) => update("category_id", parseInt(e.target.value))}
-              placeholder="Выберите категорию"
+              value={formData.category_id ? String(formData.category_id) : ""}
+              onChange={(val) => update("category_id", parseInt(val))}
+              placeholder={t("selectCategory")}
               options={categories.map((cat) => ({ value: String(cat.id), label: cat.name }))}
             />
           </div>
           <div className="grid gap-2">
-            <label className="text-sm font-medium">Статус</label>
+            <label className="text-sm font-medium">{tCommon("status")}</label>
             <Select
               value={formData.status}
-              onChange={(e) => update("status", e.target.value)}
+              onChange={update.bind(null, "status")}
               options={articleStatuses}
             />
           </div>
         </div>
         <div className="grid grid-cols-3 gap-4">
           <div className="grid gap-2">
-            <label className="text-sm font-medium">Отдел</label>
+            <label className="text-sm font-medium">{tCommon("department")}</label>
             <Select
-              value={formData.department_id}
-              onChange={(e) => update("department_id", parseInt(e.target.value) || 0)}
-              placeholder="Выберите отдел"
+              value={formData.department_id ? String(formData.department_id) : ""}
+              onChange={(val) => update("department_id", parseInt(val) || 0)}
+              placeholder={tCommon("notSelected")}
               options={[
-                { value: "0", label: "Не указан" },
+                { value: "0", label: tCommon("notSelected") },
                 ...departments.map((d) => ({ value: String(d.id), label: d.name })),
               ]}
             />
           </div>
           <div className="grid gap-2">
-            <label className="text-sm font-medium">Должность</label>
+            <label className="text-sm font-medium">{t("position")}</label>
             <Input
-              placeholder="Например: Developer"
+              placeholder="e.g., Developer"
               value={formData.position}
               onChange={(e) => update("position", e.target.value)}
             />
           </div>
           <div className="grid gap-2">
-            <label className="text-sm font-medium">Уровень</label>
+            <label className="text-sm font-medium">{t("level")}</label>
             <Select
-              value={formData.level}
-              onChange={(e) => update("level", e.target.value)}
-              placeholder="Любой"
+              value={formData.level || ""}
+              onChange={(val) => update("level", val)}
+              placeholder={tCommon("all")}
               options={LEVELS}
             />
           </div>
         </div>
         <div className="grid gap-2">
-          <label className="text-sm font-medium">Ключевые слова</label>
+          <label className="text-sm font-medium">{t("keywords")}</label>
           <Input
-            placeholder="Ключевые слова через запятую"
+            placeholder={t("keywordsPlaceholder")}
             value={formData.keywords}
             onChange={(e) => update("keywords", e.target.value)}
           />
@@ -151,22 +155,22 @@ export function ArticleFormDialog({
               type="checkbox"
               checked={formData.is_pinned}
               onChange={(e) => update("is_pinned", e.target.checked)}
-               className="border-input rounded"
+              className="border-input rounded"
             />
-            <span className="text-sm">Закрепить</span>
+            <span className="text-sm">{t("pin")}</span>
           </label>
           <label className="flex items-center gap-2">
             <input
               type="checkbox"
               checked={formData.is_featured}
               onChange={(e) => update("is_featured", e.target.checked)}
-               className="border-input rounded"
+              className="border-input rounded"
             />
-            <span className="text-sm">Избранное</span>
+            <span className="text-sm">{t("featured")}</span>
           </label>
         </div>
         <div className="grid gap-3 rounded-md border p-3">
-          <label className="text-sm font-medium">Файлы и вложения</label>
+          <label className="text-sm font-medium">{t("attachments")}</label>
           <AttachmentManager
             articleId={articleId}
             attachments={attachments}
@@ -178,10 +182,10 @@ export function ArticleFormDialog({
       </div>
       <DialogFooter>
         <Button variant="outline" onClick={onCancel}>
-          Отмена
+          {tCommon("cancel")}
         </Button>
         <Button onClick={onSubmit} disabled={!formData.title}>
-          {isEdit ? "Сохранить" : "Создать"}
+          {isEdit ? tCommon("save") : tCommon("create")}
         </Button>
       </DialogFooter>
     </DialogContent>

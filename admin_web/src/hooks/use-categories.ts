@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useDebounce } from "@/hooks/useDebounce";
-import { useConfirm } from "@/components/ui/confirm-dialog";
 import { useToast } from "@/components/ui/toast";
 import { api, type Category } from "@/lib/api";
 
@@ -9,11 +9,38 @@ function slugify(text: string): string {
     .toLowerCase()
     .replace(/[а-яё]/g, (ch) => {
       const map: Record<string, string> = {
-        а: "a", б: "b", в: "v", г: "g", д: "d", е: "e",ё: "e",
-        ж: "zh", з: "z", и: "i", й: "y", к: "k", л: "l", м: "m",
-        н: "n", о: "o", п: "p", р: "r", с: "s", т: "t", у: "u",
-        ф: "f", х: "h", ц: "c", ч: "ch", ш: "sh", щ: "shch",
-        ъ: "", ы: "y", э: "e", ю: "yu", я: "ya",
+        а: "a",
+        б: "b",
+        в: "v",
+        г: "g",
+        д: "d",
+        е: "e",
+        ё: "e",
+        ж: "zh",
+        з: "z",
+        и: "i",
+        й: "y",
+        к: "k",
+        л: "l",
+        м: "m",
+        н: "n",
+        о: "o",
+        п: "p",
+        р: "r",
+        с: "s",
+        т: "t",
+        у: "u",
+        ф: "f",
+        х: "h",
+        ц: "c",
+        ч: "ch",
+        ш: "sh",
+        щ: "shch",
+        ъ: "",
+        ы: "y",
+        э: "e",
+        ю: "yu",
+        я: "ya",
       };
       return map[ch] || ch;
     })
@@ -87,55 +114,86 @@ function mapCategory(c: Category): CategoryRow {
   };
 }
 
+const CATEGORIES_KEY = ["categories"] as const;
+
 export function useCategories() {
-  const confirm = useConfirm();
   const { toast } = useToast();
-  const [categories, setCategories] = useState<CategoryRow[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<CategoryRow | null>(null);
   const [formData, setFormData] = useState<CategoryFormData>(EMPTY_FORM);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
   const pageSize = 20;
 
   const debouncedSearch = useDebounce(searchQuery);
 
-  const loadCategories = useCallback(async () => {
-    setLoading(true);
-    try {
-      const skip = (currentPage - 1) * pageSize;
-      const response = await api.categories.list({ skip, limit: pageSize });
-      if (response.data) {
-        let items = response.data.categories.map(mapCategory);
-        if (debouncedSearch) {
-          const q = debouncedSearch.toLowerCase();
-          items = items.filter(
-            (c) =>
-              c.name.toLowerCase().includes(q) ||
-              c.slug.toLowerCase().includes(q) ||
-              c.description.toLowerCase().includes(q),
-          );
-        }
-        setCategories(items);
-        setTotalCount(response.data.total);
-        setTotalPages(response.data.pages || 1);
+  const queryParams = {
+    skip: (currentPage - 1) * pageSize,
+    limit: pageSize,
+    ...(debouncedSearch && { search: debouncedSearch }),
+  };
+
+  const { data: categoriesData, isLoading: loading } = useQuery({
+    queryKey: [...CATEGORIES_KEY, queryParams],
+    queryFn: () => api.categories.list({ ...queryParams, include_tree: true }),
+    select: (result) =>
+      result.data
+        ? {
+            categories: result.data.categories.map(mapCategory),
+            total: result.data.total,
+            pages: result.data.pages,
+          }
+        : undefined,
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (data: Parameters<typeof api.categories.create>[0]) => api.categories.create(data),
+    onSuccess: (result) => {
+      if (result.data) {
+        queryClient.invalidateQueries({ queryKey: CATEGORIES_KEY });
+        setIsCreateDialogOpen(false);
+        resetForm();
+        toast("Категория создана", "success");
+      } else if (result.error) {
+        toast(result.error, "error");
       }
-    } catch (err) {
-      console.error("Failed to load categories:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, [currentPage, pageSize, debouncedSearch]);
+    },
+    onError: () => toast("Ошибка сохранения категории", "error"),
+  });
 
-  useEffect(() => {
-    loadCategories();
-  }, [loadCategories]);
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: Parameters<typeof api.categories.update>[1] }) =>
+      api.categories.update(id, data),
+    onSuccess: (result) => {
+      if (result.data) {
+        queryClient.invalidateQueries({ queryKey: CATEGORIES_KEY });
+        setIsEditDialogOpen(false);
+        setSelectedCategory(null);
+        toast("Категория обновлена", "success");
+      } else if (result.error) {
+        toast(result.error, "error");
+      }
+    },
+    onError: () => toast("Ошибка сохранения категории", "error"),
+  });
 
-  const handleSubmit = async () => {
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => api.categories.delete(id),
+    onSuccess: (result) => {
+      if (!result.error) {
+        queryClient.invalidateQueries({ queryKey: CATEGORIES_KEY });
+        toast("Категория удалена", "success");
+      } else {
+        toast(result.error, "error");
+      }
+    },
+    onError: () => toast("Ошибка удаления категории", "error"),
+  });
+
+  const handleSubmit = () => {
     const payload = {
       name: formData.name,
       slug: formData.slug || slugify(formData.name),
@@ -149,49 +207,15 @@ export function useCategories() {
       color: formData.color || null,
     };
 
-    try {
-      if (selectedCategory) {
-        const response = await api.categories.update(selectedCategory.id, payload);
-        if (response.data) {
-          setCategories(
-            categories.map((c) =>
-              c.id === selectedCategory.id ? mapCategory(response.data!) : c,
-            ),
-          );
-          setIsEditDialogOpen(false);
-          setSelectedCategory(null);
-          toast("Категория обновлена", "success");
-        } else {
-          toast(response.error || "Ошибка обновления", "error");
-        }
-      } else {
-        const response = await api.categories.create(payload);
-        if (response.data) {
-          setCategories([mapCategory(response.data), ...categories]);
-          setIsCreateDialogOpen(false);
-          resetForm();
-          toast("Категория создана", "success");
-        } else {
-          toast(response.error || "Ошибка создания", "error");
-        }
-      }
-    } catch (err) {
-      console.error("Failed to save category:", err);
-      toast("Ошибка сохранения категории", "error");
+    if (selectedCategory) {
+      updateMutation.mutate({ id: selectedCategory.id, data: payload });
+    } else {
+      createMutation.mutate(payload);
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (!(await confirm({ title: "Удаление категории", description: "Вы уверены, что хотите удалить эту категорию?", variant: "destructive", confirmText: "Удалить" }))) return;
-    try {
-      await api.categories.delete(id);
-      setCategories(categories.filter((c) => c.id !== id));
-      setTotalCount((prev) => prev - 1);
-      toast("Категория удалена", "success");
-    } catch (err) {
-      console.error("Failed to delete category:", err);
-      toast("Ошибка удаления категории", "error");
-    }
+  const handleDelete = (id: number) => {
+    deleteMutation.mutate(id);
   };
 
   const openEdit = (category: CategoryRow) => {
@@ -226,6 +250,10 @@ export function useCategories() {
     });
   };
 
+  const categories = categoriesData?.categories || [];
+  const totalCount = categoriesData?.total || 0;
+  const totalPages = categoriesData?.pages || 1;
+
   return {
     categories,
     loading,
@@ -245,10 +273,11 @@ export function useCategories() {
     totalPages,
     totalCount,
     pageSize,
-    loadCategories,
     handleSubmit,
     handleDelete,
     openEdit,
     resetForm,
+    isSubmitting: createMutation.isPending || updateMutation.isPending,
+    isDeleting: deleteMutation.isPending,
   };
 }

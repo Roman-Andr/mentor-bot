@@ -32,7 +32,7 @@ class Meeting(Base):
     department_id: Mapped[int | None] = mapped_column(ForeignKey("departments.id"), nullable=True)
     department: Mapped["Department | None"] = relationship("Department", back_populates="meetings")
     position: Mapped[str | None] = mapped_column(String(100), nullable=True, index=True)
-    level: Mapped[EmployeeLevel | None] = mapped_column(Enum(EmployeeLevel), nullable=True, index=True)
+    level: Mapped[EmployeeLevel | None] = mapped_column(Enum(EmployeeLevel, native=False), nullable=True, index=True)
 
     # Scheduling rules
     is_mandatory: Mapped[bool] = mapped_column(default=True, nullable=False)

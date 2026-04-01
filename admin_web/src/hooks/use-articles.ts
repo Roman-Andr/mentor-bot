@@ -1,8 +1,8 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useDebounce } from "@/hooks/useDebounce";
-import { useConfirm } from "@/components/ui/confirm-dialog";
 import { useToast } from "@/components/ui/toast";
-import { api, attachmentsApi, type Article, type Category, type Attachment } from "@/lib/api";
+import { api, attachmentsApi, type Article, type Attachment } from "@/lib/api";
 
 export interface ArticleRow {
   id: number;
@@ -56,7 +56,7 @@ function mapArticle(a: Article): ArticleRow {
     content: a.content,
     excerpt: a.excerpt || "",
     category_id: a.category_id,
-    category: a.category_name || "Общее",
+    category: a.category?.name || "Общее",
     status: a.status,
     isPinned: a.is_pinned,
     isFeatured: a.is_featured,
@@ -66,12 +66,13 @@ function mapArticle(a: Article): ArticleRow {
   };
 }
 
+const ARTICLES_KEY = ["articles"] as const;
+const CATEGORIES_KEY = ["categories"] as const;
+
 export function useArticles() {
-  const confirm = useConfirm();
   const { toast } = useToast();
-  const [articles, setArticles] = useState<ArticleRow[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedArticle, setSelectedArticle] = useState<ArticleRow | null>(null);
@@ -82,51 +83,99 @@ export function useArticles() {
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
 
   const debouncedSearch = useDebounce(searchQuery);
   const pageSize = 20;
 
-  const loadCategories = useCallback(async () => {
-    try {
-      const response = await api.categories.list();
-      if (response.data?.categories) setCategories(response.data.categories);
-    } catch (err) {
-      console.error("Failed to load categories:", err);
-    }
-  }, []);
+  const queryParams = {
+    skip: (currentPage - 1) * pageSize,
+    limit: pageSize,
+    ...(statusFilter !== "ALL" && { status: statusFilter }),
+    ...(categoryFilter !== "ALL" && { category_id: parseInt(categoryFilter) }),
+    ...(debouncedSearch && { search: debouncedSearch }),
+  };
 
-  const loadArticles = useCallback(async () => {
-    setLoading(true);
-    try {
-      const params: Record<string, unknown> = {};
-      if (statusFilter !== "ALL") params.status = statusFilter;
-      if (categoryFilter !== "ALL") params.category_id = parseInt(categoryFilter);
-      if (debouncedSearch) params.search = debouncedSearch;
-      params.skip = (currentPage - 1) * pageSize;
-      params.limit = pageSize;
+  const { data: articlesData, isLoading: loading } = useQuery({
+    queryKey: [...ARTICLES_KEY, queryParams],
+    queryFn: () => api.articles.list(queryParams),
+    select: (result) =>
+      result.data
+        ? {
+            articles: result.data.articles.map(mapArticle),
+            total: result.data.total,
+            pages: result.data.pages,
+          }
+        : undefined,
+  });
 
-      const response = await api.articles.list(params);
-      if (response.data) {
-        setArticles(response.data.articles.map(mapArticle));
-        setTotalCount(response.data.total);
-        setTotalPages(response.data.pages || 1);
+  const { data: categoriesData } = useQuery({
+    queryKey: CATEGORIES_KEY,
+    queryFn: () => api.categories.list({ limit: 1000, include_tree: true }),
+    select: (result) => result.data?.categories || [],
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (data: Parameters<typeof api.articles.create>[0]) => api.articles.create(data),
+    onSuccess: async (result) => {
+      if (result.data) {
+        if (pendingFiles.length > 0) {
+          await attachmentsApi.uploadMultiple(result.data.id, pendingFiles);
+        }
+        queryClient.invalidateQueries({ queryKey: ARTICLES_KEY });
+        setIsCreateDialogOpen(false);
+        resetForm();
+        toast("Статья создана", "success");
+      } else if (result.error) {
+        toast(result.error, "error");
       }
-    } catch (err) {
-      console.error("Failed to load articles:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, [statusFilter, categoryFilter, debouncedSearch, currentPage]);
+    },
+    onError: () => toast("Ошибка сохранения статьи", "error"),
+  });
 
-  useEffect(() => {
-    loadCategories();
-  }, [loadCategories]);
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: Parameters<typeof api.articles.update>[1] }) =>
+      api.articles.update(id, data),
+    onSuccess: async (result) => {
+      if (result.data) {
+        if (pendingFiles.length > 0) {
+          await attachmentsApi.uploadMultiple(result.data.id, pendingFiles);
+        }
+        queryClient.invalidateQueries({ queryKey: ARTICLES_KEY });
+        setIsEditDialogOpen(false);
+        setSelectedArticle(null);
+        toast("Статья обновлена", "success");
+      } else if (result.error) {
+        toast(result.error, "error");
+      }
+    },
+    onError: () => toast("Ошибка сохранения статьи", "error"),
+  });
 
-  useEffect(() => {
-    loadArticles();
-  }, [loadArticles]);
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => api.articles.delete(id),
+    onSuccess: (result) => {
+      if (!result.error) {
+        queryClient.invalidateQueries({ queryKey: ARTICLES_KEY });
+        toast("Статья удалена", "success");
+      } else {
+        toast(result.error, "error");
+      }
+    },
+    onError: () => toast("Ошибка удаления статьи", "error"),
+  });
+
+  const publishMutation = useMutation({
+    mutationFn: (id: number) => api.articles.publish(id),
+    onSuccess: (result) => {
+      if (result.data) {
+        queryClient.invalidateQueries({ queryKey: ARTICLES_KEY });
+        toast("Статья опубликована", "success");
+      } else if (result.error) {
+        toast(result.error, "error");
+      }
+    },
+    onError: () => toast("Ошибка публикации статьи", "error"),
+  });
 
   const handleSubmit = async () => {
     const keywordsArray = formData.keywords
@@ -147,82 +196,19 @@ export function useArticles() {
       keywords: keywordsArray,
     };
 
-    try {
-      if (selectedArticle) {
-        const response = await api.articles.update(selectedArticle.id, payload);
-        if (response.data) {
-          setArticles(
-            articles.map((a) => (a.id === selectedArticle.id ? mapArticle(response.data!) : a)),
-          );
-
-          if (pendingFiles.length > 0) {
-            const attResponse = await attachmentsApi.uploadMultiple(response.data.id, pendingFiles);
-            if (attResponse.data) {
-              setAttachments(attResponse.data.attachments);
-            }
-            setPendingFiles([]);
-          }
-
-          setIsEditDialogOpen(false);
-          setSelectedArticle(null);
-          toast("Статья обновлена", "success");
-        } else {
-          toast(response.error || "Ошибка обновления", "error");
-        }
-      } else {
-        const response = await api.articles.create(payload);
-        if (response.data) {
-          const newRow = mapArticle(response.data);
-          setArticles([newRow, ...articles]);
-
-          if (pendingFiles.length > 0) {
-            const attResponse = await attachmentsApi.uploadMultiple(response.data.id, pendingFiles);
-            if (attResponse.data) {
-              setAttachments(attResponse.data.attachments);
-            }
-            setPendingFiles([]);
-          } else {
-            setAttachments([]);
-          }
-
-          setIsCreateDialogOpen(false);
-          resetForm();
-          toast("Статья создана", "success");
-        } else {
-          toast(response.error || "Ошибка создания", "error");
-        }
-      }
-    } catch (err) {
-      console.error("Failed to save article:", err);
-      toast("Ошибка сохранения статьи", "error");
+    if (selectedArticle) {
+      updateMutation.mutate({ id: selectedArticle.id, data: payload });
+    } else {
+      createMutation.mutate(payload);
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (!(await confirm({ title: "Удаление статьи", description: "Вы уверены, что хотите удалить эту статью?", variant: "destructive", confirmText: "Удалить" }))) return;
-    try {
-      await api.articles.delete(id);
-      setArticles(articles.filter((a) => a.id !== id));
-      toast("Статья удалена", "success");
-    } catch (err) {
-      console.error("Failed to delete article:", err);
-      toast("Ошибка удаления статьи", "error");
-    }
+  const handleDelete = (id: number) => {
+    deleteMutation.mutate(id);
   };
 
-  const handlePublish = async (id: number) => {
-    try {
-      const response = await api.articles.publish(id);
-      if (response.data) {
-        setArticles(articles.map((a) => (a.id === id ? { ...a, status: "PUBLISHED" } : a)));
-        toast("Статья опубликована", "success");
-      } else {
-        toast(response.error || "Ошибка публикации", "error");
-      }
-    } catch (err) {
-      console.error("Failed to publish article:", err);
-      toast("Ошибка публикации статьи", "error");
-    }
+  const handlePublish = (id: number) => {
+    publishMutation.mutate(id);
   };
 
   const openEdit = async (article: ArticleRow) => {
@@ -256,6 +242,11 @@ export function useArticles() {
     setPendingFiles([]);
   };
 
+  const articles = articlesData?.articles || [];
+  const categories = categoriesData || [];
+  const totalCount = articlesData?.total || 0;
+  const totalPages = articlesData?.pages || 1;
+
   return {
     articles,
     categories,
@@ -282,12 +273,19 @@ export function useArticles() {
     setCurrentPage,
     totalPages,
     totalCount,
-    loadArticles,
-    loadCategories,
+    loadCategories: () => queryClient.invalidateQueries({ queryKey: CATEGORIES_KEY }),
     handleSubmit,
     handleDelete,
     handlePublish,
     openEdit,
     resetForm,
+    resetFilters: () => {
+      setSearchQuery("");
+      setStatusFilter("ALL");
+      setCategoryFilter("ALL");
+      setCurrentPage(1);
+    },
+    isSubmitting: createMutation.isPending || updateMutation.isPending,
+    isDeleting: deleteMutation.isPending,
   };
 }

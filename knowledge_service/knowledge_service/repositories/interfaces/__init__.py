@@ -5,6 +5,7 @@ from knowledge_service.repositories.interfaces.article_view import IArticleViewR
 from knowledge_service.repositories.interfaces.attachment import IAttachmentRepository
 from knowledge_service.repositories.interfaces.base import BaseRepository
 from knowledge_service.repositories.interfaces.category import ICategoryRepository
+from knowledge_service.repositories.interfaces.dialogue import IDialogueScenarioRepository, IDialogueStepRepository
 from knowledge_service.repositories.interfaces.search_history import ISearchHistoryRepository
 from knowledge_service.repositories.interfaces.tag import ITagRepository
 
@@ -14,6 +15,8 @@ __all__ = [
     "IArticleViewRepository",
     "IAttachmentRepository",
     "ICategoryRepository",
+    "IDialogueScenarioRepository",
+    "IDialogueStepRepository",
     "ISearchHistoryRepository",
     "ITagRepository",
 ]

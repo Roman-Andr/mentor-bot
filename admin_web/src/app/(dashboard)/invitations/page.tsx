@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { PageContent } from "@/components/layout/page-content";
 import { Plus } from "lucide-react";
@@ -11,17 +12,18 @@ import { InvitationStats } from "@/components/features/invitations/invitation-st
 import { InvitationsTable } from "@/components/features/invitations/invitations-table";
 
 export default function InvitationsPage() {
+  const t = useTranslations("invitations");
   const inv = useInvitations();
   const deps = useDepartments();
 
   return (
     <PageContent
-      title="Приглашения"
-      subtitle="Управление приглашениями новых сотрудников"
+      title={t("title")}
+      subtitle={t("title")}
       actions={
         <Button className="gap-2" onClick={() => inv.setIsCreateDialogOpen(true)}>
           <Plus className="size-4" />
-          Создать приглашение
+          {t("sendInvitation")}
         </Button>
       }
     >
@@ -54,6 +56,11 @@ export default function InvitationsPage() {
         loading={inv.loading}
         searchQuery={inv.searchQuery}
         onSearchChange={inv.setSearchQuery}
+        roleFilter={inv.roleFilter}
+        onRoleFilterChange={inv.setRoleFilter}
+        statusFilter={inv.statusFilter}
+        onStatusFilterChange={inv.setStatusFilter}
+        onReset={inv.resetFilters}
         onResend={inv.handleResendInvitation}
         onRevoke={inv.handleRevokeInvitation}
         onDelete={inv.handleDeleteInvitation}

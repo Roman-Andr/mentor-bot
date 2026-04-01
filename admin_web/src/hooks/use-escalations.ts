@@ -1,6 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
-import { useDebounce } from "@/hooks/useDebounce";
-import { useConfirm } from "@/components/ui/confirm-dialog";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/toast";
 import { api, type EscalationRequest } from "@/lib/api";
 
@@ -30,87 +29,79 @@ function mapEscalation(e: EscalationRequest): EscalationItem {
   };
 }
 
+const ESCALATIONS_KEY = ["escalations"] as const;
+
 export function useEscalations() {
-  const confirm = useConfirm();
   const { toast } = useToast();
-  const [escalations, setEscalations] = useState<EscalationItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [typeFilter, setTypeFilter] = useState("ALL");
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
-
-  const debouncedSearch = useDebounce(searchQuery);
   const pageSize = 20;
 
-  const loadEscalations = useCallback(async () => {
-    setLoading(true);
-    try {
-      const params: Record<string, unknown> = {
-        skip: (currentPage - 1) * pageSize,
-        limit: pageSize,
-      };
-      if (statusFilter !== "ALL") params.status = statusFilter;
-      if (typeFilter !== "ALL") params.escalation_type = typeFilter;
+  const queryParams = {
+    skip: (currentPage - 1) * pageSize,
+    limit: pageSize,
+    ...(statusFilter !== "ALL" && { status: statusFilter }),
+    ...(typeFilter !== "ALL" && { escalation_type: typeFilter }),
+  };
 
-      const response = await api.escalations.list(params);
-      if (response.data) {
-        let items = response.data.requests.map(mapEscalation);
-        if (debouncedSearch) {
-          const q = debouncedSearch.toLowerCase();
-          items = items.filter(
-            (e) =>
-              e.reason.toLowerCase().includes(q) ||
-              e.type.toLowerCase().includes(q) ||
-              String(e.userId).includes(q),
-          );
-        }
-        setEscalations(items);
-        setTotalCount(response.data.total);
-        setTotalPages(response.data.pages || 1);
-      }
-    } catch (err) {
-      console.error("Failed to load escalations:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, [currentPage, statusFilter, typeFilter, debouncedSearch]);
+  const {
+    data: escalationsData,
+    isLoading: loading,
+    refetch,
+  } = useQuery({
+    queryKey: [...ESCALATIONS_KEY, queryParams],
+    queryFn: () => api.escalations.list(queryParams),
+    select: (result) =>
+      result.data
+        ? {
+            requests: result.data.requests.map(mapEscalation),
+            total: result.data.total,
+            pages: result.data.pages,
+          }
+        : undefined,
+  });
 
-  useEffect(() => {
-    loadEscalations();
-  }, [loadEscalations]);
-
-  const handleResolve = async (id: number) => {
-    try {
-      const response = await api.escalations.resolve(id);
-      if (response.data) {
-        setEscalations(
-          escalations.map((e) => (e.id === id ? { ...e, status: "RESOLVED", resolvedAt: new Date().toISOString() } : e)),
-        );
+  const resolveMutation = useMutation({
+    mutationFn: (id: number) => api.escalations.resolve(id),
+    onSuccess: (result) => {
+      if (result.data) {
+        queryClient.invalidateQueries({ queryKey: ESCALATIONS_KEY });
         toast("Запрос решён", "success");
-      } else {
-        toast(response.error || "Ошибка", "error");
+      } else if (result.error) {
+        toast(result.error, "error");
       }
-    } catch (err) {
-      console.error("Failed to resolve escalation:", err);
-      toast("Ошибка решения запроса", "error");
-    }
+    },
+    onError: () => toast("Ошибка решения запроса", "error"),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => api.escalations.delete(id),
+    onSuccess: (result) => {
+      if (!result.error) {
+        queryClient.invalidateQueries({ queryKey: ESCALATIONS_KEY });
+        toast("Запрос удалён", "success");
+      } else {
+        toast(result.error, "error");
+      }
+    },
+    onError: () => toast("Ошибка удаления запроса", "error"),
+  });
+
+  const handleResolve = (id: number) => {
+    resolveMutation.mutate(id);
   };
 
-  const handleDelete = async (id: number) => {
-    if (!(await confirm({ title: "Удаление запроса", description: "Вы уверены, что хотите удалить этот запрос?", variant: "destructive", confirmText: "Удалить" }))) return;
-    try {
-      await api.escalations.delete(id);
-      setEscalations(escalations.filter((e) => e.id !== id));
-      setTotalCount((c) => c - 1);
-      toast("Запрос удалён", "success");
-    } catch (err) {
-      console.error("Failed to delete escalation:", err);
-      toast("Ошибка удаления запроса", "error");
-    }
+  const handleDelete = (id: number) => {
+    deleteMutation.mutate(id);
   };
+
+  const escalations = escalationsData?.requests || [];
+  const totalCount = escalationsData?.total || 0;
+  const totalPages = escalationsData?.pages || 1;
 
   return {
     escalations,
@@ -125,8 +116,16 @@ export function useEscalations() {
     setCurrentPage,
     totalPages,
     totalCount,
-    loadEscalations,
+    loadEscalations: refetch,
     handleResolve,
     handleDelete,
+    resetFilters: () => {
+      setSearchQuery("");
+      setStatusFilter("ALL");
+      setTypeFilter("ALL");
+      setCurrentPage(1);
+    },
+    isResolving: resolveMutation.isPending,
+    isDeleting: deleteMutation.isPending,
   };
 }

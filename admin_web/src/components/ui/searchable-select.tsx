@@ -84,7 +84,7 @@ export function SearchableSelect({
         disabled={disabled}
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "flex h-9 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors",
+          "flex h-9 w-full cursor-pointer items-center justify-between rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors",
           "focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none",
           "disabled:cursor-not-allowed disabled:opacity-50",
           !selectedOption && "text-muted-foreground",
@@ -176,21 +176,24 @@ export function AsyncSearchableSelect({
 
   const debouncedSearch = useDebounce(search, debounceMs);
 
-  const fetchOptions = useCallback(async (query: string) => {
-    if (query.length < minSearchLength) {
-      setOptions([]);
-      return;
-    }
-    setLoading(true);
-    try {
-      const results = await onSearch(query);
-      setOptions(results);
-    } catch {
-      setOptions([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [onSearch, minSearchLength]);
+  const fetchOptions = useCallback(
+    async (query: string) => {
+      if (query.length < minSearchLength) {
+        setOptions([]);
+        return;
+      }
+      setLoading(true);
+      try {
+        const results = await onSearch(query);
+        setOptions(results);
+      } catch {
+        setOptions([]);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [onSearch, minSearchLength],
+  );
 
   useEffect(() => {
     if (debouncedSearch.length >= minSearchLength) {
@@ -226,7 +229,7 @@ export function AsyncSearchableSelect({
         disabled={disabled}
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "flex h-9 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors",
+          "flex h-9 w-full cursor-pointer items-center justify-between rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors",
           "focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none",
           "disabled:cursor-not-allowed disabled:opacity-50",
           !value && "text-muted-foreground",
@@ -261,9 +264,7 @@ export function AsyncSearchableSelect({
           </div>
           <div className="max-h-50 overflow-y-auto p-1">
             {loading ? (
-              <div className="text-muted-foreground px-2 py-3 text-center text-sm">
-                Загрузка...
-              </div>
+              <div className="text-muted-foreground px-2 py-3 text-center text-sm">Загрузка...</div>
             ) : search.length < minSearchLength ? (
               <div className="text-muted-foreground px-2 py-3 text-center text-sm">
                 Введите минимум {minSearchLength} символ{minSearchLength > 1 ? "а" : ""} для поиска

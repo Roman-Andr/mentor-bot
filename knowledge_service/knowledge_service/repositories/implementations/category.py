@@ -3,7 +3,7 @@
 from collections.abc import Sequence
 from typing import cast
 
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -52,6 +52,7 @@ class CategoryRepository(SqlAlchemyBaseRepository[Category, int], ICategoryRepos
         limit: int = 100,
         parent_id: int | None = None,
         department_id: int | None = None,
+        search: str | None = None,
     ) -> tuple[Sequence[Category], int]:
         """Find categories with filters and return total count."""
         stmt = select(Category)
@@ -67,6 +68,15 @@ class CategoryRepository(SqlAlchemyBaseRepository[Category, int], ICategoryRepos
         if department_id:
             stmt = stmt.where(Category.department_id == department_id)
             count_stmt = count_stmt.where(Category.department_id == department_id)
+
+        if search:
+            search_filter = or_(
+                Category.name.ilike(f"%{search}%"),
+                Category.description.ilike(f"%{search}%"),
+                Category.slug.ilike(f"%{search}%"),
+            )
+            stmt = stmt.where(search_filter)
+            count_stmt = count_stmt.where(search_filter)
 
         total = cast("int", (await self._session.execute(count_stmt)).scalar_one())
 

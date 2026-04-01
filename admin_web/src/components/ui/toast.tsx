@@ -40,16 +40,19 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             key={t.id}
             className={cn(
               "flex items-center gap-3 rounded-lg px-4 py-3 text-sm shadow-lg transition-all",
-              t.type === "success" && "bg-green-50 text-green-800 border border-green-200",
-              t.type === "error" && "bg-red-50 text-red-800 border border-red-200",
-              t.type === "info" && "bg-blue-50 text-blue-800 border border-blue-200",
+              t.type === "success" && "border border-green-200 bg-green-50 text-green-800",
+              t.type === "error" && "border border-red-200 bg-red-50 text-red-800",
+              t.type === "info" && "border border-blue-200 bg-blue-50 text-blue-800",
             )}
           >
             {t.type === "success" && <CheckCircle className="size-4 shrink-0" />}
             {t.type === "error" && <AlertCircle className="size-4 shrink-0" />}
             {t.type === "info" && <Info className="size-4 shrink-0" />}
             <span>{t.message}</span>
-            <button onClick={() => removeToast(t.id)} className="ml-2 shrink-0 opacity-50 hover:opacity-100">
+            <button
+              onClick={() => removeToast(t.id)}
+              className="ml-2 shrink-0 opacity-50 hover:opacity-100"
+            >
               <X className="size-4" />
             </button>
           </div>

@@ -1,5 +1,13 @@
 import { fetchApi, fetchUpload } from "./client";
-import type { Article, ArticleListResponse, AttachmentListResponse, Attachment, Category, CategoryListResponse } from "./types";
+import { buildQueryString } from "@/lib/utils/query-builder";
+import type {
+  Article,
+  ArticleListResponse,
+  AttachmentListResponse,
+  Attachment,
+  Category,
+  CategoryListResponse,
+} from "./types";
 
 export const articlesApi = {
   list: (params?: {
@@ -12,17 +20,8 @@ export const articlesApi = {
     pinned_only?: boolean;
     featured_only?: boolean;
   }) => {
-    const searchParams = new URLSearchParams();
-    if (params?.status) searchParams.set("status", params.status);
-    if (params?.category_id !== undefined)
-      searchParams.set("category_id", String(params.category_id));
-    if (params?.department_id !== undefined) searchParams.set("department_id", String(params.department_id));
-    if (params?.search) searchParams.set("search", params.search);
-    if (params?.skip !== undefined) searchParams.set("skip", String(params.skip));
-    if (params?.limit) searchParams.set("limit", String(params.limit));
-    if (params?.pinned_only) searchParams.set("pinned_only", "true");
-    if (params?.featured_only) searchParams.set("featured_only", "true");
-    return fetchApi<ArticleListResponse>(`/api/v1/articles?${searchParams.toString()}`);
+    const qs = buildQueryString(params);
+    return fetchApi<ArticleListResponse>(`/api/v1/articles${qs ? `?${qs}` : ""}`);
   },
   get: (id: number | string) => fetchApi<Article>(`/api/v1/articles/${id}`),
   create: (data: {
@@ -75,14 +74,10 @@ export const categoriesApi = {
     limit?: number;
     parent_id?: number | null;
     department_id?: number;
+    search?: string;
+    include_tree?: boolean;
   }) => {
-    const searchParams = new URLSearchParams();
-    if (params?.skip !== undefined) searchParams.set("skip", String(params.skip));
-    if (params?.limit) searchParams.set("limit", String(params.limit));
-    if (params?.parent_id !== undefined && params.parent_id !== null)
-      searchParams.set("parent_id", String(params.parent_id));
-    if (params?.department_id !== undefined) searchParams.set("department_id", String(params.department_id));
-    const qs = searchParams.toString();
+    const qs = buildQueryString(params);
     return fetchApi<CategoryListResponse>(`/api/v1/categories${qs ? `?${qs}` : ""}`);
   },
   create: (data: {

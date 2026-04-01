@@ -7,6 +7,7 @@ from knowledge_service.services.circuit_breaker import (
     CircuitBreaker,
     auth_service_circuit_breaker,
 )
+from knowledge_service.services.dialogue import DialogueService
 from knowledge_service.services.search import SearchService
 from knowledge_service.services.tag import TagService
 
@@ -15,6 +16,7 @@ __all__ = [
     "AttachmentService",
     "CategoryService",
     "CircuitBreaker",
+    "DialogueService",
     "SearchService",
     "TagService",
     "auth_service_circuit_breaker",

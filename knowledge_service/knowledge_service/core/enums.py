@@ -36,3 +36,21 @@ class SearchSortBy(str, Enum):
     DATE_OLDEST = "DATE_OLDEST"
     VIEWS = "VIEWS"
     TITLE = "TITLE"
+
+
+class DialogueCategory(str, Enum):
+    """Dialogue scenario category."""
+
+    VACATION = "VACATION"
+    ACCESS = "ACCESS"
+    BENEFITS = "BENEFITS"
+    CONTACTS = "CONTACTS"
+    WORKTIME = "WORKTIME"
+
+
+class DialogueAnswerType(str, Enum):
+    """Dialogue step answer type."""
+
+    TEXT = "TEXT"
+    CHOICE = "CHOICE"
+    LINK = "LINK"

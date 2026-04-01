@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { attachmentsApi, type Attachment } from "@/lib/api";
@@ -42,6 +43,8 @@ export function AttachmentManager({
   pendingFiles = [],
   onPendingFilesChange,
 }: AttachmentManagerProps) {
+  const t = useTranslations("knowledge");
+  const tCommon = useTranslations("common");
   const confirm = useConfirm();
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -51,102 +54,101 @@ export function AttachmentManager({
   const validateFile = (file: File): string | null => {
     const ext = getFileExt(file.name);
     if (!ALLOWED_TYPES.includes(ext)) {
-      return `Недопустимый тип файла. Разрешены: ${ALLOWED_TYPES.join(", ")}`;
+      return `${t("invalidFileType")}: ${ALLOWED_TYPES.join(", ")}`;
     }
     if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
-      return `Файл слишком большой. Максимум: ${MAX_FILE_SIZE_MB} МБ`;
+      return `${t("fileTooBig")}: ${MAX_FILE_SIZE_MB} MB`;
     }
     return null;
   };
 
-  const handleFileSelect = useCallback(
-    async (e: React.ChangeEvent<HTMLInputElement>) => {
-      const files = e.target.files;
-      if (!files || files.length === 0) return;
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
-      setUploadError(null);
+    setUploadError(null);
 
-      if (articleId) {
-        const filesToUpload: File[] = [];
-        for (const file of Array.from(files)) {
-          const error = validateFile(file);
-          if (error) {
-            setUploadError(error);
-            break;
-          }
-          filesToUpload.push(file);
+    if (articleId) {
+      const filesToUpload: File[] = [];
+      for (const file of Array.from(files)) {
+        const error = validateFile(file);
+        if (error) {
+          setUploadError(error);
+          break;
         }
-
-        if (filesToUpload.length > 0) {
-          setUploading(true);
-          const newAttachments: Attachment[] = [];
-          for (const file of filesToUpload) {
-            const response = await attachmentsApi.upload(articleId, file);
-            if (response.data) {
-              newAttachments.push(response.data);
-            } else {
-              setUploadError(response.error || "Ошибка загрузки файла");
-              break;
-            }
-          }
-          if (newAttachments.length > 0) {
-            onAttachmentsChange([...attachments, ...newAttachments]);
-          }
-          setUploading(false);
-        }
-      } else if (onPendingFilesChange) {
-        const newFiles: File[] = [];
-        for (const file of Array.from(files)) {
-          const error = validateFile(file);
-          if (error) {
-            setUploadError(error);
-            break;
-          }
-          newFiles.push(file);
-        }
-        if (newFiles.length > 0) {
-          onPendingFilesChange([...pendingFiles, ...newFiles]);
-        }
+        filesToUpload.push(file);
       }
 
-      if (fileInputRef.current) fileInputRef.current.value = "";
-    },
-    [articleId, attachments, onAttachmentsChange, pendingFiles, onPendingFilesChange],
-  );
-
-  const handleDelete = useCallback(
-    async (attachmentId: number) => {
-      if (!(await confirm({ title: "Удаление файла", description: "Удалить файл?", variant: "destructive", confirmText: "Удалить" }))) return;
-      setDeletingId(attachmentId);
-      const response = await attachmentsApi.delete(attachmentId);
-      if (!response.error) {
-        onAttachmentsChange(attachments.filter((a) => a.id !== attachmentId));
+      if (filesToUpload.length > 0) {
+        setUploading(true);
+        const newAttachments: Attachment[] = [];
+        for (const file of filesToUpload) {
+          const response = await attachmentsApi.upload(articleId, file);
+          if (response.data) {
+            newAttachments.push(response.data);
+          } else {
+            setUploadError(response.error || tCommon("error"));
+            break;
+          }
+        }
+        if (newAttachments.length > 0) {
+          onAttachmentsChange([...attachments, ...newAttachments]);
+        }
+        setUploading(false);
       }
-      setDeletingId(null);
-    },
-    [confirm, attachments, onAttachmentsChange],
-  );
+    } else if (onPendingFilesChange) {
+      const newFiles: File[] = [];
+      for (const file of Array.from(files)) {
+        const error = validateFile(file);
+        if (error) {
+          setUploadError(error);
+          break;
+        }
+        newFiles.push(file);
+      }
+      if (newFiles.length > 0) {
+        onPendingFilesChange([...pendingFiles, ...newFiles]);
+      }
+    }
 
-  const handleRemovePending = useCallback(
-    (index: number) => {
-      if (!onPendingFilesChange) return;
-      onPendingFilesChange(pendingFiles.filter((_, i) => i !== index));
-    },
-    [pendingFiles, onPendingFilesChange],
-  );
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
 
-  const handleDownload = useCallback((attachment: Attachment) => {
+  const handleDelete = async (attachmentId: number) => {
+    if (
+      !(await confirm({
+        title: t("deleteFile"),
+        description: t("deleteFileConfirm"),
+        variant: "destructive",
+        confirmText: tCommon("delete"),
+      }))
+    )
+      return;
+    setDeletingId(attachmentId);
+    const response = await attachmentsApi.delete(attachmentId);
+    if (!response.error) {
+      onAttachmentsChange(attachments.filter((a) => a.id !== attachmentId));
+    }
+    setDeletingId(null);
+  };
+
+  const handleRemovePending = (index: number) => {
+    if (!onPendingFilesChange) return;
+    onPendingFilesChange(pendingFiles.filter((_, i) => i !== index));
+  };
+
+  const handleDownload = (attachment: Attachment) => {
     if (!articleId) return;
     const url = attachmentsApi.getDownloadUrl(articleId, attachment.name);
     window.open(url, "_blank");
-  }, [articleId]);
+  };
 
   const canAddFiles = articleId || onPendingFilesChange;
 
   return (
     <div className="grid gap-3">
       <div className="flex items-center justify-between">
-        <label className="text-sm font-medium">Файлы</label>
+        <label className="text-sm font-medium">{t("files")}</label>
         {canAddFiles && (
           <Button
             type="button"
@@ -161,7 +163,7 @@ export function AttachmentManager({
             ) : (
               <Upload className="size-3" />
             )}
-            {uploading ? "Загрузка..." : "Загрузить файл"}
+            {uploading ? tCommon("loading") : t("uploadFile")}
           </Button>
         )}
         <input
@@ -174,9 +176,7 @@ export function AttachmentManager({
         />
       </div>
 
-      {uploadError && (
-        <p className="text-xs text-red-500">{uploadError}</p>
-      )}
+      {uploadError && <p className="text-xs text-red-500">{uploadError}</p>}
 
       {attachments.length > 0 && (
         <div className="divide-y rounded-md border">
@@ -196,7 +196,7 @@ export function AttachmentManager({
                   variant="ghost"
                   size="icon"
                   onClick={() => handleDownload(att)}
-                  title="Скачать"
+                  title={tCommon("download")}
                 >
                   <Download className="size-3.5" />
                 </Button>
@@ -207,7 +207,7 @@ export function AttachmentManager({
                   onClick={() => handleDelete(att.id)}
                   disabled={deletingId === att.id}
                   className="text-red-500 hover:text-red-700"
-                  title="Удалить"
+                  title={tCommon("delete")}
                 >
                   <Trash2 className="size-3.5" />
                 </Button>
@@ -225,7 +225,7 @@ export function AttachmentManager({
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium">{file.name}</p>
                 <p className="text-muted-foreground text-xs">
-                  {formatFileSize(file.size)} — будет загружен после сохранения
+                  {formatFileSize(file.size)} — {t("willUploadAfterSave")}
                 </p>
               </div>
               <Button
@@ -234,7 +234,7 @@ export function AttachmentManager({
                 size="icon"
                 onClick={() => handleRemovePending(index)}
                 className="text-red-500 hover:text-red-700"
-                title="Убрать"
+                title={t("remove")}
               >
                 <X className="size-3.5" />
               </Button>
@@ -244,7 +244,7 @@ export function AttachmentManager({
       )}
 
       {attachments.length === 0 && pendingFiles.length === 0 && (
-        <p className="text-muted-foreground text-xs">Нет прикреплённых файлов</p>
+        <p className="text-muted-foreground text-xs">{t("noAttachments")}</p>
       )}
     </div>
   );

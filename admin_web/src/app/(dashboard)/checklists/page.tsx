@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { PageContent } from "@/components/layout/page-content";
 import { Plus } from "lucide-react";
@@ -10,71 +11,73 @@ import { ChecklistsTable } from "@/components/features/checklists/checklists-tab
 import { ChecklistStats } from "@/components/features/checklists/checklist-stats";
 
 export default function ChecklistsPage() {
-  const c = useChecklists();
+  const t = useTranslations("checklists");
+  const checklists = useChecklists();
   const deps = useDepartments();
 
   return (
     <PageContent
-      title="Чек-листы"
-      subtitle="Управление чек-листами онбординга сотрудников"
+      title={t("title")}
+      subtitle={t("title")}
       actions={
         <Button
           className="gap-2"
           onClick={() => {
-            c.resetForm();
-            c.setIsCreateDialogOpen(true);
+            checklists.resetForm();
+            checklists.setIsCreateDialogOpen(true);
           }}
         >
           <Plus className="size-4" />
-          Назначить чек-лист
+          {t("addChecklist")}
         </Button>
       }
     >
       <ChecklistFormDialog
-        open={c.isCreateDialogOpen}
-        onOpenChange={c.setIsCreateDialogOpen}
+        open={checklists.isCreateDialogOpen}
+        onOpenChange={checklists.setIsCreateDialogOpen}
         mode="create"
-        formData={c.formData}
-        onFormDataChange={c.setFormData}
-        onSubmit={c.handleCreate}
-        onCancel={() => c.setIsCreateDialogOpen(false)}
+        formData={checklists.formData}
+        onFormDataChange={checklists.setFormData}
+        onSubmit={checklists.handleCreate}
+        onCancel={() => checklists.setIsCreateDialogOpen(false)}
       />
 
       <ChecklistFormDialog
-        open={c.isEditDialogOpen}
+        open={checklists.isEditDialogOpen}
         onOpenChange={(open) => {
-          c.setIsEditDialogOpen(open);
-          if (!open) c.setSelectedChecklist(null);
+          checklists.setIsEditDialogOpen(open);
+          if (!open) checklists.setSelectedChecklist(null);
         }}
         mode="edit"
-        formData={c.formData}
-        onFormDataChange={c.setFormData}
-        onSubmit={c.handleUpdate}
+        formData={checklists.formData}
+        onFormDataChange={checklists.setFormData}
+        onSubmit={checklists.handleUpdate}
         onCancel={() => {
-          c.setIsEditDialogOpen(false);
-          c.setSelectedChecklist(null);
+          checklists.setIsEditDialogOpen(false);
+          checklists.setSelectedChecklist(null);
         }}
       />
 
-      <ChecklistStats checklists={c.checklists} />
+      <ChecklistStats checklists={checklists.checklists} />
 
       <ChecklistsTable
-        checklists={c.checklists}
-        loading={c.loading}
-        onEdit={c.openEditDialog}
-        onComplete={c.handleComplete}
-        onDelete={c.handleDelete}
-        searchQuery={c.searchQuery}
-        onSearchChange={c.setSearchQuery}
-        statusFilter={c.statusFilter}
-        onStatusFilterChange={c.setStatusFilter}
-        departmentFilter={c.departmentFilter}
-        onDepartmentFilterChange={c.setDepartmentFilter}
+        checklists={checklists.checklists}
+        loading={checklists.loading}
+        onEdit={checklists.openEditDialog}
+        onComplete={checklists.handleComplete}
+        onDelete={checklists.handleDelete}
+        searchQuery={checklists.searchQuery}
+        onSearchChange={checklists.setSearchQuery}
+        statusFilter={checklists.statusFilter}
+        onStatusFilterChange={checklists.setStatusFilter}
+        departmentFilter={checklists.departmentFilter}
+        onDepartmentFilterChange={checklists.setDepartmentFilter}
+        onReset={checklists.resetFilters}
         departments={deps.departments}
-        currentPage={c.currentPage}
-        totalPages={c.totalPages}
-        totalCount={c.totalCount}
-        onPageChange={c.setCurrentPage}
+        currentPage={checklists.currentPage}
+        totalPages={checklists.totalPages}
+        totalCount={checklists.totalCount}
+        onPageChange={checklists.setCurrentPage}
       />
     </PageContent>
   );

@@ -148,6 +148,7 @@ class ArticleService:
         tag_id: int | None = None,
         department_id: int | None = None,
         status: str | None = None,
+        search: str | None = None,
         user_filters: dict | None = None,
         *,
         featured_only: bool = False,
@@ -161,11 +162,19 @@ class ArticleService:
             tag_id=tag_id,
             department_id=department_id,
             status=status,
+            search=search,
             featured_only=featured_only,
             pinned_only=pinned_only,
             user_filters=user_filters,
         )
         return list(items), total
+
+    async def get_articles_by_ids(self, article_ids: list[int]) -> list[Article]:
+        """Get articles by their IDs, preserving order."""
+        if not article_ids:
+            return []
+        articles = await self._uow.articles.get_by_ids(article_ids)
+        return list(articles)
 
     async def publish_article(self, article_id: int) -> Article:
         """Publish article."""

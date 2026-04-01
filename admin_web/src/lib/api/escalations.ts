@@ -1,4 +1,5 @@
 import { fetchApi } from "./client";
+import { buildQueryString } from "@/lib/utils/query-builder";
 import type { EscalationRequest, EscalationListResponse } from "./types";
 
 export const escalationsApi = {
@@ -10,15 +11,8 @@ export const escalationsApi = {
     skip?: number;
     limit?: number;
   }) => {
-    const searchParams = new URLSearchParams();
-    if (params?.user_id !== undefined) searchParams.set("user_id", String(params.user_id));
-    if (params?.assigned_to !== undefined)
-      searchParams.set("assigned_to", String(params.assigned_to));
-    if (params?.escalation_type) searchParams.set("escalation_type", params.escalation_type);
-    if (params?.status) searchParams.set("status", params.status);
-    if (params?.skip !== undefined) searchParams.set("skip", String(params.skip));
-    if (params?.limit) searchParams.set("limit", String(params.limit));
-    return fetchApi<EscalationListResponse>(`/api/v1/escalations?${searchParams.toString()}`);
+    const qs = buildQueryString(params);
+    return fetchApi<EscalationListResponse>(`/api/v1/escalations${qs ? `?${qs}` : ""}`);
   },
   create: (data: {
     user_id: number;

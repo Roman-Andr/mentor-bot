@@ -3,7 +3,7 @@
 from abc import abstractmethod
 from collections.abc import Sequence
 
-from auth_service.core import InvitationStatus
+from auth_service.core import InvitationStatus, UserRole
 from auth_service.models import Invitation
 from auth_service.repositories.interfaces.base import BaseRepository
 from auth_service.schemas.invitation import InvitationStats
@@ -31,6 +31,7 @@ class IInvitationRepository(BaseRepository["Invitation", int]):
         skip: int = 0,
         limit: int = 100,
         email: str | None = None,
+        role: UserRole | None = None,
         status: InvitationStatus | None = None,
         department_id: int | None = None,
         expired_only: bool = False,

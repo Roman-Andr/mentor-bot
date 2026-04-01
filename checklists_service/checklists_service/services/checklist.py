@@ -183,6 +183,7 @@ class ChecklistService:
         user_id: int | None = None,
         status: str | None = None,
         department_id: int | None = None,
+        search: str | None = None,
         *,
         overdue_only: bool = False,
     ) -> tuple[list[Checklist], int]:
@@ -195,6 +196,7 @@ class ChecklistService:
             user_id=user_id,
             status=status_enum,
             department_id=department_id,
+            search=search,
             overdue_only=overdue_only,
         )
         return list(checklists), total

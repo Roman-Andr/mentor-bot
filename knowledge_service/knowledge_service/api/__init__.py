@@ -7,6 +7,7 @@ from knowledge_service.api.deps import (
     AuthToken,
     CategoryServiceDep,
     CurrentUser,
+    DialogueServiceDep,
     HRUser,
     MentorUser,
     SearchServiceDep,
@@ -21,7 +22,7 @@ from knowledge_service.api.deps import (
     require_hr,
     require_mentor_or_above,
 )
-from knowledge_service.api.endpoints import articles, attachments, categories, search, tags
+from knowledge_service.api.endpoints import articles, attachments, categories, dialogues, search, tags
 
 __all__ = [
     "AdminUser",
@@ -30,6 +31,7 @@ __all__ = [
     "AuthToken",
     "CategoryServiceDep",
     "CurrentUser",
+    "DialogueServiceDep",
     "HRUser",
     "MentorUser",
     "SearchServiceDep",
@@ -39,6 +41,7 @@ __all__ = [
     "articles",
     "attachments",
     "categories",
+    "dialogues",
     "get_auth_token",
     "get_current_active_user",
     "get_current_user",

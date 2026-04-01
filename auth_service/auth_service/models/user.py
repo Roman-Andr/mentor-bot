@@ -41,7 +41,7 @@ class User(Base):
     department_id: Mapped[int | None] = mapped_column(ForeignKey("departments.id"), nullable=True)
     department: Mapped["Department | None"] = relationship("Department", back_populates="users")
     position: Mapped[str | None] = mapped_column(String(100), nullable=True)
-    level: Mapped[EmployeeLevel | None] = mapped_column(Enum(EmployeeLevel), nullable=True)
+    level: Mapped[EmployeeLevel | None] = mapped_column(Enum(EmployeeLevel, native=False), nullable=True)
     hire_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # Authentication and authorization

@@ -9,6 +9,8 @@ const SERVICE_MAP: Record<string, string> = {
   checklists: process.env.CHECKLISTS_SERVICE_URL || "http://localhost:8002",
   templates: process.env.CHECKLISTS_SERVICE_URL || "http://localhost:8002",
   tasks: process.env.CHECKLISTS_SERVICE_URL || "http://localhost:8002",
+  "dialogue-scenarios": process.env.KNOWLEDGE_SERVICE_URL || "http://localhost:8003",
+  "dialogue-scenarios/active": process.env.KNOWLEDGE_SERVICE_URL || "http://localhost:8003",
   articles: process.env.KNOWLEDGE_SERVICE_URL || "http://localhost:8003",
   categories: process.env.KNOWLEDGE_SERVICE_URL || "http://localhost:8003",
   tags: process.env.KNOWLEDGE_SERVICE_URL || "http://localhost:8003",

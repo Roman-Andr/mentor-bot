@@ -7,6 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from knowledge_service.core import ArticleStatus, EmployeeLevel
 from knowledge_service.schemas.attachment import AttachmentResponse
+from knowledge_service.schemas.category import CategoryResponse
 from knowledge_service.schemas.tag import TagResponse
 
 
@@ -62,7 +63,7 @@ class ArticleResponse(ArticleBase):
     author_id: int
     author_name: str
     view_count: int
-    category_name: str | None = None
+    category: CategoryResponse | None = None
     tags: list[TagResponse] = Field(default_factory=list)
     attachments: list[AttachmentResponse] = Field(default_factory=list)
     created_at: datetime

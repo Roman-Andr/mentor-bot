@@ -178,6 +178,33 @@ class KnowledgeServiceClient:
         """Get the full download URL for an attachment."""
         return f"{self.base_url}{settings.API_V1_PREFIX}/attachments/file/{article_id}/{filename}"
 
+    @cached(ttl=300, key_prefix="faq_scenarios")
+    async def get_active_scenarios(self, skip: int = 0, limit: int = 50) -> dict:
+        """Get active dialogue scenarios for FAQ menu (cached)."""
+        try:
+            response = await self.client.get(
+                f"{settings.API_V1_PREFIX}/dialogue-scenarios/active",
+                params={"skip": skip, "limit": limit},
+            )
+            if response.status_code == status.HTTP_200_OK:
+                return response.json()
+        except httpx.RequestError:
+            logger.exception("Knowledge service get active scenarios request failed")
+        return {"total": 0, "scenarios": [], "page": 1, "size": limit, "pages": 0}
+
+    @cached(ttl=300, key_prefix="faq_scenario")
+    async def get_scenario(self, scenario_id: int) -> dict:
+        """Get dialogue scenario by ID with steps (cached)."""
+        try:
+            response = await self.client.get(
+                f"{settings.API_V1_PREFIX}/dialogue-scenarios/{scenario_id}",
+            )
+            if response.status_code == status.HTTP_200_OK:
+                return response.json()
+        except httpx.RequestError:
+            logger.exception("Knowledge service get scenario request failed")
+        return {"id": scenario_id, "title": "", "steps": []}
+
 
 # Singleton instance
 knowledge_client = KnowledgeServiceClient()

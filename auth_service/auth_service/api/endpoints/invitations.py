@@ -13,6 +13,7 @@ from auth_service.core import (
     ConflictException,
     InvitationStatus,
     NotFoundException,
+    UserRole,
     ValidationException,
 )
 from auth_service.schemas import (
@@ -34,6 +35,7 @@ async def get_invitations(
     skip: Annotated[int, Query(ge=0)] = 0,
     limit: Annotated[int, Query(ge=1, le=1000)] = 100,
     email: Annotated[str | None, Query()] = None,
+    role: Annotated[UserRole | None, Query()] = None,
     status: Annotated[InvitationStatus | None, Query()] = None,
     department_id: Annotated[int | None, Query()] = None,
     *,
@@ -44,6 +46,7 @@ async def get_invitations(
         skip=skip,
         limit=limit,
         email=email,
+        role=role,
         status=status,
         department_id=department_id,
         expired_only=expired_only,

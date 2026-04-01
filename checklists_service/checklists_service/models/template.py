@@ -29,7 +29,7 @@ class Template(Base):
     department_id: Mapped[int | None] = mapped_column(ForeignKey("departments.id"), nullable=True)
     department: Mapped["Department | None"] = relationship("Department", back_populates="templates")
     position: Mapped[str | None] = mapped_column(String(100), nullable=True)
-    level: Mapped[EmployeeLevel | None] = mapped_column(Enum(EmployeeLevel), nullable=True)
+    level: Mapped[EmployeeLevel | None] = mapped_column(Enum(EmployeeLevel, native=False), nullable=True)
 
     # Configuration
     duration_days: Mapped[int] = mapped_column(Integer, default=30, nullable=False)

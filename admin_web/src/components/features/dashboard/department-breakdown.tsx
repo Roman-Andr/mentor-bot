@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DEPARTMENT_COLORS } from "@/lib/constants";
 
@@ -16,13 +17,14 @@ interface DepartmentBreakdownProps {
 }
 
 export function DepartmentBreakdown({ departments }: DepartmentBreakdownProps) {
+  const t = useTranslations("dashboard");
   const departmentEntries = Object.entries(departments);
   const totalDeptCount = departmentEntries.reduce((sum, [, count]) => sum + count, 0);
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>По отделам</CardTitle>
+        <CardTitle>{t("byDepartment")}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
@@ -41,7 +43,7 @@ export function DepartmentBreakdown({ departments }: DepartmentBreakdownProps) {
               );
             })
           ) : (
-            <p className="text-muted-foreground py-4 text-center text-sm">Нет данных</p>
+            <p className="text-muted-foreground py-4 text-center text-sm">{t("noData")}</p>
           )}
         </div>
       </CardContent>

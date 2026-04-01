@@ -28,6 +28,7 @@ class ChecklistRepository(SqlAlchemyBaseRepository[Checklist, int], IChecklistRe
         user_id: int | None = None,
         status: ChecklistStatus | None = None,
         department_id: int | None = None,
+        search: str | None = None,
         overdue_only: bool = False,
     ) -> tuple[Sequence[Checklist], int]:
         """Find checklists with filtering and return results with total count."""
@@ -45,6 +46,11 @@ class ChecklistRepository(SqlAlchemyBaseRepository[Checklist, int], IChecklistRe
         if department_id is not None:
             stmt = stmt.join(Template).where(Template.department_id == department_id)
             count_stmt = count_stmt.join(Template).where(Template.department_id == department_id)
+
+        if search:
+            search_filter = Checklist.employee_id.ilike(f"%{search}%")
+            stmt = stmt.where(search_filter)
+            count_stmt = count_stmt.where(search_filter)
 
         if overdue_only:
             now = datetime.now(UTC)

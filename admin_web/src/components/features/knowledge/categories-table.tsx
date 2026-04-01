@@ -1,3 +1,6 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SearchInput } from "@/components/ui/search-input";
@@ -39,6 +42,9 @@ export function CategoriesTable({
   onEdit,
   onDelete,
 }: CategoriesTableProps) {
+  const t = useTranslations("knowledge");
+  const tCommon = useTranslations("common");
+
   return (
     <DataTable
       loading={loading}
@@ -50,8 +56,8 @@ export function CategoriesTable({
       header={
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>Категории</CardTitle>
-            <SearchInput placeholder="Поиск..." value={searchQuery} onChange={onSearchChange} />
+            <CardTitle>{t("categories")}</CardTitle>
+            <SearchInput placeholder={tCommon("searchPlaceholder")} value={searchQuery} onChange={onSearchChange} />
           </div>
         </CardHeader>
       }
@@ -59,13 +65,13 @@ export function CategoriesTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Название</TableHead>
+            <TableHead>{t("name")}</TableHead>
             <TableHead>Slug</TableHead>
-            <TableHead>Описание</TableHead>
-            <TableHead>Статей</TableHead>
-            <TableHead>Порядок</TableHead>
-            <TableHead>Дата</TableHead>
-            <TableHead className="w-[100px]">Действия</TableHead>
+            <TableHead>{tCommon("description")}</TableHead>
+            <TableHead>{t("articles")}</TableHead>
+            <TableHead>{t("order")}</TableHead>
+            <TableHead>{tCommon("created")}</TableHead>
+            <TableHead className="w-[100px]">{tCommon("actions")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -101,7 +107,7 @@ export function CategoriesTable({
                 <Badge variant="secondary">{category.articles_count}</Badge>
               </TableCell>
               <TableCell>{category.order}</TableCell>
-              <TableCell>{new Date(category.createdAt).toLocaleDateString("ru-RU")}</TableCell>
+              <TableCell>{new Date(category.createdAt).toLocaleDateString()}</TableCell>
               <TableCell onClick={(e) => e.stopPropagation()}>
                 <div className="flex gap-1">
                   <Button variant="ghost" size="icon" onClick={() => onEdit(category)}>

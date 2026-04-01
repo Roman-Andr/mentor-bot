@@ -21,6 +21,7 @@ class IChecklistRepository(BaseRepository["Checklist", int]):
         user_id: int | None = None,
         status: ChecklistStatus | None = None,
         department_id: int | None = None,
+        search: str | None = None,
         overdue_only: bool = False,
     ) -> tuple[Sequence[Checklist], int]:
         """Find checklists with filtering and return results with total count."""

@@ -36,7 +36,7 @@ class Invitation(Base):
     department_id: Mapped[int | None] = mapped_column(ForeignKey("departments.id"), nullable=True)
     department: Mapped["Department | None"] = relationship("Department", back_populates="invitations")
     position: Mapped[str | None] = mapped_column(String(100), nullable=True)
-    level: Mapped[EmployeeLevel | None] = mapped_column(Enum(EmployeeLevel), nullable=True)
+    level: Mapped[EmployeeLevel | None] = mapped_column(Enum(EmployeeLevel, native=False), nullable=True)
     role: Mapped[UserRole] = mapped_column(Enum(UserRole), default=UserRole.NEWBIE, nullable=False)
 
     # Mentor assignment

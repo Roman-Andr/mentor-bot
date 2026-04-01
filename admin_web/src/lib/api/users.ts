@@ -1,4 +1,5 @@
 import { fetchApi } from "./client";
+import { buildQueryString } from "@/lib/utils/query-builder";
 import type { User, UserListResponse } from "./types";
 
 export const usersApi = {
@@ -9,13 +10,8 @@ export const usersApi = {
     skip?: number;
     limit?: number;
   }) => {
-    const searchParams = new URLSearchParams();
-    if (params?.role) searchParams.set("role", params.role);
-    if (params?.department_id !== undefined) searchParams.set("department_id", String(params.department_id));
-    if (params?.search) searchParams.set("search", params.search);
-    if (params?.skip !== undefined) searchParams.set("skip", String(params.skip));
-    if (params?.limit) searchParams.set("limit", String(params.limit));
-    return fetchApi<UserListResponse>(`/api/v1/users?${searchParams.toString()}`);
+    const qs = buildQueryString(params);
+    return fetchApi<UserListResponse>(`/api/v1/users${qs ? `?${qs}` : ""}`);
   },
   get: (id: number) => fetchApi<User>(`/api/v1/users/${id}`),
   create: (data: Partial<User> & { password?: string }) =>

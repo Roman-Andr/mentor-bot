@@ -13,7 +13,7 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
 
-from knowledge_service.api import articles, attachments, categories, search, tags
+from knowledge_service.api import articles, attachments, categories, dialogues, search, tags
 from knowledge_service.config import settings
 from knowledge_service.database import init_db
 from knowledge_service.middleware.auth import AuthTokenMiddleware
@@ -80,6 +80,7 @@ app.include_router(articles.router, prefix=f"{settings.API_V1_PREFIX}/articles",
 app.include_router(search.router, prefix=f"{settings.API_V1_PREFIX}/search", tags=["search"])
 app.include_router(tags.router, prefix=f"{settings.API_V1_PREFIX}/tags", tags=["tags"])
 app.include_router(attachments.router, prefix=f"{settings.API_V1_PREFIX}", tags=["attachments"])
+app.include_router(dialogues.router, prefix=f"{settings.API_V1_PREFIX}/dialogue-scenarios", tags=["dialogues"])
 
 
 @app.get("/")

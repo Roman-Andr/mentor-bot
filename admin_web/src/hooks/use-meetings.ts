@@ -1,6 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
-import { useDebounce } from "@/hooks/useDebounce";
-import { useConfirm } from "@/components/ui/confirm-dialog";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/toast";
 import { api, type Meeting } from "@/lib/api";
 
@@ -60,134 +59,120 @@ const defaultFormData: MeetingFormData = {
   order: 0,
 };
 
+const MEETINGS_KEY = ["meetings"] as const;
+
 export function useMeetings() {
-  const confirm = useConfirm();
   const { toast } = useToast();
-  const [meetings, setMeetings] = useState<MeetingItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState("ALL");
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedMeeting, setSelectedMeeting] = useState<MeetingItem | null>(null);
   const [formData, setFormData] = useState<MeetingFormData>({ ...defaultFormData });
 
-  const debouncedSearch = useDebounce(searchQuery);
   const pageSize = 20;
 
-  const resetForm = useCallback(() => {
-    setFormData({ ...defaultFormData });
-    setSelectedMeeting(null);
-  }, []);
+  const queryParams = {
+    skip: (currentPage - 1) * pageSize,
+    limit: pageSize,
+    ...(typeFilter !== "ALL" && { meeting_type: typeFilter }),
+  };
 
-  const loadMeetings = useCallback(async () => {
-    setLoading(true);
-    try {
-      const params: Record<string, unknown> = {
-        skip: (currentPage - 1) * pageSize,
-        limit: pageSize,
-      };
-      if (typeFilter !== "ALL") params.meeting_type = typeFilter;
+  const { data: meetingsData, isLoading: loading } = useQuery({
+    queryKey: [...MEETINGS_KEY, queryParams],
+    queryFn: () => api.meetings.list(queryParams),
+    select: (result) =>
+      result.data
+        ? {
+            meetings: result.data.meetings.map(mapMeeting),
+            total: result.data.total,
+            pages: result.data.pages,
+          }
+        : undefined,
+  });
 
-      const response = await api.meetings.list(params);
-      if (response.data) {
-        let items = response.data.meetings.map(mapMeeting);
-        if (debouncedSearch) {
-          const q = debouncedSearch.toLowerCase();
-          items = items.filter(
-            (m) =>
-              m.title.toLowerCase().includes(q) ||
-              m.description.toLowerCase().includes(q),
-          );
-        }
-        setMeetings(items);
-        setTotalCount(response.data.total);
-        setTotalPages(response.data.pages || 1);
-      }
-    } catch (err) {
-      console.error("Failed to load meetings:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, [currentPage, typeFilter, debouncedSearch]);
-
-  useEffect(() => {
-    loadMeetings();
-  }, [loadMeetings]);
-
-  const handleCreate = async () => {
-    try {
-      const response = await api.meetings.create({
-        title: formData.title,
-        description: formData.description || null,
-        type: formData.type,
-        department_id: formData.department_id || null,
-        position: formData.position || null,
-        level: formData.level || null,
-        deadline_days: formData.deadline_days,
-        is_mandatory: formData.is_mandatory,
-        order: formData.order,
-      });
-      if (response.data) {
-        setMeetings([mapMeeting(response.data), ...meetings]);
-        setTotalCount((c) => c + 1);
+  const createMutation = useMutation({
+    mutationFn: (data: Parameters<typeof api.meetings.create>[0]) => api.meetings.create(data),
+    onSuccess: (result) => {
+      if (result.data) {
+        queryClient.invalidateQueries({ queryKey: MEETINGS_KEY });
         setIsCreateDialogOpen(false);
         resetForm();
         toast("Встреча создана", "success");
-      } else {
-        toast(response.error || "Ошибка создания", "error");
+      } else if (result.error) {
+        toast(result.error, "error");
       }
-    } catch (err) {
-      console.error("Failed to create meeting:", err);
-      toast("Ошибка создания встречи", "error");
-    }
-  };
+    },
+    onError: () => toast("Ошибка создания встречи", "error"),
+  });
 
-  const handleUpdate = async () => {
-    if (!selectedMeeting) return;
-    try {
-      const response = await api.meetings.update(selectedMeeting.id, {
-        title: formData.title,
-        description: formData.description || null,
-        type: formData.type,
-        department_id: formData.department_id || null,
-        position: formData.position || null,
-        level: formData.level || null,
-        deadline_days: formData.deadline_days,
-        is_mandatory: formData.is_mandatory,
-        order: formData.order,
-      });
-      if (response.data) {
-        setMeetings(
-          meetings.map((m) => (m.id === selectedMeeting.id ? mapMeeting(response.data!) : m)),
-        );
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: Parameters<typeof api.meetings.update>[1] }) =>
+      api.meetings.update(id, data),
+    onSuccess: (result) => {
+      if (result.data) {
+        queryClient.invalidateQueries({ queryKey: MEETINGS_KEY });
         setIsEditDialogOpen(false);
         setSelectedMeeting(null);
         resetForm();
         toast("Встреча обновлена", "success");
-      } else {
-        toast(response.error || "Ошибка обновления", "error");
+      } else if (result.error) {
+        toast(result.error, "error");
       }
-    } catch (err) {
-      console.error("Failed to update meeting:", err);
-      toast("Ошибка обновления встречи", "error");
-    }
+    },
+    onError: () => toast("Ошибка обновления встречи", "error"),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => api.meetings.delete(id),
+    onSuccess: (result) => {
+      if (!result.error) {
+        queryClient.invalidateQueries({ queryKey: MEETINGS_KEY });
+        toast("Встреча удалена", "success");
+      } else {
+        toast(result.error, "error");
+      }
+    },
+    onError: () => toast("Ошибка удаления встречи", "error"),
+  });
+
+  const handleCreate = () => {
+    createMutation.mutate({
+      title: formData.title,
+      description: formData.description || null,
+      type: formData.type,
+      department_id: formData.department_id || null,
+      position: formData.position || null,
+      level: formData.level || null,
+      deadline_days: formData.deadline_days,
+      is_mandatory: formData.is_mandatory,
+      order: formData.order,
+    });
   };
 
-  const handleDelete = async (id: number) => {
-    if (!(await confirm({ title: "Удаление встречи", description: "Вы уверены, что хотите удалить эту встречу?", variant: "destructive", confirmText: "Удалить" }))) return;
-    try {
-      await api.meetings.delete(id);
-      setMeetings(meetings.filter((m) => m.id !== id));
-      setTotalCount((c) => c - 1);
-      toast("Встреча удалена", "success");
-    } catch (err) {
-      console.error("Failed to delete meeting:", err);
-      toast("Ошибка удаления встречи", "error");
-    }
+  const handleUpdate = () => {
+    if (!selectedMeeting) return;
+    updateMutation.mutate({
+      id: selectedMeeting.id,
+      data: {
+        title: formData.title,
+        description: formData.description || null,
+        type: formData.type,
+        department_id: formData.department_id || null,
+        position: formData.position || null,
+        level: formData.level || null,
+        deadline_days: formData.deadline_days,
+        is_mandatory: formData.is_mandatory,
+        order: formData.order,
+      },
+    });
+  };
+
+  const handleDelete = (id: number) => {
+    deleteMutation.mutate(id);
   };
 
   const openEditDialog = (meeting: MeetingItem) => {
@@ -205,6 +190,15 @@ export function useMeetings() {
     });
     setIsEditDialogOpen(true);
   };
+
+  const resetForm = () => {
+    setFormData(defaultFormData);
+    setSelectedMeeting(null);
+  };
+
+  const meetings = meetingsData?.meetings || [];
+  const totalCount = meetingsData?.total || 0;
+  const totalPages = meetingsData?.pages || 1;
 
   return {
     meetings,
@@ -230,5 +224,13 @@ export function useMeetings() {
     handleDelete,
     openEditDialog,
     resetForm,
+    resetFilters: () => {
+      setSearchQuery("");
+      setTypeFilter("ALL");
+      setCurrentPage(1);
+    },
+    isCreating: createMutation.isPending,
+    isUpdating: updateMutation.isPending,
+    isDeleting: deleteMutation.isPending,
   };
 }

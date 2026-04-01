@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { PageContent } from "@/components/layout/page-content";
@@ -18,6 +19,8 @@ import { cn } from "@/lib/utils";
 type Tab = "articles" | "categories";
 
 export default function KnowledgePage() {
+  const t = useTranslations("knowledge");
+  const tCommon = useTranslations("common");
   const [activeTab, setActiveTab] = useState<Tab>("articles");
   const a = useArticles();
   const c = useCategories();
@@ -35,14 +38,14 @@ export default function KnowledgePage() {
 
   return (
     <PageContent
-      title="База знаний"
-      subtitle="Управление статьями и категориями"
+      title={t("title")}
+      subtitle={t("title")}
       actions={
         <div className="flex items-center gap-2">
           <div className="flex rounded-md border">
             <button
               className={cn(
-                "flex items-center gap-1.5 rounded-l-md px-3 py-1.5 text-sm font-medium transition-colors",
+                "flex cursor-pointer items-center gap-1.5 rounded-l-md px-3 py-1.5 text-sm font-medium transition-colors",
                 activeTab === "articles"
                   ? "bg-primary text-primary-foreground"
                   : "bg-background text-muted-foreground hover:bg-muted",
@@ -50,11 +53,11 @@ export default function KnowledgePage() {
               onClick={() => setActiveTab("articles")}
             >
               <BookOpen className="size-4" />
-              Статьи
+              {t("articles")}
             </button>
             <button
               className={cn(
-                "flex items-center gap-1.5 rounded-r-md px-3 py-1.5 text-sm font-medium transition-colors",
+                "flex cursor-pointer items-center gap-1.5 rounded-r-md px-3 py-1.5 text-sm font-medium transition-colors",
                 activeTab === "categories"
                   ? "bg-primary text-primary-foreground"
                   : "bg-background text-muted-foreground hover:bg-muted",
@@ -62,7 +65,7 @@ export default function KnowledgePage() {
               onClick={() => setActiveTab("categories")}
             >
               <FolderOpen className="size-4" />
-              Категории
+              {t("categories")}
             </button>
           </div>
           <Button
@@ -78,7 +81,7 @@ export default function KnowledgePage() {
             }}
           >
             <Plus className="size-4" />
-            {activeTab === "articles" ? "Создать статью" : "Создать категорию"}
+            {activeTab === "articles" ? t("addArticle") : t("addCategory")}
           </Button>
         </div>
       }
@@ -135,6 +138,7 @@ export default function KnowledgePage() {
             onCategoryFilterChange={a.setCategoryFilter}
             statusFilter={a.statusFilter}
             onStatusFilterChange={a.setStatusFilter}
+            onReset={a.resetFilters}
             categories={a.categories}
             onEdit={a.openEdit}
             onPublish={a.handlePublish}

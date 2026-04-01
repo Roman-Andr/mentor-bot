@@ -22,6 +22,16 @@ from knowledge_service.schemas.category import (
     CategoryUpdate,
     CategoryWithArticles,
 )
+from knowledge_service.schemas.dialogue import (
+    DialogueScenarioCreate,
+    DialogueScenarioListResponse,
+    DialogueScenarioResponse,
+    DialogueScenarioUpdate,
+    DialogueStepCreate,
+    DialogueStepReorderRequest,
+    DialogueStepResponse,
+    DialogueStepUpdate,
+)
 from knowledge_service.schemas.responses import (
     HealthCheck,
     MessageResponse,
@@ -52,6 +62,14 @@ __all__ = [
     "CategoryResponse",
     "CategoryUpdate",
     "CategoryWithArticles",
+    "DialogueScenarioCreate",
+    "DialogueScenarioListResponse",
+    "DialogueScenarioResponse",
+    "DialogueScenarioUpdate",
+    "DialogueStepCreate",
+    "DialogueStepReorderRequest",
+    "DialogueStepResponse",
+    "DialogueStepUpdate",
     "HealthCheck",
     "MessageResponse",
     "SearchHistoryResponse",

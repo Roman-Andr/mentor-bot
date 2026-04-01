@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { api, ChecklistStats } from "@/lib/api";
@@ -11,24 +12,26 @@ import { CompletionTimeChart } from "@/components/features/analytics/completion-
 import { ChecklistStatus } from "@/components/features/analytics/checklist-status";
 
 const monthlyData = [
-  { month: "Сен", newUsers: 12, completed: 8 },
-  { month: "Окт", newUsers: 18, completed: 14 },
-  { month: "Ноя", newUsers: 15, completed: 12 },
-  { month: "Дек", newUsers: 22, completed: 18 },
-  { month: "Янв", newUsers: 28, completed: 20 },
-  { month: "Фев", newUsers: 25, completed: 22 },
-  { month: "Мар", newUsers: 20, completed: 15 },
+  { month: "Sep", newUsers: 12, completed: 8 },
+  { month: "Oct", newUsers: 18, completed: 14 },
+  { month: "Nov", newUsers: 15, completed: 12 },
+  { month: "Dec", newUsers: 22, completed: 18 },
+  { month: "Jan", newUsers: 28, completed: 20 },
+  { month: "Feb", newUsers: 25, completed: 22 },
+  { month: "Mar", newUsers: 20, completed: 15 },
 ];
 
 const completionTimeData = [
-  { range: "1-7 дней", count: 15 },
-  { range: "8-14 дней", count: 28 },
-  { range: "15-21 дней", count: 35 },
-  { range: "22-30 дней", count: 18 },
-  { range: ">30 дней", count: 8 },
+  { range: "1-7 days", count: 15 },
+  { range: "8-14 days", count: 28 },
+  { range: "15-21 days", count: 35 },
+  { range: "22-30 days", count: 18 },
+  { range: ">30 days", count: 8 },
 ];
 
 export default function AnalyticsPage() {
+  const t = useTranslations("analytics");
+  const tCommon = useTranslations("common");
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<ChecklistStats | null>(null);
   const [userCount, setUserCount] = useState(0);
@@ -63,21 +66,20 @@ export default function AnalyticsPage() {
         color: ["#3B82F6", "#8B5CF6", "#10B981", "#F59E0B", "#EF4444"][index % 5],
       }))
     : [
-        { name: "Разработка", value: 45, color: "#3B82F6" },
-        { name: "Дизайн", value: 18, color: "#8B5CF6" },
+        { name: "Development", value: 45, color: "#3B82F6" },
+        { name: "Design", value: 18, color: "#8B5CF6" },
         { name: "QA", value: 15, color: "#10B981" },
-        { name: "Маркетинг", value: 22, color: "#F59E0B" },
+        { name: "Marketing", value: 22, color: "#F59E0B" },
       ];
 
   const handleExport = () => {
     const csvContent = [
-      ["Метрика", "Значение"],
-      ["Всего новичков", stats?.total || userCount],
-      ["Завершено", stats?.completed || 0],
-      ["В процессе", stats?.in_progress || 0],
-      ["Просрочено", stats?.overdue || 0],
-      ["Среднее время (дней)", stats?.avg_completion_days || 0],
-      ["Процент завершения", stats?.completion_rate || 0],
+      [t("totalNewbies"), String(stats?.total || userCount)],
+      [tCommon("completed"), String(stats?.completed || 0)],
+      [tCommon("inProgress"), String(stats?.in_progress || 0)],
+      [t("overdue"), String(stats?.overdue || 0)],
+      [t("averageTime"), String(Math.round(stats?.avg_completion_days || 0))],
+      [t("completionRate"), String(Math.round(stats?.completion_rate || 0))],
     ]
       .map((row) => row.join(","))
       .join("\n");
@@ -94,12 +96,12 @@ export default function AnalyticsPage() {
       <div className="space-y-6 p-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-foreground text-2xl font-bold">Аналитика</h1>
-            <p className="text-muted-foreground">Статистика и отчёты по онбордингу</p>
+            <h1 className="text-foreground text-2xl font-bold">{t("title")}</h1>
+            <p className="text-muted-foreground">{t("overview")}</p>
           </div>
         </div>
         <div className="flex h-64 items-center justify-center">
-          <div className="text-muted-foreground">Загрузка данных...</div>
+          <div className="text-muted-foreground">{tCommon("loading")}</div>
         </div>
       </div>
     );
@@ -109,12 +111,12 @@ export default function AnalyticsPage() {
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-foreground text-2xl font-bold">Аналитика</h1>
-          <p className="text-muted-foreground">Статистика и отчёты по онбордингу</p>
+          <h1 className="text-foreground text-2xl font-bold">{t("title")}</h1>
+          <p className="text-muted-foreground">{t("overview")}</p>
         </div>
         <Button className="gap-2" onClick={handleExport}>
           <Download className="size-4" />
-          Экспорт в CSV
+          {tCommon("export")}
         </Button>
       </div>
 

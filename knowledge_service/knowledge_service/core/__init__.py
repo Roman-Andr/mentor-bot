@@ -3,6 +3,8 @@
 from knowledge_service.core.enums import (
     ArticleStatus,
     AttachmentType,
+    DialogueAnswerType,
+    DialogueCategory,
     EmployeeLevel,
     SearchSortBy,
 )
@@ -19,6 +21,8 @@ __all__ = [
     "AttachmentType",
     "AuthException",
     "ConflictException",
+    "DialogueAnswerType",
+    "DialogueCategory",
     "EmployeeLevel",
     "NotFoundException",
     "PermissionDenied",

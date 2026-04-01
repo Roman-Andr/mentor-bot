@@ -21,33 +21,30 @@ export interface UserMeetingListResponse {
 }
 
 export const userMeetingsApi = {
-  list: (params?: {
-    status?: string;
-    skip?: number;
-    limit?: number;
-  }) => {
+  list: (params?: { status?: string; skip?: number; limit?: number }) => {
     const searchParams = new URLSearchParams();
     if (params?.status) searchParams.set("status", params.status);
     if (params?.skip !== undefined) searchParams.set("skip", String(params.skip));
     if (params?.limit) searchParams.set("limit", String(params.limit));
     return fetchApi<UserMeetingListResponse>(`/api/v1/user-meetings/my?${searchParams.toString()}`);
   },
-  listByMeeting: (meetingId: number, params?: {
-    status?: string;
-    skip?: number;
-    limit?: number;
-  }) => {
+  listByMeeting: (
+    meetingId: number,
+    params?: {
+      status?: string;
+      skip?: number;
+      limit?: number;
+    },
+  ) => {
     const searchParams = new URLSearchParams();
     if (params?.status) searchParams.set("status", params.status);
     if (params?.skip !== undefined) searchParams.set("skip", String(params.skip));
     if (params?.limit) searchParams.set("limit", String(params.limit));
-    return fetchApi<UserMeetingListResponse>(`/api/v1/user-meetings/by-meeting/${meetingId}?${searchParams.toString()}`);
+    return fetchApi<UserMeetingListResponse>(
+      `/api/v1/user-meetings/by-meeting/${meetingId}?${searchParams.toString()}`,
+    );
   },
-  listAll: (params?: {
-    status?: string;
-    skip?: number;
-    limit?: number;
-  }) => {
+  listAll: (params?: { status?: string; skip?: number; limit?: number }) => {
     const searchParams = new URLSearchParams();
     if (params?.status) searchParams.set("status", params.status);
     if (params?.skip !== undefined) searchParams.set("skip", String(params.skip));
@@ -59,14 +56,21 @@ export const userMeetingsApi = {
       method: "POST",
       body: JSON.stringify(data),
     }),
-  autoAssign: (userId: number, params?: { department_id?: number; position?: string; level?: string }) => {
+  autoAssign: (
+    userId: number,
+    params?: { department_id?: number; position?: string; level?: string },
+  ) => {
     const searchParams = new URLSearchParams();
-    if (params?.department_id !== undefined) searchParams.set("department_id", String(params.department_id));
+    if (params?.department_id !== undefined)
+      searchParams.set("department_id", String(params.department_id));
     if (params?.position) searchParams.set("position", params.position);
     if (params?.level) searchParams.set("level", params.level);
-    return fetchApi<UserMeetingResponse[]>(`/api/v1/user-meetings/auto-assign/${userId}?${searchParams.toString()}`, {
-      method: "POST",
-    });
+    return fetchApi<UserMeetingResponse[]>(
+      `/api/v1/user-meetings/auto-assign/${userId}?${searchParams.toString()}`,
+      {
+        method: "POST",
+      },
+    );
   },
   get: (id: number) => fetchApi<UserMeetingResponse>(`/api/v1/user-meetings/${id}`),
   update: (id: number, data: { status?: string; scheduled_at?: string | null }) =>

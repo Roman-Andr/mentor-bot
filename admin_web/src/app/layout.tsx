@@ -1,30 +1,34 @@
 import type { Metadata } from "next";
-import { AuthProvider } from "@/lib/auth-context";
-import { ThemeProvider } from "@/components/providers/theme-provider";
-import { ConfirmProvider } from "@/components/ui/confirm-dialog";
-import { ToastProvider } from "@/components/ui/toast";
+import { NextIntlClientProvider } from "next-intl";
+import { getMessages } from "next-intl/server";
+import { notFound } from "next/navigation";
+import { routing } from "@/i18n/routing";
+import { Providers } from "./providers";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Админ-панель | Ментор-бот",
-  description: "Панель администратора для управления системой онбординга",
+  title: "Admin Panel | Mentor Bot",
+  description: "Administrator panel for onboarding system management",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = routing.defaultLocale;
+  if (!routing.locales.includes(locale as never)) {
+    notFound();
+  }
+
+  const messages = await getMessages();
+
   return (
-    <html lang="ru" suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning>
       <body>
-        <ThemeProvider>
-          <AuthProvider>
-            <ToastProvider>
-              <ConfirmProvider>{children}</ConfirmProvider>
-            </ToastProvider>
-          </AuthProvider>
-        </ThemeProvider>
+        <NextIntlClientProvider messages={messages}>
+          <Providers>{children}</Providers>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useDebounce } from "@/hooks/useDebounce";
-import { useConfirm } from "@/components/ui/confirm-dialog";
 import { useToast } from "@/components/ui/toast";
 import { api, type Department } from "@/lib/api";
 
@@ -30,94 +30,106 @@ function mapDepartment(d: Department): DepartmentRow {
   };
 }
 
+const DEPARTMENTS_KEY = ["departments"] as const;
+
 export function useDepartments() {
-  const confirm = useConfirm();
   const { toast } = useToast();
-  const [departments, setDepartments] = useState<DepartmentRow[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedDepartment, setSelectedDepartment] = useState<DepartmentRow | null>(null);
   const [formData, setFormData] = useState<DepartmentFormData>(EMPTY_FORM);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
   const pageSize = 20;
 
   const debouncedSearch = useDebounce(searchQuery);
 
-  const loadDepartments = useCallback(async () => {
-    setLoading(true);
-    try {
-      const skip = (currentPage - 1) * pageSize;
-      const response = await api.departments.list({ skip, limit: pageSize, search: debouncedSearch || undefined });
-      if (response.data) {
-        setDepartments(response.data.departments.map(mapDepartment));
-        setTotalCount(response.data.total);
-        setTotalPages(response.data.pages || 1);
+  const queryParams = {
+    skip: (currentPage - 1) * pageSize,
+    limit: pageSize,
+    ...(debouncedSearch && { search: debouncedSearch }),
+  };
+
+  const { data: departmentsData, isLoading: loading } = useQuery({
+    queryKey: [...DEPARTMENTS_KEY, queryParams],
+    queryFn: () => api.departments.list(queryParams),
+    select: (result) =>
+      result.data
+        ? {
+            departments: result.data.departments.map(mapDepartment),
+            total: result.data.total,
+            pages: result.data.pages,
+          }
+        : undefined,
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (data: Parameters<typeof api.departments.create>[0]) =>
+      api.departments.create(data),
+    onSuccess: (result) => {
+      if (result.data) {
+        queryClient.invalidateQueries({ queryKey: DEPARTMENTS_KEY });
+        setIsCreateDialogOpen(false);
+        resetForm();
+        toast("Отдел создан", "success");
+      } else if (result.error) {
+        toast(result.error, "error");
       }
-    } catch (err) {
-      console.error("Failed to load departments:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, [currentPage, pageSize, debouncedSearch]);
+    },
+    onError: () => toast("Ошибка сохранения отдела", "error"),
+  });
 
-  useEffect(() => {
-    loadDepartments();
-  }, [loadDepartments]);
+  const updateMutation = useMutation({
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: number;
+      data: Parameters<typeof api.departments.update>[1];
+    }) => api.departments.update(id, data),
+    onSuccess: (result) => {
+      if (result.data) {
+        queryClient.invalidateQueries({ queryKey: DEPARTMENTS_KEY });
+        setIsEditDialogOpen(false);
+        setSelectedDepartment(null);
+        toast("Отдел обновлён", "success");
+      } else if (result.error) {
+        toast(result.error, "error");
+      }
+    },
+    onError: () => toast("Ошибка сохранения отдела", "error"),
+  });
 
-  const handleSubmit = async () => {
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => api.departments.delete(id),
+    onSuccess: (result) => {
+      if (!result.error) {
+        queryClient.invalidateQueries({ queryKey: DEPARTMENTS_KEY });
+        toast("Отдел удалён", "success");
+      } else {
+        toast(result.error, "error");
+      }
+    },
+    onError: () => toast("Ошибка удаления отдела", "error"),
+  });
+
+  const handleSubmit = () => {
     const payload = {
       name: formData.name,
       description: formData.description || null,
     };
 
-    try {
-      if (selectedDepartment) {
-        const response = await api.departments.update(selectedDepartment.id, payload);
-        if (response.data) {
-          setDepartments(
-            departments.map((d) =>
-              d.id === selectedDepartment.id ? mapDepartment(response.data!) : d,
-            ),
-          );
-          setIsEditDialogOpen(false);
-          setSelectedDepartment(null);
-          toast("Отдел обновлён", "success");
-        } else {
-          toast(response.error || "Ошибка обновления", "error");
-        }
-      } else {
-        const response = await api.departments.create(payload);
-        if (response.data) {
-          setTotalCount((c) => c + 1);
-          setDepartments([mapDepartment(response.data), ...departments]);
-          setIsCreateDialogOpen(false);
-          resetForm();
-          toast("Отдел создан", "success");
-        } else {
-          toast(response.error || "Ошибка создания", "error");
-        }
-      }
-    } catch (err) {
-      console.error("Failed to save department:", err);
-      toast("Ошибка сохранения отдела", "error");
+    if (selectedDepartment) {
+      updateMutation.mutate({ id: selectedDepartment.id, data: payload });
+    } else {
+      createMutation.mutate(payload);
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (!(await confirm({ title: "Удаление отдела", description: "Вы уверены, что хотите удалить этот отдел?", variant: "destructive", confirmText: "Удалить" }))) return;
-    try {
-      await api.departments.delete(id);
-      setDepartments(departments.filter((d) => d.id !== id));
-      setTotalCount((prev) => prev - 1);
-      toast("Отдел удалён", "success");
-    } catch (err) {
-      console.error("Failed to delete department:", err);
-      toast("Ошибка удаления отдела", "error");
-    }
+  const handleDelete = (id: number) => {
+    deleteMutation.mutate(id);
   };
 
   const openEdit = (department: DepartmentRow) => {
@@ -138,6 +150,10 @@ export function useDepartments() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  const departments = departmentsData?.departments || [];
+  const totalCount = departmentsData?.total || 0;
+  const totalPages = departmentsData?.pages || 1;
+
   return {
     departments,
     loading,
@@ -157,10 +173,11 @@ export function useDepartments() {
     totalPages,
     totalCount,
     pageSize,
-    loadDepartments,
     handleSubmit,
     handleDelete,
     openEdit,
     resetForm,
+    isSubmitting: createMutation.isPending || updateMutation.isPending,
+    isDeleting: deleteMutation.isPending,
   };
 }

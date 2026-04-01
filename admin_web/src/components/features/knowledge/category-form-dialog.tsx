@@ -1,3 +1,6 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -31,31 +34,30 @@ export function CategoryFormDialog({
   onSubmit,
   onCancel,
 }: CategoryFormDialogProps) {
+  const t = useTranslations("knowledge");
+  const tCommon = useTranslations("common");
+
   const isEdit = mode === "edit";
 
   return (
     <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto">
       <DialogHeader>
-        <DialogTitle>
-          {isEdit ? "Редактирование категории" : "Создание категории"}
-        </DialogTitle>
+        <DialogTitle>{isEdit ? t("editCategoryTitle") : t("addCategoryTitle")}</DialogTitle>
         <DialogDescription>
-          {isEdit
-            ? "Измените категорию в базе знаний"
-            : "Создайте новую категорию в базе знаний"}
+          {isEdit ? t("changeCategory") : t("createNewCategory")}
         </DialogDescription>
       </DialogHeader>
       <div className="grid gap-4 py-4">
         <div className="grid gap-2">
-          <label className="text-sm font-medium">Название *</label>
+          <label className="text-sm font-medium">{t("name")} *</label>
           <Input
-            placeholder="Название категории"
+            placeholder={t("name")}
             value={formData.name}
             onChange={(e) => onFormDataChange("name", e.target.value)}
           />
         </div>
         <div className="grid gap-2">
-          <label className="text-sm font-medium">Slug</label>
+          <label className="text-sm font-medium">{t("slug")}</label>
           <Input
             placeholder="category-slug"
             value={formData.slug}
@@ -63,22 +65,22 @@ export function CategoryFormDialog({
           />
         </div>
         <div className="grid gap-2">
-          <label className="text-sm font-medium">Описание</label>
+          <label className="text-sm font-medium">{tCommon("description")}</label>
           <Textarea
-            placeholder="Описание категории"
+            placeholder={tCommon("description")}
             value={formData.description}
             onChange={(e) => onFormDataChange("description", e.target.value)}
           />
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div className="grid gap-2">
-            <label className="text-sm font-medium">Родительская категория</label>
+            <label className="text-sm font-medium">{t("parentCategory")}</label>
             <Select
-              value={formData.parent_id}
-              onChange={(e) => onFormDataChange("parent_id", parseInt(e.target.value))}
-              placeholder="Нет"
+              value={formData.parent_id ? String(formData.parent_id) : ""}
+              onChange={(val) => onFormDataChange("parent_id", parseInt(val) || 0)}
+              placeholder={t("noCategory")}
               options={[
-                { value: "0", label: "Нет" },
+                { value: "0", label: t("noCategory") },
                 ...categories
                   .filter((c) => c.id !== formData.parent_id)
                   .map((cat) => ({ value: String(cat.id), label: cat.name })),
@@ -86,7 +88,7 @@ export function CategoryFormDialog({
             />
           </div>
           <div className="grid gap-2">
-            <label className="text-sm font-medium">Порядок</label>
+            <label className="text-sm font-medium">{t("order")}</label>
             <Input
               type="number"
               min={0}
@@ -97,21 +99,21 @@ export function CategoryFormDialog({
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div className="grid gap-2">
-            <label className="text-sm font-medium">Отдел</label>
+            <label className="text-sm font-medium">{tCommon("department")}</label>
             <Select
-              value={formData.department_id}
-              onChange={(e) => onFormDataChange("department_id", parseInt(e.target.value) || 0)}
-              placeholder="Все"
+              value={formData.department_id ? String(formData.department_id) : ""}
+              onChange={(val) => onFormDataChange("department_id", parseInt(val) || 0)}
+              placeholder={tCommon("all")}
               options={[
-                { value: "0", label: "Все" },
+                { value: "0", label: tCommon("all") },
                 ...departments.map((d) => ({ value: String(d.id), label: d.name })),
               ]}
             />
           </div>
           <div className="grid gap-2">
-            <label className="text-sm font-medium">Должность</label>
+            <label className="text-sm font-medium">{t("position")}</label>
             <Input
-              placeholder="Например: Developer"
+              placeholder="e.g., Developer"
               value={formData.position}
               onChange={(e) => onFormDataChange("position", e.target.value)}
             />
@@ -119,25 +121,25 @@ export function CategoryFormDialog({
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div className="grid gap-2">
-            <label className="text-sm font-medium">Уровень</label>
+            <label className="text-sm font-medium">{t("level")}</label>
             <Select
-              value={formData.level}
-              onChange={(e) => onFormDataChange("level", e.target.value)}
-              placeholder="Любой"
+              value={formData.level || ""}
+              onChange={(val) => onFormDataChange("level", val)}
+              placeholder={tCommon("all")}
               options={LEVELS_WITH_EMPTY.map((l) => ({ value: l.value, label: l.label }))}
             />
           </div>
           <div className="grid gap-2">
-            <label className="text-sm font-medium">Иконка</label>
+            <label className="text-sm font-medium">{t("icon")}</label>
             <Input
-              placeholder="Название иконки"
+              placeholder="Icon name"
               value={formData.icon}
               onChange={(e) => onFormDataChange("icon", e.target.value)}
             />
           </div>
         </div>
         <div className="grid gap-2">
-          <label className="text-sm font-medium">Цвет</label>
+          <label className="text-sm font-medium">{t("color")}</label>
           <div className="flex items-center gap-2">
             <input
               type="color"
@@ -155,10 +157,10 @@ export function CategoryFormDialog({
       </div>
       <DialogFooter>
         <Button variant="outline" onClick={onCancel}>
-          Отмена
+          {tCommon("cancel")}
         </Button>
         <Button onClick={onSubmit} disabled={!formData.name}>
-          {isEdit ? "Сохранить" : "Создать"}
+          {isEdit ? tCommon("save") : tCommon("create")}
         </Button>
       </DialogFooter>
     </DialogContent>

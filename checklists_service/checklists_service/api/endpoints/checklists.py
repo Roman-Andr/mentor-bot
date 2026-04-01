@@ -32,6 +32,7 @@ async def get_checklists(
     user_id: Annotated[int | None, Query()] = None,
     status: Annotated[str | None, Query()] = None,
     department_id: Annotated[int | None, Query()] = None,
+    search: Annotated[str | None, Query()] = None,
     *,
     overdue_only: Annotated[bool, Query()] = False,
 ) -> ChecklistListResponse:
@@ -53,6 +54,7 @@ async def get_checklists(
         user_id=effective_user_id,
         status=status,
         department_id=department_id,
+        search=search,
         overdue_only=overdue_only,
     )
 

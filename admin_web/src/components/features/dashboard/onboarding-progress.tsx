@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { OnboardingProgress as OnboardingProgressType } from "@/lib/api";
 
@@ -6,16 +7,18 @@ interface OnboardingProgressProps {
 }
 
 export function OnboardingProgress({ progress }: OnboardingProgressProps) {
+  const t = useTranslations("dashboard");
+
   return (
     <Card className="col-span-4">
       <CardHeader>
-        <CardTitle>Прогресс онбординга</CardTitle>
+        <CardTitle>{t("onboardingProgress")}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
           {progress.length > 0 ? (
-            progress.map((item) => (
-              <div key={item.user_id} className="flex items-center gap-4">
+            progress.map((item, index) => (
+              <div key={`${item.user_id}-${index}`} className="flex items-center gap-4">
                 <div className="min-w-0 flex-1">
                   <div className="mb-1 flex items-center justify-between">
                     <p className="truncate text-sm font-medium">{item.user_name}</p>
@@ -35,12 +38,12 @@ export function OnboardingProgress({ progress }: OnboardingProgressProps) {
                   </div>
                 </div>
                 <span className="text-muted-foreground text-xs whitespace-nowrap">
-                  {item.days_remaining} дн.
+                  {item.days_remaining} {t("daysRemaining")}
                 </span>
               </div>
             ))
           ) : (
-            <p className="text-muted-foreground py-4 text-center text-sm">Нет данных о прогрессе</p>
+            <p className="text-muted-foreground py-4 text-center text-sm">{t("noData")}</p>
           )}
         </div>
       </CardContent>

@@ -1,4 +1,5 @@
 import { fetchApi } from "./client";
+import { buildQueryString } from "@/lib/utils/query-builder";
 import type { Checklist, ChecklistListResponse, ChecklistStats } from "./types";
 
 export const checklistsApi = {
@@ -9,15 +10,10 @@ export const checklistsApi = {
     status?: string;
     department_id?: number;
     overdue_only?: boolean;
+    search?: string;
   }) => {
-    const searchParams = new URLSearchParams();
-    if (params?.skip !== undefined) searchParams.set("skip", String(params.skip));
-    if (params?.limit) searchParams.set("limit", String(params.limit));
-    if (params?.user_id !== undefined) searchParams.set("user_id", String(params.user_id));
-    if (params?.status) searchParams.set("status", params.status);
-    if (params?.department_id !== undefined) searchParams.set("department_id", String(params.department_id));
-    if (params?.overdue_only) searchParams.set("overdue_only", "true");
-    return fetchApi<ChecklistListResponse>(`/api/v1/checklists?${searchParams.toString()}`);
+    const qs = buildQueryString(params);
+    return fetchApi<ChecklistListResponse>(`/api/v1/checklists${qs ? `?${qs}` : ""}`);
   },
   get: (id: number) => fetchApi<Checklist>(`/api/v1/checklists/${id}`),
   create: (data: {
@@ -58,9 +54,7 @@ export const checklistsApi = {
   getProgress: (id: number) =>
     fetchApi<Record<string, unknown>>(`/api/v1/checklists/${id}/progress`),
   stats: (params?: { user_id?: number; department_id?: number }) => {
-    const searchParams = new URLSearchParams();
-    if (params?.user_id !== undefined) searchParams.set("user_id", String(params.user_id));
-    if (params?.department_id !== undefined) searchParams.set("department_id", String(params.department_id));
-    return fetchApi<ChecklistStats>(`/api/v1/checklists/stats/summary?${searchParams.toString()}`);
+    const qs = buildQueryString(params);
+    return fetchApi<ChecklistStats>(`/api/v1/checklists/stats/summary${qs ? `?${qs}` : ""}`);
   },
 };

@@ -4,7 +4,8 @@ import type { ChecklistStats } from "./types";
 export const analyticsApi = {
   checklistStats: (params?: { department_id?: number }) => {
     const searchParams = new URLSearchParams();
-    if (params?.department_id !== undefined) searchParams.set("department_id", String(params.department_id));
+    if (params?.department_id !== undefined)
+      searchParams.set("department_id", String(params.department_id));
     return fetchApi<ChecklistStats>(`/api/v1/checklists/stats/summary?${searchParams.toString()}`);
   },
   onboardingProgress: () =>

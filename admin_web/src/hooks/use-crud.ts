@@ -154,7 +154,15 @@ export function useCrud<TItem, TForm>(
   const handleDelete = useCallback(
     async (id: number) => {
       if (!apiObj.delete) return;
-      if (!(await confirm({ title: "Удаление", description: confirmDelete, variant: "destructive", confirmText: "Удалить" }))) return;
+      if (
+        !(await confirm({
+          title: "Удаление",
+          description: confirmDelete,
+          variant: "destructive",
+          confirmText: "Удалить",
+        }))
+      )
+        return;
       try {
         await apiObj.delete(id);
         setItems((prev) => prev.filter((item) => (item as Record<string, unknown>).id !== id));

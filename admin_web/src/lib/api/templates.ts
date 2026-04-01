@@ -1,14 +1,11 @@
 import { fetchApi } from "./client";
+import { buildQueryString } from "@/lib/utils/query-builder";
 import type { Template, TemplateWithTasks, TaskTemplate } from "./types";
 
 export const templatesApi = {
   list: (params?: { department_id?: number; status?: string; skip?: number; limit?: number }) => {
-    const searchParams = new URLSearchParams();
-    if (params?.department_id !== undefined) searchParams.set("department_id", String(params.department_id));
-    if (params?.status) searchParams.set("status", params.status);
-    if (params?.skip !== undefined) searchParams.set("skip", String(params.skip));
-    if (params?.limit) searchParams.set("limit", String(params.limit));
-    return fetchApi<Template[]>(`/api/v1/templates?${searchParams.toString()}`);
+    const qs = buildQueryString(params);
+    return fetchApi<Template[]>(`/api/v1/templates${qs ? `?${qs}` : ""}`);
   },
   get: (id: number) => fetchApi<TemplateWithTasks>(`/api/v1/templates/${id}`),
   create: (data: Partial<Template>) =>

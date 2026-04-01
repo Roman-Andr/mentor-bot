@@ -23,7 +23,7 @@ export function TabSwitcher({ tabs, activeTab, onTabChange }: TabSwitcherProps) 
           <button
             key={tab.id}
             className={cn(
-              "flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium transition-colors",
+              "flex cursor-pointer items-center gap-1.5 px-3 py-1.5 text-sm font-medium transition-colors",
               isFirst && "rounded-l-md",
               isLast && "rounded-r-md",
               activeTab === tab.id

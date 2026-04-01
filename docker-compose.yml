@@ -1,6 +1,6 @@
 x-common-env: &common-env
   DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
-  DEBUG: "false"
+  # DEBUG: "true"
   LOG_LEVEL: INFO
   SERVICE_API_KEY: ${SERVICE_API_KEY}
   TZ: ${TZ:-UTC}
@@ -13,7 +13,8 @@ services:
       args:
         SERVICE_NAME: telegram_bot
     container_name: telegram_bot
-    command: ["sh", "-c", "python -m telegram_bot.main"]
+    ports:
+      - "5670:5671"
     environment:
       <<: *common-env
       REDIS_URL: ${REDIS_URL}/3
@@ -29,20 +30,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-      auth_service:
-        condition: service_healthy
-      checklists_service:
-        condition: service_healthy
-      notification_service:
-        condition: service_healthy
-      feedback_service:
-        condition: service_healthy
-      escalation_service:
-        condition: service_healthy
-      meeting_service:
-        condition: service_healthy
-      knowledge_service:
-        condition: service_healthy
     networks:
       - mentor_network
     restart: unless-stopped
@@ -56,6 +43,7 @@ services:
     container_name: admin_web
     ports:
       - "3000:3000"
+      - "9229:9229"
     environment:
       <<: *common-env
       AUTH_SERVICE_URL: http://auth_service:8000
@@ -65,6 +53,14 @@ services:
       ESCALATION_SERVICE_URL: http://escalation_service:8000
       FEEDBACK_SERVICE_URL: http://feedback_service:8000
       MEETING_SERVICE_URL: http://meeting_service:8000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./admin_web:/app
+      - /app/node_modules
     networks:
       - mentor_network
     restart: unless-stopped
@@ -85,6 +81,7 @@ services:
     container_name: auth_service
     ports:
       - "8001:8000"
+      - "5672:5671"
     environment:
       <<: *common-env
       REDIS_URL: ${REDIS_URL}/0
@@ -108,6 +105,7 @@ services:
     container_name: checklists_service
     ports:
       - "8002:8000"
+      - "5673:5671"
     environment:
       <<: *common-env
       REDIS_URL: ${REDIS_URL}/1
@@ -130,7 +128,7 @@ services:
     container_name: knowledge_service
     ports:
       - "8003:8000"
-      - "5678:5678"
+      - "5674:5671"
     environment:
       <<: *common-env
       REDIS_URL: ${REDIS_URL}/2
@@ -155,6 +153,7 @@ services:
     container_name: notification_service
     ports:
       - "8004:8000"
+      - "5675:5671"
     environment:
       <<: *common-env
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
@@ -183,6 +182,7 @@ services:
     container_name: feedback_service
     ports:
       - "8007:8000"
+      - "5676:5671"
     environment:
       <<: *common-env
       API_V1_PREFIX: /api/v1
@@ -208,6 +208,7 @@ services:
     container_name: escalation_service
     ports:
       - "8005:8000"
+      - "5677:5671"
     environment:
       <<: *common-env
       API_V1_PREFIX: /api/v1
@@ -233,6 +234,7 @@ services:
     container_name: meeting_service
     ports:
       - "8006:8000"
+      - "5678:5671"
     environment:
       <<: *common-env
       REDIS_URL: ${REDIS_URL}/4
@@ -294,7 +296,7 @@ services:
 
   pgadmin:
     container_name: pgadmin4_container
-    image: dpage/pgadmin4:9.13
+    image: dpage/pgadmin4:9.14
     restart: unless-stopped
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@admin.com
@@ -321,8 +323,16 @@ services:
       - "5540:5540"
     volumes:
       - redis-insight:/data
+    environment:
+      - RI_APP_HOST=0.0.0.0
+      - RI_APP_PORT=5540
+      - RI_REDIS_HOST=redis
+      - RI_REDIS_PORT=6379
     networks:
       - mentor_network
+    depends_on:
+      redis:
+        condition: service_healthy
 
 volumes:
   postgres_data:

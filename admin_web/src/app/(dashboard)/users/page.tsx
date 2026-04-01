@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { PageContent } from "@/components/layout/page-content";
@@ -8,7 +9,6 @@ import { UserPlus, Building2, Users } from "lucide-react";
 import { useUsers } from "@/hooks/use-users";
 import { useDepartments } from "@/hooks/use-departments";
 import { UserFormDialog } from "@/components/features/users/user-form-dialog";
-import { UserFilters } from "@/components/features/users/user-filters";
 import { UsersTable } from "@/components/features/users/users-table";
 import { DepartmentsTable } from "@/components/features/users/departments-table";
 import { DepartmentFormDialog } from "@/components/features/users/department-form-dialog";
@@ -17,6 +17,8 @@ import { cn } from "@/lib/utils";
 type Tab = "users" | "departments";
 
 export default function UsersPage() {
+  const t = useTranslations("users");
+  const tCommon = useTranslations("common");
   const [activeTab, setActiveTab] = useState<Tab>("users");
   const u = useUsers();
   const d = useDepartments();
@@ -33,14 +35,14 @@ export default function UsersPage() {
 
   return (
     <PageContent
-      title="Пользователи"
-      subtitle="Управление пользователями и отделами"
+      title={t("title")}
+      subtitle={t("title")}
       actions={
         <div className="flex items-center gap-2">
           <div className="flex rounded-md border">
             <button
               className={cn(
-                "flex items-center gap-1.5 rounded-l-md px-3 py-1.5 text-sm font-medium transition-colors",
+                "flex cursor-pointer items-center gap-1.5 rounded-l-md px-3 py-1.5 text-sm font-medium transition-colors",
                 activeTab === "users"
                   ? "bg-primary text-primary-foreground"
                   : "bg-background text-muted-foreground hover:bg-muted",
@@ -48,11 +50,11 @@ export default function UsersPage() {
               onClick={() => setActiveTab("users")}
             >
               <Users className="size-4" />
-              Пользователи
+              {t("title")}
             </button>
             <button
               className={cn(
-                "flex items-center gap-1.5 rounded-r-md px-3 py-1.5 text-sm font-medium transition-colors",
+                "flex cursor-pointer items-center gap-1.5 rounded-r-md px-3 py-1.5 text-sm font-medium transition-colors",
                 activeTab === "departments"
                   ? "bg-primary text-primary-foreground"
                   : "bg-background text-muted-foreground hover:bg-muted",
@@ -60,7 +62,7 @@ export default function UsersPage() {
               onClick={() => setActiveTab("departments")}
             >
               <Building2 className="size-4" />
-              Отделы
+              {t("department")}
             </button>
           </div>
           <Button
@@ -78,12 +80,12 @@ export default function UsersPage() {
             {activeTab === "users" ? (
               <>
                 <UserPlus className="size-4" />
-                Добавить пользователя
+                {t("addUser")}
               </>
             ) : (
               <>
                 <Building2 className="size-4" />
-                Добавить отдел
+                {tCommon("create")}
               </>
             )}
           </Button>
@@ -117,21 +119,19 @@ export default function UsersPage() {
             departments={u.departments}
           />
 
-          <UserFilters
+          <UsersTable
+            users={u.users}
+            loading={u.loading}
+            onEdit={u.openEditDialog}
+            onDelete={u.handleDeleteUser}
             searchQuery={u.searchQuery}
             onSearchChange={u.setSearchQuery}
             roleFilter={u.roleFilter}
             onRoleFilterChange={u.setRoleFilter}
             departmentFilter={u.departmentFilter}
             onDepartmentFilterChange={u.setDepartmentFilter}
+            onReset={u.resetFilters}
             departments={u.departments}
-          />
-
-          <UsersTable
-            users={u.users}
-            loading={u.loading}
-            onEdit={u.openEditDialog}
-            onDelete={u.handleDeleteUser}
             currentPage={u.currentPage}
             totalPages={u.totalPages}
             totalCount={u.totalUsers}

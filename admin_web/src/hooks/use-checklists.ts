@@ -1,8 +1,8 @@
-import { useState, useEffect, useCallback } from "react";
-import { api } from "@/lib/api";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useDebounce } from "@/hooks/useDebounce";
-import { useConfirm } from "@/components/ui/confirm-dialog";
 import { useToast } from "@/components/ui/toast";
+import { api } from "@/lib/api";
 
 export interface ChecklistItem {
   id: number;
@@ -86,18 +86,16 @@ function mapToItem(c: {
   };
 }
 
-/** Manages all checklist CRUD state and operations. */
+const CHECKLISTS_KEY = ["checklists"] as const;
+
 export function useChecklists() {
-  const confirm = useConfirm();
   const { toast } = useToast();
-  const [checklists, setChecklists] = useState<ChecklistItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [departmentFilter, setDepartmentFilter] = useState("ALL");
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedChecklist, setSelectedChecklist] = useState<ChecklistItem | null>(null);
@@ -106,121 +104,116 @@ export function useChecklists() {
   const debouncedSearch = useDebounce(searchQuery, 300);
   const pageSize = 20;
 
-  const resetForm = useCallback(() => {
-    setFormData({ ...defaultFormData });
-  }, []);
-
-  const loadChecklists = useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await api.checklists.list({
-        skip: (currentPage - 1) * pageSize,
-        limit: pageSize,
-        status: statusFilter !== "ALL" ? statusFilter : undefined,
-        department_id: departmentFilter !== "ALL" ? parseInt(departmentFilter) : undefined,
-      });
-      if (response.data) {
-        setChecklists(response.data.checklists.map(mapToItem));
-        setTotalCount(response.data.total);
-        setTotalPages(response.data.pages);
-      }
-    } catch (err) {
-      console.error("Failed to load checklists:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, [currentPage, statusFilter, departmentFilter]);
-
-  useEffect(() => {
-    loadChecklists();
-  }, [loadChecklists]);
-
-  const filteredChecklists = searchQuery
-    ? checklists.filter(
-        (c) =>
-          c.employeeId.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-          c.notes?.toLowerCase().includes(debouncedSearch.toLowerCase()),
-      )
-    : checklists;
-
-  const handleCreate = async () => {
-    try {
-      const response = await api.checklists.create({
-        user_id: formData.user_id,
-        employee_id: formData.employee_id,
-        template_id: formData.template_id,
-        start_date: new Date(formData.start_date).toISOString(),
-        due_date: formData.due_date ? new Date(formData.due_date).toISOString() : null,
-        mentor_id: formData.mentor_id,
-        hr_id: formData.hr_id,
-        notes: formData.notes || null,
-      });
-      if (response.data) {
-        setChecklists([mapToItem(response.data), ...checklists]);
-        setIsCreateDialogOpen(false);
-        resetForm();
-        setTotalCount((c) => c + 1);
-        toast("Чек-лист назначен", "success");
-      } else {
-        toast(response.error || "Ошибка создания", "error");
-      }
-    } catch (err) {
-      console.error("Failed to create checklist:", err);
-      toast("Ошибка создания чек-листа", "error");
-    }
+  const queryParams = {
+    skip: (currentPage - 1) * pageSize,
+    limit: pageSize,
+    ...(statusFilter !== "ALL" && { status: statusFilter }),
+    ...(departmentFilter !== "ALL" && { department_id: parseInt(departmentFilter) }),
+    ...(debouncedSearch && { search: debouncedSearch }),
   };
 
-  const handleUpdate = async () => {
-    if (!selectedChecklist) return;
-    try {
-      const response = await api.checklists.update(selectedChecklist.id, {
-        mentor_id: formData.mentor_id,
-        hr_id: formData.hr_id,
-        notes: formData.notes || null,
-      });
-      if (response.data) {
-        setChecklists(
-          checklists.map((c) => (c.id === selectedChecklist.id ? mapToItem(response.data!) : c)),
-        );
+  const { data: checklistsData, isLoading: loading } = useQuery({
+    queryKey: [...CHECKLISTS_KEY, queryParams],
+    queryFn: () => api.checklists.list(queryParams),
+    select: (result) =>
+      result.data
+        ? {
+            checklists: result.data.checklists.map(mapToItem),
+            total: result.data.total,
+            pages: result.data.pages,
+          }
+        : undefined,
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (data: Parameters<typeof api.checklists.create>[0]) => api.checklists.create(data),
+    onSuccess: (result) => {
+      if (result.data) {
+        queryClient.invalidateQueries({ queryKey: CHECKLISTS_KEY });
+        setIsCreateDialogOpen(false);
+        setFormData(defaultFormData);
+        toast("Чек-лист назначен", "success");
+      } else if (result.error) {
+        toast(result.error, "error");
+      }
+    },
+    onError: () => toast("Ошибка создания чек-листа", "error"),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: Parameters<typeof api.checklists.update>[1] }) =>
+      api.checklists.update(id, data),
+    onSuccess: (result) => {
+      if (result.data) {
+        queryClient.invalidateQueries({ queryKey: CHECKLISTS_KEY });
         setIsEditDialogOpen(false);
         setSelectedChecklist(null);
-        resetForm();
+        setFormData(defaultFormData);
         toast("Чек-лист обновлён", "success");
-      } else {
-        toast(response.error || "Ошибка обновления", "error");
+      } else if (result.error) {
+        toast(result.error, "error");
       }
-    } catch (err) {
-      console.error("Failed to update checklist:", err);
-      toast("Ошибка обновления чек-листа", "error");
-    }
-  };
+    },
+    onError: () => toast("Ошибка обновления чек-листа", "error"),
+  });
 
-  const handleDelete = async (id: number) => {
-    if (!(await confirm({ title: "Удаление чек-листа", description: "Вы уверены, что хотите удалить этот чек-лист?", variant: "destructive", confirmText: "Удалить" }))) return;
-    try {
-      await api.checklists.delete(id);
-      setChecklists(checklists.filter((c) => c.id !== id));
-      setTotalCount((c) => c - 1);
-      toast("Чек-лист удалён", "success");
-    } catch (err) {
-      console.error("Failed to delete checklist:", err);
-      toast("Ошибка удаления чек-листа", "error");
-    }
-  };
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => api.checklists.delete(id),
+    onSuccess: (result) => {
+      if (!result.error) {
+        queryClient.invalidateQueries({ queryKey: CHECKLISTS_KEY });
+        toast("Чек-лист удалён", "success");
+      } else {
+        toast(result.error, "error");
+      }
+    },
+    onError: () => toast("Ошибка удаления чек-листа", "error"),
+  });
 
-  const handleComplete = async (id: number) => {
-    try {
-      const response = await api.checklists.complete(id);
-      if (response.data) {
-        setChecklists(checklists.map((c) => (c.id === id ? mapToItem(response.data!) : c)));
+  const completeMutation = useMutation({
+    mutationFn: (id: number) => api.checklists.complete(id),
+    onSuccess: (result) => {
+      if (result.data) {
+        queryClient.invalidateQueries({ queryKey: CHECKLISTS_KEY });
         toast("Чек-лист завершён", "success");
-      } else {
-        toast(response.error || "Ошибка завершения", "error");
+      } else if (result.error) {
+        toast(result.error, "error");
       }
-    } catch (err) {
-      console.error("Failed to complete checklist:", err);
-      toast("Ошибка завершения чек-листа", "error");
-    }
+    },
+    onError: () => toast("Ошибка завершения чек-листа", "error"),
+  });
+
+  const handleCreate = () => {
+    createMutation.mutate({
+      user_id: formData.user_id,
+      employee_id: formData.employee_id,
+      template_id: formData.template_id,
+      start_date: new Date(formData.start_date).toISOString(),
+      due_date: formData.due_date ? new Date(formData.due_date).toISOString() : null,
+      mentor_id: formData.mentor_id,
+      hr_id: formData.hr_id,
+      notes: formData.notes || null,
+    });
+  };
+
+  const handleUpdate = () => {
+    if (!selectedChecklist) return;
+    updateMutation.mutate({
+      id: selectedChecklist.id,
+      data: {
+        mentor_id: formData.mentor_id,
+        hr_id: formData.hr_id,
+        notes: formData.notes || null,
+      },
+    });
+  };
+
+  const handleDelete = (id: number) => {
+    deleteMutation.mutate(id);
+  };
+
+  const handleComplete = (id: number) => {
+    completeMutation.mutate(id);
   };
 
   const openEditDialog = (checklist: ChecklistItem) => {
@@ -238,8 +231,24 @@ export function useChecklists() {
     setIsEditDialogOpen(true);
   };
 
+  const resetForm = () => {
+    setFormData(defaultFormData);
+    setSelectedChecklist(null);
+  };
+
+  const resetFilters = () => {
+    setSearchQuery("");
+    setStatusFilter("ALL");
+    setDepartmentFilter("ALL");
+    setCurrentPage(1);
+  };
+
+  const checklists = checklistsData?.checklists || [];
+  const totalCount = checklistsData?.total || 0;
+  const totalPages = checklistsData?.pages || 1;
+
   return {
-    checklists: filteredChecklists,
+    checklists,
     loading,
     searchQuery,
     setSearchQuery,
@@ -265,5 +274,9 @@ export function useChecklists() {
     handleComplete,
     openEditDialog,
     resetForm,
+    resetFilters,
+    isCreating: createMutation.isPending,
+    isUpdating: updateMutation.isPending,
+    isDeleting: deleteMutation.isPending,
   };
 }

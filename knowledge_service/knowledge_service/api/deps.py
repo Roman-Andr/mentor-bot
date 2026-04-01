@@ -15,6 +15,7 @@ from knowledge_service.services import (
     ArticleService,
     AttachmentService,
     CategoryService,
+    DialogueService,
     SearchService,
     TagService,
     auth_service_circuit_breaker,
@@ -179,6 +180,13 @@ async def get_search_service(
     return SearchService(uow)
 
 
+async def get_dialogue_service(
+    uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_uow)],
+) -> DialogueService:
+    """Get DialogueService instance with dependency injection."""
+    return DialogueService(uow)
+
+
 # Type aliases for dependencies
 CurrentUser = Annotated[UserInfo, Depends(get_current_active_user)]
 AdminUser = Annotated[UserInfo, Depends(require_admin)]
@@ -191,3 +199,4 @@ CategoryServiceDep = Annotated[CategoryService, Depends(get_category_service)]
 TagServiceDep = Annotated[TagService, Depends(get_tag_service)]
 AttachmentServiceDep = Annotated[AttachmentService, Depends(get_attachment_service)]
 SearchServiceDep = Annotated[SearchService, Depends(get_search_service)]
+DialogueServiceDep = Annotated[DialogueService, Depends(get_dialogue_service)]

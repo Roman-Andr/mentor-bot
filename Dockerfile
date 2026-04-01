@@ -41,5 +41,5 @@ EXPOSE 8000
 ENTRYPOINT ["/app/docker-entrypoint.sh"]
 CMD ["sh", "-c", "python -m uvicorn ${SERVICE_NAME}.main:app --host 0.0.0.0 --port 8000"]
 
-HEALTHCHECK --interval=300s --timeout=4s --start-period=20s --start-interval=3s --retries=60 \
+HEALTHCHECK --interval=300s --timeout=4s --start-period=20s --start-interval=2s --retries=60 \
   CMD ["python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]

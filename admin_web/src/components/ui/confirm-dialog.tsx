@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useRef,
-  useState,
-  type ReactNode,
-} from "react";
+import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from "react";
 import {
   Dialog,
   DialogContent,
@@ -64,9 +57,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>{options.title || "Подтверждение"}</DialogTitle>
-            {options.description && (
-              <DialogDescription>{options.description}</DialogDescription>
-            )}
+            {options.description && <DialogDescription>{options.description}</DialogDescription>}
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => handleClose(false)}>

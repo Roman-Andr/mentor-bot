@@ -3,8 +3,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth-context";
+import { LanguageSwitcher } from "./language-switcher";
 import {
   LayoutDashboard,
   Users,
@@ -19,26 +21,43 @@ import {
   ChevronRight,
   AlertTriangle,
   CalendarCheck,
+  MessageSquare,
 } from "lucide-react";
 
-const navigation = [
-  { name: "Дашборд", href: "/", icon: LayoutDashboard },
-  { name: "Пользователи", href: "/users", icon: Users },
-  { name: "Шаблоны", href: "/templates", icon: FileText },
-  { name: "Чек-листы", href: "/checklists", icon: ClipboardCheck },
-  { name: "База знаний", href: "/knowledge", icon: BookOpen },
-  { name: "Приглашения", href: "/invitations", icon: Mail },
-  { name: "Запросы", href: "/escalations", icon: AlertTriangle },
-  { name: "Встречи", href: "/meetings", icon: CalendarCheck },
-  { name: "Аналитика", href: "/analytics", icon: BarChart3 },
-  { name: "Настройки", href: "/settings", icon: Settings },
-];
+const iconMap = {
+  LayoutDashboard,
+  Users,
+  FileText,
+  ClipboardCheck,
+  BookOpen,
+  Mail,
+  BarChart3,
+  Settings,
+  AlertTriangle,
+  CalendarCheck,
+  MessageSquare,
+};
 
 export function Sidebar() {
+  const t = useTranslations("nav");
   const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
   const { logout, user } = useAuth();
+
+  const navigation = [
+    { name: t("dashboard"), href: "/", icon: "LayoutDashboard" },
+    { name: t("users"), href: "/users", icon: "Users" },
+    { name: t("templates"), href: "/templates", icon: "FileText" },
+    { name: t("checklists"), href: "/checklists", icon: "ClipboardCheck" },
+    { name: t("knowledgeBase"), href: "/knowledge", icon: "BookOpen" },
+    { name: t("dialogues"), href: "/dialogues", icon: "MessageSquare" },
+    { name: t("invitations"), href: "/invitations", icon: "Mail" },
+    { name: t("escalations"), href: "/escalations", icon: "AlertTriangle" },
+    { name: t("meetings"), href: "/meetings", icon: "CalendarCheck" },
+    { name: t("analytics"), href: "/analytics", icon: "BarChart3" },
+    { name: t("settings"), href: "/settings", icon: "Settings" },
+  ];
 
   const handleLogout = () => {
     logout();
@@ -54,18 +73,21 @@ export function Sidebar() {
         )}
       >
         <div className="flex h-16 items-center justify-between border-b border-slate-800 px-4">
-          {!collapsed && <span className="text-lg font-semibold">Ментор-бот</span>}
-          <button
-            onClick={() => setCollapsed(!collapsed)}
-            className="rounded-lg p-1.5 transition-colors hover:bg-slate-800"
-          >
-            {collapsed ? <ChevronRight className="size-5" /> : <ChevronLeft className="size-5" />}
-          </button>
+          {!collapsed && <span className="text-lg font-semibold">{t("appName")}</span>}
+          <div className="flex items-center gap-2">
+            {!collapsed && <LanguageSwitcher />}
+            <button
+              onClick={() => setCollapsed(!collapsed)}
+              className="rounded-lg p-1.5 transition-colors hover:bg-slate-800"
+            >
+              {collapsed ? <ChevronRight className="size-5" /> : <ChevronLeft className="size-5" />}
+            </button>
+          </div>
         </div>
 
         {!collapsed && user && (
           <div className="border-b border-slate-800 px-4 py-3">
-            <div className="text-sm text-slate-400">Вошли как:</div>
+            <div className="text-sm text-slate-400">{t("loggedInAs")}:</div>
             <div className="truncate font-medium">{user.email}</div>
           </div>
         )}
@@ -74,6 +96,7 @@ export function Sidebar() {
           {navigation.map((item) => {
             const isActive =
               pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
+            const IconComponent = iconMap[item.icon as keyof typeof iconMap];
             return (
               <Link
                 key={item.name}
@@ -87,7 +110,7 @@ export function Sidebar() {
                 )}
                 title={collapsed ? item.name : undefined}
               >
-                <item.icon className="size-5 shrink-0" />
+                {IconComponent && <IconComponent className="size-5 shrink-0" />}
                 {!collapsed && <span>{item.name}</span>}
               </Link>
             );
@@ -101,10 +124,10 @@ export function Sidebar() {
               "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-slate-400 transition-colors hover:bg-slate-800 hover:text-white",
               collapsed && "justify-center",
             )}
-            title={collapsed ? "Выйти" : undefined}
+            title={collapsed ? t("logout") : undefined}
           >
             <LogOut className="size-5 shrink-0" />
-            {!collapsed && <span>Выйти</span>}
+            {!collapsed && <span>{t("logout")}</span>}
           </button>
         </div>
       </div>

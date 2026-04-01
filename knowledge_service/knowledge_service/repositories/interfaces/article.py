@@ -29,6 +29,7 @@ class IArticleRepository(BaseRepository["Article", int]):
         tag_id: int | None = None,
         department_id: int | None = None,
         status: str | None = None,
+        search: str | None = None,
         user_filters: dict | None = None,
         featured_only: bool = False,
         pinned_only: bool = False,
@@ -56,6 +57,10 @@ class IArticleRepository(BaseRepository["Article", int]):
     @abstractmethod
     async def get_daily_views(self, article_id: int, start_date: date) -> dict[date, int]:
         """Get daily view counts from start_date for 7 days."""
+
+    @abstractmethod
+    async def get_by_ids(self, article_ids: list[int]) -> Sequence[Article]:
+        """Get multiple articles by their IDs."""
 
     @abstractmethod
     async def get_previous_week_views(self, article_id: int, before_date: date) -> int:

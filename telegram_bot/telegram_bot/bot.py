@@ -13,6 +13,7 @@ from telegram_bot.handlers import (
     common,
     documents,
     escalation,
+    faq,
     feedback,
     knowledge_base,
     language,
@@ -71,6 +72,7 @@ def setup_bot(dp: Dispatcher, bot: Bot) -> Dispatcher:
     dp.include_router(calendar.router)
     dp.include_router(checklists.router)
     dp.include_router(knowledge_base.router)
+    dp.include_router(faq.router)
     dp.include_router(documents.router)
     dp.include_router(meetings.router)
     dp.include_router(escalation.router)

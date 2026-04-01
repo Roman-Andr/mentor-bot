@@ -10,12 +10,14 @@ from knowledge_service.repositories.implementations.article import ArticleReposi
 from knowledge_service.repositories.implementations.article_view import ArticleViewRepository
 from knowledge_service.repositories.implementations.attachment import AttachmentRepository
 from knowledge_service.repositories.implementations.category import CategoryRepository
+from knowledge_service.repositories.implementations.dialogue import DialogueScenarioRepository, DialogueStepRepository
 from knowledge_service.repositories.implementations.search_history import SearchHistoryRepository
 from knowledge_service.repositories.implementations.tag import TagRepository
 from knowledge_service.repositories.interfaces.article import IArticleRepository
 from knowledge_service.repositories.interfaces.article_view import IArticleViewRepository
 from knowledge_service.repositories.interfaces.attachment import IAttachmentRepository
 from knowledge_service.repositories.interfaces.category import ICategoryRepository
+from knowledge_service.repositories.interfaces.dialogue import IDialogueScenarioRepository, IDialogueStepRepository
 from knowledge_service.repositories.interfaces.search_history import ISearchHistoryRepository
 from knowledge_service.repositories.interfaces.tag import ITagRepository
 
@@ -28,6 +30,8 @@ class IUnitOfWork(Protocol):
     article_views: IArticleViewRepository
     attachments: IAttachmentRepository
     categories: ICategoryRepository
+    dialogue_scenarios: IDialogueScenarioRepository
+    dialogue_steps: IDialogueStepRepository
     search_history: ISearchHistoryRepository
     tags: ITagRepository
 
@@ -76,6 +80,8 @@ class SqlAlchemyUnitOfWork(IUnitOfWork):
         self.article_views = ArticleViewRepository(self._session)
         self.attachments = AttachmentRepository(self._session)
         self.categories = CategoryRepository(self._session)
+        self.dialogue_scenarios = DialogueScenarioRepository(self._session)
+        self.dialogue_steps = DialogueStepRepository(self._session)
         self.search_history = SearchHistoryRepository(self._session)
         self.tags = TagRepository(self._session)
         return self

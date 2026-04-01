@@ -78,8 +78,13 @@ export const ESCALATION_TYPES = [
   { value: "ALL", label: "Все типы" },
   { value: "HR", label: "HR" },
   { value: "MENTOR", label: "Наставник" },
-  { value: "IT", label: "IT" },
-  { value: "GENERAL", label: "Общий" },
+] as const;
+
+export const INVITATION_STATUSES = [
+  { value: "ALL", label: "Все статусы" },
+  { value: "PENDING", label: "Ожидает" },
+  { value: "USED", label: "Принято" },
+  { value: "EXPIRED", label: "Истёк" },
 ] as const;
 
 export const MEETING_TYPES = [

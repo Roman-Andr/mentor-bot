@@ -1,3 +1,6 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { SearchInput } from "@/components/ui/search-input";
 import {
@@ -38,6 +41,9 @@ export function DepartmentsTable({
   onEdit,
   onDelete,
 }: DepartmentsTableProps) {
+  const t = useTranslations("departments");
+  const tCommon = useTranslations("common");
+
   return (
     <DataTable
       loading={loading}
@@ -49,8 +55,8 @@ export function DepartmentsTable({
       header={
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>Отделы</CardTitle>
-            <SearchInput placeholder="Поиск..." value={searchQuery} onChange={onSearchChange} />
+            <CardTitle>{t("title")}</CardTitle>
+            <SearchInput placeholder={tCommon("searchPlaceholder")} value={searchQuery} onChange={onSearchChange} />
           </div>
         </CardHeader>
       }
@@ -58,10 +64,10 @@ export function DepartmentsTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Название</TableHead>
-            <TableHead>Описание</TableHead>
-            <TableHead>Дата создания</TableHead>
-            <TableHead className="w-[100px]">Действия</TableHead>
+            <TableHead>{t("name")}</TableHead>
+            <TableHead>{tCommon("description")}</TableHead>
+            <TableHead>{tCommon("created")}</TableHead>
+            <TableHead className="w-[100px]">{tCommon("actions")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -77,7 +83,7 @@ export function DepartmentsTable({
               <TableCell className="text-muted-foreground max-w-[300px] truncate text-sm">
                 {department.description || "—"}
               </TableCell>
-              <TableCell>{new Date(department.createdAt).toLocaleDateString("ru-RU")}</TableCell>
+              <TableCell>{new Date(department.createdAt).toLocaleDateString()}</TableCell>
               <TableCell onClick={(e) => e.stopPropagation()}>
                 <div className="flex gap-1">
                   <Button variant="ghost" size="icon" onClick={() => onEdit(department)}>

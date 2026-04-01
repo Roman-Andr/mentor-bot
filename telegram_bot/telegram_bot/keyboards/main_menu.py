@@ -20,6 +20,7 @@ def get_main_menu_keyboard(*, is_authenticated: bool = False) -> ReplyKeyboardMa
                 "\U0001f50d Knowledge Base", style=ButtonStyle.PRIMARY
             )
         )
+        builder.add(create_keyboard_button("\U0001f4ac FAQ", style=ButtonStyle.PRIMARY))
         builder.add(
             create_keyboard_button("\U0001f4c1 Documents", style=ButtonStyle.PRIMARY)
         )
@@ -64,7 +65,7 @@ def get_inline_main_menu() -> InlineKeyboardMarkup:
             style=ButtonStyle.PRIMARY,
         ),
     )
-    # Row 2: Search Answer | Documents
+    # Row 2: Search Answer | FAQ
     builder.add(
         create_inline_button(
             "\U0001f50d Search Answer",
@@ -72,57 +73,62 @@ def get_inline_main_menu() -> InlineKeyboardMarkup:
             style=ButtonStyle.PRIMARY,
         ),
         create_inline_button(
+            "\U0001f4ac FAQ",
+            callback_data="faq_menu",
+            style=ButtonStyle.PRIMARY,
+        ),
+    )
+    # Row 3: Documents | My Mentor
+    builder.add(
+        create_inline_button(
             "\U0001f4c1 Documents",
             callback_data="documents_menu",
             style=ButtonStyle.PRIMARY,
         ),
-    )
-    # Row 3: My Mentor | Calendar
-    builder.add(
         create_inline_button(
             "\U0001f468\u200d\U0001f3eb My Mentor",
             callback_data="my_mentor",
             style=ButtonStyle.PRIMARY,
         ),
+    )
+    # Row 4: Calendar | Meetings
+    builder.add(
         create_inline_button(
             "\U0001f4c5 Calendar",
             callback_data="calendar_menu",
             style=ButtonStyle.PRIMARY,
         ),
-    )
-    # Row 4: Meetings | Escalate
-    builder.add(
         create_inline_button(
             "\U0001f4c5 Meetings",
             callback_data="meetings_menu",
             style=ButtonStyle.PRIMARY,
         ),
+    )
+    # Row 5: Escalate | Contact HR
+    builder.add(
         create_inline_button(
             "\U0001f4de Escalate",
             callback_data="escalate_menu",
             style=ButtonStyle.PRIMARY,
         ),
-    )
-    # Row 5: Contact HR | Feedback
-    builder.add(
         create_inline_button(
             "\U0001f4de Contact HR",
             callback_data="contact_hr",
             style=ButtonStyle.PRIMARY,
         ),
+    )
+    # Row 6: Feedback | Progress | Help
+    builder.add(
         create_inline_button(
             "\U0001f4ca Feedback",
             callback_data="feedback_menu",
             style=ButtonStyle.PRIMARY,
         ),
-    )
-    # Row 6: Progress (centered)
-    builder.add(
         create_inline_button(
             "\U0001f4ca Progress", callback_data="progress", style=ButtonStyle.PRIMARY
         ),
         create_inline_button("\u2139\ufe0f Help", callback_data="help"),
     )
 
-    builder.adjust(2)
+    builder.adjust(2, 2, 2, 2, 2, 3)
     return builder.as_markup()

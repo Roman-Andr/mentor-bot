@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LucideIcon } from "lucide-react";
 
@@ -15,12 +16,16 @@ interface StatsCardsProps {
 }
 
 export function StatsCards({ statsData }: StatsCardsProps) {
+  const t = useTranslations("dashboard");
+
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       {statsData.map((stat) => (
         <Card key={stat.title}>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-muted-foreground text-sm font-medium">{stat.title}</CardTitle>
+            <CardTitle className="text-muted-foreground text-sm font-medium">
+              {stat.title}
+            </CardTitle>
             <div className={`rounded-lg p-2 ${stat.color}`}>
               <stat.icon className="size-4 text-white" />
             </div>
@@ -34,7 +39,7 @@ export function StatsCards({ statsData }: StatsCardsProps) {
                 >
                   {stat.change}
                 </span>{" "}
-                за последний месяц
+                {t("lastMonth")}
               </p>
             )}
           </CardContent>

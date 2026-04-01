@@ -1,21 +1,19 @@
 import { fetchApi } from "./client";
+import { buildQueryString } from "@/lib/utils/query-builder";
 import type { Invitation, InvitationListResponse } from "./types";
 
 export const invitationsApi = {
   list: (params?: {
     status?: string;
+    role?: string;
     email?: string;
     department_id?: number;
+    expired_only?: boolean;
     skip?: number;
     limit?: number;
   }) => {
-    const searchParams = new URLSearchParams();
-    if (params?.status) searchParams.set("status", params.status);
-    if (params?.email) searchParams.set("email", params.email);
-    if (params?.department_id !== undefined) searchParams.set("department_id", String(params.department_id));
-    if (params?.skip !== undefined) searchParams.set("skip", String(params.skip));
-    if (params?.limit) searchParams.set("limit", String(params.limit));
-    return fetchApi<InvitationListResponse>(`/api/v1/invitations?${searchParams.toString()}`);
+    const qs = buildQueryString(params);
+    return fetchApi<InvitationListResponse>(`/api/v1/invitations${qs ? `?${qs}` : ""}`);
   },
   create: (data: {
     email: string;

@@ -103,6 +103,7 @@ class CategoryService:
         limit: int = 50,
         parent_id: int | None = None,
         department_id: int | None = None,
+        search: str | None = None,
         *,
         include_tree: bool = False,
     ) -> tuple[list[Category], int]:
@@ -115,6 +116,7 @@ class CategoryService:
             limit=limit,
             parent_id=parent_id,
             department_id=department_id,
+            search=search,
         )
         return list(items), total
 

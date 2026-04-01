@@ -8,7 +8,7 @@ from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from auth_service.core import InvitationStatus
+from auth_service.core import InvitationStatus, UserRole
 from auth_service.models import Invitation
 from auth_service.repositories.implementations.base import SqlAlchemyBaseRepository
 from auth_service.repositories.interfaces.invitation import IInvitationRepository
@@ -62,6 +62,7 @@ class InvitationRepository(SqlAlchemyBaseRepository[Invitation, int], IInvitatio
         skip: int = 0,
         limit: int = 100,
         email: str | None = None,
+        role: UserRole | None = None,
         status: InvitationStatus | None = None,
         department_id: int | None = None,
         expired_only: bool = False,
@@ -74,6 +75,10 @@ class InvitationRepository(SqlAlchemyBaseRepository[Invitation, int], IInvitatio
         if email:
             stmt = stmt.where(Invitation.email.ilike(f"%{email}%"))
             count_stmt = count_stmt.where(Invitation.email.ilike(f"%{email}%"))
+
+        if role:
+            stmt = stmt.where(Invitation.role == role)
+            count_stmt = count_stmt.where(Invitation.role == role)
 
         if status:
             stmt = stmt.where(Invitation.status == status)

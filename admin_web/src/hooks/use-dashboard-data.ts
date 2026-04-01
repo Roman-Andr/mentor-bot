@@ -61,11 +61,21 @@ export function useDashboardData(): UseDashboardDataResult {
     setLoading(true);
     setError(null);
     try {
-      const [checklistResult, usersResult, escalationResult] = await Promise.all([
-        api.analytics.checklistStats(),
-        api.users.list({ limit: 1 }),
-        api.escalations.list({ limit: 100 }),
-      ]);
+      const [checklistResult, usersResult, escalationResult, departmentsResult] = await Promise.all(
+        [
+          api.analytics.checklistStats(),
+          api.users.list({ limit: 1 }),
+          api.escalations.list({ limit: 100 }),
+          api.departments.list({ limit: 500 }),
+        ],
+      );
+
+      const deptMap = new Map<number, string>();
+      if (departmentsResult.data?.departments) {
+        for (const dept of departmentsResult.data.departments) {
+          deptMap.set(dept.id, dept.name);
+        }
+      }
 
       if (checklistResult.data) {
         const cs = checklistResult.data;
@@ -77,7 +87,12 @@ export function useDashboardData(): UseDashboardDataResult {
           overdue_tasks: cs.overdue || 0,
           average_completion_days: Math.round(cs.avg_completion_days) || 0,
         });
-        setDepartments(cs.by_department || {});
+        const deptBreakdown: Record<string, number> = {};
+        for (const [deptId, count] of Object.entries(cs.by_department || {})) {
+          const name = deptMap.get(Number(deptId)) || deptId;
+          deptBreakdown[name] = (deptBreakdown[name] || 0) + count;
+        }
+        setDepartments(deptBreakdown);
       }
 
       if (escalationResult.data) {
@@ -85,12 +100,18 @@ export function useDashboardData(): UseDashboardDataResult {
         setEscalations({
           hr: requests.filter((r: EscalationRequest) => r.type === "HR").length,
           mentor: requests.filter((r: EscalationRequest) => r.type === "MENTOR").length,
-          inProgress: requests.filter((r: EscalationRequest) => r.status === "IN_PROGRESS")
-            .length,
+          inProgress: requests.filter((r: EscalationRequest) => r.status === "IN_PROGRESS").length,
         });
       }
 
       const onboardingResult = await api.analytics.onboardingProgress();
+      const allUsersResult = await api.users.list({ limit: 500 });
+      const usersMap = new Map<number, string>();
+      if (allUsersResult.data?.users) {
+        for (const user of allUsersResult.data.users) {
+          usersMap.set(user.id, `${user.first_name}${user.last_name ? ` ${user.last_name}` : ""}`);
+        }
+      }
       if (onboardingResult.data) {
         const data = onboardingResult.data;
         const checklists = data.checklists || [];
@@ -108,7 +129,7 @@ export function useDashboardData(): UseDashboardDataResult {
                 status: string;
               }) => ({
                 user_id: c.user_id,
-                user_name: c.employee_id || `User ${c.user_id}`,
+                user_name: usersMap.get(c.user_id) || c.employee_id || `User ${c.user_id}`,
                 department: c.department || "Unknown",
                 start_date: c.start_date,
                 completion_percentage: c.progress_percentage,

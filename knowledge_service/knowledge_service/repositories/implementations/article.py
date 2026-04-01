@@ -92,6 +92,7 @@ class ArticleRepository(SqlAlchemyBaseRepository[Article, int], IArticleReposito
         tag_id: int | None = None,
         department_id: int | None = None,
         status: str | None = None,
+        search: str | None = None,
         user_filters: dict | None = None,
         featured_only: bool = False,
         pinned_only: bool = False,
@@ -115,6 +116,14 @@ class ArticleRepository(SqlAlchemyBaseRepository[Article, int], IArticleReposito
         if status:
             stmt = stmt.where(Article.status == status)
             count_stmt = count_stmt.where(Article.status == status)
+
+        if search:
+            search_filter = or_(
+                Article.title.ilike(f"%{search}%"),
+                Article.content.ilike(f"%{search}%"),
+            )
+            stmt = stmt.where(search_filter)
+            count_stmt = count_stmt.where(search_filter)
 
         if featured_only:
             stmt = stmt.where(Article.is_featured)
@@ -232,3 +241,19 @@ class ArticleRepository(SqlAlchemyBaseRepository[Article, int], IArticleReposito
         )
         result = await self._session.execute(stmt)
         return result.scalar_one() or 0
+
+    async def get_by_ids(self, article_ids: list[int]) -> Sequence[Article]:
+        """Get multiple articles by their IDs."""
+        if not article_ids:
+            return []
+        stmt = (
+            select(Article)
+            .where(Article.id.in_(article_ids))
+            .options(
+                selectinload(Article.category),
+                selectinload(Article.tags),
+                selectinload(Article.attachments),
+            )
+        )
+        result = await self._session.execute(stmt)
+        return result.scalars().unique().all()

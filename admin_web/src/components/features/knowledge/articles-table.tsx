@@ -1,3 +1,6 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SearchInput } from "@/components/ui/search-input";
@@ -29,6 +32,7 @@ interface ArticlesTableProps {
   onCategoryFilterChange: (value: string) => void;
   statusFilter: string;
   onStatusFilterChange: (value: string) => void;
+  onReset: () => void;
   categories: Category[];
   onEdit: (article: ArticleRow) => void;
   onPublish: (id: number) => void;
@@ -48,6 +52,7 @@ export function ArticlesTable({
   onCategoryFilterChange,
   statusFilter,
   onStatusFilterChange,
+  onReset,
   categories,
   onEdit,
   onPublish,
@@ -57,6 +62,14 @@ export function ArticlesTable({
   totalCount,
   onPageChange,
 }: ArticlesTableProps) {
+  const t = useTranslations("knowledge");
+  const tCommon = useTranslations("common");
+
+  const categoryOptions = [
+    { value: "ALL", label: tCommon("all") },
+    ...categories.map((cat) => ({ value: String(cat.id), label: cat.name })),
+  ];
+
   return (
     <DataTable
       loading={loading}
@@ -68,22 +81,22 @@ export function ArticlesTable({
       header={
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>Статьи</CardTitle>
+            <CardTitle>{t("articles")}</CardTitle>
             <div className="flex gap-2">
-              <SearchInput placeholder="Поиск..." value={searchQuery} onChange={onSearchChange} />
+              <SearchInput placeholder={tCommon("searchPlaceholder")} value={searchQuery} onChange={onSearchChange} />
               <Select
                 value={categoryFilter}
-                onChange={(e) => onCategoryFilterChange(e.target.value)}
-                options={[
-                  { value: "ALL", label: "Все категории" },
-                  ...categories.map((cat) => ({ value: String(cat.id), label: cat.name })),
-                ]}
+                onChange={onCategoryFilterChange}
+                options={categoryOptions}
               />
               <Select
                 value={statusFilter}
-                onChange={(e) => onStatusFilterChange(e.target.value)}
+                onChange={onStatusFilterChange}
                 options={ARTICLE_STATUSES}
               />
+              <Button variant="outline" onClick={onReset}>
+                {tCommon("reset")}
+              </Button>
             </div>
           </div>
         </CardHeader>
@@ -92,13 +105,13 @@ export function ArticlesTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Статья</TableHead>
-            <TableHead>Категория</TableHead>
-            <TableHead>Автор</TableHead>
-            <TableHead>Просмотры</TableHead>
-            <TableHead>Статус</TableHead>
-            <TableHead>Дата</TableHead>
-            <TableHead className="w-[100px]">Действия</TableHead>
+            <TableHead>{t("article")}</TableHead>
+            <TableHead>{t("category")}</TableHead>
+            <TableHead>{t("author")}</TableHead>
+            <TableHead>{t("viewCount")}</TableHead>
+            <TableHead>{tCommon("status")}</TableHead>
+            <TableHead>{tCommon("date")}</TableHead>
+            <TableHead className="w-[100px]">{tCommon("actions")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -115,7 +128,7 @@ export function ArticlesTable({
                     {article.isPinned && <Pin className="size-3 text-purple-500" />}
                     {article.isFeatured && <Star className="size-3 text-yellow-500" />}
                   </div>
-                    <p className="text-muted-foreground text-sm">{article.excerpt}</p>
+                  <p className="text-muted-foreground text-sm">{article.excerpt}</p>
                 </div>
               </TableCell>
               <TableCell>
@@ -131,7 +144,7 @@ export function ArticlesTable({
               <TableCell>
                 <StatusBadge status={article.status} />
               </TableCell>
-              <TableCell>{new Date(article.createdAt).toLocaleDateString("ru-RU")}</TableCell>
+              <TableCell>{new Date(article.createdAt).toLocaleDateString()}</TableCell>
               <TableCell onClick={(e) => e.stopPropagation()}>
                 <div className="flex gap-1">
                   <Button variant="ghost" size="icon" onClick={() => onEdit(article)}>
@@ -143,7 +156,7 @@ export function ArticlesTable({
                       size="icon"
                       className="text-green-500"
                       onClick={() => onPublish(article.id)}
-                      title="Опубликовать"
+                      title={t("publish")}
                     >
                       <BookOpen className="size-4" />
                     </Button>

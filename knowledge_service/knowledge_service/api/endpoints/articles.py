@@ -4,9 +4,9 @@ from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Query, status
 
-from knowledge_service.api import ArticleServiceDep, CurrentUser, HRUser
+from knowledge_service.api import ArticleServiceDep, CurrentUser, HRUser, SearchServiceDep
 from knowledge_service.core import NotFoundException, PermissionDenied
-from knowledge_service.core.enums import ArticleStatus
+from knowledge_service.core.enums import ArticleStatus, SearchSortBy
 from knowledge_service.schemas import (
     ArticleCreate,
     ArticleListResponse,
@@ -23,6 +23,7 @@ router = APIRouter()
 @router.get("")
 async def get_articles(
     article_service: ArticleServiceDep,
+    search_service: SearchServiceDep,
     current_user: CurrentUser,
     skip: Annotated[int, Query(ge=0)] = 0,
     limit: Annotated[int, Query(ge=1, le=100)] = 50,
@@ -30,9 +31,11 @@ async def get_articles(
     tag_id: Annotated[int | None, Query()] = None,
     department_id: Annotated[int | None, Query()] = None,
     status: Annotated[str | None, Query()] = None,
+    search: Annotated[str | None, Query()] = None,
     *,
     featured_only: Annotated[bool, Query()] = False,
     pinned_only: Annotated[bool, Query()] = False,
+    sort_by: Annotated[str | None, Query()] = None,
 ) -> ArticleListResponse:
     """Get paginated list of articles."""
     user_filters = {}
@@ -43,6 +46,46 @@ async def get_articles(
             "level": current_user.level,
         }
 
+    if search and search.strip():
+        sort_by_enum = SearchSortBy(sort_by) if sort_by else SearchSortBy.RELEVANCE
+        page = skip // limit + 1 if limit > 0 else 1
+
+        results, total, _suggestions = await search_service.search_articles(
+            query=search,
+            filters={
+                "category_id": category_id,
+                "tag_ids": [tag_id] if tag_id else None,
+                "department_id": department_id,
+                "status": status,
+                "featured_only": featured_only,
+                "pinned_only": pinned_only,
+                "only_published": current_user.role in ["HR", "ADMIN"],
+            },
+            sort_by=sort_by_enum,
+            page=page,
+            size=limit,
+            user_filters=user_filters,
+            user_id=current_user.id,
+        )
+
+        if results:
+            article_ids = [r["id"] for r in results]
+            articles = await article_service.get_articles_by_ids(article_ids)
+            articles_map = {a.id: a for a in articles}
+            ordered_articles = [articles_map[id] for id in article_ids if id in articles_map]
+        else:
+            ordered_articles = []
+
+        pages = (total + limit - 1) // limit if limit > 0 else 0
+
+        return ArticleListResponse(
+            total=total,
+            articles=[ArticleResponse.model_validate(article) for article in ordered_articles],
+            page=page,
+            size=limit,
+            pages=pages,
+        )
+
     articles, total = await article_service.get_articles(
         skip=skip,
         limit=limit,
@@ -50,6 +93,7 @@ async def get_articles(
         tag_id=tag_id,
         department_id=department_id,
         status=status,
+        search=search,
         featured_only=featured_only,
         pinned_only=pinned_only,
         user_filters=user_filters,
@@ -114,14 +158,16 @@ async def get_article(
             msg = "Access to articles from other departments is not allowed"
             raise PermissionDenied(msg)
 
+        response = ArticleResponse.model_validate(article)
         await article_service.record_view(article.id, user_id=current_user.id)
 
-        return ArticleResponse.model_validate(article)
     except NotFoundException as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e.detail),
         ) from e
+    else:
+        return response
 
 
 @router.put("/{article_id}")

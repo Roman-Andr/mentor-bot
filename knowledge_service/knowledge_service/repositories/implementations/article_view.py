@@ -1,6 +1,5 @@
 """SQLAlchemy implementation of ArticleView repository."""
 
-
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from knowledge_service.models.article_view import ArticleView

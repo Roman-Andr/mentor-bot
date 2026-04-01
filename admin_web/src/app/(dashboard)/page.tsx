@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Clock, CheckCircle, AlertTriangle, TrendingUp } from "lucide-react";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
@@ -10,39 +11,41 @@ import { DepartmentBreakdown } from "@/components/features/dashboard/department-
 import { EscalationSummary } from "@/components/features/dashboard/escalation-summary";
 
 export default function DashboardPage() {
+  const t = useTranslations("dashboard");
+  const tCommon = useTranslations("common");
   const { stats, progress, activity, departments, escalations, loading, error } =
     useDashboardData();
 
   const statsData = [
     {
-      title: "Всего пользователей",
+      title: t("totalUsers"),
       value: stats.total_users.toString(),
       change: "",
-      changeType: "neutral",
+      changeType: "neutral" as const,
       icon: Users,
       color: "bg-blue-500",
     },
     {
-      title: "Новички в процессе",
+      title: t("activeUsers"),
       value: stats.active_newbies.toString(),
       change: "",
-      changeType: "neutral",
+      changeType: "neutral" as const,
       icon: Clock,
       color: "bg-yellow-500",
     },
     {
-      title: "Завершили онбординг",
+      title: t("pendingTasks"),
       value: stats.completed_onboarding.toString(),
       change: "",
-      changeType: "neutral",
+      changeType: "neutral" as const,
       icon: CheckCircle,
       color: "bg-green-500",
     },
     {
-      title: "Просроченные задачи",
+      title: t("escalations"),
       value: stats.overdue_tasks.toString(),
       change: "",
-      changeType: stats.overdue_tasks > 0 ? "negative" : "neutral",
+      changeType: stats.overdue_tasks > 0 ? "negative" as const : "neutral" as const,
       icon: AlertTriangle,
       color: "bg-red-500",
     },
@@ -53,12 +56,12 @@ export default function DashboardPage() {
       <div className="space-y-6 p-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-foreground text-2xl font-bold">Дашборд</h1>
-            <p className="text-muted-foreground">Обзор процесса онбординга</p>
+            <h1 className="text-foreground text-2xl font-bold">{t("title")}</h1>
+            <p className="text-muted-foreground">{t("welcome")}</p>
           </div>
         </div>
         <div className="flex h-64 items-center justify-center">
-          <div className="text-muted-foreground">Загрузка данных...</div>
+          <div className="text-muted-foreground">{tCommon("loading")}</div>
         </div>
       </div>
     );
@@ -69,8 +72,8 @@ export default function DashboardPage() {
       <div className="space-y-6 p-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-foreground text-2xl font-bold">Дашборд</h1>
-            <p className="text-muted-foreground">Обзор процесса онбординга</p>
+            <h1 className="text-foreground text-2xl font-bold">{t("title")}</h1>
+            <p className="text-muted-foreground">{t("welcome")}</p>
           </div>
         </div>
         <Card>
@@ -86,12 +89,14 @@ export default function DashboardPage() {
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-foreground text-2xl font-bold">Дашборд</h1>
-          <p className="text-muted-foreground">Обзор процесса онбординга</p>
+          <h1 className="text-foreground text-2xl font-bold">{t("title")}</h1>
+          <p className="text-muted-foreground">{t("welcome")}</p>
         </div>
         <div className="text-muted-foreground flex items-center gap-2 text-sm">
           <TrendingUp className="size-4" />
-          <span>Обновлено: {new Date().toLocaleDateString("ru-RU")}</span>
+          <span>
+            {tCommon("refresh")}: {new Date().toLocaleDateString()}
+          </span>
         </div>
       </div>
 
@@ -107,14 +112,14 @@ export default function DashboardPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Среднее время онбординга</CardTitle>
+            <CardTitle>{t("completionRate")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="py-4 text-center">
               <div className="text-4xl font-bold text-blue-600">
                 {stats?.average_completion_days || 0}
               </div>
-              <p className="text-muted-foreground mt-2 text-sm">дней в среднем</p>
+              <p className="text-muted-foreground mt-2 text-sm">{t("daysAverage")}</p>
             </div>
           </CardContent>
         </Card>

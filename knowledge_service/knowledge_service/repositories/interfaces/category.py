@@ -30,6 +30,7 @@ class ICategoryRepository(BaseRepository["Category", int]):
         limit: int = 100,
         parent_id: int | None = None,
         department_id: int | None = None,
+        search: str | None = None,
     ) -> tuple[Sequence[Category], int]:
         """Find categories with filtering, return results + total count."""
 

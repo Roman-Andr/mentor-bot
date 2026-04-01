@@ -1,4 +1,5 @@
 import { fetchApi } from "./client";
+import { buildQueryString } from "@/lib/utils/query-builder";
 import type { Meeting, MeetingListResponse } from "./types";
 
 export const meetingsApi = {
@@ -11,16 +12,8 @@ export const meetingsApi = {
     skip?: number;
     limit?: number;
   }) => {
-    const searchParams = new URLSearchParams();
-    if (params?.meeting_type) searchParams.set("meeting_type", params.meeting_type);
-    if (params?.department_id !== undefined) searchParams.set("department_id", String(params.department_id));
-    if (params?.position) searchParams.set("position", params.position);
-    if (params?.level) searchParams.set("level", params.level);
-    if (params?.is_mandatory !== undefined)
-      searchParams.set("is_mandatory", String(params.is_mandatory));
-    if (params?.skip !== undefined) searchParams.set("skip", String(params.skip));
-    if (params?.limit) searchParams.set("limit", String(params.limit));
-    return fetchApi<MeetingListResponse>(`/api/v1/meetings?${searchParams.toString()}`);
+    const qs = buildQueryString(params);
+    return fetchApi<MeetingListResponse>(`/api/v1/meetings${qs ? `?${qs}` : ""}`);
   },
   create: (data: {
     title: string;

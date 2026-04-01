@@ -1,4 +1,4 @@
-.PHONY: help start stop restart logs clean reset-db create-invitation shell-auth shell-checklist shell-knowledge shell-postgres shell-redis status full-reboot logs-notification logs-escalation logs-meeting shell-notification shell-escalation shell-meeting restart-notification restart-escalation restart-meeting reboot-notification reboot-escalation reboot-meeting logs-admin restart-admin reboot-admin shell-admin logs-telegram restart-telegram reboot-telegram shell-telegram dev-admin dev-meeting reset-locks update-deps
+.PHONY: help start stop restart logs clean reset-db create-invitation shell-auth shell-checklist shell-knowledge shell-postgres shell-redis status full-reboot logs-notification logs-escalation logs-meeting shell-notification shell-escalation shell-meeting restart-notification restart-escalation restart-meeting reboot-notification reboot-escalation reboot-meeting logs-admin restart-admin reboot-admin shell-admin logs-telegram restart-telegram reboot-telegram shell-telegram dev-admin dev-meeting reset-locks update-deps mock-data
 
 # Docker compose project name
 PROJECT_NAME = mentor-bot
@@ -66,19 +66,10 @@ help:
 start:
 	docker compose up -d --build
 
-full-reboot: reset-db start
-	./scripts/create_admin.sh
-	sleep 1
-	./scripts/create_hr.sh
-	sleep 1
-	./scripts/create_user.sh
-	sleep 1
-	./scripts/create_checklist.sh 
-	sleep 1
-	./scripts/create_invitation.sh 
-	sleep 1
-	./scripts/test_knowledge_service.sh 
+full-reboot: reset-db start mock-data
 
+mock-data: 
+	python ./scripts/setup_mock_data.py
 stop:
 	docker compose stop
 
@@ -184,7 +175,7 @@ shell-admin:
 	docker compose exec admin_web /bin/sh
 
 shell-telegram:
-	docker compose exec telegram_bot /bin/bash
+	docker compose exec telegram_bot sh
 
 shell-postgres:
 	docker compose exec postgres psql -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-mentor_bot}

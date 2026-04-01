@@ -1,3 +1,6 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -25,33 +28,31 @@ export function DepartmentFormDialog({
   onSubmit,
   onCancel,
 }: DepartmentFormDialogProps) {
+  const t = useTranslations("departments");
+  const tCommon = useTranslations("common");
   const isEdit = mode === "edit";
 
   return (
     <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto">
       <DialogHeader>
-        <DialogTitle>
-          {isEdit ? "Редактирование отдела" : "Создание отдела"}
-        </DialogTitle>
+        <DialogTitle>{isEdit ? t("editDepartment") : t("addDepartment")}</DialogTitle>
         <DialogDescription>
-          {isEdit
-            ? "Измените данные отдела"
-            : "Создайте новый отдел в системе"}
+          {isEdit ? t("editDepartment") : t("addDepartment")}
         </DialogDescription>
       </DialogHeader>
       <div className="grid gap-4 py-4">
         <div className="grid gap-2">
-          <label className="text-sm font-medium">Название *</label>
+          <label className="text-sm font-medium">{t("name")} *</label>
           <Input
-            placeholder="Название отдела"
+            placeholder={t("name")}
             value={formData.name}
             onChange={(e) => onFormDataChange("name", e.target.value)}
           />
         </div>
         <div className="grid gap-2">
-          <label className="text-sm font-medium">Описание</label>
+          <label className="text-sm font-medium">{tCommon("description")}</label>
           <Textarea
-            placeholder="Описание отдела"
+            placeholder={tCommon("description")}
             value={formData.description}
             onChange={(e) => onFormDataChange("description", e.target.value)}
           />
@@ -59,10 +60,10 @@ export function DepartmentFormDialog({
       </div>
       <DialogFooter>
         <Button variant="outline" onClick={onCancel}>
-          Отмена
+          {tCommon("cancel")}
         </Button>
         <Button onClick={onSubmit} disabled={!formData.name}>
-          {isEdit ? "Сохранить" : "Создать"}
+          {isEdit ? tCommon("save") : tCommon("create")}
         </Button>
       </DialogFooter>
     </DialogContent>

@@ -28,6 +28,7 @@ async def get_categories(
     limit: Annotated[int, Query(ge=1, le=100)] = 50,
     parent_id: Annotated[int | None, Query()] = None,
     department_id: Annotated[int | None, Query()] = None,
+    search: Annotated[str | None, Query()] = None,
     *,
     include_tree: Annotated[bool, Query()] = False,
 ) -> CategoryListResponse:
@@ -76,6 +77,7 @@ async def get_categories(
         limit=limit,
         parent_id=parent_id,
         department_id=department_id,
+        search=search,
     )
 
     pages = (total + limit - 1) // limit if limit > 0 else 0

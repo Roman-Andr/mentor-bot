@@ -1,8 +1,10 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
-import { Select } from "@/components/ui/select";
 import { SearchInput } from "@/components/ui/search-input";
+import { Select } from "@/components/ui/select";
+import { DataTable } from "@/components/ui/data-table";
 import { StatusBadge } from "@/components/ui/status-badge";
 import {
   Table,
@@ -12,7 +14,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { DataTable } from "@/components/ui/data-table";
 import { CardHeader, CardTitle } from "@/components/ui/card";
 import { MoreHorizontal, Trash2, CheckCircle, AlertTriangle, Clock } from "lucide-react";
 import { CHECKLIST_STATUSES } from "@/lib/constants";
@@ -31,6 +32,7 @@ interface ChecklistsTableProps {
   onStatusFilterChange: (status: string) => void;
   departmentFilter: string;
   onDepartmentFilterChange: (dept: string) => void;
+  onReset: () => void;
   departments?: { id: number; name: string }[];
   currentPage: number;
   totalPages: number;
@@ -50,55 +52,66 @@ export function ChecklistsTable({
   onStatusFilterChange,
   departmentFilter,
   onDepartmentFilterChange,
+  onReset,
   departments = [],
   currentPage,
   totalPages,
   totalCount,
   onPageChange,
 }: ChecklistsTableProps) {
+  const t = useTranslations("checklists");
+  const tCommon = useTranslations("common");
+
+  const departmentOptions = [
+    { value: "ALL", label: tCommon("all") },
+    ...departments.map((d) => ({ value: String(d.id), label: d.name })),
+  ];
+
   return (
     <DataTable
       loading={loading}
       empty={checklists.length === 0}
-      emptyMessage="Чек-листы не найдены"
       currentPage={currentPage}
       totalPages={totalPages}
       totalCount={totalCount}
       onPageChange={onPageChange}
-    >
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle>
-            Чек-листы <span className="text-muted-foreground text-sm font-normal">({totalCount})</span>
-          </CardTitle>
-          <div className="flex gap-2">
-            <SearchInput value={searchQuery} onChange={onSearchChange} />
-            <Select
-              value={statusFilter}
-              onChange={(e) => onStatusFilterChange(e.target.value)}
-              options={CHECKLIST_STATUSES}
-            />
-            <Select
-              value={departmentFilter}
-              onChange={(e) => onDepartmentFilterChange(e.target.value)}
-              options={[
-                { value: "ALL", label: "Все отделы" },
-                ...departments.map((d) => ({ value: String(d.id), label: d.name })),
-              ]}
-            />
+      header={
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>
+              {t("title")}{" "}
+              <span className="text-muted-foreground text-sm font-normal">({totalCount})</span>
+            </CardTitle>
+            <div className="flex gap-2">
+              <SearchInput value={searchQuery} onChange={onSearchChange} />
+              <Select
+                value={statusFilter}
+                onChange={onStatusFilterChange}
+                options={CHECKLIST_STATUSES}
+              />
+              <Select
+                value={departmentFilter}
+                onChange={onDepartmentFilterChange}
+                options={departmentOptions}
+              />
+              <Button variant="outline" onClick={onReset}>
+                {tCommon("reset")}
+              </Button>
+            </div>
           </div>
-        </div>
-      </CardHeader>
+        </CardHeader>
+      }
+    >
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>ID сотрудника</TableHead>
-            <TableHead>Статус</TableHead>
-            <TableHead>Прогресс</TableHead>
-            <TableHead>Задачи</TableHead>
-            <TableHead>Начало</TableHead>
-            <TableHead>Дедлайн</TableHead>
-            <TableHead className="w-25">Действия</TableHead>
+            <TableHead>{t("employeeId")}</TableHead>
+            <TableHead>{tCommon("status")}</TableHead>
+            <TableHead>{t("progress")}</TableHead>
+            <TableHead>{t("tasks")}</TableHead>
+            <TableHead>{t("startDate")}</TableHead>
+            <TableHead>{t("dueDate")}</TableHead>
+            <TableHead className="w-25">{tCommon("actions")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -154,8 +167,8 @@ export function ChecklistsTable({
                 {checklist.daysRemaining !== null && checklist.status !== "COMPLETED" && (
                   <span className="text-muted-foreground text-xs">
                     {checklist.daysRemaining > 0
-                      ? `${checklist.daysRemaining} дн. осталось`
-                      : `${Math.abs(checklist.daysRemaining)} дн. просрочено`}
+                      ? `${checklist.daysRemaining} ${t("daysLeft")}`
+                      : `${Math.abs(checklist.daysRemaining)} ${t("daysOverdue")}`}
                   </span>
                 )}
               </TableCell>
@@ -170,7 +183,7 @@ export function ChecklistsTable({
                       size="icon"
                       className="text-green-500"
                       onClick={() => onComplete(checklist.id)}
-                      title="Завершить"
+                      title={t("markComplete")}
                     >
                       <CheckCircle className="size-4" />
                     </Button>
@@ -194,11 +207,13 @@ export function ChecklistsTable({
 }
 
 function ChecklistStatusBadge({ status, isOverdue }: { status: string; isOverdue: boolean }) {
+  const t = useTranslations("checklists");
+  
   if (isOverdue) {
     return (
       <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-1 text-xs font-medium text-red-800">
         <Clock className="size-3" />
-        Просрочен
+        {t("overdue")}
       </span>
     );
   }

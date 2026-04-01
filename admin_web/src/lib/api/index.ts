@@ -14,6 +14,7 @@ export { meetingsApi } from "./meetings";
 export { userMeetingsApi } from "./user-meetings";
 export { feedbackApi } from "./feedback";
 export { userMentorsApi } from "./user-mentors";
+export { dialoguesApi } from "./dialogues";
 
 import { usersApi } from "./users";
 import { invitationsApi } from "./invitations";
@@ -28,6 +29,7 @@ import { meetingsApi } from "./meetings";
 import { userMeetingsApi } from "./user-meetings";
 import { feedbackApi } from "./feedback";
 import { userMentorsApi } from "./user-mentors";
+import { dialoguesApi } from "./dialogues";
 
 export const api = {
   users: usersApi,
@@ -45,4 +47,5 @@ export const api = {
   userMeetings: userMeetingsApi,
   feedback: feedbackApi,
   userMentors: userMentorsApi,
+  dialogues: dialoguesApi,
 };
