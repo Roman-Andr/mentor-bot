@@ -35,6 +35,7 @@ async def get_escalations(
     assigned_to: Annotated[int | None, Query()] = None,
     escalation_type: Annotated[EscalationType | None, Query()] = None,
     status: Annotated[EscalationStatus | None, Query()] = None,
+    search: Annotated[str | None, Query()] = None,
 ) -> EscalationRequestListResponse:
     """Get paginated list of escalation requests."""
     # Authorization: regular users can only see their own requests
@@ -54,6 +55,7 @@ async def get_escalations(
         assigned_to=assigned_to,
         escalation_type=escalation_type,
         status=status,
+        search=search,
     )
 
     pages = (total + limit - 1) // limit if limit > 0 else 0

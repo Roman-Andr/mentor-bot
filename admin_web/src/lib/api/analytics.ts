@@ -1,5 +1,16 @@
 import { fetchApi } from "./client";
-import type { ChecklistStats } from "./types";
+import type { ChecklistStats } from "@/types";
+
+interface MonthlyStats {
+  month: string;
+  new_checklists: number;
+  completed: number;
+}
+
+interface CompletionTimeStats {
+  range: string;
+  count: number;
+}
 
 export const analyticsApi = {
   checklistStats: (params?: { department_id?: number }) => {
@@ -7,6 +18,12 @@ export const analyticsApi = {
     if (params?.department_id !== undefined)
       searchParams.set("department_id", String(params.department_id));
     return fetchApi<ChecklistStats>(`/api/v1/checklists/stats/summary?${searchParams.toString()}`);
+  },
+  monthlyStats: (months: number = 6) => {
+    return fetchApi<MonthlyStats[]>(`/api/v1/checklists/stats/monthly?months=${months}`);
+  },
+  completionTimeStats: () => {
+    return fetchApi<CompletionTimeStats[]>("/api/v1/checklists/stats/completion-time");
   },
   onboardingProgress: () =>
     fetchApi<{

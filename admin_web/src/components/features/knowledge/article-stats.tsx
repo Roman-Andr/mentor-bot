@@ -1,4 +1,4 @@
-import { useTranslations } from "next-intl";
+import { useTranslations } from "@/hooks/use-translations";
 import { StatsGrid } from "@/components/ui/stat-card";
 import { BookOpen, Eye, Pin, Star } from "lucide-react";
 
@@ -13,7 +13,7 @@ interface ArticleStatsProps {
 }
 
 export function ArticleStats({ articles }: ArticleStatsProps) {
-  const t = useTranslations("knowledge");
+  const t = useTranslations();
 
   const published = articles.filter((a) => a.status === "PUBLISHED").length;
   const pinned = articles.filter((a) => a.isPinned).length;
@@ -22,10 +22,10 @@ export function ArticleStats({ articles }: ArticleStatsProps) {
   return (
     <StatsGrid
       stats={[
-        { label: t("totalArticles") || "Total Articles", value: articles.length, icon: BookOpen },
-        { label: t("published") || "Published", value: published, icon: Eye },
-        { label: t("pinned") || "Pinned", value: pinned, icon: Pin },
-        { label: t("featured") || "Featured", value: featured, icon: Star },
+        { label: t("knowledge.totalArticles") || "Total Articles", value: articles.length, icon: BookOpen },
+        { label: t("knowledge.published") || "Published", value: published, icon: Eye },
+        { label: t("knowledge.pinned") || "Pinned", value: pinned, icon: Pin },
+        { label: t("knowledge.featured") || "Featured", value: featured, icon: Star },
       ]}
     />
   );

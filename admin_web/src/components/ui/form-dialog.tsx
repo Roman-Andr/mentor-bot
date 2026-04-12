@@ -9,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useTranslations } from "@/hooks/use-translations";
 
 interface FormDialogProps {
   open: boolean;
@@ -32,7 +33,7 @@ export function FormDialog({
   title,
   description,
   submitLabel,
-  cancelLabel = "Отмена",
+  cancelLabel,
   canSubmit = true,
   isSubmitting = false,
   onSubmit,
@@ -40,6 +41,7 @@ export function FormDialog({
   children,
 }: FormDialogProps) {
   const isEdit = mode === "edit";
+  const t = useTranslations("common");
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -51,10 +53,10 @@ export function FormDialog({
         <div className="grid gap-4 py-4">{children}</div>
         <DialogFooter>
           <Button variant="outline" onClick={onCancel} disabled={isSubmitting}>
-            {cancelLabel}
+            {cancelLabel || t("cancel")}
           </Button>
           <Button onClick={onSubmit} disabled={!canSubmit || isSubmitting}>
-            {isSubmitting ? "Сохранение..." : submitLabel || (isEdit ? "Сохранить" : "Добавить")}
+            {isSubmitting ? t("saving") : submitLabel || (isEdit ? t("save") : t("add"))}
           </Button>
         </DialogFooter>
       </DialogContent>

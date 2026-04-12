@@ -49,6 +49,7 @@ class EscalationService:
         assigned_to: int | None = None,
         escalation_type: EscalationType | None = None,
         status: EscalationStatus | None = None,
+        search: str | None = None,
     ) -> tuple[list[EscalationRequest], int]:
         """Get paginated list of escalation requests with filters."""
         requests, total = await self._uow.escalations.find_requests(
@@ -58,6 +59,7 @@ class EscalationService:
             assigned_to=assigned_to,
             escalation_type=escalation_type,
             status=status,
+            search=search,
         )
         return list(requests), total
 

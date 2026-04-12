@@ -1,5 +1,5 @@
 import { fetchApi } from "./client";
-import type { UserMentor, UserMentorListResponse } from "./types";
+import type { UserMentor, UserMentorListResponse } from "@/types";
 
 export const userMentorsApi = {
   list: (params?: { user_id?: number; mentor_id?: number }) => {

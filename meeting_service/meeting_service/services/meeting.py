@@ -69,6 +69,7 @@ class MeetingService:
         level: EmployeeLevel | None = None,
         *,
         is_mandatory: bool | None = None,
+        search: str | None = None,
     ) -> tuple[list[Meeting], int]:
         """Get paginated list of meeting templates with filters."""
         meetings, total = await self._uow.meetings.find_meetings(
@@ -79,6 +80,7 @@ class MeetingService:
             position=position,
             level=level,
             is_mandatory=is_mandatory,
+            search=search,
         )
         return list(meetings), total
 

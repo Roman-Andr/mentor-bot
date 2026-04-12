@@ -5,6 +5,7 @@ import logging
 from aiogram import Bot, Dispatcher
 from aiogram.types import ErrorEvent
 
+from telegram_bot.config import settings
 from telegram_bot.handlers import (
     admin,
     auth,
@@ -13,14 +14,15 @@ from telegram_bot.handlers import (
     common,
     documents,
     escalation,
-    faq,
     feedback,
     knowledge_base,
     language,
     meetings,
+    settings as settings_handler,
     start,
 )
 from telegram_bot.middlewares import AuthMiddleware, LanguageMiddleware
+from telegram_bot.middlewares.throttling import ThrottlingMiddleware
 
 logger = logging.getLogger(__name__)
 
@@ -62,6 +64,13 @@ def setup_bot(dp: Dispatcher, bot: Bot) -> Dispatcher:
     dp.update.outer_middleware(AuthMiddleware(bot))
     dp.update.outer_middleware(LanguageMiddleware())
 
+    # Register throttling only if explicitly enabled via env var (disabled by default for dev)
+    if getattr(settings, "THROTTLING_ENABLED", False):
+        dp.update.outer_middleware(ThrottlingMiddleware())
+        logger.info("Throttling middleware enabled")
+    else:
+        logger.info("Throttling middleware disabled")
+
     # Register global error handler
     dp.errors.register(global_error_handler)
 
@@ -69,10 +78,10 @@ def setup_bot(dp: Dispatcher, bot: Bot) -> Dispatcher:
     dp.include_router(start.router)
     dp.include_router(auth.router)
     dp.include_router(language.router)
+    dp.include_router(settings_handler.router)
     dp.include_router(calendar.router)
     dp.include_router(checklists.router)
     dp.include_router(knowledge_base.router)
-    dp.include_router(faq.router)
     dp.include_router(documents.router)
     dp.include_router(meetings.router)
     dp.include_router(escalation.router)

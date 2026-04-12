@@ -36,7 +36,10 @@ async def cmd_start(
     if is_authenticated:
         welcome_text = format_welcome_message(message.from_user, user, locale=locale)
         await message.answer(
-            welcome_text, reply_markup=get_main_menu_keyboard(is_authenticated=True)
+            welcome_text,
+            reply_markup=get_main_menu_keyboard(
+                is_authenticated=True, user=user, locale=locale
+            ),
         )
         return
 
@@ -48,7 +51,10 @@ async def cmd_start(
                 message.from_user, result, locale=locale
             )
             await message.answer(
-                welcome_text, reply_markup=get_main_menu_keyboard(is_authenticated=True)
+                welcome_text,
+                reply_markup=get_main_menu_keyboard(
+                    is_authenticated=True, user=result, locale=locale
+                ),
             )
         else:
             await message.answer(
@@ -62,7 +68,7 @@ async def cmd_start(
 
 @router.message(Command("menu"))
 async def cmd_menu(
-    message: Message, *, is_authenticated: bool, locale: str = "en"
+    message: Message, *, is_authenticated: bool, user: dict, locale: str = "en"
 ) -> None:
     """Show main menu."""
     if not is_authenticated:
@@ -71,14 +77,15 @@ async def cmd_menu(
 
     await message.answer(
         t("start.menu_header", locale=locale),
-        reply_markup=get_inline_main_menu(),
+        reply_markup=get_inline_main_menu(user=user, locale=locale),
         parse_mode="Markdown",
     )
 
 
 @router.callback_query(F.data == "menu")
+@router.callback_query(F.data == "main_menu")
 async def cb_menu(
-    callback: CallbackQuery, *, is_authenticated: bool, locale: str = "en"
+    callback: CallbackQuery, *, is_authenticated: bool, user: dict, locale: str = "en"
 ) -> None:
     """Menu callback button."""
     if not is_authenticated:
@@ -91,7 +98,7 @@ async def cb_menu(
 
     await callback.message.edit_text(
         t("start.menu_header", locale=locale),
-        reply_markup=get_inline_main_menu(),
+        reply_markup=get_inline_main_menu(user=user, locale=locale),
         parse_mode="Markdown",
     )
     await callback.answer()

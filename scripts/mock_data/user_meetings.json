@@ -1,0 +1,47 @@
+[
+  {
+    "user_key": "newbie_1",
+    "status": "COMPLETED",
+    "days_ago": 20
+  },
+  {
+    "user_key": "newbie_2",
+    "status": "SCHEDULED",
+    "days_ago": 2
+  },
+  {
+    "user_key": "newbie_3",
+    "status": "MISSED",
+    "days_ago": 5
+  },
+  {
+    "user_key": "newbie_4",
+    "status": "SCHEDULED",
+    "days_ago": 1
+  },
+  {
+    "user_key": "newbie_5",
+    "status": "CANCELLED",
+    "days_ago": 3
+  },
+  {
+    "user_key": "newbie_6",
+    "status": "SCHEDULED",
+    "days_ago": 0
+  },
+  {
+    "user_key": "newbie_7",
+    "status": "COMPLETED",
+    "days_ago": 15
+  },
+  {
+    "user_key": "newbie_8",
+    "status": "SCHEDULED",
+    "days_ago": 4
+  },
+  {
+    "user_key": "andrusevich_roman",
+    "status": "SCHEDULED",
+    "days_ago": 2
+  }
+]

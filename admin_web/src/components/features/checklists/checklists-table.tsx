@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useTranslations } from "@/hooks/use-translations";
 import { Button } from "@/components/ui/button";
 import { SearchInput } from "@/components/ui/search-input";
 import { Select } from "@/components/ui/select";
@@ -15,7 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { CardHeader, CardTitle } from "@/components/ui/card";
-import { MoreHorizontal, Trash2, CheckCircle, AlertTriangle, Clock } from "lucide-react";
+import { SquarePen, Trash2, CheckCircle, AlertTriangle, Clock } from "lucide-react";
 import { CHECKLIST_STATUSES } from "@/lib/constants";
 import { formatDate } from "@/lib/utils";
 import type { ChecklistItem } from "@/hooks/use-checklists";
@@ -37,7 +37,9 @@ interface ChecklistsTableProps {
   currentPage: number;
   totalPages: number;
   totalCount: number;
+  pageSize?: number;
   onPageChange: (page: number) => void;
+  onPageSizeChange?: (size: number) => void;
 }
 
 export function ChecklistsTable({
@@ -57,13 +59,14 @@ export function ChecklistsTable({
   currentPage,
   totalPages,
   totalCount,
+  pageSize,
   onPageChange,
+  onPageSizeChange,
 }: ChecklistsTableProps) {
-  const t = useTranslations("checklists");
-  const tCommon = useTranslations("common");
+  const t = useTranslations();
 
   const departmentOptions = [
-    { value: "ALL", label: tCommon("all") },
+    { value: "ALL", label: t("common.all") },
     ...departments.map((d) => ({ value: String(d.id), label: d.name })),
   ];
 
@@ -74,12 +77,15 @@ export function ChecklistsTable({
       currentPage={currentPage}
       totalPages={totalPages}
       totalCount={totalCount}
+      pageSize={pageSize}
       onPageChange={onPageChange}
+      onPageSizeChange={onPageSizeChange}
+      showPageSizeSelector={!!onPageSizeChange}
       header={
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>
-              {t("title")}{" "}
+              {t("checklists.title")}{" "}
               <span className="text-muted-foreground text-sm font-normal">({totalCount})</span>
             </CardTitle>
             <div className="flex gap-2">
@@ -95,7 +101,7 @@ export function ChecklistsTable({
                 options={departmentOptions}
               />
               <Button variant="outline" onClick={onReset}>
-                {tCommon("reset")}
+                {t("common.reset")}
               </Button>
             </div>
           </div>
@@ -105,13 +111,13 @@ export function ChecklistsTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>{t("employeeId")}</TableHead>
-            <TableHead>{tCommon("status")}</TableHead>
-            <TableHead>{t("progress")}</TableHead>
-            <TableHead>{t("tasks")}</TableHead>
-            <TableHead>{t("startDate")}</TableHead>
-            <TableHead>{t("dueDate")}</TableHead>
-            <TableHead className="w-25">{tCommon("actions")}</TableHead>
+            <TableHead>{t("checklists.employee")}</TableHead>
+            <TableHead>{t("common.status")}</TableHead>
+            <TableHead>{t("checklists.progress")}</TableHead>
+            <TableHead>{t("checklists.tasks")}</TableHead>
+            <TableHead>{t("checklists.startDate")}</TableHead>
+            <TableHead>{t("checklists.dueDate")}</TableHead>
+            <TableHead className="w-25">{t("common.actions")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -123,7 +129,8 @@ export function ChecklistsTable({
             >
               <TableCell>
                 <div>
-                  <p className="font-medium">{checklist.employeeId}</p>
+                  <p className="font-medium">{checklist.userName}</p>
+                  <p className="text-muted-foreground text-xs">{checklist.employeeId}</p>
                   {checklist.notes && (
                     <p className="text-muted-foreground max-w-50 truncate text-sm">
                       {checklist.notes}
@@ -167,23 +174,23 @@ export function ChecklistsTable({
                 {checklist.daysRemaining !== null && checklist.status !== "COMPLETED" && (
                   <span className="text-muted-foreground text-xs">
                     {checklist.daysRemaining > 0
-                      ? `${checklist.daysRemaining} ${t("daysLeft")}`
-                      : `${Math.abs(checklist.daysRemaining)} ${t("daysOverdue")}`}
+                      ? `${checklist.daysRemaining} ${t("checklists.daysLeft")}`
+                      : `${Math.abs(checklist.daysRemaining)} ${t("checklists.daysOverdue")}`}
                   </span>
                 )}
               </TableCell>
               <TableCell onClick={(e) => e.stopPropagation()}>
                 <div className="flex gap-1">
-                  <Button variant="ghost" size="icon" onClick={() => onEdit(checklist)}>
-                    <MoreHorizontal className="size-4" />
-                  </Button>
+                   <Button variant="ghost" size="icon" onClick={() => onEdit(checklist)}>
+                     <SquarePen className="size-4" />
+                   </Button>
                   {checklist.status !== "COMPLETED" && (
                     <Button
                       variant="ghost"
                       size="icon"
                       className="text-green-500"
                       onClick={() => onComplete(checklist.id)}
-                      title={t("markComplete")}
+                      title={t("checklists.markComplete")}
                     >
                       <CheckCircle className="size-4" />
                     </Button>
@@ -207,13 +214,13 @@ export function ChecklistsTable({
 }
 
 function ChecklistStatusBadge({ status, isOverdue }: { status: string; isOverdue: boolean }) {
-  const t = useTranslations("checklists");
+  const t = useTranslations();
   
   if (isOverdue) {
     return (
       <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-1 text-xs font-medium text-red-800">
         <Clock className="size-3" />
-        {t("overdue")}
+        {t("checklists.overdue")}
       </span>
     );
   }

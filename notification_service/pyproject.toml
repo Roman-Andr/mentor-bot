@@ -12,7 +12,7 @@ dependencies = [
     "alembic>=1.18.4",
     "asyncpg>=0.31.0",
     "email-validator>=2.3.0",
-    "fastapi>=0.135.2",
+    "fastapi>=0.135.3",
     "httpx>=0.28.1",
     "passlib[bcrypt]>=1.7.4",
     "psycopg2-binary>=2.9.11",
@@ -20,12 +20,12 @@ dependencies = [
     "pydantic-settings>=2.13.1",
     "pyjwt>=2.12.1",
     "python-dotenv>=1.2.2",
-    "python-multipart>=0.0.22",
+    "python-multipart>=0.0.26",
     "python-slugify>=8.0.4",
     "redis>=7.4.0",
     "slowapi>=0.1.9",
-    "sqlalchemy[asyncio]>=2.0.48",
-    "uvicorn[standard]>=0.42.0",
+    "sqlalchemy[asyncio]>=2.0.49",
+    "uvicorn[standard]>=0.44.0",
 ]
 
 [dependency-groups]

@@ -1,8 +1,9 @@
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useDebounce } from "@/hooks/useDebounce";
-import { useToast } from "@/components/ui/toast";
-import { api, attachmentsApi, type Article, type Attachment } from "@/lib/api";
+import { useEffect } from "react";
+import { useEntity } from "./use-entity";
+import { api, attachmentsApi } from "@/lib/api";
+import { queryKeys } from "@/lib/query-keys";
+import type { Article, Attachment } from "@/types";
+import { useQuery } from "@tanstack/react-query";
 
 export interface ArticleRow {
   id: number;
@@ -34,6 +35,11 @@ export interface ArticleFormData {
   keywords: string;
 }
 
+interface ExtendedState {
+  attachments: Attachment[];
+  pendingFiles: File[];
+}
+
 const EMPTY_FORM: ArticleFormData = {
   title: "",
   content: "",
@@ -46,6 +52,11 @@ const EMPTY_FORM: ArticleFormData = {
   is_pinned: false,
   is_featured: false,
   keywords: "",
+};
+
+const defaultExtendedState: ExtendedState = {
+  attachments: [],
+  pendingFiles: [],
 };
 
 function mapArticle(a: Article): ArticleRow {
@@ -66,226 +77,199 @@ function mapArticle(a: Article): ArticleRow {
   };
 }
 
-const ARTICLES_KEY = ["articles"] as const;
-const CATEGORIES_KEY = ["categories"] as const;
+function toPayload(form: ArticleFormData) {
+  const keywordsArray = form.keywords
+    .split(",")
+    .map((k) => k.trim())
+    .filter(Boolean);
+
+  return {
+    title: form.title,
+    content: form.content,
+    excerpt: form.excerpt || undefined,
+    category_id: form.category_id || null,
+    department_id: form.department_id || null,
+    position: form.position || null,
+    level: form.level || null,
+    status: form.status,
+    is_pinned: form.is_pinned,
+    is_featured: form.is_featured,
+    keywords: keywordsArray,
+  };
+}
+
+function toForm(article: ArticleRow): ArticleFormData {
+  return {
+    title: article.title,
+    content: article.content,
+    excerpt: article.excerpt,
+    category_id: article.category_id || 0,
+    department_id: 0,
+    position: "",
+    level: "",
+    status: article.status,
+    is_pinned: article.isPinned,
+    is_featured: article.isFeatured,
+    keywords: "",
+  };
+}
 
 export function useArticles() {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [selectedArticle, setSelectedArticle] = useState<ArticleRow | null>(null);
-  const [formData, setFormData] = useState<ArticleFormData>(EMPTY_FORM);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("ALL");
-  const [categoryFilter, setCategoryFilter] = useState("ALL");
-  const [attachments, setAttachments] = useState<Attachment[]>([]);
-  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
-
-  const debouncedSearch = useDebounce(searchQuery);
-  const pageSize = 20;
-
-  const queryParams = {
-    skip: (currentPage - 1) * pageSize,
-    limit: pageSize,
-    ...(statusFilter !== "ALL" && { status: statusFilter }),
-    ...(categoryFilter !== "ALL" && { category_id: parseInt(categoryFilter) }),
-    ...(debouncedSearch && { search: debouncedSearch }),
-  };
-
-  const { data: articlesData, isLoading: loading } = useQuery({
-    queryKey: [...ARTICLES_KEY, queryParams],
-    queryFn: () => api.articles.list(queryParams),
-    select: (result) =>
-      result.data
-        ? {
-            articles: result.data.articles.map(mapArticle),
-            total: result.data.total,
-            pages: result.data.pages,
-          }
-        : undefined,
+  const entity = useEntity<ArticleRow, ArticleFormData, ReturnType<typeof toPayload>, ReturnType<typeof toPayload>>({
+    entityName: "Статья",
+    translationNamespace: "knowledge",
+    queryKeyPrefix: "articles",
+    listFn: (params) => api.articles.list(params),
+    listDataKey: "articles",
+    createFn: async (data) => {
+      const result = await api.articles.create(data);
+      return result;
+    },
+    updateFn: (id, data) => api.articles.update(id, data),
+    deleteFn: (id) => api.articles.delete(id),
+    defaultForm: EMPTY_FORM,
+    mapItem: (item: unknown) => mapArticle(item as Article),
+    toCreatePayload: toPayload,
+    toUpdatePayload: toPayload,
+    toForm,
+    searchable: true,
+    searchParamName: "search",
+    filters: [
+      { name: "status", defaultValue: "ALL" },
+      { name: "category", defaultValue: "ALL", paramName: "category_id", transform: (v) => parseInt(v) },
+    ],
+    labels: {
+      createdKey: "knowledge.articleCreated",
+      updatedKey: "knowledge.articleUpdated",
+      deletedKey: "knowledge.articleDeleted",
+      createErrorKey: "knowledge.articleCreateError",
+      updateErrorKey: "knowledge.articleUpdateError",
+      deleteErrorKey: "knowledge.articleDeleteError",
+    },
   });
 
-  const { data: categoriesData } = useQuery({
-    queryKey: CATEGORIES_KEY,
-    queryFn: () => api.categories.list({ limit: 1000, include_tree: true }),
+  // Initialize attachments and pendingFiles state
+  useEffect(() => {
+    if (entity.extendedState.attachments === undefined) {
+      entity.setExtendedState(() => ({ attachments: [], pendingFiles: [] }));
+    }
+  }, []);
+
+  // Handle attachments on create/update with custom wrapper
+  const handleSubmit = async () => {
+    const { pendingFiles } = entity.extendedState as unknown as ExtendedState;
+
+    if (entity.selectedItem) {
+      // Update
+      const result = await api.articles.update(entity.selectedItem.id, toPayload(entity.formData));
+      if (result.data && pendingFiles.length > 0) {
+        await attachmentsApi.uploadMultiple(result.data.id, pendingFiles);
+      }
+      if (result.data) {
+        entity.invalidate();
+        entity.setIsEditDialogOpen(false);
+        entity.setSelectedItem(null);
+        // Reset extended state
+        entity.setExtendedState(() => defaultExtendedState as unknown as Record<string, unknown>);
+      }
+    } else {
+      // Create
+      const result = await api.articles.create(toPayload(entity.formData));
+      if (result.data) {
+        if (pendingFiles.length > 0) {
+          await attachmentsApi.uploadMultiple(result.data.id, pendingFiles);
+        }
+        entity.invalidate();
+        entity.setIsCreateDialogOpen(false);
+        entity.resetForm();
+        entity.setExtendedState(() => defaultExtendedState as unknown as Record<string, unknown>);
+      }
+    }
+  };
+
+  // Fetch categories
+  const { data: categoriesData, refetch: refetchCategories } = useQuery({
+    queryKey: queryKeys.categories.all,
+    queryFn: () => api.categories.list({ limit: 100, include_tree: true }),
     select: (result) => result.data?.categories || [],
   });
 
-  const createMutation = useMutation({
-    mutationFn: (data: Parameters<typeof api.articles.create>[0]) => api.articles.create(data),
-    onSuccess: async (result) => {
-      if (result.data) {
-        if (pendingFiles.length > 0) {
-          await attachmentsApi.uploadMultiple(result.data.id, pendingFiles);
-        }
-        queryClient.invalidateQueries({ queryKey: ARTICLES_KEY });
-        setIsCreateDialogOpen(false);
-        resetForm();
-        toast("Статья создана", "success");
-      } else if (result.error) {
-        toast(result.error, "error");
-      }
-    },
-    onError: () => toast("Ошибка сохранения статьи", "error"),
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Parameters<typeof api.articles.update>[1] }) =>
-      api.articles.update(id, data),
-    onSuccess: async (result) => {
-      if (result.data) {
-        if (pendingFiles.length > 0) {
-          await attachmentsApi.uploadMultiple(result.data.id, pendingFiles);
-        }
-        queryClient.invalidateQueries({ queryKey: ARTICLES_KEY });
-        setIsEditDialogOpen(false);
-        setSelectedArticle(null);
-        toast("Статья обновлена", "success");
-      } else if (result.error) {
-        toast(result.error, "error");
-      }
-    },
-    onError: () => toast("Ошибка сохранения статьи", "error"),
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: number) => api.articles.delete(id),
-    onSuccess: (result) => {
-      if (!result.error) {
-        queryClient.invalidateQueries({ queryKey: ARTICLES_KEY });
-        toast("Статья удалена", "success");
-      } else {
-        toast(result.error, "error");
-      }
-    },
-    onError: () => toast("Ошибка удаления статьи", "error"),
-  });
-
-  const publishMutation = useMutation({
-    mutationFn: (id: number) => api.articles.publish(id),
-    onSuccess: (result) => {
-      if (result.data) {
-        queryClient.invalidateQueries({ queryKey: ARTICLES_KEY });
-        toast("Статья опубликована", "success");
-      } else if (result.error) {
-        toast(result.error, "error");
-      }
-    },
-    onError: () => toast("Ошибка публикации статьи", "error"),
-  });
-
-  const handleSubmit = async () => {
-    const keywordsArray = formData.keywords
-      .split(",")
-      .map((k) => k.trim())
-      .filter(Boolean);
-    const payload = {
-      title: formData.title,
-      content: formData.content,
-      excerpt: formData.excerpt || undefined,
-      category_id: formData.category_id || null,
-      department_id: formData.department_id || null,
-      position: formData.position || null,
-      level: formData.level || null,
-      status: formData.status,
-      is_pinned: formData.is_pinned,
-      is_featured: formData.is_featured,
-      keywords: keywordsArray,
-    };
-
-    if (selectedArticle) {
-      updateMutation.mutate({ id: selectedArticle.id, data: payload });
-    } else {
-      createMutation.mutate(payload);
-    }
-  };
-
-  const handleDelete = (id: number) => {
-    deleteMutation.mutate(id);
-  };
-
-  const handlePublish = (id: number) => {
-    publishMutation.mutate(id);
-  };
-
+  // Custom openEdit that loads attachments
   const openEdit = async (article: ArticleRow) => {
-    setSelectedArticle(article);
-    setFormData({
-      title: article.title,
-      content: article.content,
-      excerpt: article.excerpt,
-      category_id: article.category_id || 0,
-      department_id: 0,
-      position: "",
-      level: "",
-      status: article.status,
-      is_pinned: article.isPinned,
-      is_featured: article.isFeatured,
-      keywords: "",
-    });
-    setAttachments([]);
-    setPendingFiles([]);
+    entity.setSelectedItem(article);
+    entity.setFormData(toForm(article));
+
+    // Load attachments
     const attResponse = await api.attachments.listByArticle(article.id);
-    if (attResponse.data) {
-      setAttachments(attResponse.data.attachments);
-    }
-    setIsEditDialogOpen(true);
+    entity.setExtendedState((prev) => ({
+      ...(prev as unknown as ExtendedState),
+      attachments: attResponse.data?.attachments || [],
+      pendingFiles: [],
+    }));
+
+    entity.setIsEditDialogOpen(true);
   };
 
   const resetForm = () => {
-    setFormData(EMPTY_FORM);
-    setSelectedArticle(null);
-    setAttachments([]);
-    setPendingFiles([]);
+    entity.resetForm();
+    entity.setExtendedState(() => defaultExtendedState as unknown as Record<string, unknown>);
   };
 
-  const articles = articlesData?.articles || [];
-  const categories = categoriesData || [];
-  const totalCount = articlesData?.total || 0;
-  const totalPages = articlesData?.pages || 1;
-
   return {
-    articles,
-    categories,
-    loading,
-    isCreateDialogOpen,
-    setIsCreateDialogOpen,
-    isEditDialogOpen,
-    setIsEditDialogOpen,
-    selectedArticle,
-    setSelectedArticle,
-    formData,
-    setFormData,
-    attachments,
-    setAttachments,
-    pendingFiles,
-    setPendingFiles,
-    searchQuery,
-    setSearchQuery,
-    statusFilter,
-    setStatusFilter,
-    categoryFilter,
-    setCategoryFilter,
-    currentPage,
-    setCurrentPage,
-    totalPages,
-    totalCount,
-    loadCategories: () => queryClient.invalidateQueries({ queryKey: CATEGORIES_KEY }),
+    // Data
+    articles: entity.items,
+    categories: categoriesData || [],
+    loading: entity.loading,
+    totalCount: entity.totalCount,
+    totalPages: entity.totalPages,
+
+    // Pagination
+    currentPage: entity.currentPage,
+    setCurrentPage: entity.setCurrentPage,
+    pageSize: entity.pageSize,
+    setPageSize: entity.setPageSize,
+
+    // Search & Filters
+    searchQuery: entity.searchQuery,
+    setSearchQuery: entity.setSearchQuery,
+    statusFilter: entity.filterValues.status ?? "ALL",
+    setStatusFilter: (value: string) => entity.setFilterValue("status", value),
+    categoryFilter: entity.filterValues.category ?? "ALL",
+    setCategoryFilter: (value: string) => entity.setFilterValue("category", value),
+
+    // Dialogs
+    isCreateDialogOpen: entity.isCreateDialogOpen,
+    setIsCreateDialogOpen: entity.setIsCreateDialogOpen,
+    isEditDialogOpen: entity.isEditDialogOpen,
+    setIsEditDialogOpen: entity.setIsEditDialogOpen,
+
+    // Selection
+    selectedArticle: entity.selectedItem,
+    setSelectedArticle: entity.setSelectedItem,
+
+    // Form
+    formData: entity.formData,
+    setFormData: entity.setFormData,
+
+    // Attachments
+    attachments: (entity.extendedState as unknown as ExtendedState).attachments ?? [],
+    setAttachments: (attachments: Attachment[]) =>
+      entity.setExtendedState((prev) => ({ ...(prev as unknown as ExtendedState), attachments })),
+    pendingFiles: (entity.extendedState as unknown as ExtendedState).pendingFiles ?? [],
+    setPendingFiles: (files: File[]) =>
+      entity.setExtendedState((prev) => ({ ...(prev as unknown as ExtendedState), pendingFiles: files })),
+
+    // Handlers
     handleSubmit,
-    handleDelete,
-    handlePublish,
+    handleDelete: entity.handleDelete,
+    handlePublish: (id: number) => api.articles.publish(id),
     openEdit,
     resetForm,
-    resetFilters: () => {
-      setSearchQuery("");
-      setStatusFilter("ALL");
-      setCategoryFilter("ALL");
-      setCurrentPage(1);
-    },
-    isSubmitting: createMutation.isPending || updateMutation.isPending,
-    isDeleting: deleteMutation.isPending,
+    resetFilters: entity.resetFilters,
+    loadCategories: refetchCategories,
+
+    // Loading states
+    isSubmitting: entity.isSubmitting,
+    isDeleting: entity.isDeleting,
   };
 }

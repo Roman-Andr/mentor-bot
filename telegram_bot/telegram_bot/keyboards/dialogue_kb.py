@@ -4,10 +4,13 @@ from aiogram.types import InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from telegram_bot.core.enums import ButtonStyle
+from telegram_bot.i18n import t
 from telegram_bot.keyboards.utils import create_inline_button
 
 
-def get_faq_menu_keyboard(scenarios: list[dict]) -> InlineKeyboardMarkup:
+def get_faq_menu_keyboard(
+    scenarios: list[dict], *, locale: str = "en"
+) -> InlineKeyboardMarkup:
     """Create FAQ menu keyboard with scenarios."""
     builder = InlineKeyboardBuilder()
 
@@ -21,14 +24,19 @@ def get_faq_menu_keyboard(scenarios: list[dict]) -> InlineKeyboardMarkup:
         )
 
     builder.add(
-        create_inline_button("\u2b05 Back to Menu", callback_data="back_to_menu")
+        create_inline_button(
+            f"\u2b05 {t('common.back_button', locale=locale)}",
+            callback_data="back_to_menu",
+        )
     )
 
     builder.adjust(1)
     return builder.as_markup()
 
 
-def get_dialogue_step_keyboard(step: dict) -> InlineKeyboardMarkup:
+def get_dialogue_step_keyboard(
+    step: dict, *, locale: str = "en"
+) -> InlineKeyboardMarkup:
     """Create keyboard for a dialogue step based on answer_type."""
     builder = InlineKeyboardBuilder()
 
@@ -49,17 +57,25 @@ def get_dialogue_step_keyboard(step: dict) -> InlineKeyboardMarkup:
         if step.get("answer_content"):
             builder.add(
                 create_inline_button(
-                    "\U0001f517 Подробнее",
+                    f"\U0001f517 {t('knowledge.btn_read_more', locale=locale)}",
                     url=step["answer_content"],
                     style=ButtonStyle.PRIMARY,
                 )
             )
 
     if not is_final:
-        builder.add(create_inline_button("\u2b05 К началу", callback_data="faq_menu"))
+        builder.add(
+            create_inline_button(
+                f"\u2b05 {t('common.back_button', locale=locale)}",
+                callback_data="faq_menu",
+            )
+        )
 
     builder.add(
-        create_inline_button("\u2b05 В главное меню", callback_data="back_to_menu")
+        create_inline_button(
+            f"\u2b05 {t('common.menu_button', locale=locale)}",
+            callback_data="back_to_menu",
+        )
     )
 
     builder.adjust(1)

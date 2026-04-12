@@ -238,6 +238,14 @@ class ChecklistService:
         stats = await self._uow.checklists.get_statistics(user_id=user_id, department_id=department_id)
         return ChecklistStats(**stats)
 
+    async def get_monthly_stats(self, months: int = 6) -> list[dict[str, Any]]:
+        """Get monthly statistics."""
+        return await self._uow.checklists.get_monthly_stats(months)
+
+    async def get_completion_time_distribution(self) -> list[dict[str, Any]]:
+        """Get completion time distribution."""
+        return await self._uow.checklists.get_completion_time_distribution()
+
     async def auto_create_checklists(
         self,
         user_id: int,

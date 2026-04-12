@@ -205,6 +205,44 @@ class KnowledgeServiceClient:
             logger.exception("Knowledge service get scenario request failed")
         return {"id": scenario_id, "title": "", "steps": []}
 
+    @cached(ttl=300, key_prefix="kb_categories")
+    async def get_categories(
+        self, auth_token: str, skip: int = 0, limit: int = 50
+    ) -> dict:
+        """Get knowledge base categories (cached)."""
+        try:
+            response = await self.client.get(
+                f"{settings.API_V1_PREFIX}/categories",
+                params={"skip": skip, "limit": limit},
+                headers={"Authorization": f"Bearer {auth_token}"},
+            )
+            if response.status_code == status.HTTP_200_OK:
+                return response.json()
+        except httpx.RequestError:
+            logger.exception("Knowledge service categories request failed")
+        return {"total": 0, "categories": [], "page": 1, "size": limit, "pages": 0}
+
+    @cached(ttl=60, key_prefix="kb_category_articles")
+    async def get_articles_by_category(
+        self, category_id: int, auth_token: str, skip: int = 0, limit: int = 20
+    ) -> dict:
+        """Get articles by category ID (cached)."""
+        try:
+            response = await self.client.get(
+                f"{settings.API_V1_PREFIX}/articles",
+                params={
+                    "category_id": category_id,
+                    "skip": skip,
+                    "limit": limit,
+                },
+                headers={"Authorization": f"Bearer {auth_token}"},
+            )
+            if response.status_code == status.HTTP_200_OK:
+                return response.json()
+        except httpx.RequestError:
+            logger.exception("Knowledge service articles by category request failed")
+        return {"total": 0, "articles": [], "page": 1, "size": limit, "pages": 0}
+
 
 # Singleton instance
 knowledge_client = KnowledgeServiceClient()

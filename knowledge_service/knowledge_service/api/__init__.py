@@ -22,7 +22,7 @@ from knowledge_service.api.deps import (
     require_hr,
     require_mentor_or_above,
 )
-from knowledge_service.api.endpoints import articles, attachments, categories, dialogues, search, tags
+from knowledge_service.api.endpoints import articles, attachments, categories, departments, dialogues, search, tags
 
 __all__ = [
     "AdminUser",
@@ -41,6 +41,7 @@ __all__ = [
     "articles",
     "attachments",
     "categories",
+    "departments",
     "dialogues",
     "get_auth_token",
     "get_current_active_user",

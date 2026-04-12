@@ -26,6 +26,8 @@ MAX_MEETING_DURATION = 480
 
 @router.message(Command("meetings"))
 @router.message(F.text == "\U0001f4c5 Meetings")
+@router.message(F.text == "\U0001f4c5 \u0412\u0441\u0442\u0440\u0435\u0447\u0438")
+@router.message(F.text == "\u0412\u0441\u0442\u0440\u0435\u0447\u0438")
 @router.callback_query(F.data == "meetings_menu")
 async def meetings_menu(
     update: Message | CallbackQuery, user: dict, auth_token: str, *, locale: str = "en"

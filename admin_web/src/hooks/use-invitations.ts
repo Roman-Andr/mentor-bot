@@ -1,8 +1,8 @@
-import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { useDebounce } from "@/hooks/useDebounce";
-import { useToast } from "@/components/ui/toast";
-import { api, type Invitation } from "@/lib/api";
+import { useEffect } from "react";
+import { useEntity } from "./use-entity";
+import { api } from "@/lib/api";
+import type { Invitation } from "@/types";
+import { useMutation } from "@tanstack/react-query";
 
 export interface InvitationItem {
   id: number;
@@ -26,6 +26,11 @@ interface InvitationFormData {
   expires_in_days: number;
 }
 
+interface ExtendedState {
+  emailTouched: boolean;
+  createdUrl: string | null;
+}
+
 const defaultFormData: InvitationFormData = {
   email: "",
   role: "NEWBIE",
@@ -35,6 +40,11 @@ const defaultFormData: InvitationFormData = {
   level: "",
   mentor_id: 0,
   expires_in_days: 7,
+};
+
+const defaultExtendedState: ExtendedState = {
+  emailTouched: false,
+  createdUrl: null,
 };
 
 function toInvitationItem(i: Invitation): InvitationItem {
@@ -55,163 +65,149 @@ function toInvitationItem(i: Invitation): InvitationItem {
   };
 }
 
-const INVITATIONS_KEY = ["invitations"] as const;
+function toPayload(form: InvitationFormData) {
+  return {
+    email: form.email,
+    role: form.role,
+    employee_id: form.employee_id || undefined,
+    department_id: form.department_id || undefined,
+    position: form.position || undefined,
+    level: form.level || undefined,
+    mentor_id: form.mentor_id || undefined,
+    expires_in_days: form.expires_in_days,
+  };
+}
 
 export function useInvitations() {
-  const { toast } = useToast();
-
-  const [searchQuery, setSearchQuery] = useState("");
-  const [roleFilter, setRoleFilter] = useState("ALL");
-  const [statusFilter, setStatusFilter] = useState("ALL");
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [formData, setFormData] = useState<InvitationFormData>(defaultFormData);
-  const [emailTouched, setEmailTouched] = useState(false);
-  const [createdUrl, setCreatedUrl] = useState<string | null>(null);
-
-  const debouncedSearch = useDebounce(searchQuery, 300);
-
-  const queryParams = {
-    ...(debouncedSearch && { email: debouncedSearch }),
-    ...(roleFilter !== "ALL" && { role: roleFilter }),
-    ...(statusFilter === "EXPIRED" && { expired_only: true }),
-    ...(statusFilter !== "ALL" && statusFilter !== "EXPIRED" && { status: statusFilter }),
-  };
-
-  const {
-    data: invitationsData,
-    isLoading: loading,
-    refetch,
-  } = useQuery({
-    queryKey: [...INVITATIONS_KEY, queryParams],
-    queryFn: () => api.invitations.list(queryParams),
-    select: (result) =>
-      result.data
-        ? {
-            invitations: result.data.invitations.map(toInvitationItem),
-            stats: result.data.stats,
-          }
-        : undefined,
-  });
-
-  const createMutation = useMutation({
-    mutationFn: (data: Parameters<typeof api.invitations.create>[0]) =>
-      api.invitations.create(data),
-    onSuccess: (result) => {
-      if (result.data) {
-        setIsCreateDialogOpen(false);
-        resetForm();
-        setCreatedUrl(result.data.invitation_url);
-        refetch();
-        toast("Приглашение создано", "success");
-      } else if (result.error) {
-        toast(result.error, "error");
-      }
+  const entity = useEntity<InvitationItem, InvitationFormData, ReturnType<typeof toPayload>, ReturnType<typeof toPayload>>({
+    entityName: "Приглашение",
+    translationNamespace: "invitations",
+    queryKeyPrefix: "invitations",
+    listFn: (params) => api.invitations.list(params),
+    listDataKey: "invitations",
+    createFn: (data) => api.invitations.create(data),
+    deleteFn: (id) => api.invitations.delete(id),
+    defaultForm: defaultFormData,
+    mapItem: (item: unknown) => toInvitationItem(item as Invitation),
+    toCreatePayload: toPayload,
+    toUpdatePayload: toPayload,
+    toForm: () => defaultFormData, // No edit for invitations
+    searchable: true,
+    searchParamName: "email",
+    filters: [
+      { name: "role", defaultValue: "ALL" },
+      { name: "status", defaultValue: "ALL" },
+    ],
+    labels: {
+      createdKey: "invitations.created",
+      deletedKey: "invitations.deleted",
+      createErrorKey: "invitations.createError",
+      deleteErrorKey: "invitations.deleteError",
     },
-    onError: () => toast("Ошибка создания приглашения", "error"),
   });
 
+  // Initialize emailTouched and createdUrl state
+  useEffect(() => {
+    if (entity.extendedState.emailTouched === undefined) {
+      entity.setExtendedState(() => ({ emailTouched: false, createdUrl: null }));
+    }
+  }, []);
+
+  // Custom mutations
   const resendMutation = useMutation({
     mutationFn: (id: number) => api.invitations.resend(id),
     onSuccess: () => {
-      refetch();
-      toast("Приглашение отправлено повторно", "success");
+      entity.invalidate();
     },
-    onError: () => toast("Ошибка отправки приглашения", "error"),
   });
 
   const revokeMutation = useMutation({
     mutationFn: (id: number) => api.invitations.revoke(id),
     onSuccess: () => {
-      refetch();
-      toast("Приглашение отозвано", "success");
+      entity.invalidate();
     },
-    onError: () => toast("Ошибка отзыва приглашения", "error"),
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: (id: number) => api.invitations.delete(id),
-    onSuccess: (result) => {
-      if (!result.error) {
-        refetch();
-        toast("Приглашение удалено", "success");
-      } else {
-        toast(result.error, "error");
-      }
-    },
-    onError: () => toast("Ошибка удаления приглашения", "error"),
-  });
+  // Stats derived from entity items (no duplicate API call)
+  const stats = {
+    total: entity.totalCount,
+    pending: entity.items.filter(i => i.status === "PENDING").length,
+    accepted: entity.items.filter(i => i.status === "ACCEPTED").length,
+    expired: entity.items.filter(i => i.status === "EXPIRED").length,
+  };
 
   const handleCreateInvitation = () => {
-    createMutation.mutate({
-      email: formData.email,
-      role: formData.role,
-      employee_id: formData.employee_id || undefined,
-      department_id: formData.department_id || undefined,
-      position: formData.position || undefined,
-      level: formData.level || undefined,
-      mentor_id: formData.mentor_id || undefined,
-      expires_in_days: formData.expires_in_days,
+    const payload = toPayload(entity.formData);
+    entity.createFn?.(payload).then((result) => {
+      if (result?.error) {
+        // Error is already handled by entity hook's onError
+        return;
+      }
+      if (result?.data) {
+        entity.setExtendedState((prev) => ({
+          ...(prev as unknown as ExtendedState),
+          createdUrl: (result.data as { invitation_url: string }).invitation_url,
+        }));
+        entity.invalidate();
+        entity.setIsCreateDialogOpen(false);
+        entity.resetForm();
+      }
     });
   };
 
-  const handleResendInvitation = (id: number) => {
-    resendMutation.mutate(id);
-  };
-
-  const handleRevokeInvitation = (id: number) => {
-    revokeMutation.mutate(id);
-  };
-
-  const handleDeleteInvitation = (id: number) => {
-    deleteMutation.mutate(id);
-  };
-
   const resetForm = () => {
-    setFormData(defaultFormData);
-    setEmailTouched(false);
+    entity.resetForm();
+    entity.setExtendedState(() => defaultExtendedState as unknown as Record<string, unknown>);
   };
-
-  const invitations = invitationsData?.invitations || [];
-  const stats = invitationsData?.stats
-    ? {
-        total: invitationsData.stats.total,
-        pending: invitationsData.stats.pending,
-        accepted: invitationsData.stats.used || invitationsData.stats.pending,
-        expired: invitationsData.stats.expired,
-      }
-    : { total: 0, pending: 0, accepted: 0, expired: 0 };
 
   return {
-    invitations,
+    // Data
+    invitations: entity.items,
     stats,
-    loading,
-    isCreateDialogOpen,
-    setIsCreateDialogOpen,
-    formData,
-    setFormData,
-    emailTouched,
-    setEmailTouched,
-    searchQuery,
-    setSearchQuery,
-    roleFilter,
-    setRoleFilter,
-    statusFilter,
-    setStatusFilter,
-    createdUrl,
-    setCreatedUrl,
+    loading: entity.loading,
+    totalCount: entity.totalCount,
+    totalPages: entity.totalPages,
+
+    // Pagination
+    currentPage: entity.currentPage,
+    setCurrentPage: entity.setCurrentPage,
+    pageSize: entity.pageSize,
+    setPageSize: entity.setPageSize,
+
+    // Search & Filters
+    searchQuery: entity.searchQuery,
+    setSearchQuery: entity.setSearchQuery,
+    roleFilter: entity.filterValues.role ?? "ALL",
+    setRoleFilter: (value: string) => entity.setFilterValue("role", value),
+    statusFilter: entity.filterValues.status ?? "ALL",
+    setStatusFilter: (value: string) => entity.setFilterValue("status", value),
+
+    // Dialog
+    isCreateDialogOpen: entity.isCreateDialogOpen,
+    setIsCreateDialogOpen: entity.setIsCreateDialogOpen,
+
+    // Form
+    formData: entity.formData,
+    setFormData: entity.setFormData,
+    emailTouched: (entity.extendedState as unknown as ExtendedState).emailTouched ?? false,
+    setEmailTouched: (touched: boolean) =>
+      entity.setExtendedState((prev) => ({ ...(prev as unknown as ExtendedState), emailTouched: touched })),
+    createdUrl: (entity.extendedState as unknown as ExtendedState).createdUrl ?? null,
+    setCreatedUrl: (url: string | null) =>
+      entity.setExtendedState((prev) => ({ ...(prev as unknown as ExtendedState), createdUrl: url })),
+
+    // Handlers
     handleCreateInvitation,
-    handleResendInvitation,
-    handleRevokeInvitation,
-    handleDeleteInvitation,
+    handleResendInvitation: (id: number) => resendMutation.mutate(id),
+    handleRevokeInvitation: (id: number) => revokeMutation.mutate(id),
+    handleDeleteInvitation: entity.handleDelete,
     resetForm,
-    resetFilters: () => {
-      setSearchQuery("");
-      setRoleFilter("ALL");
-      setStatusFilter("ALL");
-    },
-    isCreating: createMutation.isPending,
+    resetFilters: entity.resetFilters,
+
+    // Loading states
+    isCreating: entity.isSubmitting,
     isResending: resendMutation.isPending,
     isRevoking: revokeMutation.isPending,
-    isDeleting: deleteMutation.isPending,
+    isDeleting: entity.isDeleting,
   };
 }

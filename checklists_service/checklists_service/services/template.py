@@ -101,6 +101,7 @@ class TemplateService:
         status: str | None = None,
         *,
         is_default: bool | None = None,
+        search: str | None = None,
     ) -> tuple[list[Template], int]:
         """Get paginated list of templates with filters."""
         status_enum = TemplateStatus(status) if status else None
@@ -111,6 +112,7 @@ class TemplateService:
             department_id=department_id,
             status=status_enum,
             is_default=is_default,
+            search=search,
         )
         return list(templates), total
 

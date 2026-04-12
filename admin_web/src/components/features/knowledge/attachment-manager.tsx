@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "@/hooks/use-translations";
 import { Button } from "@/components/ui/button";
-import { useConfirm } from "@/components/ui/confirm-dialog";
-import { attachmentsApi, type Attachment } from "@/lib/api";
+import { useConfirm } from "@/hooks/use-confirm";
+import { attachmentsApi } from "@/lib/api";
+import type { Attachment } from "@/types";
 import { FileText, Trash2, Upload, Download, Loader2, X } from "lucide-react";
 
 const ALLOWED_TYPES = ["pdf", "jpg", "jpeg", "png", "docx", "xlsx", "txt"];
@@ -43,8 +44,7 @@ export function AttachmentManager({
   pendingFiles = [],
   onPendingFilesChange,
 }: AttachmentManagerProps) {
-  const t = useTranslations("knowledge");
-  const tCommon = useTranslations("common");
+  const t = useTranslations();
   const confirm = useConfirm();
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -54,10 +54,10 @@ export function AttachmentManager({
   const validateFile = (file: File): string | null => {
     const ext = getFileExt(file.name);
     if (!ALLOWED_TYPES.includes(ext)) {
-      return `${t("invalidFileType")}: ${ALLOWED_TYPES.join(", ")}`;
+      return `${t("knowledge.invalidFileType")}: ${ALLOWED_TYPES.join(", ")}`;
     }
     if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
-      return `${t("fileTooBig")}: ${MAX_FILE_SIZE_MB} MB`;
+      return `${t("knowledge.fileTooBig")}: ${MAX_FILE_SIZE_MB} MB`;
     }
     return null;
   };
@@ -87,7 +87,7 @@ export function AttachmentManager({
           if (response.data) {
             newAttachments.push(response.data);
           } else {
-            setUploadError(response.error || tCommon("error"));
+            setUploadError(response.error || t("common.error"));
             break;
           }
         }
@@ -117,10 +117,10 @@ export function AttachmentManager({
   const handleDelete = async (attachmentId: number) => {
     if (
       !(await confirm({
-        title: t("deleteFile"),
-        description: t("deleteFileConfirm"),
+        title: t("knowledge.deleteFile"),
+        description: t("knowledge.deleteFileConfirm"),
         variant: "destructive",
-        confirmText: tCommon("delete"),
+        confirmText: t("common.delete"),
       }))
     )
       return;
@@ -148,7 +148,7 @@ export function AttachmentManager({
   return (
     <div className="grid gap-3">
       <div className="flex items-center justify-between">
-        <label className="text-sm font-medium">{t("files")}</label>
+        <label className="text-sm font-medium">{t("knowledge.files")}</label>
         {canAddFiles && (
           <Button
             type="button"
@@ -163,7 +163,7 @@ export function AttachmentManager({
             ) : (
               <Upload className="size-3" />
             )}
-            {uploading ? tCommon("loading") : t("uploadFile")}
+            {uploading ? t("common.loading") : t("knowledge.uploadFile")}
           </Button>
         )}
         <input
@@ -196,7 +196,7 @@ export function AttachmentManager({
                   variant="ghost"
                   size="icon"
                   onClick={() => handleDownload(att)}
-                  title={tCommon("download")}
+                  title={t("common.download")}
                 >
                   <Download className="size-3.5" />
                 </Button>
@@ -207,7 +207,7 @@ export function AttachmentManager({
                   onClick={() => handleDelete(att.id)}
                   disabled={deletingId === att.id}
                   className="text-red-500 hover:text-red-700"
-                  title={tCommon("delete")}
+                  title={t("common.delete")}
                 >
                   <Trash2 className="size-3.5" />
                 </Button>
@@ -225,7 +225,7 @@ export function AttachmentManager({
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium">{file.name}</p>
                 <p className="text-muted-foreground text-xs">
-                  {formatFileSize(file.size)} — {t("willUploadAfterSave")}
+                  {formatFileSize(file.size)} — {t("knowledge.willUploadAfterSave")}
                 </p>
               </div>
               <Button
@@ -234,7 +234,7 @@ export function AttachmentManager({
                 size="icon"
                 onClick={() => handleRemovePending(index)}
                 className="text-red-500 hover:text-red-700"
-                title={t("remove")}
+                title={t("knowledge.remove")}
               >
                 <X className="size-3.5" />
               </Button>
@@ -244,7 +244,7 @@ export function AttachmentManager({
       )}
 
       {attachments.length === 0 && pendingFiles.length === 0 && (
-        <p className="text-muted-foreground text-xs">{t("noAttachments")}</p>
+        <p className="text-muted-foreground text-xs">{t("knowledge.noAttachments")}</p>
       )}
     </div>
   );

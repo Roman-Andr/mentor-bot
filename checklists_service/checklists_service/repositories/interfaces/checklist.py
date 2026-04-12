@@ -49,3 +49,11 @@ class IChecklistRepository(BaseRepository["Checklist", int]):
     @abstractmethod
     async def get_by_user_and_template(self, user_id: int, template_id: int) -> Checklist | None:
         """Get checklist by user and template ID."""
+
+    @abstractmethod
+    async def get_monthly_stats(self, months: int = 6) -> list[dict[str, Any]]:
+        """Get monthly statistics for the last N months."""
+
+    @abstractmethod
+    async def get_completion_time_distribution(self) -> list[dict[str, Any]]:
+        """Get completion time distribution (in days)."""

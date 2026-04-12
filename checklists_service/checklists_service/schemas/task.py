@@ -75,3 +75,17 @@ class TaskBulkUpdate(BaseModel):
     status: TaskStatus | None = None
     assignee_id: int | None = None
     due_date: datetime | None = None
+
+
+class TaskAttachmentResponse(BaseModel):
+    """Task attachment response schema."""
+
+    id: int
+    filename: str
+    file_size: int
+    mime_type: str
+    description: str | None = None
+    uploaded_at: datetime
+    uploaded_by: int
+
+    model_config = ConfigDict(from_attributes=True)

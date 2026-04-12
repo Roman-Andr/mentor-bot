@@ -1,5 +1,5 @@
 import { fetchApi } from "./client";
-import type { PulseSurvey, ExperienceRating, Comment } from "./types";
+import type { PulseSurvey, ExperienceRating, Comment } from "@/types";
 
 export const feedbackApi = {
   submitPulse: (data: { user_id: number; rating: number }) =>

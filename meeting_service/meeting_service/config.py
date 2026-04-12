@@ -35,6 +35,9 @@ class Settings(BaseSettings):
     AUTH_SERVICE_URL: str = Field(default="http://auth_service:8000")
     AUTH_SERVICE_TIMEOUT: int = Field(default=10, ge=1)
 
+    # Service-to-service authentication
+    SERVICE_API_KEY: str = Field(default="")
+
     # Google Calendar Integration
     GOOGLE_CLIENT_ID: str = Field(default="")
     GOOGLE_CLIENT_SECRET: str = Field(default="")

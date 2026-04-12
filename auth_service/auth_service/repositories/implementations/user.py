@@ -28,8 +28,17 @@ class UserRepository(SqlAlchemyBaseRepository[User, int], IUserRepository):
         return await self.get_by_id(entity.id) or entity  # type: ignore[return-value]
 
     async def get_by_id(self, entity_id: int) -> User | None:
-        """Get user by ID with department relationship."""
-        stmt = select(User).where(User.id == entity_id).options(selectinload(User.department))
+        """Get user by ID with department and mentor relationships."""
+        from auth_service.models.user_mentor import UserMentor
+
+        stmt = (
+            select(User)
+            .where(User.id == entity_id)
+            .options(
+                selectinload(User.department),
+                selectinload(User.mentor_assignments).selectinload(UserMentor.mentor),
+            )
+        )
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none()
 

@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from "@tanstack/react-query";
-import { useToast } from "@/components/ui/toast";
+import { useToast } from "@/hooks/use-toast";
+import { useTranslations } from "@/hooks/use-translations";
 
 export interface ListParams {
   skip?: number;
@@ -64,10 +65,11 @@ export function useInfiniteListQuery<TItem, TParams extends ListParams = ListPar
       const baseParams = queryKey[1] as TParams;
       return queryFn({ ...baseParams, skip: pageParam, limit: pageSize });
     },
-    getNextPageParam: (lastPage) => {
+    getNextPageParam: (lastPage, allPages) => {
       if (!lastPage?.data) return undefined;
       const { items, total } = lastPage.data;
-      return items.length * (queryKey.indexOf("page") + 1) < total ? items.length : undefined;
+      const loadedCount = allPages.reduce((sum, page) => sum + (page.data?.items?.length || 0), 0);
+      return loadedCount < total ? loadedCount : undefined;
     },
     initialPageParam: 0,
     enabled,
@@ -133,6 +135,7 @@ export function useCreate<TData, TVariables>(
 ) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const t = useTranslations("common");
 
   const mutation = useMutation({
     mutationFn,
@@ -141,7 +144,7 @@ export function useCreate<TData, TVariables>(
         if (queryKeyToInvalidate) {
           queryClient.invalidateQueries({ queryKey: queryKeyToInvalidate });
         }
-        toast("Успешно создано", "success");
+        toast(t("successfullyCreated"), "success");
       } else if (result.error) {
         toast(result.error, "error");
       }
@@ -160,6 +163,7 @@ export function useUpdate<TData, TVariables>(
 ) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const t = useTranslations("common");
 
   const mutation = useMutation({
     mutationFn,
@@ -168,7 +172,7 @@ export function useUpdate<TData, TVariables>(
         if (queryKeyToInvalidate) {
           queryClient.invalidateQueries({ queryKey: queryKeyToInvalidate });
         }
-        toast("Успешно обновлено", "success");
+        toast(t("successfullyUpdated"), "success");
       } else if (result.error) {
         toast(result.error, "error");
       }
@@ -187,6 +191,7 @@ export function useDelete(
 ) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const t = useTranslations("common");
 
   const mutation = useMutation({
     mutationFn,
@@ -195,7 +200,7 @@ export function useDelete(
         if (queryKeyToInvalidate) {
           queryClient.invalidateQueries({ queryKey: queryKeyToInvalidate });
         }
-        toast("Успешно удалено", "success");
+        toast(t("successfullyDeleted"), "success");
       } else {
         toast(result.error, "error");
       }

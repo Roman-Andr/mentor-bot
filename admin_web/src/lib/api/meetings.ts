@@ -1,6 +1,6 @@
 import { fetchApi } from "./client";
 import { buildQueryString } from "@/lib/utils/query-builder";
-import type { Meeting, MeetingListResponse } from "./types";
+import type { Meeting, MeetingListResponse } from "@/types";
 
 export const meetingsApi = {
   list: (params?: {
@@ -9,6 +9,7 @@ export const meetingsApi = {
     position?: string;
     level?: string;
     is_mandatory?: boolean;
+    search?: string;
     skip?: number;
     limit?: number;
   }) => {

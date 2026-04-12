@@ -7,7 +7,6 @@ from datetime import timedelta
 from functools import wraps
 from typing import TypeVar
 
-from fastapi import status
 from redis import RedisError
 from redis.asyncio import Redis
 
@@ -46,8 +45,9 @@ class RedisCache:
             key_parts.append(f"{k}:{v}")
 
         key_string = ":".join(key_parts)
-        # Hash long keys
-        if len(key_string) > status.HTTP_200_OK:
+        # Hash long keys (Redis recommends keeping keys under 1KB for performance)
+        MAX_KEY_LENGTH = 250
+        if len(key_string) > MAX_KEY_LENGTH:
             key_string = f"{prefix}:{hashlib.sha256(key_string.encode()).hexdigest()}"
 
         return key_string

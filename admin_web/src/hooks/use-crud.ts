@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
-import { useDebounce } from "./useDebounce";
-import { useConfirm } from "@/components/ui/confirm-dialog";
+import { useDebounce } from "./use-debounce";
+import { useConfirm } from "@/hooks/use-confirm";
+import { useTranslations } from "@/hooks/use-translations";
 
 interface CrudOptions<TItem, TForm> {
   defaultForm: TForm;
@@ -51,13 +52,14 @@ export function useCrud<TItem, TForm>(
   options: CrudOptions<TItem, TForm>,
 ): UseCrudResult<TItem, TForm> {
   const confirm = useConfirm();
+  const t = useTranslations("common");
   const {
     defaultForm,
     mapItem,
     api: apiObj,
     listKey = "items",
     pageSize = 20,
-    confirmDelete = "Вы уверены, что хотите удалить?",
+    confirmDelete,
   } = options;
 
   const [items, setItems] = useState<TItem[]>([]);
@@ -156,10 +158,10 @@ export function useCrud<TItem, TForm>(
       if (!apiObj.delete) return;
       if (
         !(await confirm({
-          title: "Удаление",
-          description: confirmDelete,
+          title: t("deleteTitle"),
+          description: confirmDelete || t("confirmDelete"),
           variant: "destructive",
-          confirmText: "Удалить",
+          confirmText: t("delete"),
         }))
       )
         return;
@@ -171,7 +173,7 @@ export function useCrud<TItem, TForm>(
         console.error("Failed to delete:", err);
       }
     },
-    [apiObj, confirm, confirmDelete],
+    [apiObj, confirm, confirmDelete, t],
   );
 
   const openEditDialog = useCallback((item: TItem, toForm: (item: TItem) => TForm) => {

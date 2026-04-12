@@ -263,3 +263,73 @@ class ChecklistRepository(SqlAlchemyBaseRepository[Checklist, int], IChecklistRe
         )
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none()
+
+    async def get_monthly_stats(self, months: int = 6) -> list[dict[str, Any]]:
+        """Get monthly statistics for the last N months."""
+        month_names = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+
+        results = []
+        now = datetime.now(UTC)
+
+        for i in range(months - 1, -1, -1):
+            target_month = now.month - i
+            target_year = now.year
+            while target_month <= 0:
+                target_month += 12
+                target_year -= 1
+
+            month_start = datetime(target_year, target_month, 1, tzinfo=UTC)
+
+            next_month = target_month + 1
+            next_year = target_year
+            if next_month > 12:
+                next_month = 1
+                next_year += 1
+            month_end = datetime(next_year, next_month, 1, tzinfo=UTC)
+
+            new_stmt = select(func.count(Checklist.id)).where(
+                Checklist.start_date >= month_start,
+                Checklist.start_date < month_end,
+            )
+            new_count = cast("int", (await self._session.execute(new_stmt)).scalar_one() or 0)
+
+            completed_stmt = select(func.count(Checklist.id)).where(
+                Checklist.status == ChecklistStatus.COMPLETED,
+                Checklist.completed_at >= month_start,
+                Checklist.completed_at < month_end,
+            )
+            completed_count = cast("int", (await self._session.execute(completed_stmt)).scalar_one() or 0)
+
+            results.append(
+                {
+                    "month": month_names[month_start.month - 1],
+                    "new_checklists": new_count,
+                    "completed": completed_count,
+                }
+            )
+
+        return results
+
+    async def get_completion_time_distribution(self) -> list[dict[str, Any]]:
+        """Get completion time distribution (in days)."""
+        ranges = [
+            ("1-7 days", 1, 7),
+            ("8-14 days", 8, 14),
+            ("15-21 days", 15, 21),
+            ("22-30 days", 22, 30),
+            (">30 days", 31, 9999),
+        ]
+
+        results = []
+        for label, min_days, max_days in ranges:
+            stmt = select(func.count(Checklist.id)).where(
+                Checklist.status == ChecklistStatus.COMPLETED,
+                Checklist.completed_at.is_not(None),
+                Checklist.start_date.is_not(None),
+                func.extract("epoch", Checklist.completed_at - Checklist.start_date) / 86400 >= min_days,
+                func.extract("epoch", Checklist.completed_at - Checklist.start_date) / 86400 <= max_days,
+            )
+            count = cast("int", (await self._session.execute(stmt)).scalar_one() or 0)
+            results.append({"range": label, "count": count})
+
+        return results

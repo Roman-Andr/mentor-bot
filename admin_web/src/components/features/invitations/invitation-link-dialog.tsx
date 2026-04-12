@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "@/hooks/use-translations";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -18,8 +18,7 @@ interface InvitationLinkDialogProps {
 }
 
 export function InvitationLinkDialog({ url, onOpenChange }: InvitationLinkDialogProps) {
-  const t = useTranslations("invitations");
-  const tCommon = useTranslations("common");
+  const t = useTranslations();
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -33,9 +32,9 @@ export function InvitationLinkDialog({ url, onOpenChange }: InvitationLinkDialog
     <Dialog open={!!url} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{t("invitationCreated") || "Invitation Created"}</DialogTitle>
+          <DialogTitle>{t("invitations.invitationCreated") || "Invitation Created"}</DialogTitle>
           <DialogDescription>
-            {t("invitationCreatedDescription") || "Send this link to the new employee for registration via Telegram bot"}
+            {t("invitations.invitationCreatedDescription") || "Send this link to the new employee for registration via Telegram bot"}
           </DialogDescription>
         </DialogHeader>
         <div className="flex gap-2">
@@ -46,13 +45,13 @@ export function InvitationLinkDialog({ url, onOpenChange }: InvitationLinkDialog
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            {tCommon("close")}
+            {t("common.close")}
           </Button>
           {url && (
             <Button className="gap-2" asChild>
               <a href={url} target="_blank" rel="noopener noreferrer">
                 <ExternalLink className="size-4" />
-                {t("open") || "Open"}
+                {t("invitations.open") || "Open"}
               </a>
             </Button>
           )}

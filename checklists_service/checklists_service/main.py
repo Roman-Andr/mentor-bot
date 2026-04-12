@@ -5,15 +5,17 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from fastapi.responses import JSONResponse
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
 
-from checklists_service.api import checklists, tasks, templates
+from checklists_service.api import checklists, departments, tasks, templates
 from checklists_service.config import settings
 from checklists_service.database import init_db
 from checklists_service.middleware.auth import AuthTokenMiddleware
@@ -73,10 +75,23 @@ app.add_middleware(
 )
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.ALLOWED_HOSTS)
 
+
+# Add validation error handler for debugging
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(_request: Request, exc: RequestValidationError) -> JSONResponse:
+    """Log and return validation errors."""
+    logger.error("Validation error: %s", exc.errors())
+    return JSONResponse(
+        status_code=422,
+        content={"detail": exc.errors()},
+    )
+
+
 # Include routers
 app.include_router(templates.router, prefix=f"{settings.API_V1_PREFIX}/templates", tags=["templates"])
 app.include_router(checklists.router, prefix=f"{settings.API_V1_PREFIX}/checklists", tags=["checklists"])
 app.include_router(tasks.router, prefix=f"{settings.API_V1_PREFIX}/tasks", tags=["tasks"])
+app.include_router(departments.router, prefix=f"{settings.API_V1_PREFIX}/departments", tags=["departments"])
 
 
 @app.get("/")

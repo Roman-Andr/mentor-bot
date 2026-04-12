@@ -16,7 +16,7 @@ from checklists_service.api.deps import (
     require_hr,
     require_mentor_or_above,
 )
-from checklists_service.api.endpoints import checklists, tasks, templates
+from checklists_service.api.endpoints import checklists, departments, tasks, templates
 
 __all__ = [
     "AdminUser",
@@ -27,6 +27,7 @@ __all__ = [
     "UOWDep",
     "UserInfo",
     "checklists",
+    "departments",
     "get_auth_token",
     "get_current_active_user",
     "get_current_user",

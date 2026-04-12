@@ -57,6 +57,7 @@ class Settings(BaseSettings):
     ENABLE_WELCOME_TOUR: bool = Field(default=True)
     ENABLE_NOTIFICATIONS: bool = Field(default=True)
     NOTIFICATION_HOUR: int = Field(default=9, ge=0, le=23)
+    THROTTLING_ENABLED: bool = Field(default=False)
 
     # Google Calendar Integration
     GOOGLE_CLIENT_ID: str = Field(default="")

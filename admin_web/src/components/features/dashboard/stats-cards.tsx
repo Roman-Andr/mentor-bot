@@ -1,4 +1,4 @@
-import { useTranslations } from "next-intl";
+import { useTranslations } from "@/hooks/use-translations";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LucideIcon } from "lucide-react";
 
@@ -16,7 +16,7 @@ interface StatsCardsProps {
 }
 
 export function StatsCards({ statsData }: StatsCardsProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations();
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -39,7 +39,7 @@ export function StatsCards({ statsData }: StatsCardsProps) {
                 >
                   {stat.change}
                 </span>{" "}
-                {t("lastMonth")}
+                {t("dashboard.lastMonth")}
               </p>
             )}
           </CardContent>

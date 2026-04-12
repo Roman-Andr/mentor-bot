@@ -1,4 +1,4 @@
-import { useTranslations } from "next-intl";
+import { useTranslations } from "@/hooks/use-translations";
 import { StatsGrid } from "@/components/ui/stat-card";
 import { Mail, CheckCircle, Clock, XCircle } from "lucide-react";
 
@@ -12,15 +12,15 @@ interface InvitationStatsProps {
 }
 
 export function InvitationStats({ stats }: InvitationStatsProps) {
-  const t = useTranslations("invitations");
+  const t = useTranslations();
 
   return (
     <StatsGrid
       stats={[
-        { label: t("totalInvitations") || "Total Invitations", value: stats.total, icon: Mail },
-        { label: t("pendingCount") || "Pending", value: stats.pending, icon: Clock },
-        { label: t("acceptedCount") || "Accepted", value: stats.accepted, icon: CheckCircle },
-        { label: t("expiredCount") || "Expired", value: stats.expired, icon: XCircle },
+        { label: t("invitations.totalInvitations") || "Total Invitations", value: stats.total, icon: Mail },
+        { label: t("invitations.pendingCount") || "Pending", value: stats.pending, icon: Clock },
+        { label: t("invitations.acceptedCount") || "Accepted", value: stats.accepted, icon: CheckCircle },
+        { label: t("invitations.expiredCount") || "Expired", value: stats.expired, icon: XCircle },
       ]}
     />
   );

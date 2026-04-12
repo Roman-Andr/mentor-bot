@@ -1,11 +1,15 @@
 """Admin panel handlers."""
 
+import logging
+
 from aiogram import F, Router
 from aiogram.filters import Command
 from aiogram.types import CallbackQuery, Message
 
 from telegram_bot.i18n import t
 from telegram_bot.keyboards.admin import get_admin_keyboard
+
+logger = logging.getLogger(__name__)
 from telegram_bot.keyboards.admin_detail import (
     get_admin_checklists_keyboard,
     get_admin_stats_keyboard,
@@ -22,8 +26,17 @@ router = Router()
 
 
 @router.message(Command("admin"))
+@router.message(F.text == "\U0001f451 Admin")
+@router.message(F.text == "Admin")
+@router.message(F.text == "\U0001f451 \u0410\u0434\u043c\u0438\u043d")
+@router.message(F.text == "\u0410\u0434\u043c\u0438\u043d")
 async def cmd_admin(message: Message, user: dict, *, locale: str = "en") -> None:
     """Admin panel command."""
+    logger.info(
+        "Admin command called by user: %s, role: %s",
+        user.get("id") if user else None,
+        user.get("role") if user else None,
+    )
     if not user or user.get("role") not in ("HR", "ADMIN"):
         await message.answer(f"\u26d4 {t('common.access_denied', locale=locale)}")
         return

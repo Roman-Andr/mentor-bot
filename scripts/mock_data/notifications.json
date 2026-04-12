@@ -2,52 +2,117 @@
   {
     "type": "TASK_REMINDER",
     "channel": "TELEGRAM",
-    "subject": "Task Reminder",
-    "body": "You have a pending task: {{task_title}}. Due date is {{due_date}}.",
+    "subject": "Напоминание о задачах чеклиста",
+    "body": "У вас есть незавершённые задачи в чеклисте. Пожалуйста, проверьте их.",
     "sample_data": {
-      "task_id": 1,
-      "task_title": "Complete HR Documentation",
-      "due_date": "2024-01-15"
+      "checklist_id": 1,
+      "pending_tasks": 3
     }
   },
   {
     "type": "MEETING_REMINDER",
-    "channel": "BOTH",
-    "subject": "Meeting Reminder",
-    "body": "You have a meeting scheduled: {{meeting_title}} at {{meeting_time}}.",
+    "channel": "TELEGRAM",
+    "subject": "Напоминание о встрече",
+    "body": "У вас назначена встреча с ментором сегодня в 14:00.",
     "sample_data": {
       "meeting_id": 1,
-      "meeting_title": "HR Welcome Session",
-      "meeting_time": "2024-01-10T10:00:00Z"
+      "meeting_title": "Встреча с ментором"
+    }
+  },
+  {
+    "type": "TASK_REMINDER",
+    "channel": "TELEGRAM",
+    "subject": "Просроченная задача",
+    "body": "У вас есть просроченная задача в чеклисте онбординга.",
+    "sample_data": {
+      "task_id": 5,
+      "task_title": "Security Training",
+      "overdue_days": 2
     }
   },
   {
     "type": "ONBOARDING_EVENT",
     "channel": "TELEGRAM",
-    "subject": "Onboarding Update",
-    "body": "Welcome! Your onboarding checklist progress: {{progress}}% complete.",
-    "sample_data": {
-      "checklist_id": 1,
-      "progress": 50
-    }
+    "subject": "Добро пожаловать в компанию!",
+    "body": "Рады приветствовать вас в команде! Начните с изучения базы знаний.",
+    "sample_data": {}
   },
   {
     "type": "GENERAL",
     "channel": "EMAIL",
-    "subject": "Company Announcement",
-    "body": "Important announcement: {{message}}",
+    "subject": "Просим оставить обратную связь",
+    "body": "Пожалуйста, уделите 2 минуты для заполнения опроса об онбординге.",
     "sample_data": {
-      "message": "New office policies effective next month"
+      "survey_link": "https://company.com/feedback/survey-123"
     }
   },
   {
     "type": "ESCALATION",
-    "channel": "BOTH",
-    "subject": "Escalation Update",
-    "body": "Your escalation request #{{escalation_id}} has been updated to status: {{status}}",
+    "channel": "TELEGRAM",
+    "subject": "Ваша заявка назначена",
+    "body": "Ваша заявка назначена специалисту. Ожидайте ответа в течение дня.",
     "sample_data": {
-      "escalation_id": 1,
-      "status": "IN_PROGRESS"
+      "escalation_id": 1
+    }
+  },
+  {
+    "type": "ONBOARDING_EVENT",
+    "channel": "TELEGRAM",
+    "subject": "Вам назначен ментор",
+    "body": "Поздравляем! Вам назначен ментор для помощи в адаптации.",
+    "sample_data": {
+      "mentor_name": "Иван Иванов"
+    }
+  },
+  {
+    "type": "TASK_REMINDER",
+    "channel": "EMAIL",
+    "subject": "Скоро дедлайн чеклиста",
+    "body": "До завершения чеклиста осталось 5 дней. Проверьте оставшиеся задачи.",
+    "sample_data": {
+      "checklist_id": 2,
+      "days_remaining": 5
+    }
+  },
+  {
+    "type": "ONBOARDING_EVENT",
+    "channel": "EMAIL",
+    "subject": "Чеклист успешно завершён!",
+    "body": "Поздравляем! Вы успешно завершили чеклист онбординга.",
+    "sample_data": {
+      "checklist_id": 1,
+      "completion_percentage": 100
+    }
+  },
+  {
+    "type": "GENERAL",
+    "channel": "TELEGRAM",
+    "subject": "Новости компании",
+    "body": "Не забудьте про обязательное обучение по безопасности до конца месяца.",
+    "sample_data": {
+      "training_link": "https://company.com/training/security"
+    }
+  },
+  {
+    "type": "ONBOARDING_EVENT",
+    "channel": "TELEGRAM",
+    "subject": "Приветствуем, Роман!",
+    "body": "Добро пожаловать в команду! Ваш чеклист адаптации уже создан и ждёт вас.",
+    "sample_data": {
+      "user_name": "Роман Андрусевич",
+      "department": "Engineering",
+      "mentor_name": "Иван Иванов"
+    }
+  },
+  {
+    "type": "TASK_REMINDER",
+    "channel": "TELEGRAM",
+    "subject": "Роман: Напоминание о задаче 'Настройка окружения'",
+    "body": "Не забудьте завершить задачу по настройке Docker и локального окружения.",
+    "sample_data": {
+      "task_id": 15,
+      "task_title": "Настройка Docker окружения",
+      "user": "andrusevich_roman"
     }
   }
 ]

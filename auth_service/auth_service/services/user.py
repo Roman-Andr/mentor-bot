@@ -52,6 +52,13 @@ class UserService:
             msg = "Employee ID already registered"
             raise ConflictException(msg)
 
+        # Check if telegram_id is already linked to another user
+        if user_data.telegram_id is not None:
+            existing_user = await self._uow.users.get_by_telegram_id(user_data.telegram_id)
+            if existing_user:
+                msg = "Telegram account already linked to another user"
+                raise ConflictException(msg)
+
         # Create user entity
         user = User(
             email=user_data.email,
@@ -65,6 +72,7 @@ class UserService:
             role=user_data.role,
             password_hash=hash_password(user_data.password),
             hire_date=datetime.now(UTC),
+            telegram_id=user_data.telegram_id,
             is_verified=True,
         )
 
@@ -86,6 +94,12 @@ class UserService:
         update_data = user_data.model_dump(exclude_unset=True)
         for field, value in update_data.items():
             if hasattr(user, field) and field != "email":  # Already handled
+                # Special handling for telegram_id to check for conflicts
+                if field == "telegram_id" and value is not None:
+                    existing_user = await self._uow.users.get_by_telegram_id(value)
+                    if existing_user and existing_user.id != user_id:
+                        msg = "Telegram account already linked to another user"
+                        raise ConflictException(msg)
                 setattr(user, field, value)
 
         user.updated_at = datetime.now(UTC)

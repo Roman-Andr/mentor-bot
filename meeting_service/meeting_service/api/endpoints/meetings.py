@@ -33,6 +33,7 @@ async def get_meetings(
     department_id: int | None = None,
     position: str | None = None,
     level: EmployeeLevel | None = None,
+    search: Annotated[str | None, Query()] = None,
     *,
     is_mandatory: bool | None = None,
 ) -> MeetingListResponse:
@@ -46,6 +47,7 @@ async def get_meetings(
         position=position,
         level=level,
         is_mandatory=is_mandatory,
+        search=search,
     )
     pages = (total + limit - 1) // limit if limit > 0 else 0
     return MeetingListResponse(

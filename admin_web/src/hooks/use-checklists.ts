@@ -1,13 +1,13 @@
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useDebounce } from "@/hooks/useDebounce";
-import { useToast } from "@/components/ui/toast";
+import { useEntity } from "./use-entity";
 import { api } from "@/lib/api";
+import { queryKeys } from "@/lib/query-keys";
+import { useQuery } from "@tanstack/react-query";
 
 export interface ChecklistItem {
   id: number;
   userId: number;
   employeeId: string;
+  userName: string;
   templateId: number;
   status: string;
   progressPercentage: number;
@@ -46,29 +46,33 @@ const defaultFormData: ChecklistFormData = {
   notes: "",
 };
 
-function mapToItem(c: {
-  id: number;
-  user_id: number;
-  employee_id: string;
-  template_id: number;
-  status: string;
-  progress_percentage: number;
-  completed_tasks: number;
-  total_tasks: number;
-  start_date: string;
-  due_date: string | null;
-  completed_at: string | null;
-  mentor_id: number | null;
-  hr_id: number | null;
-  notes: string | null;
-  is_overdue: boolean;
-  days_remaining: number | null;
-  created_at: string;
-}): ChecklistItem {
+function mapToItem(
+  c: {
+    id: number;
+    user_id: number;
+    employee_id: string;
+    template_id: number;
+    status: string;
+    progress_percentage: number;
+    completed_tasks: number;
+    total_tasks: number;
+    start_date: string;
+    due_date: string | null;
+    completed_at: string | null;
+    mentor_id: number | null;
+    hr_id: number | null;
+    notes: string | null;
+    is_overdue: boolean;
+    days_remaining: number | null;
+    created_at: string;
+  },
+  usersMap: Map<number, string>,
+): ChecklistItem {
   return {
     id: c.id,
     userId: c.user_id,
     employeeId: c.employee_id,
+    userName: usersMap.get(c.user_id) || c.employee_id || `User ${c.user_id}`,
     templateId: c.template_id,
     status: c.status,
     progressPercentage: c.progress_percentage,
@@ -86,197 +90,164 @@ function mapToItem(c: {
   };
 }
 
-const CHECKLISTS_KEY = ["checklists"] as const;
+function toCreatePayload(form: ChecklistFormData) {
+  return {
+    user_id: form.user_id,
+    employee_id: form.employee_id,
+    template_id: form.template_id,
+    start_date: new Date(form.start_date).toISOString(),
+    due_date: form.due_date ? new Date(form.due_date).toISOString() : null,
+    mentor_id: form.mentor_id,
+    hr_id: form.hr_id,
+    notes: form.notes || null,
+  };
+}
+
+function toUpdatePayload(form: ChecklistFormData) {
+  return {
+    mentor_id: form.mentor_id,
+    hr_id: form.hr_id,
+    notes: form.notes || null,
+  };
+}
+
+function toForm(checklist: ChecklistItem): ChecklistFormData {
+  return {
+    user_id: checklist.userId,
+    employee_id: checklist.employeeId,
+    template_id: checklist.templateId,
+    start_date: checklist.startDate.split("T")[0],
+    due_date: checklist.dueDate ? checklist.dueDate.split("T")[0] : "",
+    mentor_id: checklist.mentorId,
+    hr_id: checklist.hrId,
+    notes: checklist.notes || "",
+  };
+}
 
 export function useChecklists() {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("ALL");
-  const [departmentFilter, setDepartmentFilter] = useState("ALL");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [selectedChecklist, setSelectedChecklist] = useState<ChecklistItem | null>(null);
-  const [formData, setFormData] = useState<ChecklistFormData>({ ...defaultFormData });
-
-  const debouncedSearch = useDebounce(searchQuery, 300);
-  const pageSize = 20;
-
-  const queryParams = {
-    skip: (currentPage - 1) * pageSize,
-    limit: pageSize,
-    ...(statusFilter !== "ALL" && { status: statusFilter }),
-    ...(departmentFilter !== "ALL" && { department_id: parseInt(departmentFilter) }),
-    ...(debouncedSearch && { search: debouncedSearch }),
-  };
-
-  const { data: checklistsData, isLoading: loading } = useQuery({
-    queryKey: [...CHECKLISTS_KEY, queryParams],
-    queryFn: () => api.checklists.list(queryParams),
-    select: (result) =>
-      result.data
-        ? {
-            checklists: result.data.checklists.map(mapToItem),
-            total: result.data.total,
-            pages: result.data.pages,
-          }
-        : undefined,
+  // Fetch users to map user_id to user_name
+  const { data: usersData } = useQuery({
+    queryKey: queryKeys.users.all,
+    queryFn: () => api.users.list({ limit: 1000 }),
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  const createMutation = useMutation({
-    mutationFn: (data: Parameters<typeof api.checklists.create>[0]) => api.checklists.create(data),
-    onSuccess: (result) => {
-      if (result.data) {
-        queryClient.invalidateQueries({ queryKey: CHECKLISTS_KEY });
-        setIsCreateDialogOpen(false);
-        setFormData(defaultFormData);
-        toast("Чек-лист назначен", "success");
-      } else if (result.error) {
-        toast(result.error, "error");
-      }
-    },
-    onError: () => toast("Ошибка создания чек-листа", "error"),
-  });
+  const usersMap = new Map<number, string>();
+  if (usersData?.data?.users) {
+    for (const user of usersData.data.users) {
+      usersMap.set(user.id, `${user.first_name}${user.last_name ? ` ${user.last_name}` : ""}`);
+    }
+  }
 
-  const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Parameters<typeof api.checklists.update>[1] }) =>
-      api.checklists.update(id, data),
-    onSuccess: (result) => {
-      if (result.data) {
-        queryClient.invalidateQueries({ queryKey: CHECKLISTS_KEY });
-        setIsEditDialogOpen(false);
-        setSelectedChecklist(null);
-        setFormData(defaultFormData);
-        toast("Чек-лист обновлён", "success");
-      } else if (result.error) {
-        toast(result.error, "error");
-      }
+  const entity = useEntity<ChecklistItem, ChecklistFormData, ReturnType<typeof toCreatePayload>, ReturnType<typeof toUpdatePayload>>({
+    entityName: "Чек-лист",
+    translationNamespace: "checklists",
+    queryKeyPrefix: "checklists",
+    listFn: (params) => api.checklists.list(params),
+    listDataKey: "checklists",
+    createFn: (data) => api.checklists.create(data),
+    updateFn: (id, data) => api.checklists.update(id, data),
+    deleteFn: (id) => api.checklists.delete(id),
+    defaultForm: defaultFormData,
+    mapItem: (item: unknown) => mapToItem(item as Parameters<typeof mapToItem>[0], usersMap),
+    toCreatePayload,
+    toUpdatePayload,
+    toForm,
+    labels: {
+      createdKey: "checklists.created",
+      updatedKey: "checklists.updated",
+      deletedKey: "checklists.deleted",
+      createErrorKey: "checklists.createError",
+      updateErrorKey: "checklists.updateError",
+      deleteErrorKey: "checklists.deleteError",
     },
-    onError: () => toast("Ошибка обновления чек-листа", "error"),
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: number) => api.checklists.delete(id),
-    onSuccess: (result) => {
-      if (!result.error) {
-        queryClient.invalidateQueries({ queryKey: CHECKLISTS_KEY });
-        toast("Чек-лист удалён", "success");
-      } else {
-        toast(result.error, "error");
-      }
-    },
-    onError: () => toast("Ошибка удаления чек-листа", "error"),
-  });
-
-  const completeMutation = useMutation({
-    mutationFn: (id: number) => api.checklists.complete(id),
-    onSuccess: (result) => {
-      if (result.data) {
-        queryClient.invalidateQueries({ queryKey: CHECKLISTS_KEY });
-        toast("Чек-лист завершён", "success");
-      } else if (result.error) {
-        toast(result.error, "error");
-      }
-    },
-    onError: () => toast("Ошибка завершения чек-листа", "error"),
+    searchable: true,
+    searchParamName: "search",
+    filters: [
+      { name: "status", defaultValue: "ALL" },
+      { name: "department", defaultValue: "ALL", paramName: "department_id", transform: (v) => parseInt(v) },
+    ],
   });
 
   const handleCreate = () => {
-    createMutation.mutate({
-      user_id: formData.user_id,
-      employee_id: formData.employee_id,
-      template_id: formData.template_id,
-      start_date: new Date(formData.start_date).toISOString(),
-      due_date: formData.due_date ? new Date(formData.due_date).toISOString() : null,
-      mentor_id: formData.mentor_id,
-      hr_id: formData.hr_id,
-      notes: formData.notes || null,
+    const payload = toCreatePayload(entity.formData);
+    entity.createFn?.(payload).then((result) => {
+      if (result?.error) {
+        // Error is already handled by entity hook's onError
+        return;
+      }
+      entity.invalidate();
+      entity.setIsCreateDialogOpen(false);
+      entity.resetForm();
     });
   };
 
   const handleUpdate = () => {
-    if (!selectedChecklist) return;
-    updateMutation.mutate({
-      id: selectedChecklist.id,
-      data: {
-        mentor_id: formData.mentor_id,
-        hr_id: formData.hr_id,
-        notes: formData.notes || null,
-      },
+    if (!entity.selectedItem) return;
+    const payload = toUpdatePayload(entity.formData);
+    entity.updateFn?.(entity.selectedItem.id, payload).then((result) => {
+      if (result?.error) {
+        // Error is already handled by entity hook's onError
+        return;
+      }
+      entity.invalidate();
+      entity.setIsEditDialogOpen(false);
+      entity.setSelectedItem(null);
+      entity.resetForm();
     });
-  };
-
-  const handleDelete = (id: number) => {
-    deleteMutation.mutate(id);
   };
 
   const handleComplete = (id: number) => {
-    completeMutation.mutate(id);
+    return api.checklists.complete(id);
   };
-
-  const openEditDialog = (checklist: ChecklistItem) => {
-    setSelectedChecklist(checklist);
-    setFormData({
-      user_id: checklist.userId,
-      employee_id: checklist.employeeId,
-      template_id: checklist.templateId,
-      start_date: checklist.startDate.split("T")[0],
-      due_date: checklist.dueDate ? checklist.dueDate.split("T")[0] : "",
-      mentor_id: checklist.mentorId,
-      hr_id: checklist.hrId,
-      notes: checklist.notes || "",
-    });
-    setIsEditDialogOpen(true);
-  };
-
-  const resetForm = () => {
-    setFormData(defaultFormData);
-    setSelectedChecklist(null);
-  };
-
-  const resetFilters = () => {
-    setSearchQuery("");
-    setStatusFilter("ALL");
-    setDepartmentFilter("ALL");
-    setCurrentPage(1);
-  };
-
-  const checklists = checklistsData?.checklists || [];
-  const totalCount = checklistsData?.total || 0;
-  const totalPages = checklistsData?.pages || 1;
 
   return {
-    checklists,
-    loading,
-    searchQuery,
-    setSearchQuery,
-    statusFilter,
-    setStatusFilter,
-    departmentFilter,
-    setDepartmentFilter,
-    currentPage,
-    setCurrentPage,
-    totalPages,
-    totalCount,
-    isCreateDialogOpen,
-    setIsCreateDialogOpen,
-    isEditDialogOpen,
-    setIsEditDialogOpen,
-    selectedChecklist,
-    setSelectedChecklist,
-    formData,
-    setFormData,
+    // Data
+    checklists: entity.items,
+    loading: entity.loading,
+    totalCount: entity.totalCount,
+    totalPages: entity.totalPages,
+
+    // Pagination
+    currentPage: entity.currentPage,
+    setCurrentPage: entity.setCurrentPage,
+    pageSize: entity.pageSize,
+    setPageSize: entity.setPageSize,
+
+    // Search & Filters
+    searchQuery: entity.searchQuery,
+    setSearchQuery: entity.setSearchQuery,
+    statusFilter: entity.filterValues.status ?? "ALL",
+    setStatusFilter: (value: string) => entity.setFilterValue("status", value),
+    departmentFilter: entity.filterValues.department ?? "ALL",
+    setDepartmentFilter: (value: string) => entity.setFilterValue("department", value),
+
+    // Dialogs
+    isCreateDialogOpen: entity.isCreateDialogOpen,
+    setIsCreateDialogOpen: entity.setIsCreateDialogOpen,
+    isEditDialogOpen: entity.isEditDialogOpen,
+    setIsEditDialogOpen: entity.setIsEditDialogOpen,
+
+    // Selection
+    selectedChecklist: entity.selectedItem,
+    setSelectedChecklist: entity.setSelectedItem,
+
+    // Form
+    formData: entity.formData,
+    setFormData: entity.setFormData,
+
+    // Handlers
     handleCreate,
     handleUpdate,
-    handleDelete,
+    handleDelete: entity.handleDelete,
     handleComplete,
-    openEditDialog,
-    resetForm,
-    resetFilters,
-    isCreating: createMutation.isPending,
-    isUpdating: updateMutation.isPending,
-    isDeleting: deleteMutation.isPending,
+    openEditDialog: entity.openEditDialog,
+    resetForm: entity.resetForm,
+    resetFilters: entity.resetFilters,
+
+    // Loading states
+    isCreating: entity.isSubmitting,
+    isUpdating: entity.isSubmitting,
+    isDeleting: entity.isDeleting,
   };
 }

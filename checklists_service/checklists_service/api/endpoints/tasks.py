@@ -1,16 +1,23 @@
 """Task management endpoints."""
 
+import mimetypes
+import shutil
 from datetime import UTC, datetime
+from pathlib import Path
 from typing import Annotated
 
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, File, Form, HTTPException, Query, UploadFile, status
+from fastapi.responses import FileResponse
 
 from checklists_service.api.deps import CurrentUser, HRUser, UOWDep
+from checklists_service.config import settings
 from checklists_service.core import NotFoundException, PermissionDenied, ValidationException
 from checklists_service.core.enums import TaskStatus
+from checklists_service.core.security import validate_file_size, validate_file_type, validate_filename
 from checklists_service.models import Task
 from checklists_service.schemas import (
     MessageResponse,
+    TaskAttachmentResponse,
     TaskBulkUpdate,
     TaskProgress,
     TaskResponse,
@@ -287,6 +294,154 @@ async def get_task_dependencies(
             raise PermissionDenied(msg)
 
         return await task_service.get_task_dependencies(task_id)
+    except NotFoundException as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e.detail),
+        ) from e
+
+
+@router.post("/{task_id}/attachments")
+async def upload_task_attachment(
+    task_id: int,
+    uow: UOWDep,
+    current_user: CurrentUser,
+    file: Annotated[UploadFile, File()],
+    description: Annotated[str | None, Form()] = None,
+) -> TaskAttachmentResponse:
+    """Upload a file attachment to a task."""
+    task_service = TaskService(uow)
+    checklist_service = ChecklistService(uow)
+
+    try:
+        task = await task_service.get_task(task_id)
+        checklist = await checklist_service.get_checklist(task.checklist_id)
+
+        # Check permissions
+        can_attach = (
+            checklist.user_id == current_user.id
+            or task.assignee_id == current_user.id
+            or current_user.role in ["HR", "ADMIN"]
+        )
+        if not can_attach:
+            msg = "Cannot attach files to this task"
+            raise PermissionDenied(msg)
+
+        # Validate file
+        if not validate_file_size(file.size or 0):
+            msg = f"File size exceeds {settings.MAX_FILE_SIZE_MB}MB limit"
+            raise ValidationException(msg)
+        if not validate_file_type(file.filename or ""):
+            msg = f"File type not allowed. Allowed: {settings.ALLOWED_FILE_TYPES}"
+            raise ValidationException(msg)
+
+        # Save file
+        safe_filename = validate_filename(file.filename or "unknown")
+        storage_path = Path(settings.STORAGE_PATH) / "tasks" / str(task_id)
+        storage_path.mkdir(parents=True, exist_ok=True)
+
+        file_path = storage_path / safe_filename
+        try:
+            with file_path.open("wb") as buffer:
+                shutil.copyfileobj(file.file, buffer)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"File save failed: {e}") from e
+
+        # Create attachment record
+        attachment = await task_service.add_attachment(
+            task_id=task_id,
+            filename=safe_filename,
+            file_size=file.size or 0,
+            mime_type=file.content_type or "application/octet-stream",
+            description=description,
+            uploaded_by=current_user.id,
+        )
+
+        # Commit transaction to save attachment to database
+        await uow.commit()
+
+        return TaskAttachmentResponse.model_validate(attachment)
+
+    except NotFoundException as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e.detail),
+        ) from e
+    except PermissionDenied as e:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=str(e.detail),
+        ) from e
+    except ValidationException as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e.detail),
+        ) from e
+
+
+@router.get("/{task_id}/attachments")
+async def list_task_attachments(
+    task_id: int,
+    uow: UOWDep,
+    current_user: CurrentUser,
+) -> list[TaskAttachmentResponse]:
+    """List all attachments for a task."""
+    task_service = TaskService(uow)
+    checklist_service = ChecklistService(uow)
+
+    try:
+        task = await task_service.get_task(task_id)
+        checklist = await checklist_service.get_checklist(task.checklist_id)
+
+        # Check permissions
+        can_view = checklist.user_id == current_user.id or current_user.role in ["HR", "ADMIN"]
+        if not can_view:
+            msg = "Cannot view attachments for this task"
+            raise PermissionDenied(msg)
+
+        attachments = await task_service.get_attachments(task_id)
+        return [TaskAttachmentResponse.model_validate(a) for a in attachments]
+
+    except NotFoundException as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e.detail),
+        ) from e
+
+
+@router.get("/{task_id}/attachments/file/{filename}")
+async def download_task_attachment(
+    task_id: int,
+    filename: str,
+    uow: UOWDep,
+    current_user: CurrentUser,
+) -> FileResponse:
+    """Download a task attachment file."""
+    task_service = TaskService(uow)
+    checklist_service = ChecklistService(uow)
+
+    try:
+        task = await task_service.get_task(task_id)
+        checklist = await checklist_service.get_checklist(task.checklist_id)
+
+        # Check permissions
+        can_view = checklist.user_id == current_user.id or current_user.role in ["HR", "ADMIN"]
+        if not can_view:
+            msg = "Cannot download attachments for this task"
+            raise PermissionDenied(msg)
+
+        file_path = Path(settings.STORAGE_PATH) / "tasks" / str(task_id) / filename
+        if not file_path.exists():
+            msg = "File not found"
+            raise NotFoundException(msg)
+
+        mime_type, _ = mimetypes.guess_type(filename)
+        return FileResponse(
+            path=file_path,
+            filename=filename,
+            media_type=mime_type or "application/octet-stream",
+        )
+
     except NotFoundException as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

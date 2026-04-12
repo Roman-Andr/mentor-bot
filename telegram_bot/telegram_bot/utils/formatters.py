@@ -23,10 +23,21 @@ def format_welcome_message(
         name += f" {tg_user.last_name}"
 
     if user_data:
+        # Extract employee_id
         eid = user_data.get("employee_id", "N/A")
-        dept = user_data.get("department", "N/A")
+
+        # Extract department name (handle both string and dict formats)
+        dept_raw = user_data.get("department", "N/A")
+        if isinstance(dept_raw, dict):
+            dept = dept_raw.get("name", "N/A")
+        else:
+            dept = dept_raw
+
+        # Extract position
         pos = user_data.get("position", "N/A")
-        welcome = "\U0001f44b " + t(
+
+        # Use i18n translation with properly extracted department name
+        welcome = t(
             "start.welcome_back",
             locale=locale,
             name=name,
@@ -61,7 +72,7 @@ def format_checklist_progress(checklist: dict[str, Any], *, locale: str = "en") 
     filled = int(progress / 100 * bars)
     bar = "\u2588" * filled + "\u2591" * (bars - filled)
 
-    return f"{status_emoji} *{name}*\n`{bar}` {progress}%\n\U0001f4ca {completed}/{total} tasks completed\n\n"
+    return f"{status_emoji} *{name}*\n`{bar}` {progress}%\n\U0001f4ca {t('checklists.tasks_completed', locale=locale, completed=completed, total=total)}\n\n"
 
 
 def format_task_list(tasks: list[dict[str, Any]], *, locale: str = "en") -> str:
@@ -72,7 +83,9 @@ def format_task_list(tasks: list[dict[str, Any]], *, locale: str = "en") -> str:
     text = f"\U0001f4cb *{t('checklists.tasks_title', locale=locale)}*\n\n"
 
     for i, task in enumerate(tasks[:MAX_DISPLAYED_TASKS], 1):
-        title = task.get("title", f"Task #{task['id']}")
+        title = task.get(
+            "title", t("tasks.fallback_title", locale=locale, id=task["id"])
+        )
         status = task.get("status", "pending").lower()
         category = task.get("category", "general")
 
@@ -92,7 +105,8 @@ def format_task_list(tasks: list[dict[str, Any]], *, locale: str = "en") -> str:
         if due_date:
             try:
                 due_dt = datetime.fromisoformat(due_date)
-                due_text = f" | Due: {due_dt.strftime('%b %d')}"
+                due_label = t("checklists.due", locale=locale)
+                due_text = f" | {due_label}: {due_dt.strftime('%b %d')}"
             except ValueError:
                 pass
 
@@ -100,7 +114,8 @@ def format_task_list(tasks: list[dict[str, Any]], *, locale: str = "en") -> str:
         text += f"   \U0001f4c1 {category}{due_text}\n\n"
 
     if len(tasks) > MAX_DISPLAYED_TASKS:
-        text += f"... and {len(tasks) - MAX_DISPLAYED_TASKS} more tasks\n\n"
+        more_count = len(tasks) - MAX_DISPLAYED_TASKS
+        text += f"... {t('tasks.more_tasks', locale=locale, count=more_count)}\n\n"
 
     return text
 
@@ -108,42 +123,53 @@ def format_task_list(tasks: list[dict[str, Any]], *, locale: str = "en") -> str:
 def format_task_detail(task: dict[str, Any], *, locale: str = "en") -> str:
     """Format task details for display."""
     title = task.get("title", f"Task #{task['id']}")
-    description = task.get("description", "No description provided.")
+    description = task.get("description", t("tasks.no_description", locale=locale))
     status = task.get("status", "pending").lower()
-    category = task.get("category", "general")
 
-    status_text = {
-        "pending": "\u23f3 Pending",
-        "in_progress": "\U0001f504 In Progress",
-        "completed": "\u2705 Completed",
-        "blocked": "\u26d4 Blocked",
-        "overdue": "\u26a0\ufe0f Overdue",
-    }.get(status, "\u2753 Unknown")
+    status_emoji = {
+        "pending": "\u23f3",
+        "in_progress": "\U0001f504",
+        "completed": "\u2705",
+        "blocked": "\u26d4",
+        "overdue": "\u26a0\ufe0f",
+    }.get(status, "\u2753")
+
+    status_text = t(
+        f"tasks.status_{status}",
+        locale=locale,
+        default=t("tasks.status_unknown", locale=locale),
+    )
 
     text = f"\U0001f4cb *{title}*\n\n"
-    text += f"*Status:* {status_text}\n"
-    text += f"*Category:* {category}\n"
+    text += (
+        f"*{t('tasks.status_label', locale=locale)}:* {status_emoji} {status_text}\n"
+    )
 
     due_date = task.get("due_date")
     if due_date:
         try:
             due_dt = datetime.fromisoformat(due_date)
-            text += f"*Due Date:* {due_dt.strftime('%B %d, %Y')}\n"
+            due_label = t("tasks.due_date", locale=locale)
+            # Use compact date format: DD.MM.YYYY
+            text += f"*{due_label}:* {due_dt.strftime('%d.%m.%Y')}\n"
 
             if status == "pending" and due_dt < datetime.now(UTC):
-                text += "\u26a0\ufe0f *This task is overdue!*\n"
+                text += f"\u26a0\ufe0f *{t('tasks.overdue', locale=locale)}*\n"
         except ValueError:
             pass
 
-    text += f"\n*Description:*\n{description}\n"
+    desc_label = t("tasks.description", locale=locale)
+    text += f"\n*{desc_label}:*\n{description}\n"
 
     dependencies = task.get("depends_on", [])
     if dependencies:
-        text += f"\n*Depends on:* {len(dependencies)} task(s)\n"
+        deps_label = t("tasks.depends_on", locale=locale, count=len(dependencies))
+        text += f"\n*{deps_label}*\n"
 
     assignee = task.get("assignee")
     if assignee:
-        text += f"\n*Assigned to:* {assignee}\n"
+        assign_label = t("tasks.assigned_to", locale=locale)
+        text += f"\n*{assign_label}:* {assignee}\n"
 
     return text
 
@@ -223,7 +249,8 @@ def format_meeting_list(meetings: list[dict[str, Any]], *, locale: str = "en") -
             if not scheduled_at:
                 raise ValueError("scheduled_at is None or empty")
             dt = datetime.fromisoformat(scheduled_at)
-            formatted_date = dt.strftime("%b %d, %Y %H:%M")
+            # Compact format: DD.MM.YYYY HH:MM
+            formatted_date = dt.strftime("%d.%m.%Y %H:%M")
         except ValueError, TypeError:
             formatted_date = "TBD"
 

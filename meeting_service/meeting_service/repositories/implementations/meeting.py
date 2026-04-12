@@ -3,7 +3,7 @@
 from collections.abc import Sequence
 from typing import cast
 
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from meeting_service.core.enums import EmployeeLevel, MeetingType
@@ -29,6 +29,7 @@ class MeetingRepository(SqlAlchemyBaseRepository[Meeting, int], IMeetingReposito
         position: str | None = None,
         level: EmployeeLevel | None = None,
         is_mandatory: bool | None = None,
+        search: str | None = None,
     ) -> tuple[Sequence[Meeting], int]:
         """Find meetings with filtering and return results with total count."""
         count_stmt = select(func.count(Meeting.id))
@@ -49,6 +50,14 @@ class MeetingRepository(SqlAlchemyBaseRepository[Meeting, int], IMeetingReposito
         if is_mandatory is not None:
             stmt = stmt.where(Meeting.is_mandatory == is_mandatory)
             count_stmt = count_stmt.where(Meeting.is_mandatory == is_mandatory)
+
+        if search:
+            search_filter = or_(
+                Meeting.title.ilike(f"%{search}%"),
+                Meeting.description.ilike(f"%{search}%"),
+            )
+            stmt = stmt.where(search_filter)
+            count_stmt = count_stmt.where(search_filter)
 
         total_result = await self._session.execute(count_stmt)
         total = cast("int", total_result.scalar_one())

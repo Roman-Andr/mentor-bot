@@ -34,6 +34,9 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     logger.info("Database initialized")
     yield
     logger.info("Shutting down Auth Service...")
+    from auth_service.utils.department_sync import department_sync_client
+
+    await department_sync_client.close()
 
 
 # Create FastAPI application

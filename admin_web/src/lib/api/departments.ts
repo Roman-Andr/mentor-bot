@@ -1,6 +1,6 @@
 import { fetchApi } from "./client";
 import { buildQueryString } from "@/lib/utils/query-builder";
-import type { Department, DepartmentListResponse } from "./types";
+import type { Department, DepartmentListResponse } from "@/types";
 
 export const departmentsApi = {
   list: (params?: { skip?: number; limit?: number; search?: string }) => {

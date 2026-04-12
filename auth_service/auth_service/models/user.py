@@ -66,6 +66,14 @@ class User(Base):
         "UserMentor", foreign_keys="UserMentor.mentor_id", back_populates="mentor", cascade="all, delete-orphan"
     )
 
+    @property
+    def mentor_id(self) -> int | None:
+        """Get active mentor ID from mentor assignments."""
+        for assignment in self.mentor_assignments:
+            if assignment.is_active:
+                return assignment.mentor_id
+        return None
+
     def __repr__(self) -> str:
         """Representation of User."""
         return f"<User(id={self.id}, email={self.email}, role={self.role})>"

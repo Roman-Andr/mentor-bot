@@ -4,6 +4,7 @@ import logging
 import secrets
 
 from aiogram import F, Router
+from aiogram.filters import Command
 from aiogram.types import CallbackQuery, Message
 
 from telegram_bot.i18n import t
@@ -19,13 +20,36 @@ router = Router()
 calendar_client = CalendarClient()
 
 
+@router.message(Command("calendar"))
+@router.message(F.text == "\U0001f4c5 Calendar")
+@router.message(F.text == "Calendar")
+@router.message(
+    F.text == "\U0001f4c5 \u041a\u0430\u043b\u0435\u043d\u0434\u0430\u0440\u044c"
+)
+@router.message(F.text == "\u041a\u0430\u043b\u0435\u043d\u0434\u0430\u0440\u044c")
 @router.callback_query(F.data == "calendar_menu")
 async def calendar_menu(
-    callback: CallbackQuery, user: dict, auth_token: str, *, locale: str = "en"
+    update: Message | CallbackQuery,
+    user: dict,
+    auth_token: str,
+    *,
+    locale: str = "en",
 ) -> None:
     """Show Google Calendar integration menu."""
+    msg = None
+    is_callback = isinstance(update, CallbackQuery)
+
+    if is_callback:
+        msg = update.message
+        await update.answer()
+    else:
+        msg = update
+
     if not user or not auth_token:
-        await callback.answer(t("common.auth_required_short", locale=locale))
+        if is_callback:
+            await update.answer(t("common.auth_required_short", locale=locale))
+        else:
+            await msg.answer(t("common.auth_required", locale=locale))
         return
 
     try:
@@ -48,11 +72,18 @@ async def calendar_menu(
         f"{t('calendar.benefits', locale=locale)}"
     )
 
-    if callback.message:
-        await callback.message.edit_text(
-            text, reply_markup=keyboard.as_markup(), parse_mode="Markdown"
+    if is_callback and msg:
+        await msg.edit_text(
+            text,
+            reply_markup=keyboard.as_markup(),
+            parse_mode="Markdown",
         )
-    await callback.answer()
+    else:
+        await msg.answer(
+            text,
+            reply_markup=keyboard.as_markup(),
+            parse_mode="Markdown",
+        )
 
 
 @router.callback_query(F.data == "calendar_connect")
@@ -117,31 +148,3 @@ async def disconnect_calendar(
         await callback.answer(
             t("calendar.disconnect_failed", locale=locale), show_alert=True
         )
-
-
-@router.message(F.text == "\U0001f4c5 Calendar")
-async def calendar_command(
-    message: Message, user: dict, auth_token: str, *, locale: str = "en"
-) -> None:
-    """Handle /calendar command or button press."""
-    if not user or not auth_token:
-        await message.answer(t("common.auth_required", locale=locale))
-        return
-
-    status = await calendar_client.check_connection_status(user["id"], auth_token)
-    is_connected = status.get("connected", False)
-
-    if is_connected:
-        keyboard = get_calendar_connected_keyboard(locale=locale)
-        status_text = f"\u2705 *{t('calendar.connected', locale=locale)}*"
-    else:
-        keyboard = get_calendar_not_connected_keyboard(locale=locale)
-        status_text = f"\u274c *{t('calendar.not_connected', locale=locale)}*"
-
-    text = (
-        f"*\U0001f4c5 {t('calendar.title', locale=locale)}*\n\n"
-        f"Status: {status_text}\n\n"
-        f"{t('calendar.benefits', locale=locale)}"
-    )
-
-    await message.answer(text, reply_markup=keyboard.as_markup(), parse_mode="Markdown")

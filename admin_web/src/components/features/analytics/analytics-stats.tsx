@@ -1,9 +1,9 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useTranslations } from "@/hooks/use-translations";
 import { Card, CardContent } from "@/components/ui/card";
 import { TrendingUp, Users, Clock, CheckCircle } from "lucide-react";
-import { ChecklistStats } from "@/lib/api";
+import type { ChecklistStats } from "@/types";
 
 interface AnalyticsStatsProps {
   stats: ChecklistStats | null;
@@ -11,7 +11,7 @@ interface AnalyticsStatsProps {
 }
 
 export function AnalyticsStats({ stats, userCount }: AnalyticsStatsProps) {
-  const t = useTranslations("analytics");
+  const t = useTranslations();
 
   return (
     <div className="grid gap-4 md:grid-cols-4">
@@ -19,7 +19,7 @@ export function AnalyticsStats({ stats, userCount }: AnalyticsStatsProps) {
         <CardContent className="pt-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-muted-foreground text-sm">{t("totalNewbies")}</p>
+              <p className="text-muted-foreground text-sm">{t("analytics.totalNewbies")}</p>
               <p className="text-2xl font-bold">{stats?.total || userCount}</p>
             </div>
             <Users className="size-8 text-blue-500" />
@@ -30,9 +30,9 @@ export function AnalyticsStats({ stats, userCount }: AnalyticsStatsProps) {
         <CardContent className="pt-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-muted-foreground text-sm">{t("averageTime")}</p>
+              <p className="text-muted-foreground text-sm">{t("analytics.averageTime")}</p>
               <p className="text-2xl font-bold">
-                {Math.round(stats?.avg_completion_days || 0)} {t("days")}
+                {Math.round(stats?.avg_completion_days || 0)} {t("common.days")}
               </p>
             </div>
             <Clock className="size-8 text-purple-500" />
@@ -43,7 +43,7 @@ export function AnalyticsStats({ stats, userCount }: AnalyticsStatsProps) {
         <CardContent className="pt-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-muted-foreground text-sm">{t("successfulCompletions")}</p>
+              <p className="text-muted-foreground text-sm">{t("analytics.successfulCompletions")}</p>
               <p className="text-2xl font-bold">{Math.round(stats?.completion_rate || 0)}%</p>
             </div>
             <CheckCircle className="size-8 text-green-500" />
@@ -54,7 +54,7 @@ export function AnalyticsStats({ stats, userCount }: AnalyticsStatsProps) {
         <CardContent className="pt-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-muted-foreground text-sm">{t("inProgressStatus")}</p>
+              <p className="text-muted-foreground text-sm">{t("analytics.inProgressStatus")}</p>
               <p className="text-2xl font-bold">{stats?.in_progress || 0}</p>
             </div>
             <TrendingUp className="size-8 text-yellow-500" />

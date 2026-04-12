@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useTranslations } from "@/hooks/use-translations";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -28,31 +28,30 @@ export function DepartmentFormDialog({
   onSubmit,
   onCancel,
 }: DepartmentFormDialogProps) {
-  const t = useTranslations("departments");
-  const tCommon = useTranslations("common");
+  const t = useTranslations();
   const isEdit = mode === "edit";
 
   return (
     <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto">
       <DialogHeader>
-        <DialogTitle>{isEdit ? t("editDepartment") : t("addDepartment")}</DialogTitle>
+        <DialogTitle>{isEdit ? t("departments.editDepartment") : t("departments.addDepartment")}</DialogTitle>
         <DialogDescription>
-          {isEdit ? t("editDepartment") : t("addDepartment")}
+          {isEdit ? t("departments.editDepartment") : t("departments.addDepartment")}
         </DialogDescription>
       </DialogHeader>
       <div className="grid gap-4 py-4">
         <div className="grid gap-2">
-          <label className="text-sm font-medium">{t("name")} *</label>
+          <label className="text-sm font-medium">{t("departments.name")} *</label>
           <Input
-            placeholder={t("name")}
+            placeholder={t("departments.name")}
             value={formData.name}
             onChange={(e) => onFormDataChange("name", e.target.value)}
           />
         </div>
         <div className="grid gap-2">
-          <label className="text-sm font-medium">{tCommon("description")}</label>
+          <label className="text-sm font-medium">{t("common.description")}</label>
           <Textarea
-            placeholder={tCommon("description")}
+            placeholder={t("common.description")}
             value={formData.description}
             onChange={(e) => onFormDataChange("description", e.target.value)}
           />
@@ -60,10 +59,10 @@ export function DepartmentFormDialog({
       </div>
       <DialogFooter>
         <Button variant="outline" onClick={onCancel}>
-          {tCommon("cancel")}
+          {t("common.cancel")}
         </Button>
         <Button onClick={onSubmit} disabled={!formData.name}>
-          {isEdit ? tCommon("save") : tCommon("create")}
+          {isEdit ? t("common.save") : t("common.create")}
         </Button>
       </DialogFooter>
     </DialogContent>

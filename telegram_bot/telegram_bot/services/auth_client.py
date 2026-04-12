@@ -92,7 +92,6 @@ class AuthServiceClient:
             logger.exception("Auth service get user failed")
         return None
 
-    @cached(ttl=600, key_prefix="auth_mentor")
     async def get_mentor_info(self, mentor_id: int, auth_token: str) -> dict | None:
         """Get mentor user info by ID."""
         try:

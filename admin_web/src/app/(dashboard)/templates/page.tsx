@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useTranslations } from "@/hooks/use-translations";
 import { Button } from "@/components/ui/button";
 import { PageContent } from "@/components/layout/page-content";
 import { Plus } from "lucide-react";
@@ -11,15 +11,14 @@ import { TemplatesTable } from "@/components/features/templates/templates-table"
 import { TemplateStats } from "@/components/features/templates/template-stats";
 
 export default function TemplatesPage() {
-  const t = useTranslations("templates");
-  const tCommon = useTranslations("common");
+  const t = useTranslations();
   const tmpl = useTemplates();
   const deps = useDepartments();
 
   return (
     <PageContent
-      title={t("title")}
-      subtitle={t("title")}
+      title={t("templates.title")}
+      subtitle={t("templates.title")}
       actions={
         <Button
           className="gap-2"
@@ -29,7 +28,7 @@ export default function TemplatesPage() {
           }}
         >
           <Plus className="size-4" />
-          {t("addTemplate")}
+          {t("templates.addTemplate")}
         </Button>
       }
     >
@@ -40,7 +39,7 @@ export default function TemplatesPage() {
         formData={tmpl.formData}
         onFormDataChange={tmpl.setFormData}
         tasks={tmpl.tasks}
-        departments={deps.departments}
+        departments={deps.items}
         onTasksChange={tmpl.setTasks}
         onSubmit={tmpl.handleCreate}
         onCancel={() => tmpl.setIsCreateDialogOpen(false)}
@@ -56,7 +55,7 @@ export default function TemplatesPage() {
         formData={tmpl.formData}
         onFormDataChange={tmpl.setFormData}
         tasks={tmpl.tasks}
-        departments={deps.departments}
+        departments={deps.items}
         onTasksChange={tmpl.setTasks}
         onSubmit={tmpl.handleUpdate}
         onCancel={() => {
@@ -81,7 +80,9 @@ export default function TemplatesPage() {
         currentPage={tmpl.currentPage}
         totalPages={tmpl.totalPages}
         totalCount={tmpl.totalCount}
+        pageSize={tmpl.pageSize}
         onPageChange={tmpl.setCurrentPage}
+        onPageSizeChange={tmpl.setPageSize}
       />
     </PageContent>
   );

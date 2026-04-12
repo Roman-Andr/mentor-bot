@@ -4,6 +4,7 @@ import logging
 
 from aiogram import Bot, F, Router
 from aiogram.filters import Command
+from aiogram.fsm.context import FSMContext
 from aiogram.types import BufferedInputFile, CallbackQuery, Message
 
 from telegram_bot.i18n import t
@@ -48,11 +49,22 @@ def _get_file_emoji(mime_type: str | None) -> str:
 
 @router.message(Command("documents"))
 @router.message(F.text == "\U0001f4c1 Documents")
+@router.message(
+    F.text == "\U0001f4c1 \u0414\u043e\u043a\u0443\u043c\u0435\u043d\u0442\u044b"
+)
+@router.message(F.text == "\u0414\u043e\u043a\u0443\u043c\u0435\u043d\u0442\u044b")
 @router.callback_query(F.data == "documents_menu")
 async def documents_menu(
-    update: Message | CallbackQuery, user: dict, *, locale: str = "en"
+    update: Message | CallbackQuery,
+    state: FSMContext,
+    user: dict,
+    *,
+    locale: str = "en",
 ) -> None:
     """Show documents menu."""
+    # Clear any active FSM state (e.g., from task file upload)
+    await state.clear()
+
     msg = None
     if isinstance(update, CallbackQuery):
         await update.answer()

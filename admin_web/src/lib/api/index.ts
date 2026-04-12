@@ -1,6 +1,6 @@
-export { fetchApi, fetchUpload, setAuthToken } from "./client";
-export type { ApiResponse } from "./client";
-export * from "./types";
+export { fetchApi, fetchUpload, fetchApiNew, setAuthToken } from "./client";
+export type { ApiResponse, ApiResult, ApiError } from "./client";
+
 export { usersApi } from "./users";
 export { invitationsApi } from "./invitations";
 export { departmentsApi } from "./departments";

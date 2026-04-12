@@ -1,4 +1,4 @@
-import { useTranslations } from "next-intl";
+import { useTranslations } from "@/hooks/use-translations";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DEPARTMENT_COLORS } from "@/lib/constants";
 
@@ -17,14 +17,14 @@ interface DepartmentBreakdownProps {
 }
 
 export function DepartmentBreakdown({ departments }: DepartmentBreakdownProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations();
   const departmentEntries = Object.entries(departments);
   const totalDeptCount = departmentEntries.reduce((sum, [, count]) => sum + count, 0);
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{t("byDepartment")}</CardTitle>
+        <CardTitle>{t("dashboard.byDepartment")}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
@@ -43,7 +43,7 @@ export function DepartmentBreakdown({ departments }: DepartmentBreakdownProps) {
               );
             })
           ) : (
-            <p className="text-muted-foreground py-4 text-center text-sm">{t("noData")}</p>
+            <p className="text-muted-foreground py-4 text-center text-sm">{t("common.noData")}</p>
           )}
         </div>
       </CardContent>

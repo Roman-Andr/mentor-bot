@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useTranslations } from "@/hooks/use-translations";
 import { Button } from "@/components/ui/button";
 import { PageContent } from "@/components/layout/page-content";
 import { Plus } from "lucide-react";
@@ -9,13 +9,13 @@ import { DialogueFormDialog } from "@/components/features/dialogues/dialogue-for
 import { DialoguesTable } from "@/components/features/dialogues/dialogues-table";
 
 export default function DialoguesPage() {
-  const t = useTranslations("dialogues");
+  const t = useTranslations();
   const dialogues = useDialogues();
 
   return (
     <PageContent
-      title={t("title")}
-      subtitle={t("title")}
+      title={t("dialogues.title")}
+      subtitle={t("dialogues.title")}
       actions={
         <Button
           className="gap-2"
@@ -25,7 +25,7 @@ export default function DialoguesPage() {
           }}
         >
           <Plus className="size-4" />
-          {t("addDialogue")}
+          {t("dialogues.addDialogue")}
         </Button>
       }
     >
@@ -42,26 +42,9 @@ export default function DialoguesPage() {
         }}
       />
 
-      <DialogueFormDialog
-        open={dialogues.isEditDialogOpen}
-        onOpenChange={(open) => {
-          dialogues.setIsEditDialogOpen(open);
-          if (!open) dialogues.resetForm();
-        }}
-        mode="edit"
-        formData={dialogues.formData}
-        onFormDataChange={dialogues.setFormData}
-        onSubmit={dialogues.handleSubmit}
-        onCancel={() => {
-          dialogues.setIsEditDialogOpen(false);
-          dialogues.resetForm();
-        }}
-      />
-
       <DialoguesTable
         dialogues={dialogues.dialogues}
         loading={dialogues.loading}
-        onEdit={dialogues.openEdit}
         onDelete={dialogues.handleDelete}
         onToggleActive={dialogues.handleToggleActive}
         searchQuery={dialogues.searchQuery}
@@ -71,7 +54,9 @@ export default function DialoguesPage() {
         currentPage={dialogues.currentPage}
         totalPages={dialogues.totalPages}
         totalCount={dialogues.totalCount}
+        pageSize={dialogues.pageSize}
         onPageChange={dialogues.setCurrentPage}
+        onPageSizeChange={dialogues.setPageSize}
       />
     </PageContent>
   );

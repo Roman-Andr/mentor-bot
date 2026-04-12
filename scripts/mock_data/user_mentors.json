@@ -1,0 +1,56 @@
+[
+  {
+    "user_key": "andrusevich_roman",
+    "mentor_key": "romanimus_adminius",
+    "notes": "Primary mentor for Roman Andrusevich onboarding",
+    "is_active": true
+  },
+  {
+    "user_key": "newbie_1",
+    "mentor_key": "mentor_1",
+    "notes": "Senior mentor assignment",
+    "is_active": true
+  },
+  {
+    "user_key": "newbie_2",
+    "mentor_key": "mentor_1",
+    "notes": "Engineering mentor",
+    "is_active": true
+  },
+  {
+    "user_key": "newbie_3",
+    "mentor_key": "mentor_2",
+    "notes": "Product team mentor",
+    "is_active": true
+  },
+  {
+    "user_key": "newbie_4",
+    "mentor_key": "mentor_3",
+    "notes": "Sales mentor",
+    "is_active": true
+  },
+  {
+    "user_key": "newbie_5",
+    "mentor_key": "mentor_4",
+    "notes": "Marketing mentor",
+    "is_active": true
+  },
+  {
+    "user_key": "newbie_6",
+    "mentor_key": "mentor_5",
+    "notes": "Operations mentor",
+    "is_active": true
+  },
+  {
+    "user_key": "newbie_7",
+    "mentor_key": "mentor_1",
+    "notes": "DevOps mentor",
+    "is_active": true
+  },
+  {
+    "user_key": "newbie_8",
+    "mentor_key": "mentor_1",
+    "notes": "QA mentor",
+    "is_active": true
+  }
+]

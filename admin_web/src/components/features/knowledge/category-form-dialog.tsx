@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useTranslations } from "@/hooks/use-translations";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -34,30 +34,29 @@ export function CategoryFormDialog({
   onSubmit,
   onCancel,
 }: CategoryFormDialogProps) {
-  const t = useTranslations("knowledge");
-  const tCommon = useTranslations("common");
+  const t = useTranslations();
 
   const isEdit = mode === "edit";
 
   return (
     <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto">
       <DialogHeader>
-        <DialogTitle>{isEdit ? t("editCategoryTitle") : t("addCategoryTitle")}</DialogTitle>
+        <DialogTitle>{isEdit ? t("knowledge.editCategoryTitle") : t("knowledge.addCategoryTitle")}</DialogTitle>
         <DialogDescription>
-          {isEdit ? t("changeCategory") : t("createNewCategory")}
+          {isEdit ? t("knowledge.changeCategory") : t("knowledge.createNewCategory")}
         </DialogDescription>
       </DialogHeader>
       <div className="grid gap-4 py-4">
         <div className="grid gap-2">
-          <label className="text-sm font-medium">{t("name")} *</label>
+          <label className="text-sm font-medium">{t("knowledge.name")} *</label>
           <Input
-            placeholder={t("name")}
+            placeholder={t("knowledge.name")}
             value={formData.name}
             onChange={(e) => onFormDataChange("name", e.target.value)}
           />
         </div>
         <div className="grid gap-2">
-          <label className="text-sm font-medium">{t("slug")}</label>
+          <label className="text-sm font-medium">{t("knowledge.slug")}</label>
           <Input
             placeholder="category-slug"
             value={formData.slug}
@@ -65,22 +64,22 @@ export function CategoryFormDialog({
           />
         </div>
         <div className="grid gap-2">
-          <label className="text-sm font-medium">{tCommon("description")}</label>
+          <label className="text-sm font-medium">{t("common.description")}</label>
           <Textarea
-            placeholder={tCommon("description")}
+            placeholder={t("common.description")}
             value={formData.description}
             onChange={(e) => onFormDataChange("description", e.target.value)}
           />
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div className="grid gap-2">
-            <label className="text-sm font-medium">{t("parentCategory")}</label>
+            <label className="text-sm font-medium">{t("knowledge.parentCategory")}</label>
             <Select
               value={formData.parent_id ? String(formData.parent_id) : ""}
               onChange={(val) => onFormDataChange("parent_id", parseInt(val) || 0)}
-              placeholder={t("noCategory")}
+              placeholder={t("knowledge.noCategory")}
               options={[
-                { value: "0", label: t("noCategory") },
+                { value: "0", label: t("knowledge.noCategory") },
                 ...categories
                   .filter((c) => c.id !== formData.parent_id)
                   .map((cat) => ({ value: String(cat.id), label: cat.name })),
@@ -88,7 +87,7 @@ export function CategoryFormDialog({
             />
           </div>
           <div className="grid gap-2">
-            <label className="text-sm font-medium">{t("order")}</label>
+            <label className="text-sm font-medium">{t("knowledge.order")}</label>
             <Input
               type="number"
               min={0}
@@ -99,19 +98,19 @@ export function CategoryFormDialog({
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div className="grid gap-2">
-            <label className="text-sm font-medium">{tCommon("department")}</label>
+            <label className="text-sm font-medium">{t("common.department")}</label>
             <Select
               value={formData.department_id ? String(formData.department_id) : ""}
               onChange={(val) => onFormDataChange("department_id", parseInt(val) || 0)}
-              placeholder={tCommon("all")}
+              placeholder={t("common.all")}
               options={[
-                { value: "0", label: tCommon("all") },
+                { value: "0", label: t("common.all") },
                 ...departments.map((d) => ({ value: String(d.id), label: d.name })),
               ]}
             />
           </div>
           <div className="grid gap-2">
-            <label className="text-sm font-medium">{t("position")}</label>
+            <label className="text-sm font-medium">{t("knowledge.position")}</label>
             <Input
               placeholder="e.g., Developer"
               value={formData.position}
@@ -121,16 +120,16 @@ export function CategoryFormDialog({
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div className="grid gap-2">
-            <label className="text-sm font-medium">{t("level")}</label>
+            <label className="text-sm font-medium">{t("knowledge.level")}</label>
             <Select
               value={formData.level || ""}
               onChange={(val) => onFormDataChange("level", val)}
-              placeholder={tCommon("all")}
+              placeholder={t("common.all")}
               options={LEVELS_WITH_EMPTY.map((l) => ({ value: l.value, label: l.label }))}
             />
           </div>
           <div className="grid gap-2">
-            <label className="text-sm font-medium">{t("icon")}</label>
+            <label className="text-sm font-medium">{t("knowledge.icon")}</label>
             <Input
               placeholder="Icon name"
               value={formData.icon}
@@ -139,7 +138,7 @@ export function CategoryFormDialog({
           </div>
         </div>
         <div className="grid gap-2">
-          <label className="text-sm font-medium">{t("color")}</label>
+          <label className="text-sm font-medium">{t("knowledge.color")}</label>
           <div className="flex items-center gap-2">
             <input
               type="color"
@@ -157,10 +156,10 @@ export function CategoryFormDialog({
       </div>
       <DialogFooter>
         <Button variant="outline" onClick={onCancel}>
-          {tCommon("cancel")}
+          {t("common.cancel")}
         </Button>
         <Button onClick={onSubmit} disabled={!formData.name}>
-          {isEdit ? tCommon("save") : tCommon("create")}
+          {isEdit ? t("common.save") : t("common.create")}
         </Button>
       </DialogFooter>
     </DialogContent>

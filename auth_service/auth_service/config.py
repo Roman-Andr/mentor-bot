@@ -53,6 +53,8 @@ class Settings(BaseSettings):
 
     # Inter-service communication
     CHECKLISTS_SERVICE_URL: str = Field(default="http://localhost:8002")
+    KNOWLEDGE_SERVICE_URL: str = Field(default="http://localhost:8003")
+    MEETING_SERVICE_URL: str = Field(default="http://localhost:8006")
     SERVICE_API_KEY: str = Field(default="")
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", case_sensitive=True, extra="ignore")

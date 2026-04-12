@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useTranslations } from "@/hooks/use-translations";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 
@@ -15,12 +15,12 @@ interface DepartmentChartProps {
 }
 
 export function DepartmentChart({ data }: DepartmentChartProps) {
-  const t = useTranslations("analytics");
+  const t = useTranslations();
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{t("byDepartments")}</CardTitle>
+        <CardTitle>{t("analytics.byDepartments")}</CardTitle>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>

@@ -23,7 +23,8 @@ MIN_TITLE_LENGTH = 3
 
 
 @router.message(Command("escalate"))
-@router.message(F.text == "\U0001f4de Escalate")
+@router.message(F.text == "🚨 Escalate")
+@router.message(F.text == "🚨 Эскалация")
 @router.callback_query(F.data == "escalate_menu")
 async def escalation_menu(
     update: Message | CallbackQuery, user: dict, auth_token: str, *, locale: str = "en"

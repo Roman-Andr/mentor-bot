@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "@/hooks/use-translations";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { GripVertical, Trash2 } from "lucide-react";
 import { Select } from "@/components/ui/select";
-import { type TaskTemplate } from "@/lib/api";
+import type { TaskTemplate } from "@/types";
 import { TASK_CATEGORY_MAP, TASK_CATEGORIES } from "@/lib/constants";
 import type { TemplateFormData } from "@/hooks/use-templates";
 
@@ -45,8 +45,7 @@ export function TemplateFormDialog({
   onSubmit,
   onCancel,
 }: TemplateFormDialogProps) {
-  const t = useTranslations("templates");
-  const tCommon = useTranslations("common");
+  const t = useTranslations();
 
   const [newTask, setNewTask] = useState({
     name: "",
@@ -84,13 +83,13 @@ export function TemplateFormDialog({
   const isCreate = mode === "create";
 
   const statusOptions = [
-    { value: "DRAFT", label: t("draft") },
-    { value: "ACTIVE", label: t("active") },
-    { value: "ARCHIVED", label: t("archived") },
+    { value: "DRAFT", label: t("templates.draft") },
+    { value: "ACTIVE", label: t("templates.active") },
+    { value: "ARCHIVED", label: t("templates.archived") },
   ];
 
   const departmentOptions = [
-    { value: "0", label: tCommon("notSelected") },
+    { value: "0", label: t("common.notSelected") },
     ...departments.map((d) => ({ value: String(d.id), label: d.name })),
   ];
 
@@ -98,44 +97,44 @@ export function TemplateFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{isCreate ? t("createTemplate") : t("editTemplateTitle")}</DialogTitle>
+          <DialogTitle>{isCreate ? t("templates.createTemplate") : t("templates.editTemplateTitle")}</DialogTitle>
           <DialogDescription>
-            {isCreate ? t("createNewTemplate") : t("changeTemplate")}
+            {isCreate ? t("templates.createNewTemplate") : t("templates.changeTemplate")}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
-            <label className="text-sm font-medium">{t("name")} *</label>
+            <label className="text-sm font-medium">{t("templates.name")} *</label>
             <Input
-              placeholder={isCreate ? "e.g., Basic Developer Onboarding" : t("name")}
+              placeholder={isCreate ? "e.g., Basic Developer Onboarding" : t("templates.name")}
               value={formData.name}
               onChange={(e) => onFormDataChange({ ...formData, name: e.target.value })}
             />
           </div>
           <div className="grid gap-2">
-            <label className="text-sm font-medium">{tCommon("description")}</label>
+            <label className="text-sm font-medium">{t("common.description")}</label>
             <Textarea
-              placeholder={isCreate ? "Brief description of template" : tCommon("description")}
+              placeholder={isCreate ? "Brief description of template" : t("common.description")}
               value={formData.description}
               onChange={(e) => onFormDataChange({ ...formData, description: e.target.value })}
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
-              <label className="text-sm font-medium">{tCommon("department")}</label>
+              <label className="text-sm font-medium">{t("common.department")}</label>
               <Select
                 value={formData.department_id ? String(formData.department_id) : ""}
                 onChange={(val) =>
                   onFormDataChange({ ...formData, department_id: parseInt(val) || 0 })
                 }
-                placeholder={t("selectDepartment")}
+                placeholder={t("templates.selectDepartment")}
                 options={departmentOptions}
               />
             </div>
             <div className="grid gap-2">
-              <label className="text-sm font-medium">{t("position")}</label>
+              <label className="text-sm font-medium">{t("templates.position")}</label>
               <Input
-                placeholder={isCreate ? "e.g., Developer" : t("position")}
+                placeholder={isCreate ? "e.g., Developer" : t("templates.position")}
                 value={formData.position}
                 onChange={(e) => onFormDataChange({ ...formData, position: e.target.value })}
               />
@@ -143,7 +142,7 @@ export function TemplateFormDialog({
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
-              <label className="text-sm font-medium">{t("durationDays")}</label>
+              <label className="text-sm font-medium">{t("templates.durationDays")}</label>
               <Input
                 type="number"
                 min={1}
@@ -157,7 +156,7 @@ export function TemplateFormDialog({
               />
             </div>
             <div className="grid gap-2">
-              <label className="text-sm font-medium">{t("status")}</label>
+              <label className="text-sm font-medium">{t("templates.status")}</label>
               <Select
                 value={formData.status}
                 onChange={(val) => onFormDataChange({ ...formData, status: val })}
@@ -174,12 +173,12 @@ export function TemplateFormDialog({
               className="border-input rounded"
             />
             <label htmlFor={isCreate ? "isDefault" : "isDefaultEdit"} className="text-sm">
-              {t("default")}
+              {t("templates.default")}
             </label>
           </div>
 
           <div className="mt-4 border-t pt-4">
-            <h3 className="mb-3 font-medium">{t("templateTasks")}</h3>
+            <h3 className="mb-3 font-medium">{t("templates.templateTasks")}</h3>
             <div className="mb-4 grid gap-3">
               {tasks.map((task, index) => (
                 <div key={index} className="bg-muted flex items-start gap-2 rounded-lg p-3">
@@ -209,7 +208,7 @@ export function TemplateFormDialog({
             </div>
             <div className="grid grid-cols-4 gap-2">
               <Input
-                placeholder={t("taskName")}
+                placeholder={t("templates.taskName")}
                 value={newTask.name}
                 onChange={(e) => setNewTask({ ...newTask, name: e.target.value })}
                 className="col-span-2"
@@ -223,7 +222,7 @@ export function TemplateFormDialog({
                 <Input
                   type="number"
                   min={1}
-                  placeholder={t("days")}
+                  placeholder={t("templates.days")}
                   value={newTask.deadline_days}
                   onChange={(e) =>
                     setNewTask({
@@ -242,10 +241,10 @@ export function TemplateFormDialog({
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onCancel}>
-            {tCommon("cancel")}
+            {t("common.cancel")}
           </Button>
           <Button onClick={onSubmit} disabled={!formData.name}>
-            {isCreate ? tCommon("create") : tCommon("save")}
+            {isCreate ? t("common.create") : t("common.save")}
           </Button>
         </DialogFooter>
       </DialogContent>

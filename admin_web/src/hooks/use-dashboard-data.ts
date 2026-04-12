@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
-import { api, type OnboardingProgress, type EscalationRequest } from "@/lib/api";
-import { useAuth } from "@/lib/auth-context";
+import { useTranslations } from "@/hooks/use-translations";
+import { api } from "@/lib/api";
+import type { OnboardingProgress, EscalationRequest } from "@/types";
+import { useAuth } from "@/hooks/use-auth";
 
 interface Activity {
   user: string;
@@ -36,6 +38,7 @@ interface UseDashboardDataResult {
 }
 
 export function useDashboardData(): UseDashboardDataResult {
+  const t = useTranslations("dashboard");
   const { isLoading: authLoading } = useAuth();
   const [stats, setStats] = useState<DashboardStats>({
     total_users: 0,
@@ -95,13 +98,15 @@ export function useDashboardData(): UseDashboardDataResult {
         setDepartments(deptBreakdown);
       }
 
-      if (escalationResult.data) {
-        const requests = escalationResult.data.requests;
-        setEscalations({
-          hr: requests.filter((r: EscalationRequest) => r.type === "HR").length,
-          mentor: requests.filter((r: EscalationRequest) => r.type === "MENTOR").length,
-          inProgress: requests.filter((r: EscalationRequest) => r.status === "IN_PROGRESS").length,
-        });
+      // Process escalation data
+      if (escalationResult.data?.requests) {
+        const items = escalationResult.data.requests;
+        const counts: EscalationCounts = {
+          hr: items.filter((e) => e.type === "HR").length,
+          mentor: items.filter((e) => e.type === "MENTOR").length,
+          inProgress: items.filter((e) => e.status === "IN_PROGRESS").length,
+        };
+        setEscalations(counts);
       }
 
       const onboardingResult = await api.analytics.onboardingProgress();
@@ -140,21 +145,23 @@ export function useDashboardData(): UseDashboardDataResult {
         );
       }
 
+      // Set initial activity with system message
       setActivity([
         {
-          user: "Система",
-          action: "Загрузила данные",
-          task: "Дашборд обновлён",
-          time: "Сейчас",
+          user: t("system"),
+          action: t("loadedData"),
+          task: t("dashboardUpdated"),
+          time: t("now"),
         },
       ]);
     } catch (err) {
-      setError("Ошибка загрузки данных");
+      setError(t("errorLoading"));
       console.error(err);
     } finally {
       setLoading(false);
     }
-  }, [authLoading]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authLoading, t]);
 
   useEffect(() => {
     fetchData();

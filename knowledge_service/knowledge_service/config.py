@@ -43,6 +43,9 @@ class Settings(BaseSettings):
     AUTH_SERVICE_TIMEOUT: int = Field(default=10, ge=1)
     AUTH_SERVICE_RETRIES: int = Field(default=3, ge=0)
 
+    # Service-to-service authentication
+    SERVICE_API_KEY: str = Field(default="")
+
     # Circuit Breaker
     CIRCUIT_BREAKER_FAILURE_THRESHOLD: int = Field(default=3, ge=1)
     CIRCUIT_BREAKER_RECOVERY_TIMEOUT: int = Field(default=30, ge=1)

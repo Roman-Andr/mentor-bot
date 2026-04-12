@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useTranslations } from "@/hooks/use-translations";
 import { Button } from "@/components/ui/button";
 import { PageContent } from "@/components/layout/page-content";
 import { Plus } from "lucide-react";
@@ -12,18 +12,18 @@ import { InvitationStats } from "@/components/features/invitations/invitation-st
 import { InvitationsTable } from "@/components/features/invitations/invitations-table";
 
 export default function InvitationsPage() {
-  const t = useTranslations("invitations");
+  const t = useTranslations();
   const inv = useInvitations();
   const deps = useDepartments();
 
   return (
     <PageContent
-      title={t("title")}
-      subtitle={t("title")}
+      title={t("invitations.title")}
+      subtitle={t("invitations.title")}
       actions={
         <Button className="gap-2" onClick={() => inv.setIsCreateDialogOpen(true)}>
           <Plus className="size-4" />
-          {t("sendInvitation")}
+          {t("invitations.sendInvitation")}
         </Button>
       }
     >
@@ -34,7 +34,7 @@ export default function InvitationsPage() {
         onFormDataChange={inv.setFormData}
         emailTouched={inv.emailTouched}
         onEmailTouchedChange={inv.setEmailTouched}
-        departments={deps.departments}
+        departments={deps.items}
         onSubmit={inv.handleCreateInvitation}
         onCancel={() => {
           inv.setIsCreateDialogOpen(false);
@@ -64,6 +64,12 @@ export default function InvitationsPage() {
         onResend={inv.handleResendInvitation}
         onRevoke={inv.handleRevokeInvitation}
         onDelete={inv.handleDeleteInvitation}
+        currentPage={inv.currentPage}
+        totalPages={inv.totalPages}
+        totalCount={inv.totalCount}
+        pageSize={inv.pageSize}
+        onPageChange={inv.setCurrentPage}
+        onPageSizeChange={inv.setPageSize}
       />
     </PageContent>
   );

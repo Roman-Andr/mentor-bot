@@ -25,12 +25,19 @@ class CalendarClient:
         self, user_id: int, auth_token: str
     ) -> dict[str, Any]:
         """Check if user has connected Google Calendar."""
-        response = await self.client.get(
-            f"{settings.API_V1_PREFIX}/calendar/status/{user_id}",
-            headers={"Authorization": f"Bearer {auth_token}"},
-        )
-        response.raise_for_status()
-        return response.json()
+        try:
+            response = await self.client.get(
+                f"{settings.API_V1_PREFIX}/calendar/status/{user_id}",
+                headers={"Authorization": f"Bearer {auth_token}"},
+            )
+            response.raise_for_status()
+            return response.json()
+        except httpx.HTTPStatusError as e:
+            logger.warning("Calendar status check failed: %s", e.response.status_code)
+            return {"connected": False, "error": f"HTTP {e.response.status_code}"}
+        except httpx.RequestError as e:
+            logger.exception("Calendar service request failed")
+            return {"connected": False, "error": str(e)}
 
     async def get_connect_url(self, user_id: int, state: str) -> str:
         """Get Google Calendar connection URL."""
@@ -65,9 +72,16 @@ class CalendarClient:
         self, user_id: int, auth_token: str
     ) -> dict[str, Any]:
         """Disconnect Google Calendar account."""
-        response = await self.client.delete(
-            f"{settings.API_V1_PREFIX}/calendar/{user_id}",
-            headers={"Authorization": f"Bearer {auth_token}"},
-        )
-        response.raise_for_status()
-        return response.json()
+        try:
+            response = await self.client.delete(
+                f"{settings.API_V1_PREFIX}/calendar/{user_id}",
+                headers={"Authorization": f"Bearer {auth_token}"},
+            )
+            response.raise_for_status()
+            return response.json()
+        except httpx.HTTPStatusError as e:
+            logger.warning("Calendar disconnect failed: %s", e.response.status_code)
+            return {"success": False, "error": f"HTTP {e.response.status_code}"}
+        except httpx.RequestError as e:
+            logger.exception("Calendar disconnect request failed")
+            return {"success": False, "error": str(e)}

@@ -8,13 +8,17 @@ from checklists_service.schemas.checklist import (
     ChecklistResponse,
     ChecklistStats,
     ChecklistUpdate,
+    CompletionTimeStats,
+    MonthlyStats,
 )
+from checklists_service.schemas.department import DepartmentCreate, DepartmentResponse
 from checklists_service.schemas.responses import (
     HealthCheck,
     MessageResponse,
     ServiceStatus,
 )
 from checklists_service.schemas.task import (
+    TaskAttachmentResponse,
     TaskBase,
     TaskBulkUpdate,
     TaskCreate,
@@ -40,10 +44,15 @@ __all__ = [
     "ChecklistResponse",
     "ChecklistStats",
     "ChecklistUpdate",
+    "CompletionTimeStats",
+    "DepartmentCreate",
     "DepartmentInfo",
+    "DepartmentResponse",
     "HealthCheck",
     "MessageResponse",
+    "MonthlyStats",
     "ServiceStatus",
+    "TaskAttachmentResponse",
     "TaskBase",
     "TaskBulkUpdate",
     "TaskCreate",

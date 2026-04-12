@@ -1,6 +1,6 @@
 import { fetchApi } from "./client";
 import { buildQueryString } from "@/lib/utils/query-builder";
-import type { User, UserListResponse } from "./types";
+import type { User, UserListResponse } from "@/types";
 
 export const usersApi = {
   list: (params?: {

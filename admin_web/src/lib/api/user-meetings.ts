@@ -1,16 +1,7 @@
 import { fetchApi } from "./client";
+import type { UserMeeting } from "@/types";
 
-export interface UserMeetingResponse {
-  id: number;
-  user_id: number;
-  meeting_id: number;
-  status: string;
-  scheduled_at: string | null;
-  completed_at: string | null;
-  feedback: string | null;
-  rating: number | null;
-  created_at: string;
-}
+export type UserMeetingResponse = UserMeeting;
 
 export interface UserMeetingListResponse {
   total: number;

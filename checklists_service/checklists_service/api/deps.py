@@ -140,6 +140,16 @@ async def verify_service_api_key(
 ServiceAuth = Annotated[bool, Depends(verify_service_api_key)]
 
 
+class ChecklistsServiceDep:
+    """Simple marker for service-to-service calls."""
+
+
+
+async def get_checklists_service_dep() -> ChecklistsServiceDep:
+    """Dependency for service-to-service calls."""
+    return ChecklistsServiceDep()
+
+
 # Unit of Work dependency
 async def get_uow() -> AsyncGenerator[SqlAlchemyUnitOfWork]:
     """Get Unit of Work instance for current request."""

@@ -26,7 +26,10 @@ async def process_invitation_token(
     if success:
         welcome_text = format_welcome_message(tg_user, result, locale=locale)
         await message.answer(
-            welcome_text, reply_markup=get_main_menu_keyboard(is_authenticated=True)
+            welcome_text,
+            reply_markup=get_main_menu_keyboard(
+                is_authenticated=True, user=result, locale=locale
+            ),
         )
     else:
         await message.answer(t("start.register_error", locale=locale, result=result))

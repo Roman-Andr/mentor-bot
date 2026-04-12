@@ -1,6 +1,6 @@
 import { fetchApi } from "./client";
 import { buildQueryString } from "@/lib/utils/query-builder";
-import type { Invitation, InvitationListResponse } from "./types";
+import type { Invitation, InvitationListResponse } from "@/types";
 
 export const invitationsApi = {
   list: (params?: {

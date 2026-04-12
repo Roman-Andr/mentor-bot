@@ -21,6 +21,7 @@ class IEscalationRepository(BaseRepository["EscalationRequest", int]):
         assigned_to: int | None = None,
         escalation_type: EscalationType | None = None,
         status: EscalationStatus | None = None,
+        search: str | None = None,
     ) -> tuple[Sequence[EscalationRequest], int]:
         """Find escalation requests with filtering and return results with total count."""
 

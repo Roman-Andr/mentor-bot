@@ -1,8 +1,9 @@
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useConfirm } from "@/components/ui/confirm-dialog";
-import { useToast } from "@/components/ui/toast";
-import { api, type TaskTemplate } from "@/lib/api";
+import { useEffect } from "react";
+import { useEntity } from "./use-entity";
+import { api } from "@/lib/api";
+import { queryKeys } from "@/lib/query-keys";
+import type { TaskTemplate } from "@/types";
+import { useQuery } from "@tanstack/react-query";
 
 export interface TemplateItem {
   id: number;
@@ -27,6 +28,10 @@ export interface TemplateFormData {
   is_default: boolean;
 }
 
+interface ExtendedState {
+  tasks: TaskTemplate[];
+}
+
 const defaultFormData: TemplateFormData = {
   name: "",
   description: "",
@@ -35,6 +40,10 @@ const defaultFormData: TemplateFormData = {
   duration_days: 30,
   status: "DRAFT",
   is_default: false,
+};
+
+const defaultExtendedState: ExtendedState = {
+  tasks: [],
 };
 
 function mapTemplateToItem(
@@ -66,97 +75,86 @@ function mapTemplateToItem(
   };
 }
 
-const TEMPLATES_KEY = ["templates"] as const;
+function toCreatePayload(form: TemplateFormData) {
+  return {
+    name: form.name,
+    description: form.description,
+    department_id: form.department_id || null,
+    position: form.position || null,
+    level: null,
+    duration_days: form.duration_days,
+    task_categories: [],
+    status: (form.status || "DRAFT") as "DRAFT" | "ACTIVE" | "ARCHIVED",
+  };
+}
+
+function toUpdatePayload(form: TemplateFormData) {
+  return {
+    name: form.name,
+    description: form.description,
+    status: (form.status || "DRAFT") as "DRAFT" | "ACTIVE" | "ARCHIVED",
+    is_default: form.is_default,
+  };
+}
+
+function toForm(template: TemplateItem): TemplateFormData {
+  return {
+    name: template.name,
+    description: template.description,
+    department_id: template.department_id || 0,
+    position: template.position,
+    duration_days: template.durationDays,
+    status: template.status,
+    is_default: template.isDefault,
+  };
+}
 
 export function useTemplates() {
-  const confirm = useConfirm();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("ALL");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState<TemplateItem | null>(null);
-  const [formData, setFormData] = useState<TemplateFormData>({ ...defaultFormData });
-  const [tasks, setTasks] = useState<TaskTemplate[]>([]);
-
-  const pageSize = 20;
-
-  const queryParams = {
-    skip: (currentPage - 1) * pageSize,
-    limit: pageSize,
-    ...(statusFilter !== "ALL" && { status: statusFilter }),
-  };
-
-  const { data: templatesData, isLoading: loading } = useQuery({
-    queryKey: [...TEMPLATES_KEY, queryParams],
-    queryFn: () => api.templates.list(queryParams),
-    select: (result) => result.data?.map((t) => mapTemplateToItem(t, 0)) || [],
-  });
-
-  const createMutation = useMutation({
-    mutationFn: (data: Parameters<typeof api.templates.create>[0]) => api.templates.create(data),
-    onSuccess: (result) => {
-      if (result.data) {
-        queryClient.invalidateQueries({ queryKey: TEMPLATES_KEY });
-        setIsCreateDialogOpen(false);
-        setFormData(defaultFormData);
-        setTasks([]);
-        toast("Шаблон создан", "success");
-      } else if (result.error) {
-        toast(result.error, "error");
-      }
+  const entity = useEntity<TemplateItem, TemplateFormData, ReturnType<typeof toCreatePayload>, ReturnType<typeof toUpdatePayload>>({
+    entityName: "Шаблон",
+    translationNamespace: "templates",
+    queryKeyPrefix: "templates",
+    listFn: (params) => api.templates.list(params),
+    listDataKey: "templates",
+    createFn: (data) => api.templates.create(data),
+    updateFn: (id, data) => api.templates.update(id, data),
+    deleteFn: (id) => api.templates.delete(id),
+    defaultForm: defaultFormData,
+    mapItem: (item: unknown) => {
+      const t = item as Parameters<typeof mapTemplateToItem>[0];
+      return mapTemplateToItem(t, (t as { tasks?: unknown[] }).tasks?.length ?? 0);
     },
-    onError: () => toast("Ошибка создания шаблона", "error"),
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Parameters<typeof api.templates.update>[1] }) =>
-      api.templates.update(id, data),
-    onSuccess: (result) => {
-      if (result.data) {
-        queryClient.invalidateQueries({ queryKey: TEMPLATES_KEY });
-        setIsEditDialogOpen(false);
-        setSelectedTemplate(null);
-        setFormData(defaultFormData);
-        setTasks([]);
-        toast("Шаблон обновлён", "success");
-      } else if (result.error) {
-        toast(result.error, "error");
-      }
+    toCreatePayload,
+    toUpdatePayload,
+    toForm,
+    searchable: true,
+    searchParamName: "search",
+    filters: [{ name: "status", defaultValue: "ALL" }],
+    labels: {
+      createdKey: "templates.created",
+      updatedKey: "templates.updated",
+      deletedKey: "templates.deleted",
+      createErrorKey: "templates.createError",
+      updateErrorKey: "templates.updateError",
+      deleteErrorKey: "templates.deleteError",
     },
-    onError: () => toast("Ошибка обновления шаблона", "error"),
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: (id: number) => api.templates.delete(id),
-    onSuccess: (result) => {
-      if (!result.error) {
-        queryClient.invalidateQueries({ queryKey: TEMPLATES_KEY });
-        toast("Шаблон удалён", "success");
-      } else {
-        toast(result.error, "error");
-      }
-    },
-    onError: () => toast("Ошибка удаления шаблона", "error"),
+  // Initialize tasks state
+  useEffect(() => {
+    if (entity.extendedState.tasks === undefined) {
+      entity.setExtendedState(() => ({ tasks: [] }));
+    }
+  }, []);
+
+  // Fetch departments
+  const { data: departmentsData } = useQuery({
+    queryKey: queryKeys.departments.all,
+    queryFn: () => api.departments.list({ limit: 1000 }),
+    select: (result) => result.data?.departments || [],
   });
 
-  const publishMutation = useMutation({
-    mutationFn: (id: number) => api.templates.publish(id),
-    onSuccess: (result) => {
-      if (result.data) {
-        queryClient.invalidateQueries({ queryKey: TEMPLATES_KEY });
-        toast("Шаблон опубликован", "success");
-      } else if (result.error) {
-        toast(result.error, "error");
-      }
-    },
-    onError: () => toast("Ошибка публикации шаблона", "error"),
-  });
-
-  const addTasksToTemplate = async (templateId: number) => {
+  const addTasksToTemplate = async (templateId: number, tasks: TaskTemplate[]) => {
     for (const task of tasks) {
       await api.templates.addTask(templateId, {
         template_id: templateId,
@@ -172,131 +170,106 @@ export function useTemplates() {
   };
 
   const handleCreate = async () => {
-    try {
-      const response = await createMutation.mutateAsync({
-        name: formData.name,
-        description: formData.description,
-        department_id: formData.department_id || null,
-        position: formData.position || null,
-        level: null,
-        duration_days: formData.duration_days,
-        task_categories: [],
-        status: (formData.status || "DRAFT") as "DRAFT" | "ACTIVE" | "ARCHIVED",
-      });
-      if (response.data) {
-        await addTasksToTemplate(response.data.id);
-      }
-    } catch {
-      // Error handled by mutation
+    const { tasks } = entity.extendedState as unknown as ExtendedState;
+    const result = await api.templates.create(toCreatePayload(entity.formData));
+    if (result.data) {
+      await addTasksToTemplate(result.data.id, tasks);
+      entity.invalidate();
+      entity.setIsCreateDialogOpen(false);
+      entity.resetForm();
+      entity.setExtendedState(() => defaultExtendedState as unknown as Record<string, unknown>);
     }
   };
 
   const handleUpdate = async () => {
-    if (!selectedTemplate) return;
-    try {
-      const response = await updateMutation.mutateAsync({
-        id: selectedTemplate.id,
-        data: {
-          name: formData.name,
-          description: formData.description,
-          status: (formData.status || "DRAFT") as "DRAFT" | "ACTIVE" | "ARCHIVED",
-          is_default: formData.is_default,
-        },
-      });
-      if (response.data) {
-        const newTasks = tasks.filter((t) => !t.id || t.id === 0);
-        for (const task of newTasks) {
-          await api.templates.addTask(selectedTemplate.id, {
-            template_id: selectedTemplate.id,
-            title: task.title,
-            description: task.description,
-            instructions: task.instructions,
-            category: task.category,
-            order: task.order,
-            due_days: task.due_days,
-            estimated_minutes: task.estimated_minutes,
-          });
-        }
-      }
-    } catch {
-      // Error handled by mutation
+    if (!entity.selectedItem) return;
+    const { tasks } = entity.extendedState as unknown as ExtendedState;
+    const result = await api.templates.update(entity.selectedItem.id, toUpdatePayload(entity.formData));
+    if (result.data) {
+      const newTasks = tasks.filter((t) => !t.id || t.id === 0);
+      await addTasksToTemplate(entity.selectedItem.id, newTasks);
+      entity.invalidate();
+      entity.setIsEditDialogOpen(false);
+      entity.setSelectedItem(null);
+      entity.resetForm();
+      entity.setExtendedState(() => defaultExtendedState as unknown as Record<string, unknown>);
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (
-      !(await confirm({
-        title: "Удаление шаблона",
-        description: "Вы уверены, что хотите удалить этот шаблон?",
-        variant: "destructive",
-        confirmText: "Удалить",
-      }))
-    )
-      return;
-    deleteMutation.mutate(id);
+    await entity.handleDelete(id);
   };
 
   const handlePublish = (id: number) => {
-    publishMutation.mutate(id);
+    return api.templates.publish(id);
   };
 
   const openEditDialog = (template: TemplateItem) => {
-    setSelectedTemplate(template);
-    setFormData({
-      name: template.name,
-      description: template.description,
-      department_id: template.department_id || 0,
-      position: template.position,
-      duration_days: template.durationDays,
-      status: template.status,
-      is_default: template.isDefault,
-    });
-    setIsEditDialogOpen(true);
+    entity.setSelectedItem(template);
+    entity.setFormData(toForm(template));
+    entity.setExtendedState(() => defaultExtendedState as unknown as Record<string, unknown>);
+    entity.setIsEditDialogOpen(true);
   };
 
   const resetForm = () => {
-    setFormData(defaultFormData);
-    setTasks([]);
+    entity.resetForm();
+    entity.setExtendedState(() => defaultExtendedState as unknown as Record<string, unknown>);
   };
 
-  const templates = templatesData || [];
-  const totalCount = templates.length;
-  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+  // Use entity.items directly - taskCount comes from API response in mapItem
+  const templates = entity.items;
 
   return {
+    // Data
     templates,
-    loading,
-    searchQuery,
-    setSearchQuery,
-    statusFilter,
-    setStatusFilter,
-    currentPage,
-    setCurrentPage,
-    totalPages,
-    totalCount,
-    isCreateDialogOpen,
-    setIsCreateDialogOpen,
-    isEditDialogOpen,
-    setIsEditDialogOpen,
-    selectedTemplate,
-    setSelectedTemplate,
-    formData,
-    setFormData,
-    tasks,
-    setTasks,
+    departments: departmentsData || [],
+    loading: entity.loading,
+    totalCount: entity.totalCount,
+    totalPages: entity.totalPages,
+
+    // Pagination
+    currentPage: entity.currentPage,
+    setCurrentPage: entity.setCurrentPage,
+    pageSize: entity.pageSize,
+    setPageSize: entity.setPageSize,
+
+    // Search & Filters
+    searchQuery: entity.searchQuery,
+    setSearchQuery: entity.setSearchQuery,
+    statusFilter: entity.filterValues.status ?? "ALL",
+    setStatusFilter: (value: string) => entity.setFilterValue("status", value),
+
+    // Dialogs
+    isCreateDialogOpen: entity.isCreateDialogOpen,
+    setIsCreateDialogOpen: entity.setIsCreateDialogOpen,
+    isEditDialogOpen: entity.isEditDialogOpen,
+    setIsEditDialogOpen: entity.setIsEditDialogOpen,
+
+    // Selection
+    selectedTemplate: entity.selectedItem,
+    setSelectedTemplate: entity.setSelectedItem,
+
+    // Form
+    formData: entity.formData,
+    setFormData: entity.setFormData,
+
+    // Tasks - ensure we always return an array
+    tasks: (entity.extendedState as unknown as ExtendedState).tasks ?? [],
+    setTasks: (tasks: TaskTemplate[]) =>
+      entity.setExtendedState((prev) => ({ ...(prev as unknown as ExtendedState), tasks })),
+
+    // Handlers
     handleCreate,
     handleUpdate,
     handleDelete,
     handlePublish,
     openEditDialog,
     resetForm,
-    resetFilters: () => {
-      setSearchQuery("");
-      setStatusFilter("ALL");
-      setCurrentPage(1);
-    },
-    isCreating: createMutation.isPending,
-    isUpdating: updateMutation.isPending,
-    isDeleting: deleteMutation.isPending,
+    resetFilters: entity.resetFilters,
+
+    // Loading states
+    isCreating: entity.isSubmitting,
+    isUpdating: entity.isSubmitting,
+    isDeleting: entity.isDeleting,
   };
 }

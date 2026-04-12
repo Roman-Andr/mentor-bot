@@ -1,0 +1,80 @@
+[
+  {
+    "user_key": "newbie_1",
+    "status": "COMPLETED",
+    "days_ago": 25,
+    "completed_tasks": 9
+  },
+  {
+    "user_key": "newbie_2",
+    "status": "IN_PROGRESS",
+    "days_ago": 10,
+    "completed_tasks": 5
+  },
+  {
+    "user_key": "newbie_3",
+    "status": "IN_PROGRESS",
+    "days_ago": 5,
+    "completed_tasks": 2
+  },
+  {
+    "user_key": "newbie_4",
+    "status": "IN_PROGRESS",
+    "days_ago": 15,
+    "completed_tasks": 7
+  },
+  {
+    "user_key": "newbie_5",
+    "status": "PENDING",
+    "days_ago": 0,
+    "completed_tasks": 0
+  },
+  {
+    "user_key": "newbie_6",
+    "status": "IN_PROGRESS",
+    "days_ago": 3,
+    "completed_tasks": 1
+  },
+  {
+    "user_key": "newbie_7",
+    "status": "COMPLETED",
+    "days_ago": 20,
+    "completed_tasks": 7
+  },
+  {
+    "user_key": "newbie_8",
+    "status": "IN_PROGRESS",
+    "days_ago": 7,
+    "completed_tasks": 3
+  },
+  {
+    "user_key": "newbie_9",
+    "status": "PENDING",
+    "days_ago": 0,
+    "completed_tasks": 0
+  },
+  {
+    "user_key": "newbie_10",
+    "status": "IN_PROGRESS",
+    "days_ago": 12,
+    "completed_tasks": 5
+  },
+  {
+    "user_key": "newbie_11",
+    "status": "PENDING",
+    "days_ago": 0,
+    "completed_tasks": 0
+  },
+  {
+    "user_key": "newbie_12",
+    "status": "IN_PROGRESS",
+    "days_ago": 8,
+    "completed_tasks": 4
+  },
+  {
+    "user_key": "andrusevich_roman",
+    "status": "IN_PROGRESS",
+    "days_ago": 7,
+    "completed_tasks": 4
+  }
+]

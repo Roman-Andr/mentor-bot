@@ -1,12 +1,23 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useTranslations } from "@/hooks/use-translations";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useConfirm } from "@/components/ui/confirm-dialog";
-import { cn } from "@/lib/utils";
-import { Edit, Trash2, Power, Search } from "lucide-react";
+import { SearchInput } from "@/components/ui/search-input";
 import { Select } from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { DataTable } from "@/components/ui/data-table";
+import { CardHeader, CardTitle } from "@/components/ui/card";
+import { useConfirm } from "@/hooks/use-confirm";
+import { cn } from "@/lib/utils";
+import { Edit, Trash2, Power } from "lucide-react";
+import { useRouter } from "next/navigation";
 import type { DialogueRow } from "@/hooks/use-dialogues";
 
 const CATEGORIES_LABELS: Record<string, string> = {
@@ -23,19 +34,19 @@ function getCategoryLabel(cat: string): string {
 
 function getCategoryOptions(t: (key: string) => string): { value: string; label: string }[] {
   return [
-    { value: "ALL", label: t("allCategories") },
-    { value: "VACATION", label: t("vacation") },
-    { value: "ACCESS", label: t("access") },
-    { value: "BENEFITS", label: t("benefits") },
-    { value: "CONTACTS", label: t("contacts") },
-    { value: "WORKTIME", label: t("worktime") },
+    { value: "ALL", label: t("dialogues.allCategories") },
+    { value: "VACATION", label: t("dialogues.vacation") },
+    { value: "ACCESS", label: t("dialogues.access") },
+    { value: "BENEFITS", label: t("dialogues.benefits") },
+    { value: "CONTACTS", label: t("dialogues.contacts") },
+    { value: "WORKTIME", label: t("dialogues.worktime") },
   ];
 }
 
 interface DialoguesTableProps {
   dialogues: DialogueRow[];
   loading: boolean;
-  onEdit: (d: DialogueRow) => void;
+  onEdit?: (d: DialogueRow) => void;
   onDelete: (id: number) => void;
   onToggleActive: (id: number, isActive: boolean) => void;
   searchQuery: string;
@@ -45,7 +56,9 @@ interface DialoguesTableProps {
   currentPage: number;
   totalPages: number;
   totalCount: number;
+  pageSize?: number;
   onPageChange: (page: number) => void;
+  onPageSizeChange?: (size: number) => void;
 }
 
 export function DialoguesTable({
@@ -61,21 +74,27 @@ export function DialoguesTable({
   currentPage,
   totalPages,
   totalCount,
+  pageSize,
   onPageChange,
+  onPageSizeChange,
 }: DialoguesTableProps) {
-  const t = useTranslations("dialogues");
-  const tCommon = useTranslations("common");
+  const t = useTranslations();
   const confirm = useConfirm();
+  const router = useRouter();
+
+  const handleEdit = (d: DialogueRow) => {
+    router.push(`/dialogues/${d.id}`);
+  };
 
   const categoryOptions = getCategoryOptions(t);
 
   const handleDelete = async (id: number, title: string) => {
     if (
       !(await confirm({
-        title: t("deleteDialogue"),
-        description: tCommon("confirmDelete").replace("item", `"${title}"`),
+        title: t("dialogues.deleteDialogue"),
+        description: t("common.confirmDelete").replace("item", `"${title}"`),
         variant: "destructive",
-        confirmText: tCommon("delete"),
+        confirmText: t("common.delete"),
       }))
     )
       return;
@@ -83,126 +102,98 @@ export function DialoguesTable({
   };
 
   return (
-    <div>
-      <div className="mb-4 flex gap-4">
-        <div className="relative flex-1">
-          <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
-          <Input
-            className="pl-9"
-            placeholder={t("searchDialogues")}
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-          />
-        </div>
-        <Select
-          options={categoryOptions}
-          value={categoryFilter}
-          onChange={onCategoryFilterChange}
-          className="w-48"
-        />
-      </div>
-
-      <div className="rounded-md border">
-        <table className="w-full">
-          <thead className="bg-muted">
-            <tr>
-              <th className="p-3 text-left text-sm font-medium">{t("name")}</th>
-              <th className="p-3 text-left text-sm font-medium">{t("category")}</th>
-              <th className="p-3 text-left text-sm font-medium">{t("stepsCount")}</th>
-              <th className="p-3 text-left text-sm font-medium">{tCommon("status")}</th>
-              <th className="p-3 text-left text-sm font-medium">{tCommon("actions")}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr>
-                <td colSpan={5} className="text-muted-foreground p-8 text-center">
-                  {t("loading")}
-                </td>
-              </tr>
-            ) : dialogues.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="text-muted-foreground p-8 text-center">
-                  {t("noDialogues")}
-                </td>
-              </tr>
-            ) : (
-              dialogues.map((d) => (
-                <tr key={d.id} className="border-t">
-                  <td className="p-3">
-                    <div className="font-medium">{d.title}</div>
-                    <div className="text-muted-foreground text-sm">{d.description}</div>
-                  </td>
-                  <td className="p-3">{getCategoryLabel(d.category)}</td>
-                  <td className="p-3">{d.stepsCount}</td>
-                  <td className="p-3">
-                    <span
+    <DataTable
+      loading={loading}
+      empty={dialogues.length === 0}
+      currentPage={currentPage}
+      totalPages={totalPages}
+      totalCount={totalCount}
+      pageSize={pageSize}
+      onPageChange={onPageChange}
+      onPageSizeChange={onPageSizeChange}
+      showPageSizeSelector={!!onPageSizeChange}
+      header={
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>
+              {t("dialogues.title")}{" "}
+              <span className="text-muted-foreground text-sm font-normal">
+                ({totalCount ?? dialogues.length})
+              </span>
+            </CardTitle>
+            <div className="flex gap-2">
+              <SearchInput
+                placeholder={t("dialogues.searchDialogues")}
+                value={searchQuery}
+                onChange={onSearchChange}
+              />
+              <Select
+                value={categoryFilter}
+                onChange={onCategoryFilterChange}
+                options={categoryOptions}
+              />
+            </div>
+          </div>
+        </CardHeader>
+      }
+    >
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>{t("dialogues.name")}</TableHead>
+            <TableHead>{t("dialogues.category")}</TableHead>
+            <TableHead>{t("dialogues.stepsCount")}</TableHead>
+            <TableHead>{t("common.status")}</TableHead>
+            <TableHead className="w-25">{t("common.actions")}</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {dialogues.map((d) => (
+            <TableRow key={d.id} className="hover:bg-muted cursor-pointer" onClick={() => handleEdit(d)}>
+              <TableCell>
+                <div>
+                  <p className="font-medium">{d.title}</p>
+                  <p className="text-muted-foreground text-sm">{d.description}</p>
+                </div>
+              </TableCell>
+              <TableCell>{getCategoryLabel(d.category)}</TableCell>
+              <TableCell>{d.stepsCount}</TableCell>
+              <TableCell>
+                <span
+                  className={cn(
+                    "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium",
+                    d.isActive ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800",
+                  )}
+                >
+                  {d.isActive ? t("dialogues.activeStatus") : t("dialogues.inactiveStatus")}
+                </span>
+              </TableCell>
+              <TableCell onClick={(e) => e.stopPropagation()}>
+                <div className="flex gap-1">
+                  <Button variant="ghost" size="icon" onClick={() => handleEdit(d)}>
+                    <Edit className="size-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onToggleActive(d.id, !d.isActive)}
+                  >
+                    <Power
                       className={cn(
-                        "rounded px-2 py-1 text-xs",
-                        d.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700",
+                        "size-4",
+                        d.isActive ? "text-orange-500" : "text-green-500",
                       )}
-                    >
-                      {d.isActive ? t("activeStatus") : t("inactiveStatus")}
-                    </span>
-                  </td>
-                  <td className="p-3">
-                    <div className="flex gap-1">
-                      <Button size="icon" variant="ghost" onClick={() => onEdit(d)}>
-                        <Edit className="size-4" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => onToggleActive(d.id, !d.isActive)}
-                      >
-                        <Power
-                          className={cn(
-                            "size-4",
-                            d.isActive ? "text-orange-500" : "text-green-500",
-                          )}
-                        />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => handleDelete(d.id, d.title)}
-                      >
-                        <Trash2 className="size-4 text-red-500" />
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {totalPages > 1 && (
-        <div className="mt-4 flex items-center justify-between">
-          <div className="text-muted-foreground text-sm">
-            {t("total")}: {totalCount}, {t("page")} {currentPage} {t("of")} {totalPages}
-          </div>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={currentPage === 1}
-              onClick={() => onPageChange(currentPage - 1)}
-            >
-              {t("back")}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={currentPage === totalPages}
-              onClick={() => onPageChange(currentPage + 1)}
-            >
-              {t("forward")}
-            </Button>
-          </div>
-        </div>
-      )}
-    </div>
+                    />
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => handleDelete(d.id, d.title)}>
+                    <Trash2 className="size-4 text-red-500" />
+                  </Button>
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </DataTable>
   );
 }

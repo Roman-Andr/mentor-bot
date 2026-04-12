@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useTranslations } from "@/hooks/use-translations";
 import { Button } from "@/components/ui/button";
 import { PageContent } from "@/components/layout/page-content";
 import { Plus } from "lucide-react";
@@ -11,73 +11,79 @@ import { ChecklistsTable } from "@/components/features/checklists/checklists-tab
 import { ChecklistStats } from "@/components/features/checklists/checklist-stats";
 
 export default function ChecklistsPage() {
-  const t = useTranslations("checklists");
-  const checklists = useChecklists();
+  const t = useTranslations();
+  const c = useChecklists();
   const deps = useDepartments();
 
   return (
     <PageContent
-      title={t("title")}
-      subtitle={t("title")}
+      title={t("checklists.title")}
+      subtitle={t("checklists.subtitle")}
       actions={
         <Button
           className="gap-2"
           onClick={() => {
-            checklists.resetForm();
-            checklists.setIsCreateDialogOpen(true);
+            c.resetForm();
+            c.setIsCreateDialogOpen(true);
           }}
         >
           <Plus className="size-4" />
-          {t("addChecklist")}
+          {t("checklists.addChecklist")}
         </Button>
       }
     >
+      {/* Create Dialog */}
       <ChecklistFormDialog
-        open={checklists.isCreateDialogOpen}
-        onOpenChange={checklists.setIsCreateDialogOpen}
+        open={c.isCreateDialogOpen}
+        onOpenChange={c.setIsCreateDialogOpen}
         mode="create"
-        formData={checklists.formData}
-        onFormDataChange={checklists.setFormData}
-        onSubmit={checklists.handleCreate}
-        onCancel={() => checklists.setIsCreateDialogOpen(false)}
+        formData={c.formData}
+        onFormDataChange={c.setFormData}
+        onSubmit={c.handleCreate}
+        onCancel={() => c.setIsCreateDialogOpen(false)}
       />
 
+      {/* Edit Dialog */}
       <ChecklistFormDialog
-        open={checklists.isEditDialogOpen}
+        open={c.isEditDialogOpen}
         onOpenChange={(open) => {
-          checklists.setIsEditDialogOpen(open);
-          if (!open) checklists.setSelectedChecklist(null);
+          c.setIsEditDialogOpen(open);
+          if (!open) c.setSelectedChecklist(null);
         }}
         mode="edit"
-        formData={checklists.formData}
-        onFormDataChange={checklists.setFormData}
-        onSubmit={checklists.handleUpdate}
+        formData={c.formData}
+        onFormDataChange={c.setFormData}
+        onSubmit={c.handleUpdate}
         onCancel={() => {
-          checklists.setIsEditDialogOpen(false);
-          checklists.setSelectedChecklist(null);
+          c.setIsEditDialogOpen(false);
+          c.setSelectedChecklist(null);
         }}
       />
 
-      <ChecklistStats checklists={checklists.checklists} />
+      {/* Stats */}
+      <ChecklistStats checklists={c.checklists} />
 
+      {/* Table with Filters */}
       <ChecklistsTable
-        checklists={checklists.checklists}
-        loading={checklists.loading}
-        onEdit={checklists.openEditDialog}
-        onComplete={checklists.handleComplete}
-        onDelete={checklists.handleDelete}
-        searchQuery={checklists.searchQuery}
-        onSearchChange={checklists.setSearchQuery}
-        statusFilter={checklists.statusFilter}
-        onStatusFilterChange={checklists.setStatusFilter}
-        departmentFilter={checklists.departmentFilter}
-        onDepartmentFilterChange={checklists.setDepartmentFilter}
-        onReset={checklists.resetFilters}
-        departments={deps.departments}
-        currentPage={checklists.currentPage}
-        totalPages={checklists.totalPages}
-        totalCount={checklists.totalCount}
-        onPageChange={checklists.setCurrentPage}
+        checklists={c.checklists}
+        loading={c.loading}
+        onEdit={c.openEditDialog}
+        onComplete={c.handleComplete}
+        onDelete={c.handleDelete}
+        searchQuery={c.searchQuery}
+        onSearchChange={c.setSearchQuery}
+        statusFilter={c.statusFilter}
+        onStatusFilterChange={c.setStatusFilter}
+        departmentFilter={c.departmentFilter}
+        onDepartmentFilterChange={c.setDepartmentFilter}
+        onReset={c.resetFilters}
+        departments={deps.items}
+        currentPage={c.currentPage}
+        totalPages={c.totalPages}
+        totalCount={c.totalCount}
+        pageSize={c.pageSize}
+        onPageChange={c.setCurrentPage}
+        onPageSizeChange={c.setPageSize}
       />
     </PageContent>
   );

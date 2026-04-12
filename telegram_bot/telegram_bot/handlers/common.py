@@ -10,13 +10,11 @@ from aiogram.types import CallbackQuery, Message
 from telegram_bot.config import settings
 from telegram_bot.i18n import t
 from telegram_bot.keyboards.common_kb import (
-    get_contact_hr_keyboard,
     get_help_keyboard,
     get_mentor_tasks_keyboard,
     get_my_mentor_keyboard,
     get_my_mentor_no_mentor_keyboard,
     get_progress_keyboard,
-    get_schedule_hr_keyboard,
     get_schedule_mentor_keyboard,
 )
 from telegram_bot.services.auth_client import auth_client
@@ -28,6 +26,9 @@ router = Router()
 
 @router.message(Command("help"))
 @router.message(F.text == "\u2139\ufe0f Help")
+@router.message(F.text == "Help")
+@router.message(F.text == "\u2139\ufe0f \u041f\u043e\u043c\u043e\u0449\u044c")
+@router.message(F.text == "\u041f\u043e\u043c\u043e\u0449\u044c")
 @router.callback_query(F.data == "help")
 async def cmd_help(update: Message | CallbackQuery, *, locale: str = "en") -> None:
     """Show help information."""
@@ -60,7 +61,6 @@ async def cmd_help(update: Message | CallbackQuery, *, locale: str = "en") -> No
         f"  \U0001f4c5 {t('help.feat_meetings', locale=locale)}\n"
         f"  \U0001f4c1 {t('help.feat_documents', locale=locale)}\n"
         f"  \U0001f468\u200d\U0001f3eb {t('help.feat_mentor', locale=locale)}\n"
-        f"  \U0001f4de {t('help.feat_hr', locale=locale)}\n"
         f"  \U0001f4ca {t('help.feat_feedback', locale=locale)}\n"
         f"  \U0001f4ca {t('help.feat_progress', locale=locale)}\n"
         f"  \U0001f4de {t('help.feat_escalate', locale=locale)}\n\n"
@@ -93,7 +93,6 @@ async def cmd_about(message: Message, *, locale: str = "en") -> None:
         f"  \U0001f468\u200d\U0001f3eb Mentor assignment and communication\n"
         f"  \U0001f4c5 Meeting scheduling and management\n"
         f"  \U0001f4c1 Document access and resources\n"
-        f"  \U0001f4de HR support and escalation system\n"
         f"  \U0001f4ca Progress tracking and analytics\n"
         f"  \U0001f4ca Feedback collection and surveys\n"
         f"  \U0001f514 Smart notifications and reminders\n\n"
@@ -109,99 +108,16 @@ async def cmd_about(message: Message, *, locale: str = "en") -> None:
     await message.answer(about_text, parse_mode="Markdown")
 
 
-@router.message(F.text == "\U0001f4de Contact HR")
-@router.message(F.text == "Contact HR")
-@router.callback_query(F.data == "contact_hr")
-async def contact_hr(
-    update: Message | CallbackQuery, user: dict, *, locale: str = "en"
-) -> None:
-    """Contact HR department."""
-    msg = None
-    if isinstance(update, CallbackQuery):
-        await update.answer()
-        msg = update.message
-    else:
-        msg = update
-
-    if msg is None:
-        return
-
-    contact_text = (
-        f"*\U0001f4de {t('hr.title', locale=locale)}*\n\n"
-        f"*{t('hr.office_hours', locale=locale)}*\n\n"
-        f"*{t('hr.contact_info', locale=locale)}*\n"
-        f"  \U0001f4e7 {t('hr.email', locale=locale)}\n"
-        f"  \U0001f4f1 {t('hr.phone', locale=locale)}\n"
-        f"  \U0001f3e2 {t('hr.office', locale=locale)}\n\n"
-        f"*Emergency Contact:*\n"
-        f"  \U0001f4f1 {t('hr.emergency', locale=locale)}\n\n"
-        f"*{t('hr.how_to', locale=locale)}*\n"
-        f"  1. \U0001f4de {t('hr.how_escalate', locale=locale)}\n"
-        f"  2. \U0001f4e7 {t('hr.how_email', locale=locale)}\n"
-        f"  3. \U0001f3e2 {t('hr.how_visit', locale=locale)}\n"
-        f"  4. \U0001f4f1 {t('hr.how_call', locale=locale)}"
-    )
-
-    if user:
-        first = user.get("first_name", "N/A")
-        last = user.get("last_name", "")
-        emp_id = user.get("employee_id", "N/A")
-        contact_text += (
-            f"\n\n*{t('hr.your_info', locale=locale)}*\n"
-            f"  {t('hr.your_name', locale=locale, first_name=first, last_name=last)}\n"
-            f"  {t('hr.your_id', locale=locale, employee_id=emp_id)}"
-        )
-
-    if isinstance(update, CallbackQuery) and isinstance(msg, Message):
-        await msg.edit_text(
-            contact_text,
-            reply_markup=get_contact_hr_keyboard(locale=locale).as_markup(),
-            parse_mode="Markdown",
-        )
-    else:
-        await msg.answer(
-            contact_text,
-            reply_markup=get_contact_hr_keyboard(locale=locale).as_markup(),
-            parse_mode="Markdown",
-        )
-
-
-@router.callback_query(F.data == "send_to_hr")
-async def send_to_hr(
-    callback: CallbackQuery, state: FSMContext, *, locale: str = "en"
-) -> None:
-    """Start sending a message to HR."""
-    if callback.message is None:
-        return
-
-    await state.set_state(EscalationStates.waiting_for_description)
-    await state.update_data(category="Contact HR")
-    await callback.message.edit_text(
-        f"\U0001f4e8 *{t('hr.btn_send_message', locale=locale)}*\n\n"
-        f"Please type your message and it will be forwarded to HR.",
-        parse_mode="Markdown",
-    )
-    await callback.answer()
-
-
-@router.callback_query(F.data == "schedule_hr")
-async def schedule_hr(callback: CallbackQuery, *, locale: str = "en") -> None:
-    """Schedule a meeting with HR."""
-    if callback.message is None:
-        return
-
-    await callback.message.edit_text(
-        f"\U0001f4c5 *{t('hr.btn_schedule_meeting', locale=locale)}*\n\n"
-        f"Use the Meetings menu to schedule a meeting with HR.\n\n"
-        f"Select the meeting type as 'HR' when scheduling.",
-        reply_markup=get_schedule_hr_keyboard(locale=locale).as_markup(),
-        parse_mode="Markdown",
-    )
-    await callback.answer()
-
-
 @router.message(F.text == "\U0001f468\u200d\U0001f3eb My Mentor")
 @router.message(F.text == "My Mentor")
+@router.message(
+    F.text
+    == "\U0001f468\u200d\U0001f3eb \u041c\u043e\u0439 \u043d\u0430\u0441\u0442\u0430\u0432\u043d\u0438\u043a"
+)
+@router.message(
+    F.text
+    == "\u041c\u043e\u0439 \u043d\u0430\u0441\u0442\u0430\u0432\u043d\u0438\u043a"
+)
 @router.callback_query(F.data == "my_mentor")
 async def my_mentor(
     update: Message | CallbackQuery,
@@ -225,7 +141,10 @@ async def my_mentor(
         await msg.answer(t("common.auth_required", locale=locale))
         return
 
+    import logging
+
     mentor_id = user.get("mentor_id")
+
     if not mentor_id:
         mentor_text = (
             f"*\U0001f468\u200d\U0001f3eb {t('mentor.title', locale=locale)}*\n\n"
@@ -236,11 +155,15 @@ async def my_mentor(
 
         if mentor_info:
             mentor_name = f"{mentor_info.get('first_name', '')} {mentor_info.get('last_name', '')}"
+            dept = mentor_info.get("department")
+            dept_name = (
+                dept.get("name", "N/A") if isinstance(dept, dict) else (dept or "N/A")
+            )
             mentor_text = (
                 f"*\U0001f468\u200d\U0001f3eb {t('mentor.title', locale=locale)}*\n\n"
                 f"{t('mentor.name', locale=locale, name=mentor_name)}\n"
                 f"{t('mentor.role', locale=locale, role=mentor_info.get('position', 'N/A'))}\n"
-                f"{t('mentor.department', locale=locale, department=mentor_info.get('department', 'N/A'))}\n\n"
+                f"{t('mentor.department', locale=locale, department=dept_name)}\n\n"
                 f"*{t('mentor.contact_info', locale=locale)}*\n"
                 f"  \U0001f4e7 {mentor_info.get('email', 'N/A')}\n"
                 f"  \U0001f4f1 {mentor_info.get('phone', 'N/A')}\n\n"
@@ -337,15 +260,26 @@ async def mentor_tasks(
 
 @router.message(Command("progress"))
 @router.message(F.text == "\U0001f4ca Progress")
+@router.message(F.text == "Progress")
+@router.message(F.text == "\U0001f4ca \u041f\u0440\u043e\u0433\u0440\u0435\u0441\u0441")
+@router.message(F.text == "\u041f\u0440\u043e\u0433\u0440\u0435\u0441\u0441")
 @router.callback_query(F.data == "progress")
+@router.callback_query(F.data.startswith("progress_"))
 async def progress(
     update: Message | CallbackQuery, user: dict, auth_token: str, *, locale: str = "en"
 ) -> None:
     """Show progress dashboard."""
     msg = None
+    specific_checklist_id = None
+
     if isinstance(update, CallbackQuery):
         await update.answer()
         msg = update.message
+        # Extract checklist_id from callback data if present
+        if update.data and update.data.startswith("progress_"):
+            parts = update.data.split("_")
+            if len(parts) > 1:
+                specific_checklist_id = int(parts[1])
     else:
         msg = update
 
@@ -362,7 +296,18 @@ async def progress(
         await msg.answer(t("progress.no_checklists", locale=locale))
         return
 
-    active_checklist = checklists[0]
+    # Use specific checklist_id if provided, otherwise use first checklist
+    if specific_checklist_id is not None:
+        active_checklist = None
+        for cl in checklists:
+            if cl.get("id") == specific_checklist_id:
+                active_checklist = cl
+                break
+        if not active_checklist:
+            active_checklist = checklists[0]
+    else:
+        active_checklist = checklists[0]
+
     checklist_id = active_checklist["id"]
 
     progress_info = await checklists_client.get_checklist_progress(
@@ -378,6 +323,16 @@ async def progress(
                 break
 
     if not progress_info:
+        # Format the due date nicely
+        due_date_raw = active_checklist.get("due_date")
+        upcoming_deadline = ""
+        if due_date_raw:
+            try:
+                due_dt = datetime.fromisoformat(due_date_raw)
+                upcoming_deadline = due_dt.strftime("%d.%m.%Y")
+            except ValueError:
+                upcoming_deadline = due_date_raw
+
         progress_data = {
             "overall_progress": active_checklist.get("progress_percentage", 0),
             "tasks_completed": active_checklist.get("completed_tasks", 0),
@@ -385,7 +340,7 @@ async def progress(
             "days_passed": 0,
             "days_total": 30,
             "next_task": next_task,
-            "upcoming_deadline": active_checklist.get("due_date", ""),
+            "upcoming_deadline": upcoming_deadline,
         }
     else:
         start_date = (
@@ -395,6 +350,16 @@ async def progress(
         )
         days_passed = (datetime.now(UTC) - start_date).days if start_date else 0
 
+        # Format the due date nicely
+        due_date_raw = progress_info.get("due_date")
+        upcoming_deadline = ""
+        if due_date_raw:
+            try:
+                due_dt = datetime.fromisoformat(due_date_raw)
+                upcoming_deadline = due_dt.strftime("%d.%m.%Y")
+            except ValueError:
+                upcoming_deadline = due_date_raw
+
         progress_data = {
             "overall_progress": progress_info.get("progress_percentage", 0),
             "tasks_completed": progress_info.get("completed_tasks", 0),
@@ -402,7 +367,7 @@ async def progress(
             "days_passed": days_passed,
             "days_total": progress_info.get("days_remaining", 30) + days_passed,
             "next_task": next_task,
-            "upcoming_deadline": progress_info.get("due_date", ""),
+            "upcoming_deadline": upcoming_deadline,
         }
 
     bars = 20
@@ -424,10 +389,10 @@ async def progress(
         f"{t('progress.keep_going', locale=locale)}"
     )
 
-    if isinstance(update, CallbackQuery) and isinstance(msg, Message):
+    if isinstance(update, CallbackQuery):
         await msg.edit_text(
             text,
-            reply_markup=get_progress_keyboard(locale=locale).as_markup(),
+            reply_markup=get_progress_keyboard(checklist_id, locale=locale).as_markup(),
             parse_mode="Markdown",
         )
     else:

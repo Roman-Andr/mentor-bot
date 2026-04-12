@@ -1,7 +1,7 @@
 [
   {
     "title": "HR Welcome Session",
-    "description": "Introduction to company culture, benefits, and HR processes. Learn about company values, HR policies, and available resources.",
+    "description": "Вводная встреча по культуре компании, бенефитам и HR процессам. Узнайте о ценностях компании, политиках и доступных ресурсах.",
     "type": "HR",
     "level": "JUNIOR",
     "position": "Software Engineer",
@@ -12,7 +12,7 @@
   },
   {
     "title": "Security Training",
-    "description": "Mandatory security awareness training covering data protection, password security, and compliance requirements.",
+    "description": "Обязательное обучение по безопасности: защита данных, пароли, соответствие требованиям.",
     "type": "SECURITY",
     "level": "JUNIOR",
     "position": "Software Engineer",
@@ -23,7 +23,7 @@
   },
   {
     "title": "Team Introduction",
-    "description": "Meet your team members and understand team workflows, processes, and project overview.",
+    "description": "Познакомьтесь с членами команды, узнайте рабочие процессы и обзор проектов.",
     "type": "TEAM",
     "level": "JUNIOR",
     "position": "Software Engineer",
@@ -34,7 +34,7 @@
   },
   {
     "title": "Manager 1:1",
-    "description": "Weekly one-on-one meeting with your manager to discuss progress, challenges, and career development.",
+    "description": "Еженедельная встреча один на один с менеджером для обсуждения прогресса, вызовов и карьерного развития.",
     "type": "MANAGER",
     "level": "JUNIOR",
     "position": "Software Engineer",
@@ -45,7 +45,7 @@
   },
   {
     "title": "Product Demo",
-    "description": "Demonstrate your work or side project to the product team for feedback and visibility.",
+    "description": "Демонстрация вашей работы или побочного проекта команде продукта для получения фидбека.",
     "type": "OTHER",
     "level": "JUNIOR",
     "position": "Software Engineer",
@@ -56,7 +56,7 @@
   },
   {
     "title": "Tech Review",
-    "description": "Technical review of your architecture, code quality, and technical decisions with senior engineers.",
+    "description": "Технический обзор вашей архитектуры, качества кода и технических решений с senior инженерами.",
     "type": "OTHER",
     "level": "SENIOR",
     "position": "Software Engineer",
@@ -67,7 +67,7 @@
   },
   {
     "title": "Sales Kickoff",
-    "description": "Review quarterly sales targets, strategies, and pipeline overview with the sales leadership.",
+    "description": "Обзор квартальных целей продаж, стратегий и обзор воронки с руководителями продаж.",
     "type": "OTHER",
     "level": "JUNIOR",
     "position": "Sales Representative",
@@ -78,7 +78,7 @@
   },
   {
     "title": "Marketing Planning",
-    "description": "Marketing campaign planning and coordination session for upcoming quarter.",
+    "description": "Планирование маркетинговых кампаний и координация на предстоящий квартал.",
     "type": "OTHER",
     "level": "JUNIOR",
     "position": "Marketing Specialist",
@@ -89,7 +89,7 @@
   },
   {
     "title": "Compliance Training",
-    "description": "Mandatory compliance and ethics training covering industry regulations and company policies.",
+    "description": "Обязательное обучение по соответствию и этике: отраслевые регуляции и политики компании.",
     "type": "SECURITY",
     "level": "JUNIOR",
     "position": "Software Engineer",
@@ -100,7 +100,7 @@
   },
   {
     "title": "All Hands",
-    "description": "Company-wide all hands meeting where leadership shares updates and celebrates achievements.",
+    "description": "Общая встреча компании, где руководство делится обновлениями и празднует достижения.",
     "type": "OTHER",
     "level": "JUNIOR",
     "position": "Software Engineer",
@@ -108,5 +108,49 @@
     "is_mandatory": true,
     "deadline_days": 30,
     "order": 10
+  },
+  {
+    "title": "Mentor Introduction",
+    "description": "Первая встреча с назначенным ментором: знакомство, постановка целей адаптации.",
+    "type": "OTHER",
+    "level": "JUNIOR",
+    "position": "Software Engineer",
+    "department": "Engineering",
+    "is_mandatory": true,
+    "deadline_days": 2,
+    "order": 11
+  },
+  {
+    "title": "IT Systems Overview",
+    "description": "Обзор IT систем компании: ноутбук, почта, VPN, доступы к сервисам.",
+    "type": "OTHER",
+    "level": "JUNIOR",
+    "position": "Software Engineer",
+    "department": "Engineering",
+    "is_mandatory": true,
+    "deadline_days": 1,
+    "order": 12
+  },
+  {
+    "title": "Benefits Enrollment",
+    "description": "Помощь в выборе и оформлении медицинской страховки и других бенефитов.",
+    "type": "HR",
+    "level": "JUNIOR",
+    "position": "Software Engineer",
+    "department": "Operations",
+    "is_mandatory": true,
+    "deadline_days": 14,
+    "order": 13
+  },
+  {
+    "title": "Career Development Talk",
+    "description": "Обсуждение карьерного роста: планы, возможности, требования к следующему уровню.",
+    "type": "MANAGER",
+    "level": "MIDDLE",
+    "position": "Software Engineer",
+    "department": "Engineering",
+    "is_mandatory": false,
+    "deadline_days": 30,
+    "order": 14
   }
 ]

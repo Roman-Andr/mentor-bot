@@ -1,18 +1,18 @@
-import { useTranslations } from "next-intl";
+import { useTranslations } from "@/hooks/use-translations";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { OnboardingProgress as OnboardingProgressType } from "@/lib/api";
+import type { OnboardingProgress as OnboardingProgressType } from "@/types";
 
 interface OnboardingProgressProps {
   progress: OnboardingProgressType[];
 }
 
 export function OnboardingProgress({ progress }: OnboardingProgressProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations();
 
   return (
     <Card className="col-span-4">
       <CardHeader>
-        <CardTitle>{t("onboardingProgress")}</CardTitle>
+        <CardTitle>{t("dashboard.onboardingProgress")}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
@@ -38,12 +38,12 @@ export function OnboardingProgress({ progress }: OnboardingProgressProps) {
                   </div>
                 </div>
                 <span className="text-muted-foreground text-xs whitespace-nowrap">
-                  {item.days_remaining} {t("daysRemaining")}
+                  {item.days_remaining} {t("dashboard.daysRemaining")}
                 </span>
               </div>
             ))
           ) : (
-            <p className="text-muted-foreground py-4 text-center text-sm">{t("noData")}</p>
+            <p className="text-muted-foreground py-4 text-center text-sm">{t("common.noData")}</p>
           )}
         </div>
       </CardContent>

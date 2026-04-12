@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useTranslations } from "@/hooks/use-translations";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import { SearchInput } from "@/components/ui/search-input";
@@ -22,25 +22,27 @@ import { formatDateTime } from "@/lib/utils";
 import { useEscalations } from "@/hooks/use-escalations";
 
 export default function EscalationsPage() {
-  const t = useTranslations("escalations");
-  const tCommon = useTranslations("common");
+  const t = useTranslations();
   const e = useEscalations();
 
   return (
-    <PageContent title={t("title")} subtitle={t("title")}>
+    <PageContent title={t("escalations.title")} subtitle={t("escalations.title")}>
       <DataTable
         loading={e.loading}
         empty={e.escalations.length === 0}
-        emptyMessage={tCommon("noData")}
+        emptyMessage={t("common.noData")}
         currentPage={e.currentPage}
         totalPages={e.totalPages}
         totalCount={e.totalCount}
+        pageSize={e.pageSize}
         onPageChange={e.setCurrentPage}
+        onPageSizeChange={e.setPageSize}
+        showPageSizeSelector={true}
         header={
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle>
-                {t("title")}{" "}
+                {t("escalations.title")}{" "}
                 <span className="text-muted-foreground text-sm font-normal">({e.totalCount})</span>
               </CardTitle>
               <div className="flex gap-2">
@@ -56,7 +58,7 @@ export default function EscalationsPage() {
                   options={ESCALATION_TYPES}
                 />
                 <Button variant="outline" onClick={e.resetFilters}>
-                  {tCommon("clear")}
+                  {t("common.clear")}
                 </Button>
               </div>
             </div>
@@ -67,21 +69,21 @@ export default function EscalationsPage() {
           <TableHeader>
             <TableRow>
               <TableHead>ID</TableHead>
-              <TableHead>{t("assignedTo")}</TableHead>
-              <TableHead>{t("subject")}</TableHead>
-              <TableHead>{t("description")}</TableHead>
-              <TableHead>{t("status")}</TableHead>
-              <TableHead>{t("priority")}</TableHead>
-              <TableHead>{t("createdAt")}</TableHead>
-              <TableHead>{t("resolvedAt")}</TableHead>
-              <TableHead className="w-[100px]">{tCommon("actions")}</TableHead>
+              <TableHead>{t("escalations.assignedTo")}</TableHead>
+              <TableHead>{t("escalations.subject")}</TableHead>
+              <TableHead>{t("escalations.description")}</TableHead>
+              <TableHead>{t("escalations.status")}</TableHead>
+              <TableHead>{t("escalations.priority")}</TableHead>
+              <TableHead>{t("escalations.createdAt")}</TableHead>
+              <TableHead>{t("escalations.resolvedAt")}</TableHead>
+              <TableHead className="w-25">{t("common.actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {e.escalations.map((esc) => (
               <TableRow key={esc.id}>
                 <TableCell>{esc.id}</TableCell>
-                <TableCell>{esc.userId}</TableCell>
+                <TableCell>{e.getUserName(esc.userId)}</TableCell>
                 <TableCell>{esc.type}</TableCell>
                 <TableCell>{esc.source}</TableCell>
                 <TableCell>
@@ -100,7 +102,7 @@ export default function EscalationsPage() {
                         size="icon"
                         className="text-green-500"
                         onClick={() => e.handleResolve(esc.id)}
-                        title={tCommon("confirm")}
+                        title={t("common.confirm")}
                       >
                         <CheckCircle className="size-4" />
                       </Button>

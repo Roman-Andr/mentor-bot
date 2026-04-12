@@ -9,3 +9,4 @@ class ButtonStyle(StrEnum):
     DANGER = "danger"  # Red
     SUCCESS = "success"  # Green
     PRIMARY = "primary"  # Blue
+    SECONDARY = "secondary"  # Gray

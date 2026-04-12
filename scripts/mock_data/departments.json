@@ -1,11 +1,11 @@
 [
   {
     "name": "Engineering",
-    "description": "Software engineering department"
+    "description": "Software development and technical teams"
   },
   {
     "name": "Product",
-    "description": "Product management and design"
+    "description": "Product management and UX design"
   },
   {
     "name": "Sales",
@@ -17,6 +17,14 @@
   },
   {
     "name": "Operations",
-    "description": "Operations and support"
+    "description": "Operations, HR, and administrative support"
+  },
+  {
+    "name": "Finance",
+    "description": "Finance and accounting"
+  },
+  {
+    "name": "Support",
+    "description": "Customer support and success"
   }
 ]

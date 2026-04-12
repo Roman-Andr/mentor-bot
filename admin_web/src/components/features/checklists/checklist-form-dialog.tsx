@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "@/hooks/use-translations";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,7 +14,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { SearchableSelect, type SelectOption } from "@/components/ui/searchable-select";
-import { api, type User, type Template } from "@/lib/api";
+import { api } from "@/lib/api";
+import type { User, Template } from "@/types";
 import type { ChecklistFormData } from "@/hooks/use-checklists";
 
 interface ChecklistFormDialogProps {
@@ -45,8 +46,7 @@ export function ChecklistFormDialog({
   onSubmit,
   onCancel,
 }: ChecklistFormDialogProps) {
-  const t = useTranslations("checklists");
-  const tCommon = useTranslations("common");
+  const t = useTranslations();
 
   const isCreate = mode === "create";
 
@@ -116,30 +116,30 @@ export function ChecklistFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{isCreate ? t("addChecklist") : t("editChecklist")}</DialogTitle>
+          <DialogTitle>{isCreate ? t("checklists.addChecklist") : t("checklists.editChecklist")}</DialogTitle>
           <DialogDescription>
-            {isCreate ? t("assignChecklist") : t("changeChecklistParams")}
+            {isCreate ? t("checklists.assignChecklist") : t("checklists.changeChecklistParams")}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
-            <label className="text-sm font-medium">{t("employee")} *</label>
+            <label className="text-sm font-medium">{t("checklists.employee")} *</label>
             <SearchableSelect
               options={employeeOptions}
               value={formData.user_id ? String(formData.user_id) : ""}
               onChange={handleUserSelect}
-              placeholder={loading ? tCommon("loading") : t("selectEmployee")}
-              searchPlaceholder={t("searchByNameOrId")}
+              placeholder={loading ? t("common.loading") : t("checklists.selectEmployee")}
+              searchPlaceholder={t("checklists.searchByNameOrId")}
               disabled={!isCreate || loading}
             />
             {formData.employee_id && (
               <p className="text-muted-foreground text-xs">
-                {t("employeeId")}: {formData.employee_id}
+                {t("checklists.employeeId")}: {formData.employee_id}
               </p>
             )}
           </div>
           <div className="grid gap-2">
-            <label className="text-sm font-medium">{t("template")} *</label>
+            <label className="text-sm font-medium">{t("checklists.template")} *</label>
             <SearchableSelect
               options={isCreate ? allTemplateOptions : allTemplateOptions}
               value={formData.template_id ? String(formData.template_id) : ""}
@@ -149,14 +149,14 @@ export function ChecklistFormDialog({
                   template_id: v ? parseInt(v) : 0,
                 })
               }
-              placeholder={loading ? tCommon("loading") : t("selectTemplate")}
-              searchPlaceholder={t("searchTemplate")}
+              placeholder={loading ? t("common.loading") : t("checklists.selectTemplate")}
+              searchPlaceholder={t("checklists.searchTemplate")}
               disabled={!isCreate || loading}
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
-              <label className="text-sm font-medium">{t("startDate")} *</label>
+              <label className="text-sm font-medium">{t("checklists.startDate")} *</label>
               <Input
                 type="date"
                 value={formData.start_date}
@@ -170,7 +170,7 @@ export function ChecklistFormDialog({
               />
             </div>
             <div className="grid gap-2">
-              <label className="text-sm font-medium">{t("dueDate")}</label>
+              <label className="text-sm font-medium">{t("checklists.dueDate")}</label>
               <Input
                 type="date"
                 value={formData.due_date}
@@ -185,7 +185,7 @@ export function ChecklistFormDialog({
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
-              <label className="text-sm font-medium">{t("mentor")}</label>
+              <label className="text-sm font-medium">{t("checklists.mentor")}</label>
               <SearchableSelect
                 options={mentorOptions}
                 value={formData.mentor_id ? String(formData.mentor_id) : ""}
@@ -195,8 +195,8 @@ export function ChecklistFormDialog({
                     mentor_id: v ? parseInt(v) : null,
                   })
                 }
-                placeholder={loading ? tCommon("loading") : t("selectMentor")}
-                searchPlaceholder={t("searchByName")}
+                placeholder={loading ? t("common.loading") : t("checklists.selectMentor")}
+                searchPlaceholder={t("checklists.searchByName")}
                 disabled={loading}
               />
             </div>
@@ -211,16 +211,16 @@ export function ChecklistFormDialog({
                     hr_id: v ? parseInt(v) : null,
                   })
                 }
-                placeholder={loading ? tCommon("loading") : t("selectHr")}
-                searchPlaceholder={t("searchByName")}
+                placeholder={loading ? t("common.loading") : t("checklists.selectHr")}
+                searchPlaceholder={t("checklists.searchByName")}
                 disabled={loading}
               />
             </div>
           </div>
           <div className="grid gap-2">
-            <label className="text-sm font-medium">{t("notes")}</label>
+            <label className="text-sm font-medium">{t("checklists.notes")}</label>
             <Textarea
-              placeholder={t("notesPlaceholder")}
+              placeholder={t("checklists.notesPlaceholder")}
               value={formData.notes}
               onChange={(e) =>
                 onFormDataChange({
@@ -233,7 +233,7 @@ export function ChecklistFormDialog({
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onCancel}>
-            {tCommon("cancel")}
+            {t("common.cancel")}
           </Button>
           <Button
             onClick={onSubmit}
@@ -244,7 +244,7 @@ export function ChecklistFormDialog({
               !formData.start_date
             }
           >
-            {isCreate ? tCommon("create") : tCommon("save")}
+            {isCreate ? t("common.create") : t("common.save")}
           </Button>
         </DialogFooter>
       </DialogContent>

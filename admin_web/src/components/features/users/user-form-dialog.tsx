@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useTranslations } from "@/hooks/use-translations";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -37,8 +37,7 @@ export function UserFormDialog({
   onCancel,
   departments = [],
 }: UserFormDialogProps) {
-  const t = useTranslations("users");
-  const tCommon = useTranslations("common");
+  const t = useTranslations();
 
   const updateField = <K extends keyof UserFormData>(key: K, value: UserFormData[K]) => {
     onFormDataChange({ ...formData, [key]: value });
@@ -49,7 +48,7 @@ export function UserFormDialog({
     formData.first_name && formData.email && formData.employee_id && (isEdit || formData.password);
 
   const departmentOptions = [
-    { value: "0", label: t("notSelected") },
+    { value: "0", label: t("users.notSelected") },
     ...departments.map((d) => ({ value: String(d.id), label: d.name })),
   ];
 
@@ -57,34 +56,34 @@ export function UserFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{isEdit ? t("editUserTitle") : t("addUserTitle")}</DialogTitle>
+          <DialogTitle>{isEdit ? t("users.editUserTitle") : t("users.addUserTitle")}</DialogTitle>
           <DialogDescription>
-            {isEdit ? t("changeUserData") : t("addNewUser")}
+            {isEdit ? t("users.changeUserData") : t("users.addNewUser")}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="firstName">{t("firstName")} *</Label>
+              <Label htmlFor="firstName">{t("users.firstName")} *</Label>
               <Input
                 id="firstName"
-                placeholder={t("firstName")}
+                placeholder={t("users.firstName")}
                 value={formData.first_name}
                 onChange={(e) => updateField("first_name", e.target.value)}
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="lastName">{t("lastName")}</Label>
+              <Label htmlFor="lastName">{t("users.lastName")}</Label>
               <Input
                 id="lastName"
-                placeholder={t("lastName")}
+                placeholder={t("users.lastName")}
                 value={formData.last_name}
                 onChange={(e) => updateField("last_name", e.target.value)}
               />
             </div>
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="email">{tCommon("email")} *</Label>
+            <Label htmlFor="email">{t("common.email")} *</Label>
             <Input
               id="email"
               type="email"
@@ -94,7 +93,7 @@ export function UserFormDialog({
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="phone">{tCommon("phone")}</Label>
+            <Label htmlFor="phone">{t("common.phone")}</Label>
             <Input
               id="phone"
               placeholder="+7 (999) 123-45-67"
@@ -103,7 +102,7 @@ export function UserFormDialog({
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="employeeId">{t("employeeId")} *</Label>
+            <Label htmlFor="employeeId">{t("users.employeeId")} *</Label>
             <Input
               id="employeeId"
               placeholder="EMP-001"
@@ -113,11 +112,11 @@ export function UserFormDialog({
           </div>
           {!isEdit && (
             <div className="grid gap-2">
-              <Label htmlFor="password">{t("password")} *</Label>
+              <Label htmlFor="password">{t("users.password")} *</Label>
               <Input
                 id="password"
                 type="password"
-                placeholder={t("passwordHint")}
+                placeholder={t("users.passwordHint")}
                 value={formData.password}
                 onChange={(e) => updateField("password", e.target.value)}
               />
@@ -125,17 +124,17 @@ export function UserFormDialog({
           )}
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="department">{tCommon("department")}</Label>
+              <Label htmlFor="department">{t("common.department")}</Label>
               <Select
                 id="department"
                 value={formData.department_id ? String(formData.department_id) : ""}
                 onChange={(val) => updateField("department_id", parseInt(val) || 0)}
-                placeholder={t("selectDepartment")}
+                placeholder={t("users.selectDepartment")}
                 options={departmentOptions}
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="position">{t("position")}</Label>
+              <Label htmlFor="position">{t("common.position")}</Label>
               <Input
                 id="position"
                 placeholder="Backend Developer"
@@ -144,45 +143,55 @@ export function UserFormDialog({
               />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="role">{tCommon("role")}</Label>
-              <Select
-                id="role"
-                value={formData.role}
-                onChange={updateField.bind(null, "role")}
-                options={ROLES}
-                placeholder={t("selectRole")}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="level">{t("level")}</Label>
-              <Select
-                id="level"
-                value={formData.level || ""}
-                onChange={(val) => updateField("level", val)}
-                options={LEVELS_WITH_EMPTY}
-                placeholder={t("selectLevel")}
-              />
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="isActive"
-              checked={formData.is_active}
-              onChange={(e) => updateField("is_active", e.target.checked)}
-              className="border-input rounded"
-            />
-            <Label htmlFor="isActive">{t("isActive")}</Label>
-          </div>
+           <div className="grid grid-cols-2 gap-4">
+             <div className="grid gap-2">
+               <Label htmlFor="role">{t("common.role")}</Label>
+               <Select
+                 id="role"
+                 value={formData.role}
+                 onChange={updateField.bind(null, "role")}
+                 options={ROLES}
+                 placeholder={t("users.selectRole")}
+               />
+             </div>
+             <div className="grid gap-2">
+               <Label htmlFor="level">{t("users.level")}</Label>
+               <Select
+                 id="level"
+                 value={formData.level || ""}
+                 onChange={(val) => updateField("level", val)}
+                 options={LEVELS_WITH_EMPTY}
+                 placeholder={t("users.selectLevel")}
+               />
+             </div>
+           </div>
+           <div className="grid gap-2">
+             <Label htmlFor="telegramId">{t("users.telegramId")}</Label>
+             <Input
+               id="telegramId"
+               type="number"
+               placeholder="123456789"
+               value={formData.telegram_id || ""}
+               onChange={(e) => updateField("telegram_id", e.target.value ? parseInt(e.target.value) : null)}
+             />
+           </div>
+           <div className="flex items-center gap-2">
+             <input
+               type="checkbox"
+               id="isActive"
+               checked={formData.is_active}
+               onChange={(e) => updateField("is_active", e.target.checked)}
+               className="border-input rounded"
+             />
+             <Label htmlFor="isActive">{t("users.isActive")}</Label>
+           </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onCancel}>
-            {tCommon("cancel")}
+            {t("common.cancel")}
           </Button>
           <Button onClick={onSubmit} disabled={!canSubmit}>
-            {isEdit ? tCommon("save") : tCommon("create")}
+            {isEdit ? t("common.save") : t("common.create")}
           </Button>
         </DialogFooter>
       </DialogContent>

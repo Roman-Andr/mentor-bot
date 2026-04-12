@@ -1,5 +1,5 @@
 import { fetchApi } from "./client";
-import type { Notification } from "./types";
+import type { Notification } from "@/types";
 
 export const notificationsApi = {
   history: (params?: { skip?: number; limit?: number }) => {

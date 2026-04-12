@@ -1,9 +1,9 @@
 import { fetchApi } from "./client";
 import { buildQueryString } from "@/lib/utils/query-builder";
-import type { Template, TemplateWithTasks, TaskTemplate } from "./types";
+import type { Template, TemplateWithTasks, TaskTemplate } from "@/types";
 
 export const templatesApi = {
-  list: (params?: { department_id?: number; status?: string; skip?: number; limit?: number }) => {
+  list: (params?: { department_id?: number; status?: string; search?: string; skip?: number; limit?: number }) => {
     const qs = buildQueryString(params);
     return fetchApi<Template[]>(`/api/v1/templates${qs ? `?${qs}` : ""}`);
   },

@@ -1,4 +1,4 @@
-.PHONY: help start stop restart logs clean reset-db create-invitation shell-auth shell-checklist shell-knowledge shell-postgres shell-redis status full-reboot logs-notification logs-escalation logs-meeting shell-notification shell-escalation shell-meeting restart-notification restart-escalation restart-meeting reboot-notification reboot-escalation reboot-meeting logs-admin restart-admin reboot-admin shell-admin logs-telegram restart-telegram reboot-telegram shell-telegram dev-admin dev-meeting reset-locks update-deps mock-data
+.PHONY: help start stop restart logs clean reset-db create-invitation shell-auth shell-checklist shell-knowledge shell-postgres shell-redis status full-reboot logs-notification logs-escalation logs-meeting shell-notification shell-escalation shell-meeting restart-notification restart-escalation restart-meeting reboot-notification reboot-escalation reboot-meeting logs-admin restart-admin restart-admin-dev reboot-admin shell-admin logs-telegram restart-telegram reboot-telegram shell-telegram dev-admin dev-meeting reset-locks update-deps mock-data prune
 
 # Docker compose project name
 PROJECT_NAME = mentor-bot
@@ -27,6 +27,7 @@ help:
 	@echo "  make clean             - Clean project (containers, volumes, images)"
 	@echo "  make reset-locks       - Delete all uv.lock files and regenerate with uv sync"
 	@echo "  make update-deps       - Check PyPI and update outdated deps (uv remove/add)"
+	@echo "  make prune             - Remove dangling Docker images and volumes (free disk space)"
 
 	@echo ""
 	@echo "Service access:"
@@ -66,6 +67,11 @@ help:
 start:
 	docker compose up -d --build
 
+prune:
+	docker image prune -f
+	docker volume prune -f
+	@echo "Dangling images and volumes removed"
+
 full-reboot: reset-db start mock-data
 
 mock-data: 
@@ -73,7 +79,9 @@ mock-data:
 stop:
 	docker compose stop
 
-restart: stop start
+restart:
+	docker compose down
+	docker compose up -d --build
 
 restart-auth:
 	docker compose stop auth_service && docker compose up -d --build auth_service
@@ -94,6 +102,9 @@ restart-meeting:
 	docker compose stop meeting_service && docker compose up -d --build meeting_service
 
 restart-admin:
+	docker compose stop admin_web && docker compose up -d --build admin_web
+
+restart-admin-dev:
 	docker compose stop admin_web && docker compose up -d --build admin_web
 
 restart-telegram:
@@ -151,7 +162,7 @@ logs-telegram:
 	docker compose logs -f telegram_bot
 
 status:
-	docker compose ps
+	docker compose ps --format "table {{.Name}}\t{{.Status}}"
 
 shell-auth:
 	docker compose exec auth_service /bin/bash
@@ -259,7 +270,7 @@ dev-meeting:
 
 dev-admin:
 	docker compose up -d postgres redis auth_service checklists_service knowledge_service notification_service escalation_service meeting_service feedback_service
-	cd admin_web && npm install && npm run dev
+	cd admin_web && bun install && bun dev
 
 # Database backup/restore commands
 backup-db:

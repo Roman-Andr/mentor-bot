@@ -75,6 +75,21 @@ class ChecklistStats(BaseModel):
     recent_completions: list[dict[str, Any]] = Field(..., description="Recent checklist completions")
 
 
+class MonthlyStats(BaseModel):
+    """Monthly checklist statistics."""
+
+    month: str = Field(..., description="Month name")
+    new_checklists: int = Field(..., description="Number of new checklists")
+    completed: int = Field(..., description="Number of completed checklists")
+
+
+class CompletionTimeStats(BaseModel):
+    """Completion time distribution."""
+
+    range: str = Field(..., description="Time range")
+    count: int = Field(..., description="Number of checklists")
+
+
 class ChecklistListResponse(BaseModel):
     """Checklist list response schema."""
 

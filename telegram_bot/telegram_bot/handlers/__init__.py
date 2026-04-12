@@ -9,7 +9,9 @@ from telegram_bot.handlers.documents import router as documents_router
 from telegram_bot.handlers.escalation import router as escalation_router
 from telegram_bot.handlers.feedback import router as feedback_router
 from telegram_bot.handlers.knowledge_base import router as knowledge_base_router
+from telegram_bot.handlers.language import router as language_router
 from telegram_bot.handlers.meetings import router as meetings_router
+from telegram_bot.handlers.settings import router as settings_router
 from telegram_bot.handlers.start import router as start_router
 
 __all__ = [
@@ -22,6 +24,8 @@ __all__ = [
     "escalation_router",
     "feedback_router",
     "knowledge_base_router",
+    "language_router",
     "meetings_router",
+    "settings_router",
     "start_router",
 ]

@@ -1,0 +1,22 @@
+[
+  {
+    "email": "pending.ivanov@company.com",
+    "employee_id": "EMP999",
+    "first_name": "Pending",
+    "last_name": "Ivanov",
+    "role": "NEWBIE",
+    "department": "Engineering",
+    "position": "Software Engineer",
+    "level": "JUNIOR"
+  },
+  {
+    "email": "pending.petrov@company.com",
+    "employee_id": "EMP998",
+    "first_name": "Pending",
+    "last_name": "Petrov",
+    "role": "NEWBIE",
+    "department": "Product",
+    "position": "Product Manager",
+    "level": "MIDDLE"
+  }
+]

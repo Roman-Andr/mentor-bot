@@ -7,7 +7,7 @@ import type {
   Attachment,
   Category,
   CategoryListResponse,
-} from "./types";
+} from "@/types";
 
 export const articlesApi = {
   list: (params?: {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "@/hooks/use-translations";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { PageContent } from "@/components/layout/page-content";
@@ -10,6 +10,7 @@ import { useUsers } from "@/hooks/use-users";
 import { useDepartments } from "@/hooks/use-departments";
 import { UserFormDialog } from "@/components/features/users/user-form-dialog";
 import { UsersTable } from "@/components/features/users/users-table";
+import { AssignMentorDialog } from "@/components/features/users/assign-mentor-dialog";
 import { DepartmentsTable } from "@/components/features/users/departments-table";
 import { DepartmentFormDialog } from "@/components/features/users/department-form-dialog";
 import { cn } from "@/lib/utils";
@@ -17,8 +18,7 @@ import { cn } from "@/lib/utils";
 type Tab = "users" | "departments";
 
 export default function UsersPage() {
-  const t = useTranslations("users");
-  const tCommon = useTranslations("common");
+  const t = useTranslations();
   const [activeTab, setActiveTab] = useState<Tab>("users");
   const u = useUsers();
   const d = useDepartments();
@@ -35,8 +35,8 @@ export default function UsersPage() {
 
   return (
     <PageContent
-      title={t("title")}
-      subtitle={t("title")}
+      title={t("users.title")}
+      subtitle={t("users.title")}
       actions={
         <div className="flex items-center gap-2">
           <div className="flex rounded-md border">
@@ -50,7 +50,7 @@ export default function UsersPage() {
               onClick={() => setActiveTab("users")}
             >
               <Users className="size-4" />
-              {t("title")}
+              {t("users.title")}
             </button>
             <button
               className={cn(
@@ -62,7 +62,7 @@ export default function UsersPage() {
               onClick={() => setActiveTab("departments")}
             >
               <Building2 className="size-4" />
-              {t("department")}
+              {t("users.department")}
             </button>
           </div>
           <Button
@@ -80,12 +80,12 @@ export default function UsersPage() {
             {activeTab === "users" ? (
               <>
                 <UserPlus className="size-4" />
-                {t("addUser")}
+                {t("users.addUser")}
               </>
             ) : (
               <>
                 <Building2 className="size-4" />
-                {tCommon("create")}
+                {t("common.create")}
               </>
             )}
           </Button>
@@ -124,6 +124,7 @@ export default function UsersPage() {
             loading={u.loading}
             onEdit={u.openEditDialog}
             onDelete={u.handleDeleteUser}
+            onAssignMentor={u.openAssignMentorDialog}
             searchQuery={u.searchQuery}
             onSearchChange={u.setSearchQuery}
             roleFilter={u.roleFilter}
@@ -135,7 +136,19 @@ export default function UsersPage() {
             currentPage={u.currentPage}
             totalPages={u.totalPages}
             totalCount={u.totalUsers}
+            pageSize={u.pageSize}
             onPageChange={u.setCurrentPage}
+            onPageSizeChange={u.setPageSize}
+          />
+
+          <AssignMentorDialog
+            isOpen={u.assignMentorDialogOpen}
+            onOpenChange={u.setAssignMentorDialogOpen}
+            userId={u.selectedUserForMentor?.id || null}
+            userName={u.selectedUserForMentor?.name || ""}
+            onAssign={u.handleAssignMentor}
+            onUnassign={u.handleUnassignMentor}
+            currentMentor={u.currentMentor}
           />
         </>
       )}
@@ -168,15 +181,17 @@ export default function UsersPage() {
           </Dialog>
 
           <DepartmentsTable
-            departments={d.departments}
+            departments={d.items}
             loading={d.loading}
             searchQuery={d.searchQuery}
             onSearchChange={d.setSearchQuery}
             currentPage={d.currentPage}
             totalPages={d.totalPages}
             totalCount={d.totalCount}
+            pageSize={d.pageSize}
             onPageChange={d.setCurrentPage}
-            onEdit={d.openEdit}
+            onPageSizeChange={d.setPageSize}
+            onEdit={d.openEditDialog}
             onDelete={handleDepartmentDelete}
           />
         </>

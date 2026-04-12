@@ -1,4 +1,4 @@
-import { useTranslations } from "next-intl";
+import { useTranslations } from "@/hooks/use-translations";
 import { StatsGrid } from "@/components/ui/stat-card";
 import { FileText, CheckCircle, Users } from "lucide-react";
 import type { TemplateItem } from "@/hooks/use-templates";
@@ -8,7 +8,7 @@ interface TemplateStatsProps {
 }
 
 export function TemplateStats({ templates }: TemplateStatsProps) {
-  const t = useTranslations("templates");
+  const t = useTranslations();
 
   const active = templates.filter((t) => t.status === "ACTIVE").length;
   const drafts = templates.filter((t) => t.status === "DRAFT").length;
@@ -17,10 +17,10 @@ export function TemplateStats({ templates }: TemplateStatsProps) {
   return (
     <StatsGrid
       stats={[
-        { label: t("totalTemplates") || "Total Templates", value: templates.length, icon: FileText },
-        { label: t("activeTemplates") || "Active", value: active, icon: CheckCircle },
-        { label: t("draftTemplates") || "Drafts", value: drafts, icon: FileText },
-        { label: t("defaultTemplates") || "Default", value: defaults, icon: Users },
+        { label: t("common.title") || "Total Templates", value: templates.length, icon: FileText },
+        { label: t("common.active") || "Active", value: active, icon: CheckCircle },
+        { label: t("templates.draftTemplates") || "Drafts", value: drafts, icon: FileText },
+        { label: t("templates.defaultTemplates") || "Default", value: defaults, icon: Users },
       ]}
     />
   );

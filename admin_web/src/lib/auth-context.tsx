@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useEffect, useState, type ReactNode } from "react";
 import { setAuthToken } from "./api";
 import { TOKEN_KEY, USER_KEY } from "./storage-keys";
 
@@ -175,10 +175,4 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
-}
+export { AuthContext };

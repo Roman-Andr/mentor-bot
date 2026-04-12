@@ -1,8 +1,11 @@
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useDebounce } from "@/hooks/useDebounce";
-import { useToast } from "@/components/ui/toast";
-import { api, type User } from "@/lib/api";
+import { useEntity } from "./use-entity";
+import { api } from "@/lib/api";
+import { queryKeys } from "@/lib/query-keys";
+import type { User, UserMentor } from "@/types";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState, useCallback } from "react";
+import { useTranslations } from "@/hooks/use-translations";
+import { useToast } from "@/hooks/use-toast";
 
 export interface UserItem {
   id: number;
@@ -15,6 +18,7 @@ export interface UserItem {
   position: string;
   isActive: boolean;
   createdAt: string;
+  telegram_id?: number | null;
 }
 
 export interface UserFormData {
@@ -29,6 +33,7 @@ export interface UserFormData {
   role: string;
   is_active: boolean;
   password: string;
+  telegram_id: number | null;
 }
 
 const PAGE_SIZE = 20;
@@ -45,6 +50,7 @@ const INITIAL_FORM: UserFormData = {
   role: "NEWBIE",
   is_active: true,
   password: "",
+  telegram_id: null,
 };
 
 function mapUser(u: User): UserItem {
@@ -59,210 +65,217 @@ function mapUser(u: User): UserItem {
     position: u.position || "",
     isActive: u.is_active,
     createdAt: u.created_at,
+    telegram_id: u.telegram_id,
   };
 }
 
-const USERS_KEY = ["users"] as const;
-const DEPARTMENTS_KEY = ["departments"] as const;
+function toCreatePayload(form: UserFormData) {
+  return {
+    first_name: form.first_name,
+    last_name: form.last_name || null,
+    email: form.email,
+    phone: form.phone || null,
+    employee_id: form.employee_id,
+    department_id: form.department_id || undefined,
+    position: form.position || null,
+    level: form.level || null,
+    role: form.role,
+    is_active: form.is_active,
+    password: form.password,
+    telegram_id: form.telegram_id,
+  };
+}
+
+function toUpdatePayload(form: UserFormData) {
+  return {
+    first_name: form.first_name,
+    last_name: form.last_name || null,
+    email: form.email,
+    phone: form.phone || null,
+    employee_id: form.employee_id,
+    department_id: form.department_id || undefined,
+    position: form.position || null,
+    level: form.level || null,
+    role: form.role,
+    is_active: form.is_active,
+    telegram_id: form.telegram_id,
+  };
+}
+
+function toForm(user: UserItem): UserFormData {
+  const nameParts = user.name.split(" ");
+  return {
+    first_name: nameParts[0] || "",
+    last_name: nameParts.slice(1).join(" ") || "",
+    email: user.email,
+    phone: "",
+    employee_id: user.employee_id || "",
+    department_id: user.department_id || 0,
+    position: user.position,
+    level: "",
+    role: user.role,
+    is_active: user.isActive,
+    password: "",
+    telegram_id: user.telegram_id || null,
+  };
+}
 
 export function useUsers() {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-
-  const [currentPage, setCurrentPage] = useState(1);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [roleFilter, setRoleFilter] = useState("ALL");
-  const [departmentFilter, setDepartmentFilter] = useState("ALL");
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<UserItem | null>(null);
-  const [formData, setFormData] = useState<UserFormData>(INITIAL_FORM);
-
-  const debouncedSearch = useDebounce(searchQuery);
-
-  const queryParams = {
-    skip: (currentPage - 1) * PAGE_SIZE,
-    limit: PAGE_SIZE,
-    ...(roleFilter !== "ALL" && { role: roleFilter }),
-    ...(departmentFilter !== "ALL" && { department_id: parseInt(departmentFilter) }),
-    ...(debouncedSearch && { search: debouncedSearch }),
-  };
-
-  const { data: usersData, isLoading: loading } = useQuery({
-    queryKey: [...USERS_KEY, queryParams],
-    queryFn: () => api.users.list(queryParams),
-    select: (result) =>
-      result.data
-        ? {
-            users: result.data.users.map(mapUser),
-            total: result.data.total,
-          }
-        : undefined,
+  const entity = useEntity<UserItem, UserFormData, ReturnType<typeof toCreatePayload>, ReturnType<typeof toUpdatePayload>>({
+    entityName: "Пользователь",
+    translationNamespace: "users",
+    queryKeyPrefix: "users",
+    listFn: (params) => api.users.list(params),
+    listDataKey: "users",
+    createFn: (data) => api.users.create(data),
+    updateFn: (id, data) => api.users.update(id, data),
+    deleteFn: (id) => api.users.delete(id),
+    defaultForm: INITIAL_FORM,
+    mapItem: (item: unknown) => mapUser(item as User),
+    toCreatePayload,
+    toUpdatePayload,
+    toForm,
+    pageSize: PAGE_SIZE,
+    searchable: true,
+    searchParamName: "search",
+    filters: [
+      { name: "role", defaultValue: "ALL", paramName: "role" },
+      { name: "department", defaultValue: "ALL", paramName: "department_id", transform: (v) => parseInt(v) },
+    ],
+    labels: {
+      createdKey: "users.created",
+      updatedKey: "users.updated",
+      deletedKey: "users.deleted",
+      createErrorKey: "users.createError",
+      updateErrorKey: "users.updateError",
+      deleteErrorKey: "users.deleteError",
+    },
   });
 
+  // Fetch departments for the filter dropdown
   const { data: departmentsData } = useQuery({
-    queryKey: DEPARTMENTS_KEY,
+    queryKey: queryKeys.departments.all,
     queryFn: () => api.departments.list({ limit: 1000 }),
     select: (result) => result.data?.departments || [],
   });
 
-  const createMutation = useMutation({
-    mutationFn: (data: Parameters<typeof api.users.create>[0]) => api.users.create(data),
-    onSuccess: (result) => {
-      if (result.data) {
-        queryClient.invalidateQueries({ queryKey: USERS_KEY });
-        setIsCreateDialogOpen(false);
-        setFormData(INITIAL_FORM);
-        toast("Пользователь успешно создан", "success");
-      } else if (result.error) {
-        toast(result.error, "error");
-      }
-    },
-    onError: () => {
-      toast("Ошибка создания пользователя", "error");
-    },
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Parameters<typeof api.users.update>[1] }) =>
-      api.users.update(id, data),
-    onSuccess: (result) => {
-      if (result.data) {
-        queryClient.invalidateQueries({ queryKey: USERS_KEY });
-        setIsEditDialogOpen(false);
-        setSelectedUser(null);
-        setFormData(INITIAL_FORM);
-        toast("Пользователь обновлён", "success");
-      } else if (result.error) {
-        toast(result.error, "error");
-      }
-    },
-    onError: () => {
-      toast("Ошибка обновления пользователя", "error");
-    },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: number) => api.users.delete(id),
-    onSuccess: (result) => {
-      if (!result.error) {
-        queryClient.invalidateQueries({ queryKey: USERS_KEY });
-        toast("Пользователь удалён", "success");
-      } else {
-        toast(result.error, "error");
-      }
-    },
-    onError: () => {
-      toast("Ошибка удаления пользователя", "error");
-    },
-  });
-
-  const handleCreateUser = () => {
-    createMutation.mutate({
-      first_name: formData.first_name,
-      last_name: formData.last_name || null,
-      email: formData.email,
-      phone: formData.phone || null,
-      employee_id: formData.employee_id,
-      department_id: formData.department_id || undefined,
-      position: formData.position || null,
-      level: formData.level || null,
-      role: formData.role,
-      is_active: formData.is_active,
-      password: formData.password,
-    });
-  };
-
-  const handleUpdateUser = () => {
-    if (!selectedUser) return;
-    updateMutation.mutate({
-      id: selectedUser.id,
-      data: {
-        first_name: formData.first_name,
-        last_name: formData.last_name || null,
-        email: formData.email,
-        phone: formData.phone || null,
-        employee_id: formData.employee_id,
-        department_id: formData.department_id || undefined,
-        position: formData.position || null,
-        level: formData.level || null,
-        role: formData.role,
-        is_active: formData.is_active,
-      },
-    });
-  };
-
-  const handleDeleteUser = (id: number) => {
-    deleteMutation.mutate(id);
-  };
-
-  const openEditDialog = (user: UserItem) => {
-    const nameParts = user.name.split(" ");
-    setSelectedUser(user);
-    setFormData({
-      first_name: nameParts[0] || "",
-      last_name: nameParts.slice(1).join(" ") || "",
-      email: user.email,
-      phone: "",
-      employee_id: user.employee_id || "",
-      department_id: user.department_id || 0,
-      position: user.position,
-      level: "",
-      role: user.role,
-      is_active: user.isActive,
-      password: "",
-    });
-    setIsEditDialogOpen(true);
-  };
-
-  const resetForm = () => {
-    setFormData(INITIAL_FORM);
-    setSelectedUser(null);
-  };
-
-  const resetFilters = () => {
-    setSearchQuery("");
-    setRoleFilter("ALL");
-    setDepartmentFilter("ALL");
-    setCurrentPage(1);
-  };
-
-  const users = usersData?.users || [];
-  const totalUsers = usersData?.total || 0;
-  const totalPages = Math.ceil(totalUsers / PAGE_SIZE) || 1;
   const departments = departmentsData || [];
 
+  // Mentor assignment state and handlers
+  const t = useTranslations();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [assignMentorDialogOpen, setAssignMentorDialogOpen] = useState(false);
+  const [selectedUserForMentor, setSelectedUserForMentor] = useState<UserItem | null>(null);
+
+  // Fetch current mentor for selected user
+  const { data: userMentorsData, refetch: refetchUserMentors } = useQuery({
+    queryKey: queryKeys.userMentors.byUser(selectedUserForMentor?.id || 0),
+    queryFn: () => api.userMentors.list({ user_id: selectedUserForMentor?.id }),
+    enabled: !!selectedUserForMentor && assignMentorDialogOpen,
+    select: (result) => result.data?.relations || [],
+  });
+
+  const currentMentor = userMentorsData?.find((m) => m.is_active) || null;
+
+  const openAssignMentorDialog = useCallback((user: UserItem) => {
+    setSelectedUserForMentor(user);
+    setAssignMentorDialogOpen(true);
+  }, []);
+
+  const handleAssignMentor = useCallback(async (userId: number, mentorId: number) => {
+    try {
+      const resp = await api.userMentors.create({ user_id: userId, mentor_id: mentorId });
+      if (resp.data) {
+        toast(t("users.mentorAssigned"), "success");
+        await refetchUserMentors();
+        await queryClient.invalidateQueries({ queryKey: queryKeys.users.all });
+        setAssignMentorDialogOpen(false);
+        setSelectedUserForMentor(null);
+      } else {
+        toast(t("users.mentorAssignError"), "error");
+      }
+    } catch {
+      toast(t("users.mentorAssignError"), "error");
+    }
+  }, [t, toast, queryClient, refetchUserMentors]);
+
+  const handleUnassignMentor = useCallback(async (mentorRelationId: number) => {
+    try {
+      const resp = await api.userMentors.delete(mentorRelationId);
+      if (resp.data) {
+        toast(t("users.mentorUnassigned"), "success");
+        await refetchUserMentors();
+        await queryClient.invalidateQueries({ queryKey: queryKeys.users.all });
+      } else {
+        toast(t("users.mentorUnassignError"), "error");
+      }
+    } catch {
+      toast(t("users.mentorUnassignError"), "error");
+    }
+  }, [t, toast, queryClient, refetchUserMentors]);
+
   return {
-    users,
-    loading,
-    totalUsers,
-    isCreateDialogOpen,
-    setIsCreateDialogOpen,
-    isEditDialogOpen,
-    setIsEditDialogOpen,
-    selectedUser,
-    setSelectedUser,
-    formData,
-    setFormData,
-    searchQuery,
-    setSearchQuery,
-    currentPage,
-    setCurrentPage,
-    totalPages,
-    roleFilter,
-    setRoleFilter,
-    departmentFilter,
-    setDepartmentFilter,
+    // Data - map generic names to specific names for backward compatibility
+    users: entity.items,
+    loading: entity.loading,
+    totalUsers: entity.totalCount,
+
+    // Pagination
+    currentPage: entity.currentPage,
+    setCurrentPage: entity.setCurrentPage,
+    totalPages: entity.totalPages,
+    pageSize: entity.pageSize,
+    setPageSize: entity.setPageSize,
+
+    // Search
+    searchQuery: entity.searchQuery,
+    setSearchQuery: entity.setSearchQuery,
+
+    // Filters
+    roleFilter: entity.filterValues.role ?? "ALL",
+    setRoleFilter: (value: string) => entity.setFilterValue("role", value),
+    departmentFilter: entity.filterValues.department ?? "ALL",
+    setDepartmentFilter: (value: string) => entity.setFilterValue("department", value),
+    resetFilters: entity.resetFilters,
+
+    // Departments
     departments,
-    loadDepartments: () => queryClient.invalidateQueries({ queryKey: DEPARTMENTS_KEY }),
-    handleCreateUser,
-    handleUpdateUser,
-    handleDeleteUser,
-    openEditDialog,
-    resetForm,
-    resetFilters,
-    isCreating: createMutation.isPending,
-    isUpdating: updateMutation.isPending,
-    isDeleting: deleteMutation.isPending,
+    loadDepartments: () => {}, // Handled by React Query stale time
+
+    // Dialogs
+    isCreateDialogOpen: entity.isCreateDialogOpen,
+    setIsCreateDialogOpen: entity.setIsCreateDialogOpen,
+    isEditDialogOpen: entity.isEditDialogOpen,
+    setIsEditDialogOpen: entity.setIsEditDialogOpen,
+
+    // Selection
+    selectedUser: entity.selectedItem,
+    setSelectedUser: entity.setSelectedItem,
+
+    // Form
+    formData: entity.formData,
+    setFormData: entity.setFormData,
+
+    // Handlers
+    handleCreateUser: entity.handleSubmit,
+    handleUpdateUser: entity.handleSubmit,
+    handleDeleteUser: entity.handleDelete,
+    openEditDialog: entity.openEditDialog,
+    resetForm: entity.resetForm,
+
+    // Loading states
+    isCreating: entity.isSubmitting,
+    isUpdating: entity.isSubmitting,
+    isDeleting: entity.isDeleting,
+
+    // Mentor assignment
+    assignMentorDialogOpen,
+    setAssignMentorDialogOpen,
+    selectedUserForMentor,
+    currentMentor,
+    openAssignMentorDialog,
+    handleAssignMentor,
+    handleUnassignMentor,
   };
 }

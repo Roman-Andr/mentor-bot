@@ -2,55 +2,181 @@
   {
     "type": "HR",
     "source": "MANUAL",
-    "reason": "Need clarification on leave policy",
+    "reason": "Нужны разъяснения по отпускной политике",
     "context": {
       "category": "leave_policy",
       "priority": "normal"
     },
     "related_entity_type": "checklist",
-    "related_entity_id": 1
+    "related_entity_id": 1,
+    "status": "RESOLVED"
   },
   {
     "type": "MENTOR",
     "source": "MANUAL",
-    "reason": "Need additional help with technical task",
+    "reason": "Нужна помощь с технической задачей",
     "context": {
       "task_id": 5,
       "priority": "high"
     },
     "related_entity_type": "task",
-    "related_entity_id": 5
+    "related_entity_id": 5,
+    "status": "IN_PROGRESS"
   },
   {
     "type": "IT",
     "source": "MANUAL",
-    "reason": "Cannot access development environment",
+    "reason": "Нет доступа к GitHub",
     "context": {
       "issue": "permission_denied",
       "system": "github"
     },
     "related_entity_type": null,
-    "related_entity_id": null
+    "related_entity_id": null,
+    "status": "ASSIGNED"
   },
   {
     "type": "GENERAL",
     "source": "MANUAL",
-    "reason": "Question about team processes",
+    "reason": "Вопрос по процессу стендапов",
     "context": {
       "topic": "standup_schedule"
     },
     "related_entity_type": null,
-    "related_entity_id": null
+    "related_entity_id": null,
+    "status": "PENDING"
   },
   {
     "type": "HR",
     "source": "AUTO_OVERDUE",
-    "reason": "Overdue checklist items",
+    "reason": "Просроченные задачи чеклиста",
     "context": {
       "overdue_count": 3,
       "checklist_id": 1
     },
     "related_entity_type": "checklist",
-    "related_entity_id": 1
+    "related_entity_id": 1,
+    "status": "CLOSED"
+  },
+  {
+    "type": "MENTOR",
+    "source": "MANUAL",
+    "reason": "Трудно разобраться с CI/CD pipeline",
+    "context": {
+      "task_id": 2,
+      "priority": "medium"
+    },
+    "related_entity_type": "task",
+    "related_entity_id": 2,
+    "status": "RESOLVED"
+  },
+  {
+    "type": "IT",
+    "source": "MANUAL",
+    "reason": "Проблема с настройкой VPN",
+    "context": {
+      "issue": "connection_error",
+      "system": "vpn"
+    },
+    "related_entity_type": null,
+    "related_entity_id": null,
+    "status": "REJECTED"
+  },
+  {
+    "type": "GENERAL",
+    "source": "AUTO_SEARCH_FAILED",
+    "reason": "Не найдена информация в базе знаний",
+    "context": {
+      "query": "как оформить больничный",
+      "attempts": 2
+    },
+    "related_entity_type": null,
+    "related_entity_id": null,
+    "status": "PENDING"
+  },
+  {
+    "type": "HR",
+    "source": "MANUAL",
+    "reason": "Вопрос по отпуску",
+    "context": {
+      "category": "vacation",
+      "priority": "normal"
+    },
+    "related_entity_type": null,
+    "related_entity_id": null,
+    "status": "RESOLVED"
+  },
+  {
+    "type": "MENTOR",
+    "source": "AUTO_OVERDUE",
+    "reason": "Просроченные задачи",
+    "context": {
+      "overdue_count": 2,
+      "checklist_id": 2
+    },
+    "related_entity_type": "checklist",
+    "related_entity_id": 2,
+    "status": "IN_PROGRESS"
+  },
+  {
+    "type": "IT",
+    "source": "MANUAL",
+    "reason": "Проблема с доступом к системе",
+    "context": {
+      "issue": "permission_denied",
+      "system": "jira"
+    },
+    "related_entity_type": null,
+    "related_entity_id": null,
+    "status": "ASSIGNED"
+  },
+  {
+    "type": "GENERAL",
+    "source": "MANUAL",
+    "reason": "Вопрос по документации",
+    "context": {
+      "topic": "process_documentation"
+    },
+    "related_entity_type": null,
+    "related_entity_id": null,
+    "status": "PENDING"
+  },
+  {
+    "type": "HR",
+    "source": "AUTO_OVERDUE",
+    "reason": "Просроченные задачи чеклиста",
+    "context": {
+      "overdue_count": 1,
+      "checklist_id": 3
+    },
+    "related_entity_type": "checklist",
+    "related_entity_id": 3,
+    "status": "REJECTED"
+  },
+  {
+    "type": "MENTOR",
+    "source": "MANUAL",
+    "reason": "Роман: Нужна помощь с код-ревью архитектурного решения",
+    "context": {
+      "task_id": 10,
+      "priority": "high",
+      "user": "andrusevich_roman"
+    },
+    "related_entity_type": "task",
+    "related_entity_id": 10,
+    "status": "IN_PROGRESS"
+  },
+  {
+    "type": "IT",
+    "source": "MANUAL",
+    "reason": "Роман: Проблема с доступом к Docker registry",
+    "context": {
+      "issue": "docker_login_failed",
+      "system": "docker_registry",
+      "user": "andrusevich_roman"
+    },
+    "related_entity_type": null,
+    "related_entity_id": null,
+    "status": "ASSIGNED"
   }
 ]

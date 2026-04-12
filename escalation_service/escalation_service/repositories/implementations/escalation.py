@@ -3,7 +3,7 @@
 from collections.abc import Sequence
 from typing import cast
 
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from escalation_service.core.enums import EscalationStatus, EscalationType
@@ -28,6 +28,7 @@ class EscalationRepository(SqlAlchemyBaseRepository[EscalationRequest, int], IEs
         assigned_to: int | None = None,
         escalation_type: EscalationType | None = None,
         status: EscalationStatus | None = None,
+        search: str | None = None,
     ) -> tuple[Sequence[EscalationRequest], int]:
         """Find escalation requests with filtering and return results with total count."""
         count_stmt = select(func.count(EscalationRequest.id))
@@ -48,6 +49,13 @@ class EscalationRepository(SqlAlchemyBaseRepository[EscalationRequest, int], IEs
         if status is not None:
             stmt = stmt.where(EscalationRequest.status == status)
             count_stmt = count_stmt.where(EscalationRequest.status == status)
+
+        if search:
+            search_filter = or_(
+                EscalationRequest.reason.ilike(f"%{search}%"),
+            )
+            stmt = stmt.where(search_filter)
+            count_stmt = count_stmt.where(search_filter)
 
         total_result = await self._session.execute(count_stmt)
         total = cast("int", total_result.scalar_one())

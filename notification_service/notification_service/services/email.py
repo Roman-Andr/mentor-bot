@@ -24,6 +24,17 @@ class EmailService:
 
     async def send_email(self, to_email: str, subject: str, body: str, from_email: str | None = None) -> None:
         """Send an email using SMTP."""
+        # Check if in dry-run mode (log only, don't send)
+        is_dry_run = settings.EMAIL_DRY_RUN or settings.DEBUG
+        if is_dry_run:
+            logger.info(
+                "[DRY RUN] Email would be sent to %s | Subject: %s | From: %s",
+                to_email,
+                subject,
+                from_email or self.default_from,
+            )
+            return
+
         message = EmailMessage()
         message["From"] = from_email or self.default_from
         message["To"] = to_email

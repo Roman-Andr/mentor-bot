@@ -1,6 +1,6 @@
 import { fetchApi } from "./client";
 import { buildQueryString } from "@/lib/utils/query-builder";
-import type { Checklist, ChecklistListResponse, ChecklistStats } from "./types";
+import type { Checklist, ChecklistListResponse, ChecklistStats } from "@/types";
 
 export const checklistsApi = {
   list: (params?: {

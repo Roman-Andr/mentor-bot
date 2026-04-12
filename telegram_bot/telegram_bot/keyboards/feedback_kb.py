@@ -35,19 +35,90 @@ def get_feedback_menu_keyboard(*, locale: str = "en") -> InlineKeyboardBuilder:
 
 
 def get_experience_rating_keyboard(*, locale: str = "en") -> InlineKeyboardBuilder:
-    """Build experience rating keyboard (1-5 stars)."""
+    """Build experience rating keyboard (5-1 stars) - reversed with emojis."""
     builder = InlineKeyboardBuilder()
-    for i in range(1, 6):
+    # Emojis for ratings: 5=😍, 4=🙂, 3=😐, 2=😕, 1=😢
+    emojis = {
+        5: "\U0001f60d",
+        4: "\U0001f642",
+        3: "\U0001f610",
+        2: "\U0001f615",
+        1: "\U0001f622",
+    }
+    # Add high ratings first: 5, 4, 3
+    for i in range(5, 2, -1):
         builder.add(
             create_inline_button(
-                f"\u2b50 {i}", callback_data=f"rate_{i}", style=ButtonStyle.PRIMARY
+                f"{emojis[i]} {i}", callback_data=f"rate_{i}", style=ButtonStyle.PRIMARY
             )
         )
-    builder.adjust(5)
+    # Add low ratings: 2, 1
+    for i in range(2, 0, -1):
+        builder.add(
+            create_inline_button(
+                f"{emojis[i]} {i}", callback_data=f"rate_{i}", style=ButtonStyle.PRIMARY
+            )
+        )
+    # Add back button in third row
     builder.add(
         create_inline_button(
             f"\u2190 {t('common.back_button', locale=locale)}",
             callback_data="feedback_menu",
         )
     )
+    builder.adjust(3, 2, 1)
+    return builder
+
+
+def get_pulse_rating_keyboard(*, locale: str = "en") -> InlineKeyboardBuilder:
+    """Build pulse rating keyboard (10-1) - reversed with emojis."""
+    builder = InlineKeyboardBuilder()
+    # Emojis for ratings: 10=🤩, 9=😃, 8=😊, 7=🙂, 6=😐, 5=🤔, 4=😕, 3=😟, 2=😢, 1=😭
+    emojis = {
+        10: "\U0001f929",
+        9: "\U0001f603",
+        8: "\U0001f60a",
+        7: "\U0001f642",
+        6: "\U0001f610",
+        5: "\U0001f914",
+        4: "\U0001f615",
+        3: "\U0001f61f",
+        2: "\U0001f622",
+        1: "\U0001f62d",
+    }
+    # Add high ratings first: 10, 9, 8, 7
+    for i in range(10, 6, -1):
+        builder.add(
+            create_inline_button(
+                f"{emojis[i]} {i}",
+                callback_data=f"pulse_{i}",
+                style=ButtonStyle.PRIMARY,
+            )
+        )
+    # Add medium ratings: 6, 5, 4, 3
+    for i in range(6, 2, -1):
+        builder.add(
+            create_inline_button(
+                f"{emojis[i]} {i}",
+                callback_data=f"pulse_{i}",
+                style=ButtonStyle.PRIMARY,
+            )
+        )
+    # Add low ratings: 2, 1
+    for i in range(2, 0, -1):
+        builder.add(
+            create_inline_button(
+                f"{emojis[i]} {i}",
+                callback_data=f"pulse_{i}",
+                style=ButtonStyle.PRIMARY,
+            )
+        )
+    # Add back button in fourth row
+    builder.add(
+        create_inline_button(
+            f"\u2190 {t('common.back_button', locale=locale)}",
+            callback_data="feedback_menu",
+        )
+    )
+    builder.adjust(4, 4, 2, 1)
     return builder

@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useTranslations } from "@/hooks/use-translations";
 import { Search, ChevronDown, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useDebounce } from "@/hooks/useDebounce";
+import { useDebounce } from "@/hooks/use-debounce";
 
 export interface SelectOption {
   value: string;
@@ -40,15 +41,19 @@ export function SearchableSelect({
   options,
   value,
   onChange,
-  placeholder = "Выберите...",
-  searchPlaceholder = "Поиск...",
+  placeholder,
+  searchPlaceholder,
   disabled = false,
   className,
 }: SearchableSelectProps) {
+  const t = useTranslations();
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const placeholderText = placeholder ?? t("common.selectPlaceholder");
+  const searchPlaceholderText = searchPlaceholder ?? t("common.searchPlaceholder");
 
   const selectedOption = options.find((o) => o.value === value);
 
@@ -90,7 +95,7 @@ export function SearchableSelect({
           !selectedOption && "text-muted-foreground",
         )}
       >
-        <span className="truncate">{selectedOption ? selectedOption.label : placeholder}</span>
+        <span className="truncate">{selectedOption ? selectedOption.label : placeholderText}</span>
         <div className="flex items-center gap-1">
           {selectedOption && !disabled && (
             <X
@@ -112,15 +117,15 @@ export function SearchableSelect({
             <input
               ref={inputRef}
               className="placeholder:text-muted-foreground flex h-9 w-full bg-transparent px-2 py-1 text-sm outline-none"
-              placeholder={searchPlaceholder}
+              placeholder={searchPlaceholderText}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          <div className="max-h-50 overflow-y-auto p-1">
+            <div className="max-h-50 overflow-y-auto p-1">
             {filtered.length === 0 ? (
               <div className="text-muted-foreground px-2 py-3 text-center text-sm">
-                Ничего не найдено
+                {t("common.noResults")}
               </div>
             ) : (
               filtered.map((option) => (
@@ -160,19 +165,23 @@ export function AsyncSearchableSelect({
   onSearch,
   onOptionSelect,
   selectedLabel,
-  placeholder = "Выберите...",
-  searchPlaceholder = "Поиск...",
+  placeholder,
+  searchPlaceholder,
   disabled = false,
   className,
   debounceMs = 300,
   minSearchLength = 1,
 }: AsyncSearchableSelectProps) {
+  const t = useTranslations();
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [options, setOptions] = useState<SelectOption[]>([]);
   const [loading, setLoading] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const placeholderText = placeholder ?? t("common.selectPlaceholder");
+  const searchPlaceholderText = searchPlaceholder ?? t("common.searchPlaceholder");
 
   const debouncedSearch = useDebounce(search, debounceMs);
 
@@ -235,7 +244,7 @@ export function AsyncSearchableSelect({
           !value && "text-muted-foreground",
         )}
       >
-        <span className="truncate">{value ? displayLabel : placeholder}</span>
+        <span className="truncate">{value ? displayLabel : placeholderText}</span>
         <div className="flex items-center gap-1">
           {value && !disabled && (
             <X
@@ -257,21 +266,21 @@ export function AsyncSearchableSelect({
             <input
               ref={inputRef}
               className="placeholder:text-muted-foreground flex h-9 w-full bg-transparent px-2 py-1 text-sm outline-none"
-              placeholder={searchPlaceholder}
+              placeholder={searchPlaceholderText}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
           <div className="max-h-50 overflow-y-auto p-1">
             {loading ? (
-              <div className="text-muted-foreground px-2 py-3 text-center text-sm">Загрузка...</div>
+              <div className="text-muted-foreground px-2 py-3 text-center text-sm">{t("common.loading")}</div>
             ) : search.length < minSearchLength ? (
               <div className="text-muted-foreground px-2 py-3 text-center text-sm">
-                Введите минимум {minSearchLength} символ{minSearchLength > 1 ? "а" : ""} для поиска
+                {t("common.minSearchChars", { count: minSearchLength })}
               </div>
             ) : options.length === 0 ? (
               <div className="text-muted-foreground px-2 py-3 text-center text-sm">
-                Ничего не найдено
+                {t("common.noResults")}
               </div>
             ) : (
               options.map((option) => (

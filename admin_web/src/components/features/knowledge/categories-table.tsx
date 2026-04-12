@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useTranslations } from "@/hooks/use-translations";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SearchInput } from "@/components/ui/search-input";
@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/table";
 import { DataTable } from "@/components/ui/data-table";
 import { CardHeader, CardTitle } from "@/components/ui/card";
-import { Trash2, MoreHorizontal } from "lucide-react";
+import { Trash2, SquarePen } from "lucide-react";
 import type { CategoryRow } from "@/hooks/use-categories";
 
 interface CategoriesTableProps {
@@ -25,7 +25,9 @@ interface CategoriesTableProps {
   currentPage: number;
   totalPages: number;
   totalCount: number;
+  pageSize?: number;
   onPageChange: (page: number) => void;
+  onPageSizeChange?: (size: number) => void;
   onEdit: (category: CategoryRow) => void;
   onDelete: (id: number) => void;
 }
@@ -38,12 +40,13 @@ export function CategoriesTable({
   currentPage,
   totalPages,
   totalCount,
+  pageSize,
   onPageChange,
+  onPageSizeChange,
   onEdit,
   onDelete,
 }: CategoriesTableProps) {
-  const t = useTranslations("knowledge");
-  const tCommon = useTranslations("common");
+  const t = useTranslations();
 
   return (
     <DataTable
@@ -52,12 +55,15 @@ export function CategoriesTable({
       currentPage={currentPage}
       totalPages={totalPages}
       totalCount={totalCount}
+      pageSize={pageSize}
       onPageChange={onPageChange}
+      onPageSizeChange={onPageSizeChange}
+      showPageSizeSelector={!!onPageSizeChange}
       header={
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>{t("categories")}</CardTitle>
-            <SearchInput placeholder={tCommon("searchPlaceholder")} value={searchQuery} onChange={onSearchChange} />
+            <CardTitle>{t("knowledge.categories")}</CardTitle>
+            <SearchInput placeholder={t("common.searchPlaceholder")} value={searchQuery} onChange={onSearchChange} />
           </div>
         </CardHeader>
       }
@@ -65,13 +71,13 @@ export function CategoriesTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>{t("name")}</TableHead>
+            <TableHead>{t("knowledge.name")}</TableHead>
             <TableHead>Slug</TableHead>
-            <TableHead>{tCommon("description")}</TableHead>
-            <TableHead>{t("articles")}</TableHead>
-            <TableHead>{t("order")}</TableHead>
-            <TableHead>{tCommon("created")}</TableHead>
-            <TableHead className="w-[100px]">{tCommon("actions")}</TableHead>
+            <TableHead>{t("common.description")}</TableHead>
+            <TableHead>{t("knowledge.articles")}</TableHead>
+            <TableHead>{t("knowledge.order")}</TableHead>
+            <TableHead>{t("common.createdAt")}</TableHead>
+            <TableHead className="w-25">{t("common.actions")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -100,7 +106,7 @@ export function CategoriesTable({
               <TableCell>
                 <code className="text-muted-foreground text-xs">{category.slug}</code>
               </TableCell>
-              <TableCell className="text-muted-foreground max-w-[200px] truncate text-sm">
+              <TableCell className="text-muted-foreground max-w-50 truncate text-sm">
                 {category.description || "—"}
               </TableCell>
               <TableCell>
@@ -110,9 +116,9 @@ export function CategoriesTable({
               <TableCell>{new Date(category.createdAt).toLocaleDateString()}</TableCell>
               <TableCell onClick={(e) => e.stopPropagation()}>
                 <div className="flex gap-1">
-                  <Button variant="ghost" size="icon" onClick={() => onEdit(category)}>
-                    <MoreHorizontal className="size-4" />
-                  </Button>
+                   <Button variant="ghost" size="icon" onClick={() => onEdit(category)}>
+                     <SquarePen className="size-4" />
+                   </Button>
                   <Button
                     variant="ghost"
                     size="icon"

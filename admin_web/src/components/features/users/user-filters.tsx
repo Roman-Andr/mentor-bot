@@ -1,4 +1,4 @@
-import { useTranslations } from "next-intl";
+import { useTranslations } from "@/hooks/use-translations";
 import { Button } from "@/components/ui/button";
 import { SearchInput } from "@/components/ui/search-input";
 import { Select } from "@/components/ui/select";
@@ -26,18 +26,17 @@ export function UserFilters({
   onReset,
   departments = [],
 }: UserFiltersProps) {
-  const t = useTranslations("users");
-  const tCommon = useTranslations("common");
+  const t = useTranslations();
 
   const departmentOptions = [
-    { value: "ALL", label: t("allDepartments") },
+    { value: "ALL", label: t("users.allDepartments") },
     ...departments.map((d) => ({ value: String(d.id), label: d.name })),
   ];
   return (
     <Card>
       <CardContent className="flex flex-wrap items-center gap-2 py-4">
         <SearchInput
-          placeholder={t("searchByNameOrEmail")}
+          placeholder={t("users.searchByNameOrEmail")}
           value={searchQuery}
           onChange={onSearchChange}
         />
@@ -48,7 +47,7 @@ export function UserFilters({
           options={departmentOptions}
         />
         <Button variant="outline" onClick={onReset}>
-          {tCommon("reset")}
+          {t("common.reset")}
         </Button>
       </CardContent>
     </Card>

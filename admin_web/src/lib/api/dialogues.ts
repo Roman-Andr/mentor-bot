@@ -1,5 +1,5 @@
 import { fetchApi } from "./client";
-import type { DialogueScenario, DialogueScenarioListResponse, DialogueStep } from "./types";
+import type { DialogueScenario, DialogueScenarioListResponse, DialogueStep } from "@/types";
 
 export const dialoguesApi = {
   list: (params?: {

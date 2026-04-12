@@ -1,4 +1,4 @@
-import { useTranslations } from "next-intl";
+import { useTranslations } from "@/hooks/use-translations";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface Activity {
@@ -13,12 +13,12 @@ interface ActivityFeedProps {
 }
 
 export function ActivityFeed({ activity }: ActivityFeedProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations();
 
   return (
     <Card className="col-span-3">
       <CardHeader>
-        <CardTitle>{t("recentActivity")}</CardTitle>
+        <CardTitle>{t("dashboard.recentActivity")}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">

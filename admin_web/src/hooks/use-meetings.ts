@@ -1,7 +1,6 @@
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useToast } from "@/components/ui/toast";
-import { api, type Meeting } from "@/lib/api";
+import { useEntity } from "./use-entity";
+import { api } from "@/lib/api";
+import type { Meeting } from "@/types";
 
 export interface MeetingItem {
   id: number;
@@ -59,178 +58,106 @@ const defaultFormData: MeetingFormData = {
   order: 0,
 };
 
-const MEETINGS_KEY = ["meetings"] as const;
+function toPayload(form: MeetingFormData) {
+  return {
+    title: form.title,
+    description: form.description || null,
+    type: form.type,
+    department_id: form.department_id || null,
+    position: form.position || null,
+    level: form.level || null,
+    deadline_days: form.deadline_days,
+    is_mandatory: form.is_mandatory,
+    order: form.order,
+  };
+}
+
+function toForm(meeting: MeetingItem): MeetingFormData {
+  return {
+    title: meeting.title,
+    description: meeting.description,
+    type: meeting.type,
+    department_id: meeting.departmentId || 0,
+    position: meeting.position,
+    level: meeting.level,
+    deadline_days: meeting.deadlineDays,
+    is_mandatory: meeting.isMandatory,
+    order: meeting.order,
+  };
+}
 
 export function useMeetings() {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-
-  const [searchQuery, setSearchQuery] = useState("");
-  const [typeFilter, setTypeFilter] = useState("ALL");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [selectedMeeting, setSelectedMeeting] = useState<MeetingItem | null>(null);
-  const [formData, setFormData] = useState<MeetingFormData>({ ...defaultFormData });
-
-  const pageSize = 20;
-
-  const queryParams = {
-    skip: (currentPage - 1) * pageSize,
-    limit: pageSize,
-    ...(typeFilter !== "ALL" && { meeting_type: typeFilter }),
-  };
-
-  const { data: meetingsData, isLoading: loading } = useQuery({
-    queryKey: [...MEETINGS_KEY, queryParams],
-    queryFn: () => api.meetings.list(queryParams),
-    select: (result) =>
-      result.data
-        ? {
-            meetings: result.data.meetings.map(mapMeeting),
-            total: result.data.total,
-            pages: result.data.pages,
-          }
-        : undefined,
-  });
-
-  const createMutation = useMutation({
-    mutationFn: (data: Parameters<typeof api.meetings.create>[0]) => api.meetings.create(data),
-    onSuccess: (result) => {
-      if (result.data) {
-        queryClient.invalidateQueries({ queryKey: MEETINGS_KEY });
-        setIsCreateDialogOpen(false);
-        resetForm();
-        toast("Встреча создана", "success");
-      } else if (result.error) {
-        toast(result.error, "error");
-      }
+  const entity = useEntity<MeetingItem, MeetingFormData, ReturnType<typeof toPayload>, ReturnType<typeof toPayload>>({
+    entityName: "Встреча",
+    translationNamespace: "meetings",
+    queryKeyPrefix: "meetings",
+    listFn: (params) => api.meetings.list(params),
+    listDataKey: "meetings",
+    createFn: (data) => api.meetings.create(data),
+    updateFn: (id, data) => api.meetings.update(id, data),
+    deleteFn: (id) => api.meetings.delete(id),
+    defaultForm: defaultFormData,
+    mapItem: (item: unknown) => mapMeeting(item as Meeting),
+    toCreatePayload: toPayload,
+    toUpdatePayload: toPayload,
+    toForm,
+    searchable: true,
+    searchParamName: "search",
+    filters: [{ name: "type", defaultValue: "ALL", paramName: "meeting_type" }],
+    labels: {
+      createdKey: "meetings.created",
+      updatedKey: "meetings.updated",
+      deletedKey: "meetings.deleted",
+      createErrorKey: "meetings.createError",
+      updateErrorKey: "meetings.updateError",
+      deleteErrorKey: "meetings.deleteError",
     },
-    onError: () => toast("Ошибка создания встречи", "error"),
   });
-
-  const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Parameters<typeof api.meetings.update>[1] }) =>
-      api.meetings.update(id, data),
-    onSuccess: (result) => {
-      if (result.data) {
-        queryClient.invalidateQueries({ queryKey: MEETINGS_KEY });
-        setIsEditDialogOpen(false);
-        setSelectedMeeting(null);
-        resetForm();
-        toast("Встреча обновлена", "success");
-      } else if (result.error) {
-        toast(result.error, "error");
-      }
-    },
-    onError: () => toast("Ошибка обновления встречи", "error"),
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: number) => api.meetings.delete(id),
-    onSuccess: (result) => {
-      if (!result.error) {
-        queryClient.invalidateQueries({ queryKey: MEETINGS_KEY });
-        toast("Встреча удалена", "success");
-      } else {
-        toast(result.error, "error");
-      }
-    },
-    onError: () => toast("Ошибка удаления встречи", "error"),
-  });
-
-  const handleCreate = () => {
-    createMutation.mutate({
-      title: formData.title,
-      description: formData.description || null,
-      type: formData.type,
-      department_id: formData.department_id || null,
-      position: formData.position || null,
-      level: formData.level || null,
-      deadline_days: formData.deadline_days,
-      is_mandatory: formData.is_mandatory,
-      order: formData.order,
-    });
-  };
-
-  const handleUpdate = () => {
-    if (!selectedMeeting) return;
-    updateMutation.mutate({
-      id: selectedMeeting.id,
-      data: {
-        title: formData.title,
-        description: formData.description || null,
-        type: formData.type,
-        department_id: formData.department_id || null,
-        position: formData.position || null,
-        level: formData.level || null,
-        deadline_days: formData.deadline_days,
-        is_mandatory: formData.is_mandatory,
-        order: formData.order,
-      },
-    });
-  };
-
-  const handleDelete = (id: number) => {
-    deleteMutation.mutate(id);
-  };
-
-  const openEditDialog = (meeting: MeetingItem) => {
-    setSelectedMeeting(meeting);
-    setFormData({
-      title: meeting.title,
-      description: meeting.description,
-      type: meeting.type,
-      department_id: meeting.departmentId || 0,
-      position: meeting.position,
-      level: meeting.level,
-      deadline_days: meeting.deadlineDays,
-      is_mandatory: meeting.isMandatory,
-      order: meeting.order,
-    });
-    setIsEditDialogOpen(true);
-  };
-
-  const resetForm = () => {
-    setFormData(defaultFormData);
-    setSelectedMeeting(null);
-  };
-
-  const meetings = meetingsData?.meetings || [];
-  const totalCount = meetingsData?.total || 0;
-  const totalPages = meetingsData?.pages || 1;
 
   return {
-    meetings,
-    loading,
-    searchQuery,
-    setSearchQuery,
-    typeFilter,
-    setTypeFilter,
-    currentPage,
-    setCurrentPage,
-    totalPages,
-    totalCount,
-    isCreateDialogOpen,
-    setIsCreateDialogOpen,
-    isEditDialogOpen,
-    setIsEditDialogOpen,
-    selectedMeeting,
-    setSelectedMeeting,
-    formData,
-    setFormData,
-    handleCreate,
-    handleUpdate,
-    handleDelete,
-    openEditDialog,
-    resetForm,
-    resetFilters: () => {
-      setSearchQuery("");
-      setTypeFilter("ALL");
-      setCurrentPage(1);
-    },
-    isCreating: createMutation.isPending,
-    isUpdating: updateMutation.isPending,
-    isDeleting: deleteMutation.isPending,
+    // Data
+    meetings: entity.items,
+    loading: entity.loading,
+    totalCount: entity.totalCount,
+    totalPages: entity.totalPages,
+
+    // Pagination
+    currentPage: entity.currentPage,
+    setCurrentPage: entity.setCurrentPage,
+    pageSize: entity.pageSize,
+    setPageSize: entity.setPageSize,
+
+    // Search & Filters
+    searchQuery: entity.searchQuery,
+    setSearchQuery: entity.setSearchQuery,
+    typeFilter: entity.filterValues.type ?? "ALL",
+    setTypeFilter: (value: string) => entity.setFilterValue("type", value),
+
+    // Dialogs
+    isCreateDialogOpen: entity.isCreateDialogOpen,
+    setIsCreateDialogOpen: entity.setIsCreateDialogOpen,
+    isEditDialogOpen: entity.isEditDialogOpen,
+    setIsEditDialogOpen: entity.setIsEditDialogOpen,
+
+    // Selection
+    selectedMeeting: entity.selectedItem,
+    setSelectedMeeting: entity.setSelectedItem,
+
+    // Form
+    formData: entity.formData,
+    setFormData: entity.setFormData,
+
+    // Handlers
+    handleCreate: entity.handleSubmit,
+    handleUpdate: entity.handleSubmit,
+    handleDelete: entity.handleDelete,
+    openEditDialog: entity.openEditDialog,
+    resetForm: entity.resetForm,
+    resetFilters: entity.resetFilters,
+
+    // Loading states
+    isCreating: entity.isSubmitting,
+    isUpdating: entity.isSubmitting,
+    isDeleting: entity.isDeleting,
   };
 }

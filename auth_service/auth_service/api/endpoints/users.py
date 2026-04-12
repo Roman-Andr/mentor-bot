@@ -85,8 +85,13 @@ async def get_user(
     user_service: UserServiceDep,
     current_user: CurrentUser,
 ) -> UserResponse:
-    """Get user by ID (users can see themselves, admins can see anyone)."""
-    if current_user.id != user_id and current_user.role not in [UserRole.HR, UserRole.ADMIN]:
+    """Get user by ID (users can see themselves, mentors, admins/HR can see anyone)."""
+    # Allow if: self, HR, Admin, or user is the current user's mentor
+    is_self = current_user.id == user_id
+    is_hr_or_admin = current_user.role in [UserRole.HR, UserRole.ADMIN]
+    is_my_mentor = any(m.mentor_id == user_id and m.is_active for m in current_user.mentor_assignments)
+
+    if not (is_self or is_hr_or_admin or is_my_mentor):
         raise PermissionDenied
 
     try:

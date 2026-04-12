@@ -2,6 +2,7 @@
   "common": {
     "menu_button": "Menu",
     "back_button": "Back",
+    "back_to_settings": "Back to Settings",
     "auth_required": "Authentication required\n\nUse /start to register first.",
     "auth_required_short": "Authentication required",
     "access_denied": "Access denied",
@@ -14,7 +15,7 @@
   },
   "start": {
     "welcome_new": "Welcome to Mentor Bot!\n\nYour personal onboarding assistant for a smooth transition into your new role.\n\nWhat I can help you with:\n- Complete your onboarding checklist\n- Search the knowledge base for answers\n- Schedule meetings with your mentor\n- Access important documents\n- Track your progress\n- Get help from HR\n\nTo get started, you need to register using your invitation link.\nPlease send me your invitation token or use the link from your email.",
-    "welcome_back": "Welcome back, *{name}*!\n\nEmployee ID: {employee_id}\nDepartment: {department}\nPosition: {position}\n\nI'm here to help you with your onboarding process.\nUse the menu below to get started!",
+    "welcome_back": "👋 Welcome back, *{name}*!\n\n📼 Employee ID: `{employee_id}`\n🏢 Department: {department}\n📝 Position: {position}\n\nI'm here to help you with your onboarding process.\nUse the menu below to get started!",
     "welcome_returning": "Welcome back, *{name}*!\n\nUse the menu to continue your onboarding.",
     "menu_header": "Main Menu\n\nChoose an option below:",
     "register_prompt": "You need to register first. Use /start to begin registration.",
@@ -121,7 +122,48 @@
     "btn_start": "Start Progress",
     "btn_info": "More Info",
     "btn_back_checklists": "Back to Checklists",
-    "btn_progress": "Overall Progress"
+    "btn_progress": "Overall Progress",
+    "btn_attach": "Add Attachment",
+    "btn_back": "Back",
+    "due": "Due",
+    "tasks_completed": "{completed}/{total} tasks completed"
+  },
+  "tasks": {
+    "no_description": "No description provided.",
+    "status_label": "Status",
+    "status_pending": "Pending",
+    "status_in_progress": "In Progress",
+    "status_completed": "Completed",
+    "status_blocked": "Blocked",
+    "status_overdue": "Overdue",
+    "status_unknown": "Unknown",
+    "due_date": "Due Date",
+    "overdue": "This task is overdue!",
+    "description": "Description",
+    "depends_on": "Depends on: {count} task(s)",
+    "assigned_to": "Assigned to",
+    "fallback_title": "Task #{id}",
+    "more_tasks": "and {count} more tasks",
+    "already_completed": "Task is already completed!",
+    "already_started": "Task is already started",
+    "attach_file_title": "Attach File to Task",
+    "attach_file_prompt": "Please send the file you want to attach to this task.",
+    "attach_file_limits": "Max file size: {max_size}MB. Supported formats: PDF, DOC, DOCX, XLS, XLSX, TXT, PNG, JPG",
+    "no_file_received": "No file received. Please send a file.",
+    "file_too_large": "File is too large. Maximum size is {max_size}MB.",
+    "file_received": "File received",
+    "photo_received": "Photo received",
+    "ask_description": "You can add an optional description for this file, or click 'Skip' to upload without description.",
+    "send_file_only": "Please send a file (document, image, etc.) to attach.",
+    "download_failed": "Failed to download file from Telegram. Please try again.",
+    "attachment_error": "Error processing attachment. Please start over.",
+    "attachment_success": "File successfully attached to task!",
+    "attachment_failed": "Failed to upload attachment. Please try again later.",
+    "back_to_task": "Back to Task",
+    "view_files": "Files",
+    "no_attachments": "No attached files",
+    "select_file": "Select a file to download:",
+    "skip_description": "Skip description"
   },
   "knowledge": {
     "title": "Knowledge Base",
@@ -138,7 +180,27 @@
     "article_not_found": "Article not found",
     "result_unavailable": "Result no longer available",
     "attachments": "Attachments:",
-    "faq_title": "Frequently Asked Questions"
+    "faq_title": "Frequently Asked Questions",
+    "faq_empty": "The FAQ list is currently empty. Contact HR for setup.",
+    "faq_select_topic": "Choose a topic:",
+    "faq_steps": "Steps:",
+    "scenario_not_found": "Scenario not found",
+    "steps_not_found": "Steps not found",
+    "step_not_found": "Step not found",
+    "contact_hr": "Contact HR",
+    "hr_contact_info": "For assistance, contact HR department:\n\nEmail: hr@company.com\nPhone: +1 (555) 123-4567\nOffice: Building A, 3rd floor",
+    "btn_read_more": "Read more",
+    "back_to_kb": "Back to Knowledge Base",
+    "back_to_results": "Back to results",
+    "back_to_faq": "Back to FAQ",
+    "back_to_categories": "Back to categories",
+    "back_to_category": "Back to category",
+    "categories_title": "Categories",
+    "categories_description": "Select a category to browse articles:",
+    "no_categories": "No categories found. Contact HR for setup.",
+    "articles_in_category": "Articles in Category",
+    "select_article": "Select an article to view:",
+    "no_articles_in_category": "No articles in this category yet."
   },
   "documents": {
     "title": "Documents & Resources",
@@ -238,6 +300,7 @@
     "btn_settings": "Settings",
     "btn_reports": "Reports",
     "btn_alerts": "Alerts",
+    "btn_back_to_menu": "Main Menu",
     "stats_title": "System Statistics",
     "stats_total_users": "Total users: {count}",
     "stats_active_checklists": "Active checklists: {count}",
@@ -285,6 +348,13 @@
     "task_reminder": "Task Reminder\n\nTask: {title}\nDue: {due_date}\n\nDon't forget to complete this task!",
     "meeting_reminder": "Meeting Reminder\n\nMeeting: {title}\nTime: {time}\n\nDon't forget your upcoming meeting!"
   },
+  "settings": {
+    "title": "Settings",
+    "description": "Configure your preferences",
+    "btn_language": "Language",
+    "btn_notifications": "Notifications",
+    "btn_back": "Back to Menu"
+  },
   "buttons": {
     "open_menu": "Open Menu",
     "contact_hr": "Contact HR",
@@ -299,6 +369,8 @@
     "help": "Help",
     "search": "Search",
     "search_answer": "Search Answer",
-    "escalate": "Escalate"
+    "escalate": "Escalate",
+    "admin": "Admin",
+    "settings": "Settings"
   }
 }

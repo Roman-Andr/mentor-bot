@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useTranslations } from "@/hooks/use-translations";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/table";
 import { DataTable } from "@/components/ui/data-table";
 import { CardHeader, CardTitle } from "@/components/ui/card";
-import { Building, MoreHorizontal, Trash2 } from "lucide-react";
+import { Building, SquarePen, Trash2, UserCheck } from "lucide-react";
 import { ROLES, ROLES_WITH_ALL } from "@/lib/constants";
 import type { UserItem } from "@/hooks/use-users";
 
@@ -25,6 +25,7 @@ interface UsersTableProps {
   loading: boolean;
   onEdit: (user: UserItem) => void;
   onDelete: (id: number) => void;
+  onAssignMentor?: (user: UserItem) => void;
   searchQuery: string;
   onSearchChange: (value: string) => void;
   roleFilter: string;
@@ -36,7 +37,9 @@ interface UsersTableProps {
   currentPage?: number;
   totalPages?: number;
   totalCount?: number;
+  pageSize?: number;
   onPageChange?: (page: number) => void;
+  onPageSizeChange?: (size: number) => void;
 }
 
 const ROLE_VARIANTS: Record<string, "default" | "secondary" | "outline"> = {
@@ -50,6 +53,7 @@ export function UsersTable({
   loading,
   onEdit,
   onDelete,
+  onAssignMentor,
   searchQuery,
   onSearchChange,
   roleFilter,
@@ -61,13 +65,14 @@ export function UsersTable({
   currentPage,
   totalPages,
   totalCount,
+  pageSize,
   onPageChange,
+  onPageSizeChange,
 }: UsersTableProps) {
-  const t = useTranslations("users");
-  const tCommon = useTranslations("common");
+  const t = useTranslations();
 
   const departmentOptions = [
-    { value: "ALL", label: t("allDepartments") },
+    { value: "ALL", label: t("users.allDepartments") },
     ...departments.map((d) => ({ value: String(d.id), label: d.name })),
   ];
   return (
@@ -77,19 +82,22 @@ export function UsersTable({
       currentPage={currentPage}
       totalPages={totalPages}
       totalCount={totalCount}
+      pageSize={pageSize}
       onPageChange={onPageChange}
+      onPageSizeChange={onPageSizeChange}
+      showPageSizeSelector={!!onPageSizeChange}
       header={
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>
-              {t("title")}{" "}
+              {t("users.title")}{" "}
               <span className="text-muted-foreground text-sm font-normal">
                 ({totalCount ?? users.length})
               </span>
             </CardTitle>
             <div className="flex gap-2">
               <SearchInput
-                placeholder={t("searchByNameOrEmail")}
+                placeholder={t("users.searchByNameOrEmail")}
                 value={searchQuery}
                 onChange={onSearchChange}
               />
@@ -100,7 +108,7 @@ export function UsersTable({
                 options={departmentOptions}
               />
               <Button variant="outline" onClick={onReset}>
-                {t("reset")}
+                {t("users.reset")}
               </Button>
             </div>
           </div>
@@ -110,14 +118,14 @@ export function UsersTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>{t("user")}</TableHead>
-            <TableHead>{t("employeeId")}</TableHead>
-            <TableHead>{tCommon("department")}</TableHead>
-            <TableHead>{t("position")}</TableHead>
-            <TableHead>{tCommon("role")}</TableHead>
-            <TableHead>{t("status")}</TableHead>
-            <TableHead>{t("addedAt")}</TableHead>
-            <TableHead className="w-[100px]">{tCommon("actions")}</TableHead>
+              <TableHead>{t("common.user")}</TableHead>
+            <TableHead>{t("users.employeeId")}</TableHead>
+            <TableHead>{t("common.department")}</TableHead>
+            <TableHead>{t("common.position")}</TableHead>
+            <TableHead>{t("common.role")}</TableHead>
+            <TableHead>{t("common.status")}</TableHead>
+            <TableHead>{t("common.createdAt")}</TableHead>
+            <TableHead className="w-25">{t("common.actions")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -154,9 +162,19 @@ export function UsersTable({
               </TableCell>
               <TableCell onClick={(e) => e.stopPropagation()}>
                 <div className="flex gap-1">
-                  <Button variant="ghost" size="icon" onClick={() => onEdit(user)}>
-                    <MoreHorizontal className="size-4" />
-                  </Button>
+                   <Button variant="ghost" size="icon" onClick={() => onEdit(user)}>
+                     <SquarePen className="size-4" />
+                   </Button>
+                   {onAssignMentor && user.role === "NEWBIE" && (
+                     <Button
+                       variant="ghost"
+                       size="icon"
+                       onClick={() => onAssignMentor(user)}
+                       title={t("users.assignMentor")}
+                     >
+                       <UserCheck className="size-4" />
+                     </Button>
+                   )}
                   <Button
                     variant="ghost"
                     size="icon"

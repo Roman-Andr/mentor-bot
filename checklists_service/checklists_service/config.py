@@ -50,6 +50,13 @@ class Settings(BaseSettings):
     CIRCUIT_BREAKER_FAILURE_THRESHOLD: int = Field(default=3, ge=1)
     CIRCUIT_BREAKER_RECOVERY_TIMEOUT: int = Field(default=30, ge=1)
 
+    # File Storage
+    STORAGE_PATH: str = Field(default="./storage")
+    MAX_FILE_SIZE_MB: int = Field(default=10, ge=1)
+    ALLOWED_FILE_TYPES: list[str] = Field(
+        default=[".pdf", ".doc", ".docx", ".xls", ".xlsx", ".txt", ".png", ".jpg", ".jpeg"]
+    )
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", case_sensitive=True, extra="ignore")
 
 

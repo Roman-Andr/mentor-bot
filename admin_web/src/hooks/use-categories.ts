@@ -1,8 +1,7 @@
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useDebounce } from "@/hooks/useDebounce";
-import { useToast } from "@/components/ui/toast";
-import { api, type Category } from "@/lib/api";
+import { useCallback } from "react";
+import { useEntity } from "./use-entity";
+import { api } from "@/lib/api";
+import type { Category } from "@/types";
 
 function slugify(text: string): string {
   return text
@@ -80,7 +79,7 @@ export interface CategoryFormData {
   color: string;
 }
 
-const EMPTY_FORM: CategoryFormData = {
+const DEFAULT_FORM: CategoryFormData = {
   name: "",
   slug: "",
   description: "",
@@ -114,170 +113,102 @@ function mapCategory(c: Category): CategoryRow {
   };
 }
 
-const CATEGORIES_KEY = ["categories"] as const;
+function toCreatePayload(form: CategoryFormData) {
+  return {
+    name: form.name,
+    slug: form.slug || slugify(form.name),
+    description: form.description || null,
+    parent_id: form.parent_id || null,
+    order: form.order,
+    department_id: form.department_id || null,
+    position: form.position || null,
+    level: form.level || null,
+    icon: form.icon || null,
+    color: form.color || null,
+  };
+}
+
+function toUpdatePayload(form: CategoryFormData) {
+  return {
+    name: form.name,
+    description: form.description || null,
+    parent_id: form.parent_id || null,
+    order: form.order,
+    department_id: form.department_id || null,
+    position: form.position || null,
+    level: form.level || null,
+    icon: form.icon || null,
+    color: form.color || null,
+  };
+}
+
+function toForm(item: CategoryRow): CategoryFormData {
+  return {
+    name: item.name,
+    slug: item.slug,
+    description: item.description,
+    parent_id: item.parent_id || 0,
+    order: item.order,
+    department_id: item.department_id || 0,
+    position: item.position,
+    level: item.level,
+    icon: item.icon,
+    color: item.color,
+  };
+}
 
 export function useCategories() {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<CategoryRow | null>(null);
-  const [formData, setFormData] = useState<CategoryFormData>(EMPTY_FORM);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 20;
-
-  const debouncedSearch = useDebounce(searchQuery);
-
-  const queryParams = {
-    skip: (currentPage - 1) * pageSize,
-    limit: pageSize,
-    ...(debouncedSearch && { search: debouncedSearch }),
-  };
-
-  const { data: categoriesData, isLoading: loading } = useQuery({
-    queryKey: [...CATEGORIES_KEY, queryParams],
-    queryFn: () => api.categories.list({ ...queryParams, include_tree: true }),
-    select: (result) =>
-      result.data
-        ? {
-            categories: result.data.categories.map(mapCategory),
-            total: result.data.total,
-            pages: result.data.pages,
-          }
-        : undefined,
-  });
-
-  const createMutation = useMutation({
-    mutationFn: (data: Parameters<typeof api.categories.create>[0]) => api.categories.create(data),
-    onSuccess: (result) => {
-      if (result.data) {
-        queryClient.invalidateQueries({ queryKey: CATEGORIES_KEY });
-        setIsCreateDialogOpen(false);
-        resetForm();
-        toast("Категория создана", "success");
-      } else if (result.error) {
-        toast(result.error, "error");
-      }
+  const entity = useEntity<CategoryRow, CategoryFormData>({
+    entityName: "Категория",
+    translationNamespace: "knowledge",
+    queryKeyPrefix: "categories",
+    listFn: (params) => api.categories.list({ ...params, include_tree: true }),
+    listDataKey: "categories",
+    createFn: (data) => api.categories.create(data),
+    updateFn: (id, data) => api.categories.update(id, data),
+    deleteFn: (id) => api.categories.delete(id),
+    defaultForm: DEFAULT_FORM,
+    mapItem: (item) => mapCategory(item as Category),
+    toCreatePayload,
+    toUpdatePayload,
+    toForm,
+    labels: {
+      createdKey: "knowledge.categoryCreated",
+      updatedKey: "knowledge.categoryUpdated",
+      deletedKey: "knowledge.categoryDeleted",
+      createErrorKey: "knowledge.categoryCreateError",
+      updateErrorKey: "knowledge.categoryUpdateError",
+      deleteErrorKey: "knowledge.categoryDeleteError",
     },
-    onError: () => toast("Ошибка сохранения категории", "error"),
+    searchable: true,
+    searchParamName: "search",
+    pageSize: 20,
   });
 
-  const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Parameters<typeof api.categories.update>[1] }) =>
-      api.categories.update(id, data),
-    onSuccess: (result) => {
-      if (result.data) {
-        queryClient.invalidateQueries({ queryKey: CATEGORIES_KEY });
-        setIsEditDialogOpen(false);
-        setSelectedCategory(null);
-        toast("Категория обновлена", "success");
-      } else if (result.error) {
-        toast(result.error, "error");
-      }
-    },
-    onError: () => toast("Ошибка сохранения категории", "error"),
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: number) => api.categories.delete(id),
-    onSuccess: (result) => {
-      if (!result.error) {
-        queryClient.invalidateQueries({ queryKey: CATEGORIES_KEY });
-        toast("Категория удалена", "success");
-      } else {
-        toast(result.error, "error");
-      }
-    },
-    onError: () => toast("Ошибка удаления категории", "error"),
-  });
-
-  const handleSubmit = () => {
-    const payload = {
-      name: formData.name,
-      slug: formData.slug || slugify(formData.name),
-      description: formData.description || null,
-      parent_id: formData.parent_id || null,
-      order: formData.order,
-      department_id: formData.department_id || null,
-      position: formData.position || null,
-      level: formData.level || null,
-      icon: formData.icon || null,
-      color: formData.color || null,
-    };
-
-    if (selectedCategory) {
-      updateMutation.mutate({ id: selectedCategory.id, data: payload });
-    } else {
-      createMutation.mutate(payload);
-    }
-  };
-
-  const handleDelete = (id: number) => {
-    deleteMutation.mutate(id);
-  };
-
-  const openEdit = (category: CategoryRow) => {
-    setSelectedCategory(category);
-    setFormData({
-      name: category.name,
-      slug: category.slug,
-      description: category.description,
-      parent_id: category.parent_id || 0,
-      order: category.order,
-      department_id: category.department_id || 0,
-      position: category.position,
-      level: category.level,
-      icon: category.icon,
-      color: category.color,
-    });
-    setIsEditDialogOpen(true);
-  };
-
-  const resetForm = () => {
-    setFormData(EMPTY_FORM);
-    setSelectedCategory(null);
-  };
-
-  const updateFormField = (field: keyof CategoryFormData, value: string | number) => {
-    setFormData((prev) => {
+  // Custom updateFormField that auto-generates slug from name
+  const updateFormField = useCallback((field: keyof CategoryFormData, value: string | number) => {
+    entity.setFormData((prev) => {
       const next = { ...prev, [field]: value };
       if (field === "name" && !prev.slug) {
         next.slug = slugify(String(value));
       }
       return next;
     });
-  };
-
-  const categories = categoriesData?.categories || [];
-  const totalCount = categoriesData?.total || 0;
-  const totalPages = categoriesData?.pages || 1;
+  }, [entity]);
 
   return {
-    categories,
-    loading,
-    isCreateDialogOpen,
-    setIsCreateDialogOpen,
-    isEditDialogOpen,
-    setIsEditDialogOpen,
-    selectedCategory,
-    setSelectedCategory,
-    formData,
-    setFormData,
+    ...entity,
+    categories: entity.items,
+    selectedCategory: entity.selectedItem,
+    setSelectedCategory: entity.setSelectedItem,
+    openEdit: entity.openEditDialog,
     updateFormField,
-    searchQuery,
-    setSearchQuery,
-    currentPage,
-    setCurrentPage,
-    totalPages,
-    totalCount,
-    pageSize,
-    handleSubmit,
-    handleDelete,
-    openEdit,
-    resetForm,
-    isSubmitting: createMutation.isPending || updateMutation.isPending,
-    isDeleting: deleteMutation.isPending,
+    // Ensure pagination props are available
+    currentPage: entity.currentPage,
+    setCurrentPage: entity.setCurrentPage,
+    pageSize: entity.pageSize,
+    setPageSize: entity.setPageSize,
+    totalCount: entity.totalCount,
+    totalPages: entity.totalPages,
   };
 }

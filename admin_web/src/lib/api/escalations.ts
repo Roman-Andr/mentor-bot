@@ -1,6 +1,6 @@
 import { fetchApi } from "./client";
 import { buildQueryString } from "@/lib/utils/query-builder";
-import type { EscalationRequest, EscalationListResponse } from "./types";
+import type { EscalationRequest, EscalationListResponse } from "@/types";
 
 export const escalationsApi = {
   list: (params?: {
@@ -8,6 +8,7 @@ export const escalationsApi = {
     assigned_to?: number;
     escalation_type?: string;
     status?: string;
+    search?: string;
     skip?: number;
     limit?: number;
   }) => {

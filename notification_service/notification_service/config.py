@@ -46,6 +46,10 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: str | None = Field(default=None)
     SMTP_USE_TLS: bool = Field(default=True)
     DEFAULT_FROM_EMAIL: str = Field(default="noreply@mentorbot.com")
+    EMAIL_DRY_RUN: bool = Field(
+        default=True,
+        description="Log emails instead of sending. Set EMAIL_DRY_RUN=False to enable actual email delivery",
+    )
 
     # Scheduler
     SCHEDULER_POLL_INTERVAL_SECONDS: int = Field(default=60, ge=1)  # Check every minute

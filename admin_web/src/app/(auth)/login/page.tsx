@@ -2,15 +2,15 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
-import { useAuth } from "@/lib/auth-context";
+import { useTranslations } from "@/hooks/use-translations";
+import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function LoginPage() {
-  const t = useTranslations("auth");
+  const t = useTranslations();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -28,7 +28,7 @@ export default function LoginPage() {
     if (success) {
       router.push("/");
     } else {
-      setError(t("invalidCredentials"));
+      setError(t("auth.invalidCredentials"));
     }
 
     setIsLoading(false);
@@ -38,14 +38,14 @@ export default function LoginPage() {
     <div className="bg-muted flex min-h-screen items-center justify-center">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-center text-2xl font-bold">{t("loginTitle")}</CardTitle>
-          <CardDescription className="text-center">{t("loginDescription")}</CardDescription>
+          <CardTitle className="text-center text-2xl font-bold">{t("auth.loginTitle")}</CardTitle>
+          <CardDescription className="text-center">{t("auth.loginDescription")}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && <div className="rounded-md bg-red-50 p-3 text-sm text-red-500">{error}</div>}
             <div className="space-y-2">
-              <Label htmlFor="email">{t("email")}</Label>
+              <Label htmlFor="email">{t("auth.email")}</Label>
               <Input
                 id="email"
                 type="email"
@@ -56,7 +56,7 @@ export default function LoginPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">{t("password")}</Label>
+              <Label htmlFor="password">{t("auth.password")}</Label>
               <Input
                 id="password"
                 type="password"
@@ -67,7 +67,7 @@ export default function LoginPage() {
               />
             </div>
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? t("loggingIn") : t("loginButton")}
+              {isLoading ? t("auth.loggingIn") : t("auth.loginButton")}
             </Button>
           </form>
         </CardContent>

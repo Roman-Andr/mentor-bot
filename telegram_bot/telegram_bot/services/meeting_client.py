@@ -34,7 +34,7 @@ class MeetingServiceClient:
         """Create meeting."""
         try:
             response = await self.client.post(
-                f"{settings.API_V1_PREFIX}/meetings",
+                f"{settings.API_V1_PREFIX}/user-meetings",
                 json={
                     "user_id": user_id,
                     "title": title,
@@ -58,7 +58,7 @@ class MeetingServiceClient:
         """Get user meetings."""
         try:
             response = await self.client.get(
-                f"{settings.API_V1_PREFIX}/meetings/user/{user_id}",
+                f"{settings.API_V1_PREFIX}/user-meetings",
                 params={"limit": limit},
                 headers={"Authorization": f"Bearer {auth_token}"},
             )
@@ -75,7 +75,7 @@ class MeetingServiceClient:
         """Get upcoming meetings for user."""
         try:
             response = await self.client.get(
-                f"{settings.API_V1_PREFIX}/meetings/user/{user_id}/upcoming",
+                f"{settings.API_V1_PREFIX}/user-meetings/upcoming",
                 params={"limit": limit},
                 headers={"Authorization": f"Bearer {auth_token}"},
             )
@@ -92,7 +92,7 @@ class MeetingServiceClient:
         """Confirm meeting attendance."""
         try:
             response = await self.client.post(
-                f"{settings.API_V1_PREFIX}/meetings/{meeting_id}/confirm",
+                f"{settings.API_V1_PREFIX}/user-meetings/{meeting_id}/confirm",
                 json={"user_id": user_id},
                 headers={"Authorization": f"Bearer {auth_token}"},
             )
@@ -112,7 +112,7 @@ class MeetingServiceClient:
                 json_data["reason"] = reason
 
             response = await self.client.post(
-                f"{settings.API_V1_PREFIX}/meetings/{meeting_id}/cancel",
+                f"{settings.API_V1_PREFIX}/user-meetings/{meeting_id}/cancel",
                 json=json_data,
                 headers={"Authorization": f"Bearer {auth_token}"},
             )

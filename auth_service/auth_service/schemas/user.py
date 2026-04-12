@@ -26,6 +26,7 @@ class UserCreate(UserBase):
     employee_id: str = Field(..., min_length=1, max_length=50)
     password: str = Field(..., min_length=8)
     role: UserRole = Field(default=UserRole.NEWBIE)
+    telegram_id: int | None = None
 
 
 class UserUpdate(BaseModel):
@@ -40,6 +41,7 @@ class UserUpdate(BaseModel):
     level: EmployeeLevel | None = Field(None, max_length=50)
     role: UserRole | None = None
     is_active: bool | None = None
+    telegram_id: int | None = None
 
 
 class UserResponse(UserBase):
@@ -57,6 +59,7 @@ class UserResponse(UserBase):
     updated_at: datetime | None = None
     last_login_at: datetime | None = None
     department: DepartmentResponse | None = None
+    mentor_id: int | None = None
 
     model_config = ConfigDict(from_attributes=True)
 

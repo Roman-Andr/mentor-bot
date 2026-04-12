@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "@/hooks/use-translations";
 import { ChevronDown, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -29,12 +29,12 @@ export function Select({
   className,
   id,
 }: SelectProps) {
-  const t = useTranslations("common");
+  const t = useTranslations();
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const selectedOption = options.find((o) => o.value === value);
-  const placeholderText = placeholder ?? t("selectPlaceholder");
+  const placeholderText = placeholder ?? t("common.selectPlaceholder");
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {

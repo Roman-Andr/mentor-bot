@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useTranslations } from "@/hooks/use-translations";
 import { Button } from "@/components/ui/button";
 import { SearchInput } from "@/components/ui/search-input";
 import {
@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/table";
 import { DataTable } from "@/components/ui/data-table";
 import { CardHeader, CardTitle } from "@/components/ui/card";
-import { Trash2, MoreHorizontal } from "lucide-react";
+import { Trash2, SquarePen } from "lucide-react";
 import type { DepartmentRow } from "@/hooks/use-departments";
 
 interface DepartmentsTableProps {
@@ -24,7 +24,9 @@ interface DepartmentsTableProps {
   currentPage: number;
   totalPages: number;
   totalCount: number;
+  pageSize?: number;
   onPageChange: (page: number) => void;
+  onPageSizeChange?: (size: number) => void;
   onEdit: (department: DepartmentRow) => void;
   onDelete: (id: number) => void;
 }
@@ -37,12 +39,13 @@ export function DepartmentsTable({
   currentPage,
   totalPages,
   totalCount,
+  pageSize,
   onPageChange,
+  onPageSizeChange,
   onEdit,
   onDelete,
 }: DepartmentsTableProps) {
-  const t = useTranslations("departments");
-  const tCommon = useTranslations("common");
+  const t = useTranslations();
 
   return (
     <DataTable
@@ -51,12 +54,15 @@ export function DepartmentsTable({
       currentPage={currentPage}
       totalPages={totalPages}
       totalCount={totalCount}
+      pageSize={pageSize}
       onPageChange={onPageChange}
+      onPageSizeChange={onPageSizeChange}
+      showPageSizeSelector={!!onPageSizeChange}
       header={
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>{t("title")}</CardTitle>
-            <SearchInput placeholder={tCommon("searchPlaceholder")} value={searchQuery} onChange={onSearchChange} />
+            <CardTitle>{t("departments.title")}</CardTitle>
+            <SearchInput placeholder={t("common.searchPlaceholder")} value={searchQuery} onChange={onSearchChange} />
           </div>
         </CardHeader>
       }
@@ -64,10 +70,10 @@ export function DepartmentsTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>{t("name")}</TableHead>
-            <TableHead>{tCommon("description")}</TableHead>
-            <TableHead>{tCommon("created")}</TableHead>
-            <TableHead className="w-[100px]">{tCommon("actions")}</TableHead>
+            <TableHead>{t("departments.name")}</TableHead>
+            <TableHead>{t("common.description")}</TableHead>
+            <TableHead>{t("common.created")}</TableHead>
+            <TableHead className="w-25">{t("common.actions")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -80,15 +86,15 @@ export function DepartmentsTable({
               <TableCell>
                 <span className="font-medium">{department.name}</span>
               </TableCell>
-              <TableCell className="text-muted-foreground max-w-[300px] truncate text-sm">
+              <TableCell className="text-muted-foreground max-w-75 truncate text-sm">
                 {department.description || "—"}
               </TableCell>
               <TableCell>{new Date(department.createdAt).toLocaleDateString()}</TableCell>
               <TableCell onClick={(e) => e.stopPropagation()}>
                 <div className="flex gap-1">
-                  <Button variant="ghost" size="icon" onClick={() => onEdit(department)}>
-                    <MoreHorizontal className="size-4" />
-                  </Button>
+                   <Button variant="ghost" size="icon" onClick={() => onEdit(department)}>
+                     <SquarePen className="size-4" />
+                   </Button>
                   <Button
                     variant="ghost"
                     size="icon"

@@ -1,8 +1,8 @@
 [
   {
-    "name": "Onboarding",
+    "name": "Онбординг",
     "slug": "onboarding",
-    "description": "General onboarding materials and guides",
+    "description": "Материалы для адаптации новых сотрудников",
     "department": "Engineering",
     "position": "Software Engineer",
     "level": "JUNIOR",
@@ -11,9 +11,9 @@
     "color": "#4CAF50"
   },
   {
-    "name": "Development",
+    "name": "Разработка",
     "slug": "development",
-    "description": "Development guides, tools, and best practices",
+    "description": "Гайды по разработке, инструменты и лучшие практики",
     "department": "Engineering",
     "position": "Software Engineer",
     "level": "JUNIOR",
@@ -22,20 +22,20 @@
     "color": "#2196F3"
   },
   {
-    "name": "Company Policies",
+    "name": "Политики компании",
     "slug": "company-policies",
-    "description": "HR policies, procedures, and compliance",
-    "department": "Engineering",
-    "position": "Software Engineer",
+    "description": "HR политики, процедуры и соответствие",
+    "department": "Operations",
+    "position": "HR Specialist",
     "level": "JUNIOR",
     "order": 3,
     "icon": "shield-check",
     "color": "#FF9800"
   },
   {
-    "name": "Product",
+    "name": "Продукт",
     "slug": "product",
-    "description": "Product management and design resources",
+    "description": "Управление продуктом и дизайн",
     "department": "Product",
     "position": "Product Manager",
     "level": "MIDDLE",
@@ -44,14 +44,25 @@
     "color": "#9C27B0"
   },
   {
-    "name": "Sales & Marketing",
+    "name": "Продажи и Маркетинг",
     "slug": "sales-marketing",
-    "description": "Sales and marketing guides and strategies",
+    "description": "Руководства по продажам и маркетингу",
     "department": "Sales",
     "position": "Sales Representative",
     "level": "JUNIOR",
     "order": 5,
     "icon": "trending-up",
     "color": "#F44336"
+  },
+  {
+    "name": "IT и Безопасность",
+    "slug": "it-security",
+    "description": "IT поддержка и политики безопасности",
+    "department": "Engineering",
+    "position": "DevOps Engineer",
+    "level": "MIDDLE",
+    "order": 6,
+    "icon": "lock",
+    "color": "#607D8B"
   }
 ]

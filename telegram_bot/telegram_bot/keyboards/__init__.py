@@ -22,19 +22,19 @@ from telegram_bot.keyboards.checklist import (
 )
 from telegram_bot.keyboards.checklist_detail import (
     get_attach_task_keyboard,
+    get_back_to_task_keyboard,
     get_no_checklists_keyboard,
     get_no_tasks_keyboard,
+    get_skip_description_keyboard,
     get_task_completed_keyboard,
     get_task_info_keyboard,
 )
 from telegram_bot.keyboards.common_kb import (
-    get_contact_hr_keyboard,
     get_help_keyboard,
     get_mentor_tasks_keyboard,
     get_my_mentor_keyboard,
     get_my_mentor_no_mentor_keyboard,
     get_progress_keyboard,
-    get_schedule_hr_keyboard,
     get_schedule_mentor_keyboard,
 )
 from telegram_bot.keyboards.documents_kb import (
@@ -92,15 +92,16 @@ __all__ = [
     "get_calendar_not_connected_keyboard",
     # checklists
     "get_attach_task_keyboard",
+    "get_back_to_task_keyboard",
     "get_checklists_keyboard",
     "get_no_checklists_keyboard",
     "get_no_tasks_keyboard",
+    "get_skip_description_keyboard",
     "get_task_completed_keyboard",
     "get_task_detail_keyboard",
     "get_task_info_keyboard",
     "get_tasks_keyboard",
     # common
-    "get_contact_hr_keyboard",
     "get_help_keyboard",
     "get_inline_main_menu",
     "get_main_menu_keyboard",
@@ -108,7 +109,6 @@ __all__ = [
     "get_my_mentor_keyboard",
     "get_my_mentor_no_mentor_keyboard",
     "get_progress_keyboard",
-    "get_schedule_hr_keyboard",
     "get_schedule_mentor_keyboard",
     # documents
     "get_article_detail_keyboard",

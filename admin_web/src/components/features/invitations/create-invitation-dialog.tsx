@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useTranslations } from "@/hooks/use-translations";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,7 +17,8 @@ import { SearchableSelect, type SelectOption } from "@/components/ui/searchable-
 import { Send } from "lucide-react";
 import { ROLES, LEVELS } from "@/lib/constants";
 import { useEffect, useState, useCallback } from "react";
-import { api, type User } from "@/lib/api";
+import { api } from "@/lib/api";
+import type { User } from "@/types";
 
 interface InvitationFormData {
   email: string;
@@ -53,8 +54,7 @@ export function CreateInvitationDialog({
   onSubmit,
   onCancel,
 }: CreateInvitationDialogProps) {
-  const t = useTranslations("invitations");
-  const tCommon = useTranslations("common");
+  const t = useTranslations();
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const isEmailValid = !formData.email || emailRegex.test(formData.email);
@@ -93,14 +93,14 @@ export function CreateInvitationDialog({
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{t("createInvitation")}</DialogTitle>
+          <DialogTitle>{t("invitations.createInvitation")}</DialogTitle>
           <DialogDescription>
-            {t("sendInvitationDescription") || "Send invitation to new employee for registration"}
+            {t("invitations.sendInvitationDescription") || "Send invitation to new employee for registration"}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
-            <Label htmlFor="email">{tCommon("email")}</Label>
+            <Label htmlFor="email">{t("common.email")}</Label>
             <Input
               id="email"
               type="email"
@@ -110,10 +110,10 @@ export function CreateInvitationDialog({
               onChange={(e) => onFormDataChange({ ...formData, email: e.target.value })}
               onBlur={() => onEmailTouchedChange(true)}
             />
-            {showEmailError && <p className="text-sm text-red-500">{t("invalidEmail") || "Invalid email format"}</p>}
+            {showEmailError && <p className="text-sm text-red-500">{t("invitations.invalidEmail") || "Invalid email format"}</p>}
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="employeeId">{t("employeeId")}</Label>
+            <Label htmlFor="employeeId">{t("invitations.employeeId")}</Label>
             <Input
               id="employeeId"
               placeholder="EMP-001"
@@ -122,11 +122,11 @@ export function CreateInvitationDialog({
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="department">{tCommon("department")}</Label>
+            <Label htmlFor="department">{t("common.department")}</Label>
             <Select
               id="department"
               options={departments.map((d) => ({ value: String(d.id), label: d.name }))}
-              placeholder={t("selectDepartment")}
+              placeholder={t("invitations.selectDepartment")}
               value={formData.department_id ? String(formData.department_id) : ""}
               onChange={(val) =>
                 onFormDataChange({ ...formData, department_id: parseInt(val) || 0 })
@@ -134,7 +134,7 @@ export function CreateInvitationDialog({
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="position">{t("position") || "Position"}</Label>
+            <Label htmlFor="position">{t("invitations.position") || "Position"}</Label>
             <Input
               id="position"
               placeholder="Developer"
@@ -143,17 +143,17 @@ export function CreateInvitationDialog({
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="level">{t("level")}</Label>
+            <Label htmlFor="level">{t("invitations.level")}</Label>
             <Select
               id="level"
               options={[...LEVELS]}
-              placeholder={tCommon("notSelected")}
+              placeholder={t("common.notSelected")}
               value={formData.level || ""}
               onChange={(val) => onFormDataChange({ ...formData, level: val })}
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="role">{tCommon("role")}</Label>
+            <Label htmlFor="role">{t("common.role")}</Label>
             <Select
               id="role"
               options={ROLES}
@@ -162,13 +162,13 @@ export function CreateInvitationDialog({
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="mentor">{t("mentor")}</Label>
+            <Label htmlFor="mentor">{t("invitations.mentor")}</Label>
             <SearchableSelect
               options={mentorOptions}
               value={formData.mentor_id ? String(formData.mentor_id) : ""}
               onChange={(v) => onFormDataChange({ ...formData, mentor_id: v ? parseInt(v) : 0 })}
-              placeholder={loading ? tCommon("loading") : t("notAssigned") || "Not assigned"}
-              searchPlaceholder={t("searchByName")}
+              placeholder={loading ? t("common.loading") : t("invitations.notAssigned") || "Not assigned"}
+              searchPlaceholder={t("invitations.searchByName")}
               disabled={loading}
             />
           </div>
@@ -181,11 +181,11 @@ export function CreateInvitationDialog({
               onEmailTouchedChange(false);
             }}
           >
-            {tCommon("cancel")}
+            {t("common.cancel")}
           </Button>
           <Button className="gap-2" onClick={onSubmit} disabled={!formData.email || showEmailError}>
             <Send className="size-4" />
-            {t("sendInvitation")}
+            {t("invitations.sendInvitation")}
           </Button>
         </DialogFooter>
       </DialogContent>

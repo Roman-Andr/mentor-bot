@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useTranslations } from "@/hooks/use-translations";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select } from "@/components/ui/select";
@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/table";
 import { DataTable } from "@/components/ui/data-table";
 import { CardHeader, CardTitle } from "@/components/ui/card";
-import { MoreHorizontal, Calendar, CheckCircle, Trash2 } from "lucide-react";
+import { SquarePen, Calendar, CheckCircle, Trash2 } from "lucide-react";
 import { TEMPLATE_STATUSES } from "@/lib/constants";
 import type { TemplateItem } from "@/hooks/use-templates";
 
@@ -34,7 +34,9 @@ interface TemplatesTableProps {
   currentPage?: number;
   totalPages?: number;
   totalCount?: number;
+  pageSize?: number;
   onPageChange?: (page: number) => void;
+  onPageSizeChange?: (size: number) => void;
 }
 
 export function TemplatesTable({
@@ -51,10 +53,11 @@ export function TemplatesTable({
   currentPage,
   totalPages,
   totalCount,
+  pageSize,
   onPageChange,
+  onPageSizeChange,
 }: TemplatesTableProps) {
-  const t = useTranslations("templates");
-  const tCommon = useTranslations("common");
+  const t = useTranslations();
 
   return (
     <DataTable
@@ -63,12 +66,15 @@ export function TemplatesTable({
       currentPage={currentPage}
       totalPages={totalPages}
       totalCount={totalCount}
+      pageSize={pageSize}
       onPageChange={onPageChange}
+      onPageSizeChange={onPageSizeChange}
+      showPageSizeSelector={!!onPageSizeChange}
       header={
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>
-              {t("title")}{" "}
+              {t("templates.title")}{" "}
               <span className="text-muted-foreground text-sm font-normal">
                 ({totalCount ?? templates.length})
               </span>
@@ -81,7 +87,7 @@ export function TemplatesTable({
                 options={TEMPLATE_STATUSES}
               />
               <Button variant="outline" onClick={onReset}>
-                {tCommon("reset")}
+                {t("common.reset")}
               </Button>
             </div>
           </div>
@@ -91,13 +97,13 @@ export function TemplatesTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>{t("name")}</TableHead>
-            <TableHead>{tCommon("department")}</TableHead>
-            <TableHead>{t("position")}</TableHead>
-            <TableHead>{t("days")}</TableHead>
-            <TableHead>{t("tasks")}</TableHead>
-            <TableHead>{tCommon("status")}</TableHead>
-            <TableHead className="w-[100px]">{tCommon("actions")}</TableHead>
+            <TableHead>{t("common.name")}</TableHead>
+            <TableHead>{t("common.department")}</TableHead>
+            <TableHead>{t("common.position")}</TableHead>
+            <TableHead>{t("common.days")}</TableHead>
+            <TableHead>{t("common.tasks")}</TableHead>
+            <TableHead>{t("common.status")}</TableHead>
+            <TableHead className="w-25">{t("common.actions")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -113,7 +119,7 @@ export function TemplatesTable({
                     <p className="font-medium">{template.name}</p>
                     {template.isDefault && (
                       <Badge variant="secondary" className="text-xs">
-                        {t("default")}
+                        {t("templates.default")}
                       </Badge>
                     )}
                   </div>
@@ -134,16 +140,16 @@ export function TemplatesTable({
               </TableCell>
               <TableCell onClick={(e) => e.stopPropagation()}>
                 <div className="flex gap-1">
-                  <Button variant="ghost" size="icon" onClick={() => onEdit(template)}>
-                    <MoreHorizontal className="size-4" />
-                  </Button>
+                   <Button variant="ghost" size="icon" onClick={() => onEdit(template)}>
+                     <SquarePen className="size-4" />
+                   </Button>
                   {template.status === "DRAFT" && (
                     <Button
                       variant="ghost"
                       size="icon"
                       className="text-green-500"
                       onClick={() => onPublish(template.id)}
-                      title={t("publish")}
+                      title={t("templates.publish")}
                     >
                       <CheckCircle className="size-4" />
                     </Button>

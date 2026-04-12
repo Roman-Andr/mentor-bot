@@ -4,7 +4,7 @@ from collections.abc import AsyncGenerator
 from typing import Annotated
 
 import httpx
-from fastapi import Depends, HTTPException, Request, status
+from fastapi import Depends, Header, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -119,3 +119,28 @@ async def get_uow() -> AsyncGenerator[SqlAlchemyUnitOfWork]:
 
 
 UOWDep = Annotated[SqlAlchemyUnitOfWork, Depends(get_uow)]
+
+
+async def verify_service_api_key(
+    x_api_key: Annotated[str | None, Header(alias="X-Service-Api-Key")] = None,
+) -> bool:
+    """Verify service-to-service API key."""
+    if not settings.SERVICE_API_KEY:
+        return False
+    if not x_api_key or x_api_key != settings.SERVICE_API_KEY:
+        msg = "Invalid service API key"
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=msg)
+    return True
+
+
+ServiceAuth = Annotated[bool, Depends(verify_service_api_key)]
+
+
+class MeetingServiceDep:
+    """Simple marker for service-to-service calls."""
+
+
+
+async def get_meeting_service_dep() -> MeetingServiceDep:
+    """Dependency for service-to-service calls."""
+    return MeetingServiceDep()

@@ -17,11 +17,6 @@ def get_help_keyboard(*, locale: str = "en") -> InlineKeyboardBuilder:
             style=ButtonStyle.PRIMARY,
         ),
         create_inline_button(
-            t("buttons.contact_hr", locale=locale),
-            callback_data="contact_hr",
-            style=ButtonStyle.PRIMARY,
-        ),
-        create_inline_button(
             t("buttons.my_mentor", locale=locale),
             callback_data="my_mentor",
             style=ButtonStyle.PRIMARY,
@@ -31,57 +26,10 @@ def get_help_keyboard(*, locale: str = "en") -> InlineKeyboardBuilder:
     return builder
 
 
-def get_contact_hr_keyboard(*, locale: str = "en") -> InlineKeyboardBuilder:
-    """Build contact HR keyboard."""
-    builder = InlineKeyboardBuilder()
-    builder.add(
-        create_inline_button(
-            f"\U0001f4e8 {t('hr.btn_send_message', locale=locale)}",
-            callback_data="send_to_hr",
-            style=ButtonStyle.PRIMARY,
-        ),
-        create_inline_button(
-            f"\U0001f4c5 {t('hr.btn_schedule_meeting', locale=locale)}",
-            callback_data="schedule_hr",
-            style=ButtonStyle.PRIMARY,
-        ),
-        create_inline_button(
-            f"\u2190 {t('common.menu_button', locale=locale)}",
-            callback_data="menu",
-        ),
-    )
-    builder.adjust(1)
-    return builder
-
-
-def get_schedule_hr_keyboard(*, locale: str = "en") -> InlineKeyboardBuilder:
-    """Build schedule meeting with HR keyboard."""
-    builder = InlineKeyboardBuilder()
-    builder.add(
-        create_inline_button(
-            t("buttons.meetings", locale=locale),
-            callback_data="meetings_menu",
-            style=ButtonStyle.PRIMARY,
-        )
-    )
-    builder.add(
-        create_inline_button(
-            f"\u2190 {t('common.back_button', locale=locale)}",
-            callback_data="contact_hr",
-        )
-    )
-    return builder
-
-
 def get_my_mentor_no_mentor_keyboard(*, locale: str = "en") -> InlineKeyboardBuilder:
     """Build my mentor keyboard when no mentor is assigned."""
     builder = InlineKeyboardBuilder()
     builder.add(
-        create_inline_button(
-            t("buttons.contact_hr", locale=locale),
-            callback_data="contact_hr",
-            style=ButtonStyle.PRIMARY,
-        ),
         create_inline_button(
             f"\u2190 {t('common.menu_button', locale=locale)}", callback_data="menu"
         ),
@@ -154,7 +102,9 @@ def get_mentor_tasks_keyboard(*, locale: str = "en") -> InlineKeyboardBuilder:
     return builder
 
 
-def get_progress_keyboard(*, locale: str = "en") -> InlineKeyboardBuilder:
+def get_progress_keyboard(
+    checklist_id: int | None = None, *, locale: str = "en"
+) -> InlineKeyboardBuilder:
     """Build progress dashboard keyboard."""
     builder = InlineKeyboardBuilder()
     builder.add(
@@ -171,9 +121,11 @@ def get_progress_keyboard(*, locale: str = "en") -> InlineKeyboardBuilder:
             style=ButtonStyle.PRIMARY,
         )
     )
+    # Always go back to checklists list, not to specific checklist tasks
     builder.add(
         create_inline_button(
-            f"\u2190 {t('common.menu_button', locale=locale)}", callback_data="menu"
+            f"\u2190 {t('checklists.btn_back_checklists', locale=locale)}",
+            callback_data="my_tasks",
         )
     )
     builder.adjust(1)

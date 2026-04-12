@@ -201,3 +201,41 @@ class TaskService:
                 blocked_task.status = TaskStatus.PENDING
                 blocked_task.updated_at = datetime.now(UTC)
                 await self._uow.tasks.update(blocked_task)
+
+    async def add_attachment(
+        self,
+        task_id: int,
+        filename: str,
+        file_size: int,
+        mime_type: str,
+        description: str | None,
+        uploaded_by: int,
+    ) -> dict:
+        """Add an attachment to a task."""
+        from sqlalchemy.orm.attributes import flag_modified
+
+        task = await self.get_task(task_id)
+
+        attachment = {
+            "id": len(task.attachments) + 1,
+            "filename": filename,
+            "file_size": file_size,
+            "mime_type": mime_type,
+            "description": description,
+            "uploaded_at": datetime.now(UTC).isoformat(),
+            "uploaded_by": uploaded_by,
+        }
+
+        # Create new list to trigger SQLAlchemy change detection
+        task.attachments = task.attachments + [attachment]
+        flag_modified(task, "attachments")
+
+        task.updated_at = datetime.now(UTC)
+        await self._uow.tasks.update(task)
+
+        return attachment
+
+    async def get_attachments(self, task_id: int) -> list[dict]:
+        """Get all attachments for a task."""
+        task = await self.get_task(task_id)
+        return task.attachments

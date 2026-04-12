@@ -71,6 +71,7 @@ async def setup_bot_commands(bot: Bot) -> None:
         BotCommand(command="/feedback", description="Provide feedback"),
         BotCommand(command="/progress", description="View onboarding progress"),
         BotCommand(command="/language", description="Change language"),
+        BotCommand(command="/settings", description="Settings"),
         BotCommand(command="/help", description="Show help"),
     ]
 

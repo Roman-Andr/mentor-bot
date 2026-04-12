@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "@/hooks/use-translations";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { PageContent } from "@/components/layout/page-content";
@@ -19,8 +19,7 @@ import { cn } from "@/lib/utils";
 type Tab = "articles" | "categories";
 
 export default function KnowledgePage() {
-  const t = useTranslations("knowledge");
-  const tCommon = useTranslations("common");
+  const t = useTranslations();
   const [activeTab, setActiveTab] = useState<Tab>("articles");
   const a = useArticles();
   const c = useCategories();
@@ -38,8 +37,8 @@ export default function KnowledgePage() {
 
   return (
     <PageContent
-      title={t("title")}
-      subtitle={t("title")}
+      title={t("knowledge.title")}
+      subtitle={t("knowledge.title")}
       actions={
         <div className="flex items-center gap-2">
           <div className="flex rounded-md border">
@@ -53,7 +52,7 @@ export default function KnowledgePage() {
               onClick={() => setActiveTab("articles")}
             >
               <BookOpen className="size-4" />
-              {t("articles")}
+              {t("knowledge.articles")}
             </button>
             <button
               className={cn(
@@ -65,7 +64,7 @@ export default function KnowledgePage() {
               onClick={() => setActiveTab("categories")}
             >
               <FolderOpen className="size-4" />
-              {t("categories")}
+              {t("knowledge.categories")}
             </button>
           </div>
           <Button
@@ -81,7 +80,7 @@ export default function KnowledgePage() {
             }}
           >
             <Plus className="size-4" />
-            {activeTab === "articles" ? t("addArticle") : t("addCategory")}
+            {activeTab === "articles" ? t("knowledge.addArticle") : t("knowledge.addCategory")}
           </Button>
         </div>
       }
@@ -94,7 +93,7 @@ export default function KnowledgePage() {
               formData={a.formData}
               onFormDataChange={a.setFormData}
               categories={a.categories}
-              departments={deps.departments}
+              departments={deps.items}
               articleId={a.selectedArticle?.id ?? null}
               attachments={[]}
               onAttachmentsChange={() => {}}
@@ -113,7 +112,7 @@ export default function KnowledgePage() {
               formData={a.formData}
               onFormDataChange={a.setFormData}
               categories={a.categories}
-              departments={deps.departments}
+              departments={deps.items}
               articleId={a.selectedArticle?.id ?? null}
               attachments={a.attachments}
               onAttachmentsChange={a.setAttachments}
@@ -146,7 +145,9 @@ export default function KnowledgePage() {
             currentPage={a.currentPage}
             totalPages={a.totalPages}
             totalCount={a.totalCount}
+            pageSize={a.pageSize}
             onPageChange={a.setCurrentPage}
+            onPageSizeChange={a.setPageSize}
           />
         </>
       )}
@@ -159,7 +160,7 @@ export default function KnowledgePage() {
               formData={c.formData}
               onFormDataChange={c.updateFormField}
               categories={c.categories}
-              departments={deps.departments}
+              departments={deps.items}
               onSubmit={handleCategorySubmit}
               onCancel={() => {
                 c.setIsCreateDialogOpen(false);
@@ -173,7 +174,7 @@ export default function KnowledgePage() {
               formData={c.formData}
               onFormDataChange={c.updateFormField}
               categories={c.categories.filter((cat) => cat.id !== c.selectedCategory?.id)}
-              departments={deps.departments}
+              departments={deps.items}
               onSubmit={handleCategorySubmit}
               onCancel={() => {
                 c.setIsEditDialogOpen(false);
@@ -190,7 +191,9 @@ export default function KnowledgePage() {
             currentPage={c.currentPage}
             totalPages={c.totalPages}
             totalCount={c.totalCount}
+            pageSize={c.pageSize}
             onPageChange={c.setCurrentPage}
+            onPageSizeChange={c.setPageSize}
             onEdit={c.openEdit}
             onDelete={handleCategoryDelete}
           />

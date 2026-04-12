@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useTranslations } from "@/hooks/use-translations";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SearchInput } from "@/components/ui/search-input";
@@ -16,8 +16,8 @@ import {
 } from "@/components/ui/table";
 import { DataTable } from "@/components/ui/data-table";
 import { CardHeader, CardTitle } from "@/components/ui/card";
-import { BookOpen, Eye, Pin, Star, Trash2, MoreHorizontal } from "lucide-react";
-import { type Category } from "@/lib/api";
+import { BookOpen, Eye, Pin, Star, Trash2, SquarePen } from "lucide-react";
+import type { Category } from "@/types";
 import { ARTICLE_STATUSES } from "@/lib/constants";
 import type { ArticleRow } from "@/hooks/use-articles";
 
@@ -40,7 +40,9 @@ interface ArticlesTableProps {
   currentPage?: number;
   totalPages?: number;
   totalCount?: number;
+  pageSize?: number;
   onPageChange?: (page: number) => void;
+  onPageSizeChange?: (size: number) => void;
 }
 
 export function ArticlesTable({
@@ -60,15 +62,26 @@ export function ArticlesTable({
   currentPage,
   totalPages,
   totalCount,
+  pageSize,
   onPageChange,
+  onPageSizeChange,
 }: ArticlesTableProps) {
-  const t = useTranslations("knowledge");
-  const tCommon = useTranslations("common");
+  const t = useTranslations();
 
   const categoryOptions = [
-    { value: "ALL", label: tCommon("all") },
+    { value: "ALL", label: t("common.all") },
     ...categories.map((cat) => ({ value: String(cat.id), label: cat.name })),
   ];
+
+  const statusLabels: Record<string, string> = {
+    ALL: t("common.all"),
+    PUBLISHED: t("knowledge.published"),
+    DRAFT: t("knowledge.draft"),
+  };
+  const statusOptions = ARTICLE_STATUSES.map((s) => ({
+    value: s.value,
+    label: statusLabels[s.value] ?? s.label,
+  }));
 
   return (
     <DataTable
@@ -77,13 +90,16 @@ export function ArticlesTable({
       currentPage={currentPage}
       totalPages={totalPages}
       totalCount={totalCount}
+      pageSize={pageSize}
       onPageChange={onPageChange}
+      onPageSizeChange={onPageSizeChange}
+      showPageSizeSelector={!!onPageSizeChange}
       header={
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>{t("articles")}</CardTitle>
+            <CardTitle>{t("knowledge.articles")}</CardTitle>
             <div className="flex gap-2">
-              <SearchInput placeholder={tCommon("searchPlaceholder")} value={searchQuery} onChange={onSearchChange} />
+              <SearchInput placeholder={t("common.searchPlaceholder")} value={searchQuery} onChange={onSearchChange} />
               <Select
                 value={categoryFilter}
                 onChange={onCategoryFilterChange}
@@ -92,10 +108,10 @@ export function ArticlesTable({
               <Select
                 value={statusFilter}
                 onChange={onStatusFilterChange}
-                options={ARTICLE_STATUSES}
+                options={statusOptions}
               />
               <Button variant="outline" onClick={onReset}>
-                {tCommon("reset")}
+                {t("common.reset")}
               </Button>
             </div>
           </div>
@@ -105,13 +121,13 @@ export function ArticlesTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>{t("article")}</TableHead>
-            <TableHead>{t("category")}</TableHead>
-            <TableHead>{t("author")}</TableHead>
-            <TableHead>{t("viewCount")}</TableHead>
-            <TableHead>{tCommon("status")}</TableHead>
-            <TableHead>{tCommon("date")}</TableHead>
-            <TableHead className="w-[100px]">{tCommon("actions")}</TableHead>
+            <TableHead>{t("knowledge.article")}</TableHead>
+            <TableHead>{t("knowledge.category")}</TableHead>
+            <TableHead>{t("knowledge.author")}</TableHead>
+            <TableHead>{t("knowledge.viewCount")}</TableHead>
+            <TableHead>{t("common.status")}</TableHead>
+            <TableHead>{t("common.createdAt")}</TableHead>
+            <TableHead className="w-25">{t("common.actions")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -147,16 +163,16 @@ export function ArticlesTable({
               <TableCell>{new Date(article.createdAt).toLocaleDateString()}</TableCell>
               <TableCell onClick={(e) => e.stopPropagation()}>
                 <div className="flex gap-1">
-                  <Button variant="ghost" size="icon" onClick={() => onEdit(article)}>
-                    <MoreHorizontal className="size-4" />
-                  </Button>
+                   <Button variant="ghost" size="icon" onClick={() => onEdit(article)}>
+                     <SquarePen className="size-4" />
+                   </Button>
                   {article.status === "DRAFT" && (
                     <Button
                       variant="ghost"
                       size="icon"
                       className="text-green-500"
                       onClick={() => onPublish(article.id)}
-                      title={t("publish")}
+                      title={t("knowledge.publish")}
                     >
                       <BookOpen className="size-4" />
                     </Button>

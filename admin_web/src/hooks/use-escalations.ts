@@ -1,7 +1,8 @@
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useToast } from "@/components/ui/toast";
-import { api, type EscalationRequest } from "@/lib/api";
+import { useEntity } from "./use-entity";
+import { api } from "@/lib/api";
+import { queryKeys } from "@/lib/query-keys";
+import type { EscalationRequest } from "@/types";
+import { useQuery } from "@tanstack/react-query";
 
 export interface EscalationItem {
   id: number;
@@ -29,103 +30,103 @@ function mapEscalation(e: EscalationRequest): EscalationItem {
   };
 }
 
-const ESCALATIONS_KEY = ["escalations"] as const;
+// Placeholder form type - escalations don't have create/edit
+interface EscalationFormData {
+  _placeholder: boolean;
+}
+
+const defaultFormData: EscalationFormData = {
+  _placeholder: true,
+};
+
+function toForm(): EscalationFormData {
+  return defaultFormData;
+}
+
+function toPayload(): Record<string, never> {
+  return {};
+}
 
 export function useEscalations() {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("ALL");
-  const [typeFilter, setTypeFilter] = useState("ALL");
-  const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 20;
-
-  const queryParams = {
-    skip: (currentPage - 1) * pageSize,
-    limit: pageSize,
-    ...(statusFilter !== "ALL" && { status: statusFilter }),
-    ...(typeFilter !== "ALL" && { escalation_type: typeFilter }),
-  };
-
-  const {
-    data: escalationsData,
-    isLoading: loading,
-    refetch,
-  } = useQuery({
-    queryKey: [...ESCALATIONS_KEY, queryParams],
-    queryFn: () => api.escalations.list(queryParams),
-    select: (result) =>
-      result.data
-        ? {
-            requests: result.data.requests.map(mapEscalation),
-            total: result.data.total,
-            pages: result.data.pages,
-          }
-        : undefined,
+  const entity = useEntity<EscalationItem, EscalationFormData, ReturnType<typeof toPayload>, ReturnType<typeof toPayload>>({
+    entityName: "Запрос",
+    translationNamespace: "escalations",
+    queryKeyPrefix: "escalations",
+    listFn: (params) => api.escalations.list(params),
+    listDataKey: "requests",
+    deleteFn: (id) => api.escalations.delete(id),
+    defaultForm: defaultFormData,
+    mapItem: (item: unknown) => mapEscalation(item as EscalationRequest),
+    toCreatePayload: toPayload,
+    toUpdatePayload: toPayload,
+    toForm,
+    searchable: true,
+    searchParamName: "search",
+    filters: [
+      { name: "status", defaultValue: "ALL" },
+      { name: "type", defaultValue: "ALL", paramName: "escalation_type" },
+    ],
+    labels: {
+      deletedKey: "escalations.deleted",
+      deleteErrorKey: "escalations.deleteError",
+    },
   });
 
-  const resolveMutation = useMutation({
-    mutationFn: (id: number) => api.escalations.resolve(id),
-    onSuccess: (result) => {
+  // Fetch users for name lookup
+  const { data: usersData } = useQuery({
+    queryKey: queryKeys.users.all,
+    queryFn: () => api.users.list({ limit: 1000 }),
+    select: (result) => {
+      const map = new Map<number, string>();
       if (result.data) {
-        queryClient.invalidateQueries({ queryKey: ESCALATIONS_KEY });
-        toast("Запрос решён", "success");
-      } else if (result.error) {
-        toast(result.error, "error");
+        for (const u of result.data.users) {
+          map.set(u.id, `${u.first_name ?? ""} ${u.last_name ?? ""}`.trim() || String(u.id));
+        }
       }
+      return map;
     },
-    onError: () => toast("Ошибка решения запроса", "error"),
+    staleTime: 5 * 60 * 1000,
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: (id: number) => api.escalations.delete(id),
-    onSuccess: (result) => {
-      if (!result.error) {
-        queryClient.invalidateQueries({ queryKey: ESCALATIONS_KEY });
-        toast("Запрос удалён", "success");
-      } else {
-        toast(result.error, "error");
-      }
-    },
-    onError: () => toast("Ошибка удаления запроса", "error"),
-  });
+  const getUserName = (id: number | null): string => {
+    if (id === null || id === undefined) return "-";
+    return usersData?.get(id) ?? String(id);
+  };
 
   const handleResolve = (id: number) => {
-    resolveMutation.mutate(id);
+    return api.escalations.resolve(id);
   };
-
-  const handleDelete = (id: number) => {
-    deleteMutation.mutate(id);
-  };
-
-  const escalations = escalationsData?.requests || [];
-  const totalCount = escalationsData?.total || 0;
-  const totalPages = escalationsData?.pages || 1;
 
   return {
-    escalations,
-    loading,
-    searchQuery,
-    setSearchQuery,
-    statusFilter,
-    setStatusFilter,
-    typeFilter,
-    setTypeFilter,
-    currentPage,
-    setCurrentPage,
-    totalPages,
-    totalCount,
-    loadEscalations: refetch,
+    // Data
+    escalations: entity.items,
+    loading: entity.loading,
+    getUserName,
+
+    // Pagination
+    currentPage: entity.currentPage,
+    setCurrentPage: entity.setCurrentPage,
+    totalCount: entity.totalCount,
+    totalPages: entity.totalPages,
+    pageSize: entity.pageSize,
+    setPageSize: entity.setPageSize,
+
+    // Search & Filters
+    searchQuery: entity.searchQuery,
+    setSearchQuery: entity.setSearchQuery,
+    statusFilter: entity.filterValues.status ?? "ALL",
+    setStatusFilter: (value: string) => entity.setFilterValue("status", value),
+    typeFilter: entity.filterValues.type ?? "ALL",
+    setTypeFilter: (value: string) => entity.setFilterValue("type", value),
+
+    // Handlers
+    loadEscalations: entity.invalidate,
     handleResolve,
-    handleDelete,
-    resetFilters: () => {
-      setSearchQuery("");
-      setStatusFilter("ALL");
-      setTypeFilter("ALL");
-      setCurrentPage(1);
-    },
-    isResolving: resolveMutation.isPending,
-    isDeleting: deleteMutation.isPending,
+    handleDelete: entity.handleDelete,
+    resetFilters: entity.resetFilters,
+
+    // Loading states
+    isResolving: false, // Could track this if needed
+    isDeleting: entity.isDeleting,
   };
 }

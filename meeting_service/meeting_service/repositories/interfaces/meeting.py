@@ -22,5 +22,6 @@ class IMeetingRepository(BaseRepository["Meeting", int]):
         position: str | None = None,
         level: EmployeeLevel | None = None,
         is_mandatory: bool | None = None,
+        search: str | None = None,
     ) -> tuple[Sequence[Meeting], int]:
         """Find meetings with filtering and return results with total count."""

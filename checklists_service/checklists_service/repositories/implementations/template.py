@@ -34,6 +34,7 @@ class TemplateRepository(SqlAlchemyBaseRepository[Template, int], ITemplateRepos
         department_id: int | None = None,
         status: TemplateStatus | None = None,
         is_default: bool | None = None,
+        search: str | None = None,
     ) -> tuple[Sequence[Template], int]:
         """Find templates with filtering and return results with total count."""
         count_stmt = select(func.count(Template.id))
@@ -50,6 +51,15 @@ class TemplateRepository(SqlAlchemyBaseRepository[Template, int], ITemplateRepos
         if is_default is not None:
             stmt = stmt.where(Template.is_default == is_default)
             count_stmt = count_stmt.where(Template.is_default == is_default)
+
+        if search:
+            search_filter = or_(
+                Template.name.ilike(f"%{search}%"),
+                Template.description.ilike(f"%{search}%"),
+                Template.position.ilike(f"%{search}%"),
+            )
+            stmt = stmt.where(search_filter)
+            count_stmt = count_stmt.where(search_filter)
 
         total = cast("int", (await self._session.execute(count_stmt)).scalar_one())
 

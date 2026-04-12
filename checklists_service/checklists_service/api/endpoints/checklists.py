@@ -15,7 +15,9 @@ from checklists_service.schemas import (
     ChecklistResponse,
     ChecklistStats,
     ChecklistUpdate,
+    CompletionTimeStats,
     MessageResponse,
+    MonthlyStats,
 )
 from checklists_service.services import ChecklistService
 
@@ -280,3 +282,26 @@ async def auto_create_checklists(
         )
         for checklist in checklists
     ]
+
+
+@router.get("/stats/monthly")
+async def get_monthly_stats(
+    uow: UOWDep,
+    _current_user: HRUser,
+    months: Annotated[int, Query(ge=1, le=12)] = 6,
+) -> list[MonthlyStats]:
+    """Get monthly statistics (HR/admin only)."""
+    checklist_service = ChecklistService(uow)
+    stats = await checklist_service.get_monthly_stats(months)
+    return [MonthlyStats(**s) for s in stats]
+
+
+@router.get("/stats/completion-time")
+async def get_completion_time_stats(
+    uow: UOWDep,
+    _current_user: HRUser,
+) -> list[CompletionTimeStats]:
+    """Get completion time distribution (HR/admin only)."""
+    checklist_service = ChecklistService(uow)
+    stats = await checklist_service.get_completion_time_distribution()
+    return [CompletionTimeStats(**s) for s in stats]

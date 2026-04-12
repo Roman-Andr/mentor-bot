@@ -50,7 +50,9 @@ def get_admin_keyboard(*, locale: str = "en") -> InlineKeyboardMarkup:
             style=ButtonStyle.DANGER,
         ),
         create_inline_button(
-            "\u2190 Main Menu", callback_data="menu", style=ButtonStyle.SUCCESS
+            f"\u2190 {t('admin.btn_back_to_menu', locale=locale)}",
+            callback_data="menu",
+            style=ButtonStyle.SUCCESS,
         ),
     )
 
