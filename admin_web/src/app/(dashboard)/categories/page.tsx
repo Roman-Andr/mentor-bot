@@ -10,11 +10,11 @@ import { Plus, SquarePen, Trash2 } from "lucide-react";
 import { useCategories, CategoryRow, CategoryFormData } from "@/hooks/use-categories";
 import { useDepartments } from "@/hooks/use-departments";
 import { EntityFormDialog } from "@/components/entity/entity-form-dialog";
+import { SortableTableHead } from "@/components/ui/sortable-table-head";
 import {
   Table,
   TableBody,
   TableCell,
-  TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
@@ -31,6 +31,7 @@ interface Column {
   key: string;
   title: string;
   width?: string;
+  sortable?: boolean;
   render: (item: CategoryRow) => React.ReactNode;
 }
 
@@ -42,6 +43,7 @@ function useColumns(
     {
       key: "name",
       title: tCommon("name") ?? "Name",
+      sortable: true,
       render: (item: CategoryRow) => (
         <div>
           <div className="flex items-center gap-2">
@@ -62,6 +64,7 @@ function useColumns(
     {
       key: "slug",
       title: tKnowledge("slug") ?? "Slug",
+      sortable: true,
       render: (item: CategoryRow) => <span className="text-muted-foreground text-sm">{item.slug}</span>,
     },
     {
@@ -88,6 +91,7 @@ function useColumns(
       key: "stats",
       title: tKnowledge("articles") ?? "Articles",
       width: "w-24",
+      sortable: true,
       render: (item: CategoryRow) => (
         <div className="flex flex-col gap-1 text-sm">
           <span>{item.articles_count} {tKnowledge("articlesShort") ?? "art."}</span>
@@ -101,6 +105,7 @@ function useColumns(
       key: "order",
       title: tKnowledge("order") ?? "Order",
       width: "w-20",
+      sortable: true,
       render: (item: CategoryRow) => item.order,
     },
     {
@@ -382,9 +387,17 @@ export default function CategoriesPage() {
           <TableHeader>
             <TableRow>
               {columns.map((col) => (
-                <TableHead key={col.key} className={col.width}>
+                <SortableTableHead
+                  key={col.key}
+                  field={col.key}
+                  sortable={col.sortable}
+                  sortField={categories.sortField ?? null}
+                  sortDirection={categories.sortDirection}
+                  onSort={categories.toggleSort}
+                  width={col.width}
+                >
                   {col.title}
-                </TableHead>
+                </SortableTableHead>
               ))}
             </TableRow>
           </TableHeader>

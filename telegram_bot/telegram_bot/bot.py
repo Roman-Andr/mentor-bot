@@ -18,8 +18,10 @@ from telegram_bot.handlers import (
     knowledge_base,
     language,
     meetings,
-    settings as settings_handler,
     start,
+)
+from telegram_bot.handlers import (
+    settings as settings_handler,
 )
 from telegram_bot.middlewares import AuthMiddleware, LanguageMiddleware
 from telegram_bot.middlewares.throttling import ThrottlingMiddleware

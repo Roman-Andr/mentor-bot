@@ -1,13 +1,11 @@
 """Task management endpoints."""
 
-import mimetypes
-import shutil
+import logging
 from datetime import UTC, datetime
-from pathlib import Path
 from typing import Annotated
 
 from fastapi import APIRouter, File, Form, HTTPException, Query, UploadFile, status
-from fastapi.responses import FileResponse
+from fastapi.responses import RedirectResponse
 
 from checklists_service.api.deps import CurrentUser, HRUser, UOWDep
 from checklists_service.config import settings
@@ -24,8 +22,15 @@ from checklists_service.schemas import (
     TaskUpdate,
 )
 from checklists_service.services import ChecklistService, TaskService
+from checklists_service.utils import StorageError, get_storage_service
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
+
+
+def _get_object_name(task_id: int, filename: str) -> str:
+    """Generate S3 object name from task ID and filename."""
+    return f"tasks/{task_id}/{filename}"
 
 
 async def _build_task_response(task: Task, uow: UOWDep) -> TaskResponse:
@@ -75,7 +80,7 @@ async def get_checklist_tasks(
     checklist_id: int,
     uow: UOWDep,
     current_user: CurrentUser,
-    status: Annotated[str | None, Query()] = None,
+    task_status: Annotated[str | None, Query(alias="status")] = None,
     category: Annotated[str | None, Query()] = None,
     *,
     overdue_only: Annotated[bool, Query()] = False,
@@ -87,7 +92,7 @@ async def get_checklist_tasks(
     try:
         tasks = await task_service.get_checklist_tasks(
             checklist_id=checklist_id,
-            status=status,
+            status=task_status,
             category=category,
             overdue_only=overdue_only,
         )
@@ -335,17 +340,32 @@ async def upload_task_attachment(
             msg = f"File type not allowed. Allowed: {settings.ALLOWED_FILE_TYPES}"
             raise ValidationException(msg)
 
-        # Save file
+        # Save file to S3
         safe_filename = validate_filename(file.filename or "unknown")
-        storage_path = Path(settings.STORAGE_PATH) / "tasks" / str(task_id)
-        storage_path.mkdir(parents=True, exist_ok=True)
 
-        file_path = storage_path / safe_filename
+        # Read file content
+        file_content = await file.read()
+
+        # Upload to S3
+        storage = get_storage_service()
+        object_name = _get_object_name(task_id, safe_filename)
+
         try:
-            with file_path.open("wb") as buffer:
-                shutil.copyfileobj(file.file, buffer)
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"File save failed: {e}") from e
+            await storage.upload_file(
+                file_data=file_content,
+                object_name=object_name,
+                content_type=file.content_type,
+                metadata={
+                    "task_id": str(task_id),
+                    "uploaded_by": str(current_user.id),
+                    "original_filename": file.filename or "unknown",
+                },
+            )
+            # Use presigned URL for immediate access
+            file_url = storage.get_presigned_url(object_name, expires=settings.S3_PRESIGNED_URL_EXPIRY)
+        except StorageError as e:
+            logger.error("Failed to upload file to S3: %s", e)
+            raise HTTPException(status_code=500, detail=f"File upload failed: {e}") from e
 
         # Create attachment record
         attachment = await task_service.add_attachment(
@@ -415,8 +435,8 @@ async def download_task_attachment(
     filename: str,
     uow: UOWDep,
     current_user: CurrentUser,
-) -> FileResponse:
-    """Download a task attachment file."""
+) -> RedirectResponse:
+    """Download a task attachment file via S3 presigned URL."""
     task_service = TaskService(uow)
     checklist_service = ChecklistService(uow)
 
@@ -430,17 +450,17 @@ async def download_task_attachment(
             msg = "Cannot download attachments for this task"
             raise PermissionDenied(msg)
 
-        file_path = Path(settings.STORAGE_PATH) / "tasks" / str(task_id) / filename
-        if not file_path.exists():
-            msg = "File not found"
-            raise NotFoundException(msg)
-
-        mime_type, _ = mimetypes.guess_type(filename)
-        return FileResponse(
-            path=file_path,
-            filename=filename,
-            media_type=mime_type or "application/octet-stream",
-        )
+        # Redirect to presigned URL for direct S3 access
+        storage = get_storage_service()
+        object_name = _get_object_name(task_id, filename)
+        try:
+            presigned_url = storage.get_presigned_url(
+                object_name,
+                expires=settings.S3_PRESIGNED_URL_EXPIRY,
+            )
+            return RedirectResponse(url=presigned_url)
+        except StorageError as e:
+            raise NotFoundException("File not found") from e
 
     except NotFoundException as e:
         raise HTTPException(

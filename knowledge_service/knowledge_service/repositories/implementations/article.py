@@ -4,6 +4,7 @@ from collections.abc import Sequence
 from datetime import date, timedelta
 from typing import cast
 
+import sqlalchemy
 from sqlalchemy import and_, func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -83,6 +84,23 @@ class ArticleRepository(SqlAlchemyBaseRepository[Article, int], IArticleReposito
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none()
 
+    def _get_sort_column(self, sort_by: str | None) -> "sqlalchemy.Column":
+        """Get SQLAlchemy column for sorting."""
+        column_map = {
+            "title": Article.title,
+            "slug": Article.slug,
+            "status": Article.status,
+            "createdAt": Article.created_at,
+            "updatedAt": Article.updated_at,
+            "publishedAt": Article.published_at,
+            "viewCount": Article.view_count,
+            "isPinned": Article.is_pinned,
+            "isFeatured": Article.is_featured,
+            "department": Article.department_id,
+            "category": Article.category_id,
+        }
+        return column_map.get(sort_by, Article.created_at)
+
     async def find_articles(
         self,
         *,
@@ -96,6 +114,8 @@ class ArticleRepository(SqlAlchemyBaseRepository[Article, int], IArticleReposito
         user_filters: dict | None = None,
         featured_only: bool = False,
         pinned_only: bool = False,
+        sort_by: str | None = None,
+        sort_order: str = "desc",
     ) -> tuple[Sequence[Article], int]:
         """Find articles with filters and return total count."""
         stmt = select(Article)
@@ -147,16 +167,31 @@ class ArticleRepository(SqlAlchemyBaseRepository[Article, int], IArticleReposito
 
         total = cast("int", (await self._session.execute(count_stmt)).scalar_one())
 
+        # Apply sorting
+        sort_column = self._get_sort_column(sort_by)
+
         stmt = (
             stmt.options(
                 selectinload(Article.category),
                 selectinload(Article.tags),
                 selectinload(Article.attachments),
             )
-            .order_by(Article.is_pinned.desc(), Article.created_at.desc())
             .offset(skip)
             .limit(limit)
         )
+
+        # Apply order - pinned articles first if sorting by createdAt or publishedAt
+        if sort_by in ("createdAt", "publishedAt", None):
+            if sort_order.lower() == "asc":
+                stmt = stmt.order_by(Article.is_pinned.desc(), sort_column.asc())
+            else:
+                stmt = stmt.order_by(Article.is_pinned.desc(), sort_column.desc())
+        else:
+            if sort_order.lower() == "asc":
+                stmt = stmt.order_by(sort_column.asc())
+            else:
+                stmt = stmt.order_by(sort_column.desc())
+
         result = await self._session.execute(stmt)
         return result.scalars().all(), total
 

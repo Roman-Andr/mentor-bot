@@ -21,6 +21,8 @@ class ITemplateRepository(BaseRepository["Template", int]):
         status: TemplateStatus | None = None,
         is_default: bool | None = None,
         search: str | None = None,
+        sort_by: str | None = None,
+        sort_order: str = "desc",
     ) -> tuple[Sequence[Template], int]:
         """Find templates with filtering and return results with total count."""
 

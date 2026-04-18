@@ -25,9 +25,9 @@ class Department(Base):
     updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), onupdate=func.now(), nullable=True)
 
     # Relationships
-    articles: Mapped[list["Article"]] = relationship("Article", back_populates="department")
-    categories: Mapped[list["Category"]] = relationship("Category", back_populates="department")
-    search_histories: Mapped[list["SearchHistory"]] = relationship("SearchHistory", back_populates="department")
+    articles: Mapped[list[Article]] = relationship("Article", back_populates="department")
+    categories: Mapped[list[Category]] = relationship("Category", back_populates="department")
+    search_histories: Mapped[list[SearchHistory]] = relationship("SearchHistory", back_populates="department")
 
     def __repr__(self) -> str:
         """Representation of Department."""

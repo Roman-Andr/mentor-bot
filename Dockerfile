@@ -3,7 +3,7 @@ FROM python:${PYTHON_VERSION}-alpine AS builder
 
 WORKDIR /build
 
-COPY pyproject.toml uv.lock ./
+COPY ${SERVICE_NAME}/pyproject.toml ${SERVICE_NAME}/uv.lock ./
 
 RUN --mount=type=cache,target=/root/.cache/uv \
   pip install uv && \

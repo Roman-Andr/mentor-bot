@@ -217,7 +217,7 @@ async def view_article_detail(
 
     try:
         article_id = int(callback.data.split("_")[-1])
-    except ValueError, IndexError:
+    except (ValueError, IndexError):
         await callback.answer(t("common.error_generic", locale=locale))
         return
 
@@ -283,7 +283,7 @@ async def download_attachment(
     try:
         attachment_id = int(parts[2])
         article_id = int(parts[3])
-    except ValueError, IndexError:
+    except (ValueError, IndexError):
         await callback.answer(t("common.error_generic", locale=locale))
         return
 

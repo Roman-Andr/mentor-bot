@@ -15,7 +15,7 @@ from slowapi.util import get_remote_address
 
 from escalation_service.api.endpoints import escalations_router
 from escalation_service.config import settings
-from escalation_service.database import init_db
+from escalation_service.database import engine, init_db
 from escalation_service.schemas import HealthCheck, ServiceStatus
 
 # Configure logging
@@ -48,11 +48,12 @@ app = FastAPI(
     redirect_slashes=False,
 )
 
-# Rate limiting
-limiter = Limiter(key_func=get_remote_address, default_limits=["100/minute"])
-app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
-app.add_middleware(SlowAPIMiddleware)
+# Rate limiting (disabled in debug mode)
+if not settings.DEBUG:
+    limiter = Limiter(key_func=get_remote_address, default_limits=["100/minute"])
+    app.state.limiter = limiter
+    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+    app.add_middleware(SlowAPIMiddleware)
 
 # CORS
 app.add_middleware(
@@ -84,11 +85,21 @@ async def root() -> ServiceStatus:
 @app.get("/health")
 async def health_check() -> HealthCheck:
     """Health check endpoint for load balancers and monitoring."""
+    from sqlalchemy import text
+
+    # Check database connectivity
+    try:
+        async with engine.connect() as conn:
+            await conn.execute(text("SELECT 1"))
+            db_status = "connected"
+    except Exception:
+        db_status = "disconnected"
+
     return HealthCheck(
-        status="healthy",
+        status="healthy" if db_status == "connected" else "unhealthy",
         service="escalation",
         timestamp=datetime.now(UTC).isoformat(),
         dependencies={
-            "database": "connected",
+            "database": db_status,
         },
     )

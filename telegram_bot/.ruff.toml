@@ -1,9 +1,22 @@
-# Ruff configuration for telegram_bot
-# All rules enabled (ALL in pyproject.toml) with intentional ignores below.
+line-length = 120
+indent-width = 4
+target-version = "py312"
 
 [lint]
-# Allow magic numbers for thresholds, file sizes, etc.
+select = ["ALL"]
 ignore = [
+    "D212",
+    "D203",
+    "D400",
+    "D415",
+    "PLR0913",
+    "COM812",
+    "TRY301",
+    "RUF001",
+    "S301",
+    "C901",
+    "PLR0912",
+    "PLR0915",
     "PLR2004",  # Magic value used in comparison (intentional for thresholds)
     "ARG001",   # Unused function argument (aiogram DI requires parameter names)
     "ARG002",   # Unused method argument (aiogram DI requires parameter names)
@@ -11,9 +24,11 @@ ignore = [
     "BLE001",   # Blind exception catch (resilient background tasks)
     "D213",     # Multi-line docstring starts at second line (prefer D212)
     "D413",     # Missing blank line after last section
-    "D203",     # One-blank-line required before class docstring
 ]
 
 [lint.per-file-ignores]
-# Keyboard files often have simple f-strings
 "telegram_bot/keyboards/*.py" = ["F541"]
+"tests/**/*.py" = ["S101", "ANN201", "ANN001", "ANN002", "ANN003", "SLF001", "ANN401", "PLR2004", "SIM117", "PT011", "B017", "D104", "INP001"]
+
+[format]
+quote-style = "double"

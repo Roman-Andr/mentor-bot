@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { SearchInput } from "@/components/ui/search-input";
 import { Select } from "@/components/ui/select";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { SortableTableHead } from "@/components/ui/sortable-table-head";
 import {
   Table,
   TableBody,
@@ -20,6 +21,7 @@ import { Mail, Trash2, RefreshCw, Ban, Copy, Check } from "lucide-react";
 import { useState } from "react";
 import { ROLES, ROLES_WITH_ALL, INVITATION_STATUSES } from "@/lib/constants";
 import type { InvitationItem } from "@/hooks/use-invitations";
+import type { SortDirection } from "@/hooks/use-sorting";
 
 interface InvitationsTableProps {
   invitations: InvitationItem[];
@@ -40,6 +42,9 @@ interface InvitationsTableProps {
   pageSize?: number;
   onPageChange?: (page: number) => void;
   onPageSizeChange?: (size: number) => void;
+  sortField?: string | null;
+  sortDirection?: SortDirection;
+  onSort?: (field: string) => void;
 }
 
 export function InvitationsTable({
@@ -61,6 +66,9 @@ export function InvitationsTable({
   pageSize,
   onPageChange,
   onPageSizeChange,
+  sortField,
+  sortDirection = "asc",
+  onSort,
 }: InvitationsTableProps) {
   const t = useTranslations();
   const [copiedId, setCopiedId] = useState<number | null>(null);
@@ -109,12 +117,60 @@ export function InvitationsTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>{t("common.email")}</TableHead>
-            <TableHead>{t("common.role")}</TableHead>
-            <TableHead>{t("common.department")}</TableHead>
-            <TableHead>{t("common.status")}</TableHead>
-            <TableHead>{t("invitations.createdAt")}</TableHead>
-            <TableHead>{t("invitations.expiresAt")}</TableHead>
+            <SortableTableHead
+              field="email"
+              sortable={!!onSort}
+              sortField={sortField ?? null}
+              sortDirection={sortDirection}
+              onSort={onSort ?? (() => {})}
+            >
+              {t("common.email")}
+            </SortableTableHead>
+            <SortableTableHead
+              field="role"
+              sortable={!!onSort}
+              sortField={sortField ?? null}
+              sortDirection={sortDirection}
+              onSort={onSort ?? (() => {})}
+            >
+              {t("common.role")}
+            </SortableTableHead>
+            <SortableTableHead
+              field="department"
+              sortable={!!onSort}
+              sortField={sortField ?? null}
+              sortDirection={sortDirection}
+              onSort={onSort ?? (() => {})}
+            >
+              {t("common.department")}
+            </SortableTableHead>
+            <SortableTableHead
+              field="status"
+              sortable={!!onSort}
+              sortField={sortField ?? null}
+              sortDirection={sortDirection}
+              onSort={onSort ?? (() => {})}
+            >
+              {t("common.status")}
+            </SortableTableHead>
+            <SortableTableHead
+              field="created_at"
+              sortable={!!onSort}
+              sortField={sortField ?? null}
+              sortDirection={sortDirection}
+              onSort={onSort ?? (() => {})}
+            >
+              {t("invitations.createdAt")}
+            </SortableTableHead>
+            <SortableTableHead
+              field="expires_at"
+              sortable={!!onSort}
+              sortField={sortField ?? null}
+              sortDirection={sortDirection}
+              onSort={onSort ?? (() => {})}
+            >
+              {t("invitations.expiresAt")}
+            </SortableTableHead>
             <TableHead className="w-40">{t("common.actions")}</TableHead>
           </TableRow>
         </TableHeader>

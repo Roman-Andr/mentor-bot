@@ -1,5 +1,6 @@
 """Meeting management keyboards."""
 
+from aiogram.types import InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from telegram_bot.core.enums import ButtonStyle
@@ -7,7 +8,7 @@ from telegram_bot.i18n import t
 from telegram_bot.keyboards.utils import create_inline_button
 
 
-def get_meetings_menu_keyboard(*, locale: str = "en") -> InlineKeyboardBuilder:
+def get_meetings_menu_keyboard(*, locale: str = "en") -> InlineKeyboardMarkup:
     """Build meetings menu keyboard."""
     builder = InlineKeyboardBuilder()
     builder.add(
@@ -26,10 +27,10 @@ def get_meetings_menu_keyboard(*, locale: str = "en") -> InlineKeyboardBuilder:
         ),
     )
     builder.adjust(1)
-    return builder
+    return builder.as_markup()
 
 
-def get_my_meetings_keyboard(*, locale: str = "en") -> InlineKeyboardBuilder:
+def get_my_meetings_keyboard(*, locale: str = "en") -> InlineKeyboardMarkup:
     """Build back button keyboard for my meetings."""
     builder = InlineKeyboardBuilder()
     builder.add(
@@ -43,7 +44,7 @@ def get_my_meetings_keyboard(*, locale: str = "en") -> InlineKeyboardBuilder:
 
 def get_meeting_details_keyboard(
     meeting_id: int, *, locale: str = "en"
-) -> InlineKeyboardBuilder:
+) -> InlineKeyboardMarkup:
     """Build meeting details keyboard with confirm/cancel actions."""
     builder = InlineKeyboardBuilder()
     builder.add(
@@ -63,4 +64,4 @@ def get_meeting_details_keyboard(
         ),
     )
     builder.adjust(2, 1)
-    return builder
+    return builder.as_markup()

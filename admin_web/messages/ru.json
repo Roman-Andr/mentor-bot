@@ -14,7 +14,15 @@
     "successfulCompletions": "Успешных завершений",
     "title": "Аналитика",
     "totalNewbies": "Всего новичков",
-    "users": "Пользователи"
+    "users": "Пользователи",
+    "exportPDF": "Экспорт PDF",
+    "generatedAt": "Сгенерировано",
+    "summary": "Сводка",
+    "monthlyDynamics": "Ежемесячная динамика",
+    "completionTimeDistribution": "Распределение по времени завершения",
+    "range": "Диапазон",
+    "count": "Количество",
+    "month": "Месяц"
   },
   "auth": {
     "email": "Email",
@@ -123,6 +131,7 @@
     "dashboardUpdated": "Дашборд обновлён",
     "daysAverage": "дней в среднем",
     "daysRemaining": "дн. осталось",
+    "daysOverdue": "дн. просрочено",
     "errorLoading": "Ошибка загрузки данных",
     "escalations": "Эскалации",
     "inWork": "В работе",
@@ -388,6 +397,7 @@
   },
   "nav": {
     "analytics": "Аналитика",
+    "apiDocs": "API Док",
     "appName": "Ментор-бот",
     "checklists": "Чек-листы",
     "dashboard": "Дашборд",

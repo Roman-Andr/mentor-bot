@@ -20,6 +20,7 @@ from auth_service.database import Base
 
 if TYPE_CHECKING:
     from auth_service.models import Department, Invitation
+    from auth_service.models.password_reset import PasswordResetToken
     from auth_service.models.user_mentor import UserMentor
 
 
@@ -39,7 +40,7 @@ class User(Base):
     # Company information
     employee_id: Mapped[str] = mapped_column(String(50), unique=True, index=True, nullable=False)
     department_id: Mapped[int | None] = mapped_column(ForeignKey("departments.id"), nullable=True)
-    department: Mapped["Department | None"] = relationship("Department", back_populates="users")
+    department: Mapped[Department | None] = relationship("Department", back_populates="users")
     position: Mapped[str | None] = mapped_column(String(100), nullable=True)
     level: Mapped[EmployeeLevel | None] = mapped_column(Enum(EmployeeLevel, native=False), nullable=True)
     hire_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
@@ -56,14 +57,17 @@ class User(Base):
     last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # Relationships
-    invitations: Mapped[list["Invitation"]] = relationship(
+    invitations: Mapped[list[Invitation]] = relationship(
         "Invitation", foreign_keys="Invitation.user_id", back_populates="user", cascade="all, delete-orphan"
     )
-    mentor_assignments: Mapped[list["UserMentor"]] = relationship(
+    mentor_assignments: Mapped[list[UserMentor]] = relationship(
         "UserMentor", foreign_keys="UserMentor.user_id", back_populates="user", cascade="all, delete-orphan"
     )
-    mentee_assignments: Mapped[list["UserMentor"]] = relationship(
+    mentee_assignments: Mapped[list[UserMentor]] = relationship(
         "UserMentor", foreign_keys="UserMentor.mentor_id", back_populates="mentor", cascade="all, delete-orphan"
+    )
+    reset_tokens: Mapped[list[PasswordResetToken]] = relationship(
+        "PasswordResetToken", back_populates="user", cascade="all, delete-orphan"
     )
 
     @property

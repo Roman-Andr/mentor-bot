@@ -9,6 +9,7 @@ from sqlalchemy.sql import func
 
 from knowledge_service.core import AttachmentType
 from knowledge_service.database import Base
+from knowledge_service.config import settings
 
 if TYPE_CHECKING:
     from knowledge_service.models import Article
@@ -39,7 +40,14 @@ class Attachment(Base):
     updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), onupdate=func.now(), nullable=True)
 
     # Relationships
-    article: Mapped["Article"] = relationship("Article", back_populates="attachments")
+    article: Mapped[Article] = relationship("Article", back_populates="attachments")
+
+    @property
+    def file_url(self) -> str:
+        """Get download URL for the attachment."""
+        if self.type == AttachmentType.LINK:
+            return self.url
+        return f"{settings.API_V1_PREFIX}/attachments/{self.id}/download"
 
     def __repr__(self) -> str:
         """Representation of Attachment."""

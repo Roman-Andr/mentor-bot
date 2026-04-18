@@ -30,6 +30,8 @@ async def get_scenarios(
     category: Annotated[str | None, Query()] = None,
     is_active: Annotated[bool | None, Query()] = None,
     search: Annotated[str | None, Query()] = None,
+    sort_by: Annotated[str | None, Query()] = None,
+    sort_order: Annotated[str, Query()] = "asc",
 ) -> DialogueScenarioListResponse:
     """Get paginated list of dialogue scenarios."""
     scenarios, total = await dialogue_service.find_scenarios(
@@ -38,6 +40,8 @@ async def get_scenarios(
         category=category,
         is_active=is_active,
         search=search,
+        sort_by=sort_by,
+        sort_order=sort_order,
     )
 
     pages = (total + limit - 1) // limit if limit > 0 else 0

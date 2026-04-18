@@ -40,6 +40,8 @@ async def get_invitations(
     department_id: Annotated[int | None, Query()] = None,
     *,
     expired_only: Annotated[bool, Query()] = False,
+    sort_by: Annotated[str | None, Query()] = None,
+    sort_order: Annotated[str, Query()] = "desc",
 ) -> InvitationListResponse:
     """Get paginated list of invitations (HR/admin only)."""
     invitations, total = await invitation_service.get_invitations(
@@ -50,6 +52,8 @@ async def get_invitations(
         status=status,
         department_id=department_id,
         expired_only=expired_only,
+        sort_by=sort_by,
+        sort_order=sort_order,
     )
 
     stats = await invitation_service.get_invitation_stats()

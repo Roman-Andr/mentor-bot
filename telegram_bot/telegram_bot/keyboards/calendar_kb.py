@@ -1,5 +1,6 @@
 """Google Calendar integration keyboards."""
 
+from aiogram.types import InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from telegram_bot.core.enums import ButtonStyle
@@ -7,7 +8,7 @@ from telegram_bot.i18n import t
 from telegram_bot.keyboards.utils import create_inline_button
 
 
-def get_calendar_connected_keyboard(*, locale: str = "en") -> InlineKeyboardBuilder:
+def get_calendar_connected_keyboard(*, locale: str = "en") -> InlineKeyboardMarkup:
     """Build calendar menu keyboard when calendar is connected."""
     builder = InlineKeyboardBuilder()
     builder.add(
@@ -30,10 +31,10 @@ def get_calendar_connected_keyboard(*, locale: str = "en") -> InlineKeyboardBuil
         )
     )
     builder.adjust(1)
-    return builder
+    return builder.as_markup()
 
 
-def get_calendar_not_connected_keyboard(*, locale: str = "en") -> InlineKeyboardBuilder:
+def get_calendar_not_connected_keyboard(*, locale: str = "en") -> InlineKeyboardMarkup:
     """Build calendar menu keyboard when calendar is not connected."""
     builder = InlineKeyboardBuilder()
     builder.add(
@@ -49,12 +50,12 @@ def get_calendar_not_connected_keyboard(*, locale: str = "en") -> InlineKeyboard
         )
     )
     builder.adjust(1)
-    return builder
+    return builder.as_markup()
 
 
 def get_calendar_connect_keyboard(
     connect_url: str, *, locale: str = "en"
-) -> InlineKeyboardBuilder:
+) -> InlineKeyboardMarkup:
     """Build calendar connect keyboard with authorization URL."""
     builder = InlineKeyboardBuilder()
     builder.add(
@@ -70,4 +71,4 @@ def get_calendar_connect_keyboard(
             callback_data="calendar_menu",
         )
     )
-    return builder
+    return builder.as_markup()

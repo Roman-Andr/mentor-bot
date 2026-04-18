@@ -112,6 +112,7 @@ export function useDialogues() {
     toForm,
     searchable: true,
     searchParamName: "search",
+    sortable: true,
     filters: [{ name: "category", defaultValue: "ALL" }],
     labels: {
       createdKey: "dialogues.created",
@@ -213,5 +214,11 @@ export function useDialogues() {
     // Loading states
     isSubmitting: entity.isSubmitting,
     isDeleting: entity.isDeleting,
+
+    // Sorting
+    sortField: entity.sortField,
+    sortDirection: entity.sortDirection,
+    toggleSort: entity.toggleSort,
   };
 }
+

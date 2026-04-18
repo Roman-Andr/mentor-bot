@@ -233,7 +233,7 @@ async def handle_search_pagination(
     try:
         page = int(parts[3])
         query = "_".join(parts[4:]) if len(parts) > 4 else ""
-    except ValueError, IndexError:
+    except (ValueError, IndexError):
         await callback.answer(t("common.error_generic", locale=locale))
         return
 
@@ -422,7 +422,7 @@ async def view_search_result(
         parts = callback.data.split("_")
         idx = int(parts[2])
         search_page = int(parts[3]) if len(parts) > 3 else 1
-    except ValueError, IndexError:
+    except (ValueError, IndexError):
         await callback.answer(t("common.error_generic", locale=locale))
         return
 
@@ -507,7 +507,7 @@ async def download_kb_attachment(
     try:
         attachment_id = int(parts[2])
         article_id = int(parts[3])
-    except ValueError, IndexError:
+    except (ValueError, IndexError):
         await callback.answer(t("common.error_generic", locale=locale))
         return
 
@@ -678,7 +678,7 @@ async def kb_category_pagination(
     try:
         category_id = int(parts[3])
         page = int(parts[4])
-    except ValueError, IndexError:
+    except (ValueError, IndexError):
         await callback.answer(t("common.error_generic", locale=locale))
         return
 
@@ -736,7 +736,7 @@ async def view_category_article(
         article_id = int(parts[3])
         category_id = int(parts[4])
         page = int(parts[5]) if len(parts) > 5 else 1
-    except ValueError, IndexError:
+    except (ValueError, IndexError):
         await callback.answer(t("common.error_generic", locale=locale))
         return
 
@@ -854,7 +854,7 @@ async def view_faq_scenario(
     parts = callback.data.split("_")
     try:
         scenario_id = int(parts[2])
-    except ValueError, IndexError:
+    except (ValueError, IndexError):
         await callback.answer(t("common.error_generic", locale=locale))
         return
 
@@ -931,7 +931,7 @@ async def navigate_faq_step(
         scenario_id = int(parts[3])
         current_step_id = int(parts[4])
         next_step_number = int(parts[5])
-    except ValueError, IndexError:
+    except (ValueError, IndexError):
         await callback.answer(t("common.error_generic", locale=locale))
         return
 

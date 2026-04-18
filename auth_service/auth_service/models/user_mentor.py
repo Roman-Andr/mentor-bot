@@ -29,8 +29,8 @@ class UserMentor(Base):
     updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), onupdate=func.now(), nullable=True)
 
     # Relationships
-    user: Mapped["User"] = relationship("User", foreign_keys=[user_id], back_populates="mentor_assignments")
-    mentor: Mapped["User"] = relationship("User", foreign_keys=[mentor_id], back_populates="mentee_assignments")
+    user: Mapped[User] = relationship("User", foreign_keys=[user_id], back_populates="mentor_assignments")
+    mentor: Mapped[User] = relationship("User", foreign_keys=[mentor_id], back_populates="mentee_assignments")
 
     def __repr__(self) -> str:
         """Representation of UserMentor."""

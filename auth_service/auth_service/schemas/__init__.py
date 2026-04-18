@@ -12,6 +12,12 @@ from auth_service.schemas.auth import (
     Token,
     TokenPayload,
 )
+from auth_service.schemas.password_reset import (
+    PasswordResetConfirmSchema,
+    PasswordResetRequestSchema,
+    PasswordResetResponse,
+    PasswordResetValidateSchema,
+)
 from auth_service.schemas.department import (
     DepartmentCreate,
     DepartmentListResponse,
@@ -59,7 +65,11 @@ __all__ = [
     "LoginRequest",
     "MessageResponse",
     "PasswordResetConfirm",
+    "PasswordResetConfirmSchema",
     "PasswordResetRequest",
+    "PasswordResetRequestSchema",
+    "PasswordResetResponse",
+    "PasswordResetValidateSchema",
     "RefreshTokenRequest",
     "ServiceStatus",
     "TelegramApiKeyAuth",

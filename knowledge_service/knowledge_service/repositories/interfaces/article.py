@@ -33,6 +33,8 @@ class IArticleRepository(BaseRepository["Article", int]):
         user_filters: dict | None = None,
         featured_only: bool = False,
         pinned_only: bool = False,
+        sort_by: str | None = None,
+        sort_order: str = "desc",
     ) -> tuple[Sequence[Article], int]:
         """Find articles with filtering, return results + total count."""
 

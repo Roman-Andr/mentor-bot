@@ -29,12 +29,16 @@ class DepartmentService:
         skip: int = 0,
         limit: int = 100,
         search: str | None = None,
+        sort_by: str | None = None,
+        sort_order: str = "asc",
     ) -> tuple[list[Department], int]:
         """Get paginated list of departments with filtering."""
         departments, total = await self._uow.departments.find_departments(
             skip=skip,
             limit=limit,
             search=search,
+            sort_by=sort_by,
+            sort_order=sort_order,
         )
         return list(departments), total
 

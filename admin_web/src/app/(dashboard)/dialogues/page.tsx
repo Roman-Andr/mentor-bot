@@ -57,6 +57,9 @@ export default function DialoguesPage() {
         pageSize={dialogues.pageSize}
         onPageChange={dialogues.setCurrentPage}
         onPageSizeChange={dialogues.setPageSize}
+        sortField={dialogues.sortField}
+        sortDirection={dialogues.sortDirection}
+        onSort={dialogues.toggleSort}
       />
     </PageContent>
   );

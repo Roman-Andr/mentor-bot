@@ -1,6 +1,6 @@
 x-common-env: &common-env
   DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
-  # DEBUG: "true"
+  DEBUG: "true"
   LOG_LEVEL: INFO
   SERVICE_API_KEY: ${SERVICE_API_KEY}
   TZ: ${TZ:-UTC}
@@ -112,15 +112,22 @@ services:
     environment:
       <<: *common-env
       REDIS_URL: ${REDIS_URL}/1
-      STORAGE_PATH: /var/lib/checklists/files
+      S3_ENDPOINT: ${S3_ENDPOINT:-http://minio:9000}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-minioadmin}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-minioadmin}
+      S3_REGION: ${S3_REGION:-us-east-1}
+      S3_USE_SSL: ${S3_USE_SSL:-false}
+      CHECKLISTS_S3_BUCKET: ${CHECKLISTS_S3_BUCKET:-checklists-files}
+      S3_PRESIGNED_URL_EXPIRY: ${S3_PRESIGNED_URL_EXPIRY:-3600}
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
+      minio:
+        condition: service_healthy
     volumes:
       - ./checklists_service/checklists_service:/app/checklists_service
-      - checklists_storage:/var/lib/checklists/files
     networks:
       - mentor_network
 
@@ -137,15 +144,22 @@ services:
     environment:
       <<: *common-env
       REDIS_URL: ${REDIS_URL}/2
-      STORAGE_PATH: /var/lib/knowledge/files
+      S3_ENDPOINT: ${S3_ENDPOINT:-http://minio:9000}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-minioadmin}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-minioadmin}
+      S3_REGION: ${S3_REGION:-us-east-1}
+      S3_USE_SSL: ${S3_USE_SSL:-false}
+      KNOWLEDGE_S3_BUCKET: ${KNOWLEDGE_S3_BUCKET:-knowledge-files}
+      S3_PRESIGNED_URL_EXPIRY: ${S3_PRESIGNED_URL_EXPIRY:-3600}
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
+      minio:
+        condition: service_healthy
     volumes:
       - ./knowledge_service/knowledge_service:/app/knowledge_service
-      - knowledge_files:/var/lib/knowledge/files
     networks:
       - mentor_network
 
@@ -261,7 +275,7 @@ services:
 
   postgres:
     container_name: postgres_container
-    image: postgres:18
+    image: postgres:18.3-alpine3.23
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
@@ -283,7 +297,7 @@ services:
 
   redis:
     container_name: redis_container
-    image: redis:8.4
+    image: redis:8.6.2-alpine
     restart: unless-stopped
     ports:
       - "6379:6379"
@@ -325,9 +339,10 @@ services:
       timeout: 10s
       retries: 3
       start_period: 140s
+      start_interval: 5s
 
   redis-insight:
-    image: redis/redisinsight:3.0
+    image: redis/redisinsight:3.2
     restart: unless-stopped
     container_name: redis-insight
     ports:
@@ -350,14 +365,40 @@ services:
       timeout: 10s
       retries: 3
       start_period: 30s
+      start_interval: 5s
 
+  minio:
+    container_name: minio_container
+    image: minio/minio:RELEASE.2025-09-07T16-13-09Z-cpuv1
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    volumes:
+      - minio_data:/data
+    networks:
+      - mentor_network
+    command: server /data --console-address ":9001"
+    ulimits:
+      nofile:
+        soft: 4096
+        hard: 4096
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 20
+      start_period: 10s
+      start_interval: 2s
 volumes:
   postgres_data:
   redis_data:
   pgadmin-data:
   redis-insight:
-  knowledge_files:
-  checklists_storage:
+  minio_data:
 
 networks:
   mentor_network:

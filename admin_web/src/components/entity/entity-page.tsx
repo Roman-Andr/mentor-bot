@@ -8,7 +8,6 @@ import {
   Table,
   TableBody,
   TableCell,
-  TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
@@ -18,6 +17,8 @@ import { TabSwitcher } from "@/components/ui/tab-switcher";
 import { EntityFormDialog } from "./entity-form-dialog";
 import { Plus, Trash2, SquarePen } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { SortableTableHead } from "@/components/ui/sortable-table-head";
+import type { SortDirection } from "@/hooks/use-sorting";
 
 // ============================================================================
 // Types
@@ -153,6 +154,12 @@ export interface EntityPageProps<TItem, TForm> {
   isFormValid?: boolean;
   /** Maximum width for dialogs */
   dialogMaxWidth?: string;
+  /** Current sort field */
+  sortField?: string | null;
+  /** Current sort direction */
+  sortDirection?: SortDirection;
+  /** Callback when a column header is clicked for sorting */
+  onSort?: (field: string) => void;
 }
 
 // ============================================================================
@@ -257,6 +264,9 @@ export function EntityPage<TItem, TForm>({
   searchPlaceholder,
   isFormValid = true,
   dialogMaxWidth = "max-w-lg",
+  sortField,
+  sortDirection = "asc",
+  onSort,
 }: EntityPageProps<TItem, TForm>) {
   const t = useTranslations();
 
@@ -333,12 +343,18 @@ export function EntityPage<TItem, TForm>({
         <TableHeader>
           <TableRow>
             {columns.map((column) => (
-              <TableHead
+              <SortableTableHead
                 key={column.key}
-                className={cn(column.width, column.headerClassName)}
+                field={column.key}
+                sortable={column.sortable && !!onSort}
+                sortField={sortField ?? null}
+                sortDirection={sortDirection}
+                onSort={onSort ?? (() => {})}
+                className={column.headerClassName}
+                width={column.width}
               >
                 {column.header}
-              </TableHead>
+              </SortableTableHead>
             ))}
           </TableRow>
         </TableHeader>

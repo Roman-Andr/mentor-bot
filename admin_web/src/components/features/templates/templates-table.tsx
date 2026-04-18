@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select } from "@/components/ui/select";
 import { SearchInput } from "@/components/ui/search-input";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { SortableTableHead } from "@/components/ui/sortable-table-head";
 import {
   Table,
   TableBody,
@@ -19,6 +20,7 @@ import { CardHeader, CardTitle } from "@/components/ui/card";
 import { SquarePen, Calendar, CheckCircle, Trash2 } from "lucide-react";
 import { TEMPLATE_STATUSES } from "@/lib/constants";
 import type { TemplateItem } from "@/hooks/use-templates";
+import type { SortDirection } from "@/hooks/use-sorting";
 
 interface TemplatesTableProps {
   templates: TemplateItem[];
@@ -37,6 +39,9 @@ interface TemplatesTableProps {
   pageSize?: number;
   onPageChange?: (page: number) => void;
   onPageSizeChange?: (size: number) => void;
+  sortField?: string | null;
+  sortDirection?: SortDirection;
+  onSort?: (field: string) => void;
 }
 
 export function TemplatesTable({
@@ -56,6 +61,9 @@ export function TemplatesTable({
   pageSize,
   onPageChange,
   onPageSizeChange,
+  sortField,
+  sortDirection = "asc",
+  onSort,
 }: TemplatesTableProps) {
   const t = useTranslations();
 
@@ -97,12 +105,60 @@ export function TemplatesTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>{t("common.name")}</TableHead>
-            <TableHead>{t("common.department")}</TableHead>
-            <TableHead>{t("common.position")}</TableHead>
-            <TableHead>{t("common.days")}</TableHead>
-            <TableHead>{t("common.tasks")}</TableHead>
-            <TableHead>{t("common.status")}</TableHead>
+            <SortableTableHead
+              field="name"
+              sortable={!!onSort}
+              sortField={sortField ?? null}
+              sortDirection={sortDirection}
+              onSort={onSort ?? (() => {})}
+            >
+              {t("common.name")}
+            </SortableTableHead>
+            <SortableTableHead
+              field="department"
+              sortable={!!onSort}
+              sortField={sortField ?? null}
+              sortDirection={sortDirection}
+              onSort={onSort ?? (() => {})}
+            >
+              {t("common.department")}
+            </SortableTableHead>
+            <SortableTableHead
+              field="position"
+              sortable={!!onSort}
+              sortField={sortField ?? null}
+              sortDirection={sortDirection}
+              onSort={onSort ?? (() => {})}
+            >
+              {t("common.position")}
+            </SortableTableHead>
+            <SortableTableHead
+              field="duration_days"
+              sortable={!!onSort}
+              sortField={sortField ?? null}
+              sortDirection={sortDirection}
+              onSort={onSort ?? (() => {})}
+            >
+              {t("common.days")}
+            </SortableTableHead>
+            <SortableTableHead
+              field="tasks"
+              sortable={!!onSort}
+              sortField={sortField ?? null}
+              sortDirection={sortDirection}
+              onSort={onSort ?? (() => {})}
+            >
+              {t("common.tasks")}
+            </SortableTableHead>
+            <SortableTableHead
+              field="status"
+              sortable={!!onSort}
+              sortField={sortField ?? null}
+              sortDirection={sortDirection}
+              onSort={onSort ?? (() => {})}
+            >
+              {t("common.status")}
+            </SortableTableHead>
             <TableHead className="w-25">{t("common.actions")}</TableHead>
           </TableRow>
         </TableHeader>

@@ -6,6 +6,8 @@ from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
+from notification_service.config import settings
+
 
 class AuthTokenMiddleware(BaseHTTPMiddleware):
     """Middleware to extract and store auth token from requests."""
@@ -25,3 +27,19 @@ class AuthTokenMiddleware(BaseHTTPMiddleware):
         request.state.auth_token = token
 
         return await call_next(request)
+
+
+def verify_service_api_key(api_key: str) -> bool:
+    """Verify that the provided API key is valid for service-to-service communication.
+
+    Args:
+        api_key: The API key to verify
+
+    Returns:
+        True if the API key is valid, False otherwise
+    """
+    # In development mode with no key configured, accept any non-empty key
+    if settings.DEBUG and not settings.SERVICE_API_KEY:
+        return bool(api_key)
+
+    return api_key == settings.SERVICE_API_KEY

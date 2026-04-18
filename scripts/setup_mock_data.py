@@ -474,6 +474,7 @@ async def create_checklist_instances_async(
         status = instance.get("status")
         days_ago = instance.get("days_ago", 0)
         completed_tasks = instance.get("completed_tasks", 0)
+        template_index = instance.get("template_index", 0)
 
         if newbie_key in user_ids:
             await create_checklist_instances(
@@ -486,6 +487,7 @@ async def create_checklist_instances_async(
                 status,
                 days_ago,
                 completed_tasks,
+                template_index,
             )
 
     await asyncio.gather(*[create_single_instance(inst) for inst in checklist_instances])
@@ -501,52 +503,55 @@ async def create_checklist_instances(
     status: str,
     start_days_ago: int = 0,
     completed_task_count: int = 0,
+    template_index: int = 0,
 ) -> int | None:
-    """Create a checklist instance for a user."""
+    """Create a checklist instance for a user using specified template index."""
     if not template_ids:
         return None
+
+    # Use the specified template index (with wraparound if index is out of range)
+    tpl_id = template_ids[template_index % len(template_ids)]
 
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
 
     start_date = datetime.now() - timedelta(days=start_days_ago)
 
     async with httpx.AsyncClient() as client:
-        for tpl_id in template_ids:
-            try:
-                checklist_data = {
-                    "user_id": user_id,
-                    "employee_id": user_data["employee_id"],
-                    "template_id": tpl_id,
-                    "start_date": start_date.isoformat(),
-                    "mentor_id": mentor_id,
-                    "hr_id": hr_id,
-                }
+        try:
+            checklist_data = {
+                "user_id": user_id,
+                "employee_id": user_data["employee_id"],
+                "template_id": tpl_id,
+                "start_date": start_date.isoformat(),
+                "mentor_id": mentor_id,
+                "hr_id": hr_id,
+            }
 
-                response = await client.post(
-                    f"{CHECKLISTS_SERVICE_URL}/api/v1/checklists/",
-                    headers=headers,
-                    json=checklist_data,
-                )
+            response = await client.post(
+                f"{CHECKLISTS_SERVICE_URL}/api/v1/checklists/",
+                headers=headers,
+                json=checklist_data,
+            )
 
-                if response.status_code in (200, 201):
-                    checklist = response.json()
-                    checklist_id = checklist["id"]
-                    log_success(f"  Checklist {checklist_id} created for user {user_id} (status: {status})")
+            if response.status_code in (200, 201):
+                checklist = response.json()
+                checklist_id = checklist["id"]
+                log_success(f"  Checklist {checklist_id} created for user {user_id} (status: {status}, template: {template_index})")
 
-                    if status == "COMPLETED" or completed_task_count > 0:
-                        await update_checklist_tasks(client, headers, checklist_id, completed_task_count, status)
+                if status == "COMPLETED" or completed_task_count > 0:
+                    await update_checklist_tasks(client, headers, checklist_id, completed_task_count, status)
 
-                    if status == "COMPLETED":
-                        await client.patch(
-                            f"{CHECKLISTS_SERVICE_URL}/api/v1/checklists/{checklist_id}",
-                            headers=headers,
-                            json={"status": "COMPLETED", "progress_percentage": 100},
-                        )
+                if status == "COMPLETED":
+                    # Use the complete endpoint to mark checklist as done
+                    await client.post(
+                        f"{CHECKLISTS_SERVICE_URL}/api/v1/checklists/{checklist_id}/complete",
+                        headers=headers,
+                    )
 
-                    return checklist_id
+                return checklist_id
 
-            except Exception as e:
-                log_warning(f"  Error creating checklist: {e}")
+        except Exception as e:
+            log_warning(f"  Error creating checklist: {e}")
 
     return None
 
@@ -560,22 +565,29 @@ async def update_checklist_tasks(
 ) -> None:
     """Update tasks within a checklist to show progress."""
     try:
+        # Correct endpoint for getting tasks by checklist
         response = await client.get(
-            f"{CHECKLISTS_SERVICE_URL}/api/v1/checklists/{checklist_id}/tasks",
+            f"{CHECKLISTS_SERVICE_URL}/api/v1/tasks/checklist/{checklist_id}",
             headers=headers,
         )
 
         if response.status_code == 200:
-            tasks = response.json().get("tasks", [])
+            tasks = response.json() if isinstance(response.json(), list) else response.json().get("tasks", [])
             for i, task in enumerate(tasks):
                 task_id = task["id"]
                 if i < completed_count:
-                    task_status = "COMPLETED" if status == "COMPLETED" else "IN_PROGRESS"
-                    await client.patch(
-                        f"{CHECKLISTS_SERVICE_URL}/api/v1/tasks/{task_id}",
-                        headers=headers,
-                        json={"status": task_status},
-                    )
+                    # Use complete endpoint for completed tasks, progress for in-progress
+                    if status == "COMPLETED":
+                        await client.post(
+                            f"{CHECKLISTS_SERVICE_URL}/api/v1/tasks/{task_id}/complete",
+                            headers=headers,
+                        )
+                    else:
+                        await client.post(
+                            f"{CHECKLISTS_SERVICE_URL}/api/v1/tasks/{task_id}/progress",
+                            headers=headers,
+                            json={"progress_percentage": min(100, (i + 1) * 100 // len(tasks))},
+                        )
     except Exception as e:
         log_warning(f"  Error updating tasks: {e}")
 
@@ -715,6 +727,320 @@ async def create_knowledge_articles(
                 log_warning(f"  Error creating article '{article['title']}': {e}")
 
     return article_ids
+
+
+async def create_article_views_async(
+    token: str,
+    article_ids: list[int],
+    user_ids: dict[str, int],
+) -> None:
+    """Create article views to simulate users reading knowledge base articles.
+
+    Views are recorded by making GET requests to articles (the knowledge service
+    automatically tracks views when articles are fetched).
+    """
+    log_step("Creating article views (async)")
+    headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+
+    try:
+        article_views = load_json("user_article_views.json")
+    except FileNotFoundError:
+        log_warning("  user_article_views.json not found, skipping article views")
+        return
+
+    total_views = 0
+    success_count = 0
+
+    # Process sequentially with delay to avoid rate limiting
+    async with httpx.AsyncClient() as client:
+        for view_data in article_views:
+            user_key = view_data.get("user_key")
+            article_indices = view_data.get("article_indices", [])
+            view_counts = view_data.get("view_counts", [])
+
+            if user_key not in user_ids:
+                continue
+
+            for i, article_idx in enumerate(article_indices):
+                if article_idx >= len(article_ids):
+                    continue
+
+                article_id = article_ids[article_idx]
+                view_count = view_counts[i] if i < len(view_counts) else 1
+
+                # Record multiple views by fetching the article multiple times
+                for _ in range(view_count):
+                    try:
+                        response = await client.get(
+                            f"{KNOWLEDGE_SERVICE_URL}/api/v1/articles/{article_id}",
+                            headers=headers,
+                        )
+                        if response.status_code in (200, 201):
+                            success_count += 1
+                        total_views += 1
+                        # Small delay between requests (removed rate limit delay since DEBUG mode disables rate limiting)
+                        await asyncio.sleep(0.01)
+                    except Exception:
+                        total_views += 1
+
+    log_success(f"  Recorded {success_count}/{total_views} article views across {len(article_views)} users")
+
+
+async def create_mock_article_attachments(
+    token: str,
+    article_ids: list[int],
+    user_ids: dict[str, int],
+) -> None:
+    """Upload mock file attachments to knowledge articles."""
+    log_step("Creating mock article attachments (async)")
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Varied mock files with different types, sizes, and purposes
+    mock_files = [
+        # (filename, content_type, size_bytes, description)
+        ("Employee_Handbook_2024.pdf", "application/pdf", 245760, "Company handbook with policies"),
+        ("Onboarding_Checklist.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", 51200, "Printable checklist version"),
+        ("Team_Structure.png", "image/png", 184320, "Org chart diagram"),
+        ("Benefits_Overview.pdf", "application/pdf", 153600, "Health insurance and benefits guide"),
+        ("Office_Map.jpg", "image/jpeg", 102400, "Office floor plan"),
+        ("IT_Setup_Guide.pdf", "application/pdf", 307200, "Technical setup instructions"),
+        ("Security_Policy.pdf", "application/pdf", 204800, "Information security guidelines"),
+        ("Vacation_Request_Form.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", 25600, "Template for vacation requests"),
+        ("Code_Style_Guide.md", "text/markdown", 15360, "Development standards"),
+        ("Project_Template.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", 45056, "Project tracking spreadsheet"),
+        ("Emergency_Contacts.pdf", "application/pdf", 40960, "Important phone numbers"),
+        ("Training_Schedule.ics", "text/calendar", 5120, "Onboarding events calendar"),
+        ("Logo_Assets.zip", "application/zip", 512000, "Company logos and brand assets"),
+        ("Remote_Access_Guide.pdf", "application/pdf", 176128, "VPN and remote work setup"),
+        ("Expense_Report_Template.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", 34816, "Expense submission template"),
+        ("Office_Photo.jpg", "image/jpeg", 256000, "Office location photo"),
+        ("Meeting_Notes.txt", "text/plain", 2048, "Important meeting notes"),
+        ("Architecture_Diagram.png", "image/png", 128000, "System architecture diagram"),
+    ]
+
+    # Select articles to attach files to (not all articles get attachments)
+    target_article_indices = [0, 1, 2, 4, 5, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24]
+    available_indices = [i for i in target_article_indices if i < len(article_ids)]
+
+    total_uploads = 0
+    success_count = 0
+
+    async with httpx.AsyncClient() as client:
+        for idx, article_idx in enumerate(available_indices):
+            article_id = article_ids[article_idx]
+            # Each article gets 1-3 random files
+            num_files = min(3, 1 + (idx % 3))
+            file_selection = mock_files[idx % len(mock_files): (idx % len(mock_files)) + num_files]
+            if len(file_selection) < num_files:
+                file_selection = mock_files[:num_files]
+
+            for i, (filename, content_type, file_size, description) in enumerate(file_selection):
+                # Generate varied synthetic file content
+                content = generate_mock_file_content(filename, content_type, file_size, article_id, i)
+
+                try:
+                    response = await client.post(
+                        f"{KNOWLEDGE_SERVICE_URL}/api/v1/attachments/upload",
+                        headers=headers,
+                        data={
+                            "article_id": str(article_id),
+                            "description": description,
+                            "order": str(i),
+                            "is_downloadable": "true",
+                        },
+                        files={
+                            "file": (filename, content, content_type),
+                        },
+                        timeout=30.0,
+                    )
+                    if response.status_code in (200, 201):
+                        success_count += 1
+                        log_success(f"  Uploaded {filename} to article {article_id}")
+                    else:
+                        log_warning(f"  Failed to upload {filename}: {response.status_code}")
+                    total_uploads += 1
+                except Exception as e:
+                    log_warning(f"  Error uploading {filename}: {e}")
+                    total_uploads += 1
+
+    log_success(f"  Created {success_count}/{total_uploads} article attachments")
+
+
+def generate_mock_file_content(filename: str, content_type: str, file_size: int, article_id: int, seed: int) -> bytes:
+    """Generate synthetic but varied file content."""
+    # Create varied content based on file type
+    if content_type.startswith("image/"):
+        # Minimal valid JPEG header + filler for images
+        if content_type == "image/jpeg":
+            header = bytes([0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 0x4A, 0x46, 0x49, 0x46])
+        elif content_type == "image/png":
+            header = bytes([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A])
+        else:
+            header = b"\x00\x00\x00\x00"
+        remaining = max(0, file_size - len(header))
+        # Generate pseudo-random filler
+        filler = bytes((article_id * 7 + seed * 13 + i * 3) % 256 for i in range(remaining))
+        return header + filler
+    elif content_type == "application/pdf":
+        # PDF header
+        header = b"%PDF-1.4\n1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n"
+        footer = b"\nxref\ntrailer\n<< /Size 1 /Root 1 0 R >>\n%%EOF"
+        middle_size = max(0, file_size - len(header) - len(footer))
+        middle = bytes((article_id * 11 + seed * 7 + i * 5) % 256 for i in range(middle_size))
+        return header + middle + footer
+    elif content_type == "application/zip":
+        # ZIP header
+        header = bytes([0x50, 0x4B, 0x03, 0x04])
+        remaining = max(0, file_size - len(header))
+        filler = bytes((article_id * 3 + seed * 17 + i) % 256 for i in range(remaining))
+        return header + filler
+    else:
+        # Text-based files - generate varied content
+        base_text = f"Mock content for {filename} (article {article_id}, file {seed})\n"
+        base_text += "=" * 50 + "\n"
+        base_text += f"Generated: Mock file for testing purposes\n"
+        base_text += f"Size target: {file_size} bytes\n"
+        base_text += f"Content type: {content_type}\n"
+        base_text += "-" * 50 + "\n"
+
+        # Add filler to reach target size
+        current_len = len(base_text.encode("utf-8"))
+        if current_len < file_size:
+            lines_needed = (file_size - current_len) // 60 + 1
+            for i in range(lines_needed):
+                line = f"Line {i + 1}: " + "x" * 40 + f" (seed: {article_id + seed + i})\n"
+                base_text += line
+                if len(base_text.encode("utf-8")) >= file_size:
+                    break
+
+        content = base_text.encode("utf-8")[:file_size]
+        # Ensure exact size
+        if len(content) < file_size:
+            content = content + bytes(file_size - len(content))
+        return content[:file_size]
+
+
+async def create_mock_task_attachments(
+    token: str,
+    user_ids: dict[str, int],
+) -> None:
+    """Upload mock file attachments to checklist tasks."""
+    log_step("Creating mock task attachments (async)")
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Varied task attachment files
+    task_files = [
+        ("signed_nda.pdf", "application/pdf", 61440, "Signed NDA document"),
+        ("id_scan.jpg", "image/jpeg", 81920, "ID document scan"),
+        ("diploma.pdf", "application/pdf", 102400, "Education certificate"),
+        ("reference_letter.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", 30720, "Recommendation letter"),
+        ("medical_certificate.pdf", "application/pdf", 51200, "Health clearance"),
+        ("training_completion.pdf", "application/pdf", 71680, "Course completion proof"),
+        ("code_sample.py", "text/x-python", 8192, "Programming example"),
+        ("project_presentation.pptx", "application/vnd.openxmlformats-officedocument.presentationml.presentation", 153600, "Project deck"),
+        ("screenshot_proof.png", "image/png", 122880, "Completion screenshot"),
+        ("setup_confirmation.txt", "text/plain", 1024, "Setup verification"),
+        ("payroll_form.xls", "application/vnd.ms-excel", 22528, "Payroll information form"),
+        ("contract.doc", "application/msword", 40960, "Employment contract"),
+        ("benefits_form.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", 18432, "Benefits enrollment"),
+        ("profile_photo.jpeg", "image/jpeg", 98304, "Employee photo"),
+    ]
+
+    total_uploads = 0
+    success_count = 0
+
+    async with httpx.AsyncClient() as client:
+        # First, get some checklists with tasks to attach files to
+        try:
+            response = await client.get(
+                f"{CHECKLISTS_SERVICE_URL}/api/v1/checklists/",
+                headers={**headers, "Content-Type": "application/json"},
+                params={"skip": 0, "limit": 20},
+            )
+            if response.status_code != 200:
+                log_warning(f"Could not fetch checklists: {response.status_code}")
+                return
+
+            checklists = response.json().get("checklists", [])
+        except Exception as e:
+            log_warning(f"Error fetching checklists: {e}")
+            return
+
+        for checklist_idx, checklist in enumerate(checklists[:12]):  # Attach to ~12 checklists
+            checklist_id = checklist["id"]
+
+            # Get tasks for this checklist
+            try:
+                response = await client.get(
+                    f"{CHECKLISTS_SERVICE_URL}/api/v1/tasks/checklist/{checklist_id}",
+                    headers={**headers, "Content-Type": "application/json"},
+                )
+                if response.status_code != 200:
+                    continue
+                tasks = response.json()
+            except Exception:
+                continue
+
+            # Select 1-2 tasks to attach files to
+            num_tasks = 1 + (checklist_idx % 2)
+            selected_tasks = tasks[:num_tasks] if len(tasks) >= num_tasks else tasks
+
+            for task_idx, task in enumerate(selected_tasks):
+                task_id = task["id"]
+                # Select varied file(s) for this task
+                file_idx = (checklist_idx * 3 + task_idx) % len(task_files)
+                filename, content_type, file_size, description = task_files[file_idx]
+
+                # Generate mock content
+                content = generate_mock_file_content(filename, content_type, file_size, task_id, task_idx)
+
+                try:
+                    response = await client.post(
+                        f"{CHECKLISTS_SERVICE_URL}/api/v1/tasks/{task_id}/attachments",
+                        headers=headers,
+                        data={"description": description},
+                        files={
+                            "file": (filename, content, content_type),
+                        },
+                        timeout=30.0,
+                    )
+                    if response.status_code in (200, 201):
+                        success_count += 1
+                        log_success(f"  Uploaded {filename} to task {task_id}")
+                    else:
+                        log_warning(f"  Failed to upload {filename} to task {task_id}: {response.status_code}")
+                    total_uploads += 1
+                except Exception as e:
+                    log_warning(f"  Error uploading {filename} to task {task_id}: {e}")
+                    total_uploads += 1
+
+                # Occasionally add a second file (30% chance)
+                if checklist_idx % 3 == 0 and task_idx == 0:
+                    second_file_idx = (file_idx + 1) % len(task_files)
+                    filename2, content_type2, file_size2, desc2 = task_files[second_file_idx]
+                    content2 = generate_mock_file_content(filename2, content_type2, file_size2, task_id, task_idx + 10)
+
+                    try:
+                        response = await client.post(
+                            f"{CHECKLISTS_SERVICE_URL}/api/v1/tasks/{task_id}/attachments",
+                            headers=headers,
+                            data={"description": desc2},
+                            files={
+                                "file": (filename2, content2, content_type2),
+                            },
+                            timeout=30.0,
+                        )
+                        if response.status_code in (200, 201):
+                            success_count += 1
+                            log_success(f"  Uploaded {filename2} to task {task_id}")
+                        else:
+                            log_warning(f"  Failed to upload {filename2}: {response.status_code}")
+                        total_uploads += 1
+                    except Exception as e:
+                        log_warning(f"  Error uploading {filename2}: {e}")
+                        total_uploads += 1
+
+    log_success(f"  Created {success_count}/{total_uploads} task attachments")
 
 
 async def create_dialogue_scenarios(
@@ -1189,6 +1515,9 @@ async def main(skip_services: list[str] | None = None, dry_run: bool = False) ->
             hr_ids[0] if hr_ids else None,
         )
 
+        # Create mock file attachments for tasks
+        await create_mock_task_attachments(token, user_ids)
+
     meeting_template_ids: list[int] = []
     if "meeting" not in skip_services:
         meetings = load_json("meetings.json")
@@ -1207,6 +1536,7 @@ async def main(skip_services: list[str] | None = None, dry_run: bool = False) ->
         feedback = load_json("feedback.json")
         await create_feedback_async(list(user_ids.values()), feedback)
 
+    article_ids: list[int] = []
     if "knowledge" not in skip_services:
         categories = load_json("knowledge_categories.json")
         cat_ids = await create_knowledge_categories(token, dept_ids, categories)
@@ -1215,10 +1545,16 @@ async def main(skip_services: list[str] | None = None, dry_run: bool = False) ->
         tag_ids = await create_knowledge_tags(token, tags)
 
         articles = load_json("knowledge_articles.json")
-        await create_knowledge_articles(token, cat_ids, tag_ids, dept_ids, articles)
+        article_ids = await create_knowledge_articles(token, cat_ids, tag_ids, dept_ids, articles)
 
         scenarios = load_json("dialogue_scenarios.json")
         await create_dialogue_scenarios(token, scenarios)
+
+        # Create article views for users
+        await create_article_views_async(token, article_ids, user_ids)
+
+        # Create mock file attachments for articles
+        await create_mock_article_attachments(token, article_ids, user_ids)
 
     await create_pending_invitations_async(token, dept_ids, mentor_ids[0] if mentor_ids else None)
 
@@ -1234,16 +1570,22 @@ async def main(skip_services: list[str] | None = None, dry_run: bool = False) ->
     log_info("  - Newbies:         12")
     log_info("  - Employees:       8")
     if "checklists" not in skip_services:
+        checklist_instances = load_json("checklist_instances.json")
         log_info(f"  Templates:         {len(templates)}")
-        log_info("  Checklist instances: 12 (COMPLETED, IN_PROGRESS, PENDING)")
+        log_info(f"  Checklist instances: {len(checklist_instances)} (diverse completion: 0%, 25%, 50%, 75%, 100%)")
+        log_info("  Task attachments:  Various files (PDFs, docs, images, etc.)")
     if "knowledge" not in skip_services:
         categories = load_json("knowledge_categories.json")
         tags = load_json("knowledge_tags.json")
         articles = load_json("knowledge_articles.json")
         scenarios = load_json("dialogue_scenarios.json")
+        article_views = load_json("user_article_views.json")
+        total_views = sum(sum(v.get("view_counts", [])) for v in article_views)
         log_info(f"  Categories:        {len(categories)}")
         log_info(f"  Tags:              {len(tags)}")
         log_info(f"  Articles:          {len(articles)}")
+        log_info(f"  Article views:     {total_views} (users with varied reading activity)")
+        log_info(f"  Article attachments: Various files (PDFs, docs, images, spreadsheets)")
         log_info(f"  Dialogue scenarios: {len(scenarios)}")
     if "meeting" not in skip_services:
         meetings = load_json("meetings.json")

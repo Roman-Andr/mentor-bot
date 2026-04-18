@@ -30,9 +30,9 @@ class Settings(BaseSettings):
     # Redis
     REDIS_URL: RedisDsn = Field(default="redis://localhost:6379/0")
 
-    # Security
-    SECRET_KEY: str = Field(default="your-secret-key-here-change-in-production", min_length=32)
-    JWT_SECRET_KEY: str = Field(default="your-jwt-secret-key-here-change-in-production", min_length=32)
+    # Security - MUST be set via environment variables
+    SECRET_KEY: str = Field(min_length=32)
+    JWT_SECRET_KEY: str = Field(min_length=32)
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 480
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
@@ -55,7 +55,11 @@ class Settings(BaseSettings):
     CHECKLISTS_SERVICE_URL: str = Field(default="http://localhost:8002")
     KNOWLEDGE_SERVICE_URL: str = Field(default="http://localhost:8003")
     MEETING_SERVICE_URL: str = Field(default="http://localhost:8006")
+    NOTIFICATION_SERVICE_URL: str = Field(default="http://localhost:8004")
     SERVICE_API_KEY: str = Field(default="")
+
+    # Password reset
+    ADMIN_WEB_URL: str = Field(default="http://localhost:3000")
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", case_sensitive=True, extra="ignore")
 

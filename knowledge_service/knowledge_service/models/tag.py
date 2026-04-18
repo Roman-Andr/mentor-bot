@@ -32,7 +32,7 @@ class Tag(Base):
     updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), onupdate=func.now(), nullable=True)
 
     # Relationships
-    articles: Mapped[list["Article"]] = relationship("Article", secondary=article_tags, back_populates="tags")
+    articles: Mapped[list[Article]] = relationship("Article", secondary=article_tags, back_populates="tags")
 
     def __repr__(self) -> str:
         """Representation of Tag."""

@@ -1,15 +1,61 @@
 """Base SQLAlchemy repository implementation."""
 
 from collections.abc import Sequence
-from typing import TypeVar
+from datetime import datetime
+from typing import Any, TypeVar
 
-from sqlalchemy import select
+from sqlalchemy import Select, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from feedback_service.repositories.interfaces.base import BaseRepository
 
 T = TypeVar("T")
 V = TypeVar("V", bound=int | str)
+
+
+def apply_date_filters(
+    query: Select[Any],
+    model_class: type[T],
+    from_date: datetime | None,
+    to_date: datetime | None,
+    date_column: str = "submitted_at",
+) -> Select[Any]:
+    """
+    Apply date range filters to a query.
+
+    Args:
+        query: The SQLAlchemy select query
+        model_class: The model class with the date column
+        from_date: Start date (inclusive)
+        to_date: End date (inclusive)
+        date_column: Name of the date column to filter on
+
+    Returns:
+        The modified query with date filters applied
+    """
+    date_attr = getattr(model_class, date_column)
+
+    if from_date:
+        query = query.where(date_attr >= from_date)
+    if to_date:
+        query = query.where(date_attr <= to_date)
+
+    return query
+
+
+class DateFilterMixin:
+    """Mixin providing date filter functionality for repositories."""
+
+    def _apply_date_filters(
+        self,
+        query: Select[Any],
+        model_class: type[T],
+        from_date: datetime | None,
+        to_date: datetime | None,
+        date_column: str = "submitted_at",
+    ) -> Select[Any]:
+        """Apply date range filters to a query."""
+        return apply_date_filters(query, model_class, from_date, to_date, date_column)
 
 
 class SqlAlchemyBaseRepository[T, V: int | str](BaseRepository[T, V]):

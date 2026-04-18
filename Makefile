@@ -1,4 +1,4 @@
-.PHONY: help start stop restart logs clean reset-db create-invitation shell-auth shell-checklist shell-knowledge shell-postgres shell-redis status full-reboot logs-notification logs-escalation logs-meeting shell-notification shell-escalation shell-meeting restart-notification restart-escalation restart-meeting reboot-notification reboot-escalation reboot-meeting logs-admin restart-admin restart-admin-dev reboot-admin shell-admin logs-telegram restart-telegram reboot-telegram shell-telegram dev-admin dev-meeting reset-locks update-deps mock-data prune
+.PHONY: help start stop restart logs clean reset-db create-invitation shell-auth shell-checklist shell-knowledge shell-postgres shell-redis status full-reboot logs-notification logs-escalation logs-meeting shell-notification shell-escalation shell-meeting restart-notification restart-escalation restart-meeting reboot-notification reboot-escalation reboot-meeting logs-admin restart-admin restart-admin-dev reboot-admin shell-admin logs-telegram restart-telegram reboot-telegram shell-telegram dev-admin dev-meeting reset-locks update-deps mock-data prune test coverage coverage-html coverage-clean
 
 # Docker compose project name
 PROJECT_NAME = mentor-bot
@@ -20,6 +20,7 @@ help:
 	@echo "  make logs-meeting      - Show logs for meeting service"
 	@echo "  make logs-admin        - Show logs for admin web service"
 	@echo "  make logs-telegram     - Show logs for telegram bot"
+	@echo "  make logs-minio        - Show logs for MinIO service"
 	@echo "  make status            - Show status of all containers"
 	@echo ""
 	@echo "Database management:"
@@ -41,6 +42,7 @@ help:
 	@echo "  make shell-telegram    - Enter telegram bot container"
 	@echo "  make shell-postgres    - Enter PostgreSQL container"
 	@echo "  make shell-redis       - Enter Redis container"
+	@echo "  make shell-minio       - Enter MinIO container"
 	@echo "  make shell-pgadmin     - Enter pgAdmin container"
 	@echo ""
 	@echo "Service restart (down + up --build):"
@@ -63,6 +65,46 @@ help:
 	@echo "  make reboot-admin      - Quick restart admin web service"
 	@echo "  make reboot-telegram   - Quick restart telegram bot"
 	@echo ""
+	@echo "Testing:"
+	@echo "  make test              - Run all unit tests across all Python services"
+	@echo "  make coverage          - Run tests, generate reports, and serve unified dashboard"
+	@echo "  make coverage-serve    - Serve existing coverage reports (skip test run)"
+	@echo "  make coverage-html     - Show coverage report URL"
+	@echo "  make coverage-clean    - Remove all coverage reports"
+	@echo ""
+
+test:
+	@python scripts/run_tests.py
+
+coverage:
+	@echo "Running tests with coverage across all services..."
+	@mkdir -p .coverage-reports
+	@for svc in auth_service checklists_service escalation_service feedback_service knowledge_service meeting_service notification_service telegram_bot; do \
+		if [ ! -d "$$svc/tests" ]; then \
+			echo "=== $$svc (no tests, skipping) ==="; \
+		else \
+			echo "=== $$svc ===" && \
+			(cd "$$svc" && env -u VIRTUAL_ENV uv run pytest tests/ \
+				--cov="$$svc" \
+				--cov-report=term-missing:skip-covered \
+				--cov-report=xml:../.coverage-reports/$$svc.xml \
+				--cov-report=html:../.coverage-reports/$$svc-html \
+				-q) || true; \
+		fi; \
+	done
+	@echo ""
+	@python scripts/aggregate_coverage.py
+
+coverage-serve:
+	@python scripts/serve_coverage.py
+
+coverage-html:
+	@echo "Coverage reports are served at http://localhost:8765"
+	@echo "Run 'make coverage-serve' to start the server, or 'make coverage' to regenerate and serve"
+
+coverage-clean:
+	rm -rf .coverage-reports
+	@echo "Coverage reports cleaned"
 
 start:
 	docker compose up -d --build
@@ -161,6 +203,9 @@ logs-admin:
 logs-telegram:
 	docker compose logs -f telegram_bot
 
+logs-minio:
+	docker compose logs -f minio
+
 status:
 	docker compose ps --format "table {{.Name}}\t{{.Status}}"
 
@@ -194,6 +239,9 @@ shell-postgres:
 shell-redis:
 	docker compose exec redis redis-cli
 
+shell-minio:
+	docker compose exec minio sh
+
 shell-pgadmin:
 	docker compose exec pgadmin /bin/bash
 
@@ -207,10 +255,6 @@ reset-db:
 	@if docker volume ls | grep -q "${PROJECT_NAME}_redis_data"; then \
 		docker volume rm ${PROJECT_NAME}_redis_data; \
 		echo "Removed redis_data volume"; \
-	fi
-	@if docker volume ls | grep -q "${PROJECT_NAME}_knowledge_files"; then \
-		docker volume rm ${PROJECT_NAME}_knowledge_files; \
-		echo "Removed knowledge_files volume"; \
 	fi
 # 	@if docker volume ls | grep -q "${PROJECT_NAME}_pgadmin-data"; then \
 # 		docker volume rm ${PROJECT_NAME}_pgadmin-data; \
@@ -229,7 +273,7 @@ reset-locks:
 	@for dir in auth_service checklists_service knowledge_service notification_service escalation_service feedback_service meeting_service telegram_bot; do \
 		echo "Rebuilding $$dir..."; \
 		rm -f $$dir/uv.lock; \
-		uv sync --directory $$dir; \
+		env -u VIRTUAL_ENV uv sync --directory $$dir; \
 	done
 	@echo "All uv.lock files rebuilt"
 

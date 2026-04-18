@@ -36,6 +36,8 @@ async def get_meetings(
     search: Annotated[str | None, Query()] = None,
     *,
     is_mandatory: bool | None = None,
+    sort_by: Annotated[str | None, Query()] = None,
+    sort_order: Annotated[str, Query()] = "asc",
 ) -> MeetingListResponse:
     """Get paginated list of meeting templates (HR/Admin only)."""
     service = MeetingService(uow)
@@ -48,6 +50,8 @@ async def get_meetings(
         level=level,
         is_mandatory=is_mandatory,
         search=search,
+        sort_by=sort_by,
+        sort_order=sort_order,
     )
     pages = (total + limit - 1) // limit if limit > 0 else 0
     return MeetingListResponse(

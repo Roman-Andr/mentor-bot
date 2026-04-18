@@ -95,3 +95,16 @@ export const MEETING_TYPES = [
   { value: "MANAGER", label: "Руководитель" },
   { value: "OTHER", label: "Другое" },
 ] as const;
+
+export const FEEDBACK_TYPES = [
+  { value: "all", label: "Все типы" },
+  { value: "pulse", label: "Пульс-опросы" },
+  { value: "experience", label: "Оценка опыта" },
+  { value: "comment", label: "Комментарии" },
+] as const;
+
+export const ANONYMITY_OPTIONS = [
+  { value: "all", label: "Все" },
+  { value: "anonymous", label: "Анонимные" },
+  { value: "attributed", label: "Именные" },
+] as const;

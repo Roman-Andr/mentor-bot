@@ -45,11 +45,15 @@ export default function DepartmentsPage() {
       emptyStateMessage={t("departments.empty")}
       searchPlaceholder={t("common.search")}
       getItemKey={(item) => item.id}
+      sortField={entity.sortField}
+      sortDirection={entity.sortDirection}
+      onSort={entity.toggleSort}
       columns={[
         {
           key: "name",
           header: t("departments.name"),
           cell: (item) => <span className="font-medium">{item.name}</span>,
+          sortable: true,
         },
         {
           key: "description",
@@ -65,6 +69,7 @@ export default function DepartmentsPage() {
           header: t("common.created"),
           cell: (item) => new Date(item.createdAt).toLocaleDateString(),
           width: "w-32",
+          sortable: true,
         },
       ]}
       renderForm={({ formData, onChange }) => (

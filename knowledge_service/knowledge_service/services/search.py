@@ -263,7 +263,7 @@ class SearchService:
         highlighted = text
 
         for word in words:
-            if len(word) > MIN_WORD_LENGTH_HIGHLIGHT:
+            if len(word) >= MIN_WORD_LENGTH_HIGHLIGHT:
                 pattern = re.compile(re.escape(word), re.IGNORECASE)
                 highlighted = pattern.sub(f"<mark>{word}</mark>", highlighted)
 

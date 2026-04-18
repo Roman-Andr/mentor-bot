@@ -9,7 +9,8 @@ from notification_service.api.deps import (
     get_current_active_user,
     get_current_user,
 )
-from notification_service.api.endpoints import notifications
+from notification_service.api.endpoints import email, notifications
+from notification_service.api import templates
 
 __all__ = [
     "AdminUser",
@@ -17,7 +18,9 @@ __all__ = [
     "DatabaseSession",
     "HRUser",
     "UserInfo",
+    "email",
     "get_current_active_user",
     "get_current_user",
     "notifications",
+    "templates",
 ]

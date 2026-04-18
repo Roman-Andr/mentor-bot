@@ -64,6 +64,10 @@ async def init_db() -> None:
         )
 
         # Create all tables
-        from notification_service.models import Notification, ScheduledNotification  # noqa: F401, PLC0415
+        from notification_service.models import (  # noqa: F401, PLC0415
+            Notification,
+            NotificationTemplate,
+            ScheduledNotification,
+        )
 
         await conn.run_sync(Base.metadata.create_all)

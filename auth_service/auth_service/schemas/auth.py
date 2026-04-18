@@ -1,8 +1,8 @@
 """Authentication schemas for request/response validation."""
 
-from datetime import datetime
+from datetime import UTC, datetime
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, computed_field
 
 from auth_service.core import UserRole
 
@@ -16,6 +16,13 @@ class Token(BaseModel):
     expires_at: datetime
     user_id: int
     role: UserRole
+
+    @computed_field
+    @property
+    def expires_in(self) -> int:
+        """Return seconds until token expires."""
+        delta = self.expires_at - datetime.now(UTC)
+        return max(0, int(delta.total_seconds()))
 
 
 class TokenPayload(BaseModel):

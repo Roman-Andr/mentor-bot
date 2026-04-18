@@ -2,26 +2,47 @@
   {
     "user_key": "newbie_1",
     "status": "COMPLETED",
-    "days_ago": 25,
+    "days_ago": 45,
     "completed_tasks": 9
+  },
+  {
+    "user_key": "newbie_1",
+    "status": "IN_PROGRESS",
+    "days_ago": 10,
+    "completed_tasks": 5,
+    "template_index": 1
   },
   {
     "user_key": "newbie_2",
     "status": "IN_PROGRESS",
-    "days_ago": 10,
-    "completed_tasks": 5
+    "days_ago": 3,
+    "completed_tasks": 2
+  },
+  {
+    "user_key": "newbie_2",
+    "status": "COMPLETED",
+    "days_ago": 30,
+    "completed_tasks": 7,
+    "template_index": 1
   },
   {
     "user_key": "newbie_3",
-    "status": "IN_PROGRESS",
-    "days_ago": 5,
-    "completed_tasks": 2
+    "status": "PENDING",
+    "days_ago": 0,
+    "completed_tasks": 0
   },
   {
     "user_key": "newbie_4",
     "status": "IN_PROGRESS",
-    "days_ago": 15,
+    "days_ago": 20,
     "completed_tasks": 7
+  },
+  {
+    "user_key": "newbie_4",
+    "status": "COMPLETED",
+    "days_ago": 35,
+    "completed_tasks": 8,
+    "template_index": 7
   },
   {
     "user_key": "newbie_5",
@@ -30,22 +51,43 @@
     "completed_tasks": 0
   },
   {
+    "user_key": "newbie_5",
+    "status": "IN_PROGRESS",
+    "days_ago": 5,
+    "completed_tasks": 3,
+    "template_index": 1
+  },
+  {
     "user_key": "newbie_6",
     "status": "IN_PROGRESS",
-    "days_ago": 3,
+    "days_ago": 2,
     "completed_tasks": 1
   },
   {
     "user_key": "newbie_7",
     "status": "COMPLETED",
-    "days_ago": 20,
-    "completed_tasks": 7
+    "days_ago": 60,
+    "completed_tasks": 9
+  },
+  {
+    "user_key": "newbie_7",
+    "status": "COMPLETED",
+    "days_ago": 40,
+    "completed_tasks": 7,
+    "template_index": 1
+  },
+  {
+    "user_key": "newbie_7",
+    "status": "IN_PROGRESS",
+    "days_ago": 15,
+    "completed_tasks": 4,
+    "template_index": 3
   },
   {
     "user_key": "newbie_8",
     "status": "IN_PROGRESS",
     "days_ago": 7,
-    "completed_tasks": 3
+    "completed_tasks": 4
   },
   {
     "user_key": "newbie_9",
@@ -56,8 +98,15 @@
   {
     "user_key": "newbie_10",
     "status": "IN_PROGRESS",
-    "days_ago": 12,
-    "completed_tasks": 5
+    "days_ago": 15,
+    "completed_tasks": 6
+  },
+  {
+    "user_key": "newbie_10",
+    "status": "IN_PROGRESS",
+    "days_ago": 5,
+    "completed_tasks": 2,
+    "template_index": 5
   },
   {
     "user_key": "newbie_11",
@@ -68,13 +117,83 @@
   {
     "user_key": "newbie_12",
     "status": "IN_PROGRESS",
+    "days_ago": 10,
+    "completed_tasks": 5
+  },
+  {
+    "user_key": "newbie_12",
+    "status": "COMPLETED",
+    "days_ago": 25,
+    "completed_tasks": 8,
+    "template_index": 7
+  },
+  {
+    "user_key": "employee_1",
+    "status": "IN_PROGRESS",
     "days_ago": 8,
-    "completed_tasks": 4
+    "completed_tasks": 6,
+    "template_index": 1
+  },
+  {
+    "user_key": "employee_2",
+    "status": "COMPLETED",
+    "days_ago": 20,
+    "completed_tasks": 7,
+    "template_index": 1
+  },
+  {
+    "user_key": "employee_3",
+    "status": "IN_PROGRESS",
+    "days_ago": 12,
+    "completed_tasks": 5,
+    "template_index": 3
+  },
+  {
+    "user_key": "employee_4",
+    "status": "COMPLETED",
+    "days_ago": 18,
+    "completed_tasks": 6,
+    "template_index": 2
+  },
+  {
+    "user_key": "employee_5",
+    "status": "IN_PROGRESS",
+    "days_ago": 6,
+    "completed_tasks": 3,
+    "template_index": 4
+  },
+  {
+    "user_key": "employee_6",
+    "status": "IN_PROGRESS",
+    "days_ago": 4,
+    "completed_tasks": 2,
+    "template_index": 5
+  },
+  {
+    "user_key": "employee_7",
+    "status": "COMPLETED",
+    "days_ago": 22,
+    "completed_tasks": 7,
+    "template_index": 1
+  },
+  {
+    "user_key": "employee_8",
+    "status": "IN_PROGRESS",
+    "days_ago": 9,
+    "completed_tasks": 4,
+    "template_index": 0
   },
   {
     "user_key": "andrusevich_roman",
     "status": "IN_PROGRESS",
-    "days_ago": 7,
-    "completed_tasks": 4
+    "days_ago": 5,
+    "completed_tasks": 3
+  },
+  {
+    "user_key": "andrusevich_roman",
+    "status": "IN_PROGRESS",
+    "days_ago": 2,
+    "completed_tasks": 1,
+    "template_index": 7
   }
 ]

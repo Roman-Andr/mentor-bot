@@ -30,7 +30,7 @@ class Meeting(Base):
 
     # Targeting (who this meeting is for)
     department_id: Mapped[int | None] = mapped_column(ForeignKey("departments.id"), nullable=True)
-    department: Mapped["Department | None"] = relationship("Department", back_populates="meetings")
+    department: Mapped[Department | None] = relationship("Department", back_populates="meetings")
     position: Mapped[str | None] = mapped_column(String(100), nullable=True, index=True)
     level: Mapped[EmployeeLevel | None] = mapped_column(Enum(EmployeeLevel, native=False), nullable=True, index=True)
 
@@ -44,10 +44,10 @@ class Meeting(Base):
     updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), onupdate=func.now(), nullable=True)
 
     # Relationships
-    materials: Mapped[list["MeetingMaterial"]] = relationship(
+    materials: Mapped[list[MeetingMaterial]] = relationship(
         "MeetingMaterial", back_populates="meeting", cascade="all, delete-orphan"
     )
-    assignments: Mapped[list["UserMeeting"]] = relationship(
+    assignments: Mapped[list[UserMeeting]] = relationship(
         "UserMeeting", back_populates="meeting", cascade="all, delete-orphan"
     )
 

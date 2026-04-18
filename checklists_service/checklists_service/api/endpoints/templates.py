@@ -31,6 +31,8 @@ async def get_templates(
     status: Annotated[str | None, Query()] = None,
     is_default: Annotated[bool | None, Query()] = None,
     search: Annotated[str | None, Query()] = None,
+    sort_by: Annotated[str | None, Query()] = None,
+    sort_order: Annotated[str, Query()] = "desc",
 ) -> list[TemplateResponse]:
     """Get paginated list of templates (HR/admin only)."""
     template_service = TemplateService(uow)
@@ -42,6 +44,8 @@ async def get_templates(
         status=status,
         is_default=is_default,
         search=search,
+        sort_by=sort_by,
+        sort_order=sort_order,
     )
 
     return [TemplateResponse.model_validate(t) for t in templates]

@@ -61,7 +61,7 @@ class RedisCache:
             data = await self.redis.get(key)
             if data:
                 return pickle.loads(data)
-        except pickle.UnpicklingError, RedisError:
+        except (pickle.UnpicklingError, RedisError):
             return None
         return None
 

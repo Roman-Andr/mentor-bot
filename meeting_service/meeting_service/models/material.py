@@ -32,7 +32,7 @@ class MeetingMaterial(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     # Relationships
-    meeting: Mapped["Meeting"] = relationship("Meeting", back_populates="materials")
+    meeting: Mapped[Meeting] = relationship("Meeting", back_populates="materials")
 
     def __repr__(self) -> str:
         """Representation of MeetingMaterial."""

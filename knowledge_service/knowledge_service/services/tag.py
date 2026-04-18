@@ -50,11 +50,8 @@ class TagService:
         """Update tag."""
         tag = await self.get_tag_by_id(tag_id)
 
-        if update_data.name or update_data.slug:
-            new_name = update_data.name or tag.name
-            new_slug = update_data.slug or tag.slug
-
-            conflicting = await self._uow.tags.find_by_name_or_slug_excluding(new_name, new_slug, tag_id)
+        if update_data.name:
+            conflicting = await self._uow.tags.find_by_name_or_slug_excluding(update_data.name, tag.slug, tag_id)
             if conflicting:
                 msg = "Another tag with this name or slug already exists"
                 raise ValidationException(msg)

@@ -19,6 +19,8 @@ import { CardHeader, CardTitle } from "@/components/ui/card";
 import { Building, SquarePen, Trash2, UserCheck } from "lucide-react";
 import { ROLES, ROLES_WITH_ALL } from "@/lib/constants";
 import type { UserItem } from "@/hooks/use-users";
+import { SortableTableHead } from "@/components/ui/sortable-table-head";
+import type { SortDirection } from "@/hooks/use-sorting";
 
 interface UsersTableProps {
   users: UserItem[];
@@ -40,6 +42,9 @@ interface UsersTableProps {
   pageSize?: number;
   onPageChange?: (page: number) => void;
   onPageSizeChange?: (size: number) => void;
+  sortField?: string | null;
+  sortDirection?: SortDirection;
+  onSort?: (field: string) => void;
 }
 
 const ROLE_VARIANTS: Record<string, "default" | "secondary" | "outline"> = {
@@ -68,6 +73,9 @@ export function UsersTable({
   pageSize,
   onPageChange,
   onPageSizeChange,
+  sortField,
+  sortDirection = "asc",
+  onSort,
 }: UsersTableProps) {
   const t = useTranslations();
 
@@ -118,13 +126,69 @@ export function UsersTable({
       <Table>
         <TableHeader>
           <TableRow>
-              <TableHead>{t("common.user")}</TableHead>
-            <TableHead>{t("users.employeeId")}</TableHead>
-            <TableHead>{t("common.department")}</TableHead>
-            <TableHead>{t("common.position")}</TableHead>
-            <TableHead>{t("common.role")}</TableHead>
-            <TableHead>{t("common.status")}</TableHead>
-            <TableHead>{t("common.createdAt")}</TableHead>
+            <SortableTableHead
+              field="name"
+              sortable={!!onSort}
+              sortField={sortField ?? null}
+              sortDirection={sortDirection}
+              onSort={onSort ?? (() => {})}
+            >
+              {t("common.user")}
+            </SortableTableHead>
+            <SortableTableHead
+              field="employee_id"
+              sortable={!!onSort}
+              sortField={sortField ?? null}
+              sortDirection={sortDirection}
+              onSort={onSort ?? (() => {})}
+            >
+              {t("users.employeeId")}
+            </SortableTableHead>
+            <SortableTableHead
+              field="department"
+              sortable={!!onSort}
+              sortField={sortField ?? null}
+              sortDirection={sortDirection}
+              onSort={onSort ?? (() => {})}
+            >
+              {t("common.department")}
+            </SortableTableHead>
+            <SortableTableHead
+              field="position"
+              sortable={!!onSort}
+              sortField={sortField ?? null}
+              sortDirection={sortDirection}
+              onSort={onSort ?? (() => {})}
+            >
+              {t("common.position")}
+            </SortableTableHead>
+            <SortableTableHead
+              field="role"
+              sortable={!!onSort}
+              sortField={sortField ?? null}
+              sortDirection={sortDirection}
+              onSort={onSort ?? (() => {})}
+            >
+              {t("common.role")}
+            </SortableTableHead>
+            <SortableTableHead
+              field="isActive"
+              sortable={!!onSort}
+              sortField={sortField ?? null}
+              sortDirection={sortDirection}
+              onSort={onSort ?? (() => {})}
+            >
+              {t("common.status")}
+            </SortableTableHead>
+            <SortableTableHead
+              field="createdAt"
+              sortable={!!onSort}
+              sortField={sortField ?? null}
+              sortDirection={sortDirection}
+              onSort={onSort ?? (() => {})}
+            >
+              {t("common.createdAt")}
+            </SortableTableHead>
             <TableHead className="w-25">{t("common.actions")}</TableHead>
           </TableRow>
         </TableHeader>

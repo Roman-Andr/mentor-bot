@@ -12,7 +12,7 @@ from auth_service.api.deps import (
     UserServiceDep,
     get_current_user,
 )
-from auth_service.api.endpoints import auth, departments, invitations, user_mentors, users
+from auth_service.api.endpoints import auth, departments, invitations, password_reset, user_mentors, users
 
 __all__ = [
     "AdminUser",
@@ -28,6 +28,7 @@ __all__ = [
     "departments",
     "get_current_user",
     "invitations",
+    "password_reset",
     "user_mentors",
     "users",
 ]

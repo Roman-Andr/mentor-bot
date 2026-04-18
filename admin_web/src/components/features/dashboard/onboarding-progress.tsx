@@ -38,7 +38,11 @@ export function OnboardingProgress({ progress }: OnboardingProgressProps) {
                   </div>
                 </div>
                 <span className="text-muted-foreground text-xs whitespace-nowrap">
-                  {item.days_remaining} {t("dashboard.daysRemaining")}
+                  {item.status === "COMPLETED"
+                    ? t("common.completed")
+                    : item.days_remaining > 0
+                      ? `${item.days_remaining} ${t("dashboard.daysRemaining")}`
+                      : `${Math.abs(item.days_remaining)} ${t("dashboard.daysOverdue")}`}
                 </span>
               </div>
             ))

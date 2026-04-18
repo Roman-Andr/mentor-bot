@@ -25,8 +25,8 @@ class Department(Base):
     updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), onupdate=func.now(), nullable=True)
 
     # Relationships
-    users: Mapped[list["User"]] = relationship("User", back_populates="department")
-    invitations: Mapped[list["Invitation"]] = relationship("Invitation", back_populates="department")
+    users: Mapped[list[User]] = relationship("User", back_populates="department")
+    invitations: Mapped[list[Invitation]] = relationship("Invitation", back_populates="department")
 
     def __repr__(self) -> str:
         """Representation of Department."""

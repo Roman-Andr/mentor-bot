@@ -182,6 +182,7 @@ export function useCategories() {
     },
     searchable: true,
     searchParamName: "search",
+    sortable: true,
     pageSize: 20,
   });
 
@@ -210,5 +211,9 @@ export function useCategories() {
     setPageSize: entity.setPageSize,
     totalCount: entity.totalCount,
     totalPages: entity.totalPages,
+    // Sorting
+    sortField: entity.sortField,
+    sortDirection: entity.sortDirection,
+    toggleSort: entity.toggleSort,
   };
 }

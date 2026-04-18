@@ -3,6 +3,7 @@
 from collections.abc import Sequence
 from typing import cast
 
+import sqlalchemy
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
@@ -26,6 +27,21 @@ class TemplateRepository(SqlAlchemyBaseRepository[Template, int], ITemplateRepos
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none()
 
+    def _get_sort_column(self, sort_by: str | None) -> "sqlalchemy.Column":
+        """Get SQLAlchemy column for sorting."""
+        column_map = {
+            "name": Template.name,
+            "department": Template.department_id,
+            "position": Template.position,
+            "level": Template.level,
+            "status": Template.status,
+            "durationDays": Template.duration_days,
+            "isDefault": Template.is_default,
+            "createdAt": Template.created_at,
+            "updatedAt": Template.updated_at,
+        }
+        return column_map.get(sort_by, Template.created_at)
+
     async def find_templates(
         self,
         *,
@@ -35,6 +51,8 @@ class TemplateRepository(SqlAlchemyBaseRepository[Template, int], ITemplateRepos
         status: TemplateStatus | None = None,
         is_default: bool | None = None,
         search: str | None = None,
+        sort_by: str | None = None,
+        sort_order: str = "desc",
     ) -> tuple[Sequence[Template], int]:
         """Find templates with filtering and return results with total count."""
         count_stmt = select(func.count(Template.id))
@@ -63,9 +81,14 @@ class TemplateRepository(SqlAlchemyBaseRepository[Template, int], ITemplateRepos
 
         total = cast("int", (await self._session.execute(count_stmt)).scalar_one())
 
-        stmt = (
-            stmt.options(joinedload(Template.department)).offset(skip).limit(limit).order_by(Template.created_at.desc())
-        )
+        # Apply sorting
+        sort_column = self._get_sort_column(sort_by)
+        if sort_order.lower() == "asc":
+            stmt = stmt.order_by(sort_column.asc())
+        else:
+            stmt = stmt.order_by(sort_column.desc())
+
+        stmt = stmt.options(joinedload(Template.department)).offset(skip).limit(limit)
         result = await self._session.execute(stmt)
         templates = result.scalars().all()
 

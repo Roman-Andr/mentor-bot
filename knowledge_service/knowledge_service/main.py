@@ -15,7 +15,7 @@ from slowapi.util import get_remote_address
 
 from knowledge_service.api import articles, attachments, categories, departments, dialogues, search, tags
 from knowledge_service.config import settings
-from knowledge_service.database import init_db
+from knowledge_service.database import engine, init_db
 from knowledge_service.middleware.auth import AuthTokenMiddleware
 from knowledge_service.schemas import HealthCheck, ServiceStatus
 from knowledge_service.utils import cache
@@ -58,11 +58,12 @@ app = FastAPI(
 
 # Add middleware
 
-# Rate-limit
-limiter = Limiter(key_func=get_remote_address, default_limits=["100/minute"])
-app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
-app.add_middleware(SlowAPIMiddleware)
+# Rate-limit (disabled in debug mode)
+if not settings.DEBUG:
+    limiter = Limiter(key_func=get_remote_address, default_limits=["100/minute"])
+    app.state.limiter = limiter
+    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+    app.add_middleware(SlowAPIMiddleware)
 
 app.add_middleware(AuthTokenMiddleware)
 app.add_middleware(
@@ -98,15 +99,25 @@ async def root() -> ServiceStatus:
 @app.get("/health")
 async def health_check() -> HealthCheck:
     """Health check endpoint for load balancers and monitoring."""
+    from sqlalchemy import text
+
+    # Check database connectivity
+    try:
+        async with engine.connect() as conn:
+            await conn.execute(text("SELECT 1"))
+            db_status = "connected"
+    except Exception:
+        db_status = "disconnected"
+
     # Check cache connection
     cache_status = "connected" if cache.is_connected else "disconnected"
 
     return HealthCheck(
-        status="healthy",
+        status="healthy" if db_status == "connected" else "unhealthy",
         service="knowledge",
         timestamp=datetime.now(UTC).isoformat(),
         dependencies={
-            "database": "connected",
+            "database": db_status,
             "redis": cache_status,
             "auth_service": "connected",
         },

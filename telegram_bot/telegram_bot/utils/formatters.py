@@ -251,7 +251,7 @@ def format_meeting_list(meetings: list[dict[str, Any]], *, locale: str = "en") -
             dt = datetime.fromisoformat(scheduled_at)
             # Compact format: DD.MM.YYYY HH:MM
             formatted_date = dt.strftime("%d.%m.%Y %H:%M")
-        except ValueError, TypeError:
+        except (ValueError, TypeError):
             formatted_date = "TBD"
 
         type_emoji = {

@@ -148,6 +148,9 @@ export default function KnowledgePage() {
             pageSize={a.pageSize}
             onPageChange={a.setCurrentPage}
             onPageSizeChange={a.setPageSize}
+            sortField={a.sortField}
+            sortDirection={a.sortDirection}
+            onSort={a.toggleSort}
           />
         </>
       )}
@@ -196,6 +199,9 @@ export default function KnowledgePage() {
             onPageSizeChange={c.setPageSize}
             onEdit={c.openEdit}
             onDelete={handleCategoryDelete}
+            sortField={c.sortField}
+            sortDirection={c.sortDirection}
+            onSort={c.toggleSort}
           />
         </>
       )}

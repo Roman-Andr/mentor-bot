@@ -3,6 +3,8 @@
 from collections.abc import Sequence
 from typing import cast
 
+import sqlalchemy
+import sqlalchemy
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -19,6 +21,21 @@ class MeetingRepository(SqlAlchemyBaseRepository[Meeting, int], IMeetingReposito
         """Initialize MeetingRepository with database session."""
         super().__init__(session, Meeting)
 
+    def _get_sort_column(self, sort_by: str | None) -> "sqlalchemy.Column":
+        """Get SQLAlchemy column for sorting."""
+        column_map = {
+            "title": Meeting.title,
+            "type": Meeting.type,
+            "department": Meeting.department_id,
+            "position": Meeting.position,
+            "level": Meeting.level,
+            "isMandatory": Meeting.is_mandatory,
+            "order": Meeting.order,
+            "createdAt": Meeting.created_at,
+            "updatedAt": Meeting.updated_at,
+        }
+        return column_map.get(sort_by, Meeting.order)
+
     async def find_meetings(
         self,
         *,
@@ -30,6 +47,8 @@ class MeetingRepository(SqlAlchemyBaseRepository[Meeting, int], IMeetingReposito
         level: EmployeeLevel | None = None,
         is_mandatory: bool | None = None,
         search: str | None = None,
+        sort_by: str | None = None,
+        sort_order: str = "asc",
     ) -> tuple[Sequence[Meeting], int]:
         """Find meetings with filtering and return results with total count."""
         count_stmt = select(func.count(Meeting.id))
@@ -62,7 +81,14 @@ class MeetingRepository(SqlAlchemyBaseRepository[Meeting, int], IMeetingReposito
         total_result = await self._session.execute(count_stmt)
         total = cast("int", total_result.scalar_one())
 
-        stmt = stmt.order_by(Meeting.order, Meeting.created_at.desc()).offset(skip).limit(limit)
+        # Apply sorting
+        sort_column = self._get_sort_column(sort_by)
+        if sort_order.lower() == "asc":
+            stmt = stmt.order_by(sort_column.asc())
+        else:
+            stmt = stmt.order_by(sort_column.desc())
+
+        stmt = stmt.offset(skip).limit(limit)
         result = await self._session.execute(stmt)
         meetings = result.scalars().all()
 

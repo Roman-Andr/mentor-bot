@@ -104,6 +104,7 @@ export function useMeetings() {
     searchable: true,
     searchParamName: "search",
     filters: [{ name: "type", defaultValue: "ALL", paramName: "meeting_type" }],
+    sortable: true,
     labels: {
       createdKey: "meetings.created",
       updatedKey: "meetings.updated",
@@ -159,5 +160,10 @@ export function useMeetings() {
     isCreating: entity.isSubmitting,
     isUpdating: entity.isSubmitting,
     isDeleting: entity.isDeleting,
+
+    // Sorting
+    sortField: entity.sortField,
+    sortDirection: entity.sortDirection,
+    toggleSort: entity.toggleSort,
   };
 }

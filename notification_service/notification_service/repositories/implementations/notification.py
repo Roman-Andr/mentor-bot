@@ -4,6 +4,7 @@ from collections.abc import Sequence
 from datetime import datetime
 from typing import cast
 
+import sqlalchemy
 from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -23,6 +24,19 @@ class NotificationRepository(SqlAlchemyBaseRepository[Notification, int], INotif
         """Initialize NotificationRepository with database session."""
         super().__init__(session, Notification)
 
+    def _get_sort_column(self, sort_by: str | None) -> "sqlalchemy.Column":
+        """Get SQLAlchemy column for sorting."""
+        column_map = {
+            "type": Notification.type,
+            "channel": Notification.channel,
+            "status": Notification.status,
+            "user": Notification.user_id,
+            "createdAt": Notification.created_at,
+            "scheduledFor": Notification.scheduled_for,
+            "sentAt": Notification.sent_at,
+        }
+        return column_map.get(sort_by, Notification.created_at)
+
     async def find_notifications(
         self,
         *,
@@ -31,6 +45,8 @@ class NotificationRepository(SqlAlchemyBaseRepository[Notification, int], INotif
         user_id: int | None = None,
         notification_type: NotificationType | None = None,
         status: NotificationStatus | None = None,
+        sort_by: str | None = None,
+        sort_order: str = "desc",
     ) -> tuple[Sequence[Notification], int]:
         """Find notifications with filtering and return results with total count."""
         count_stmt = select(func.count(Notification.id))
@@ -49,7 +65,14 @@ class NotificationRepository(SqlAlchemyBaseRepository[Notification, int], INotif
         total_result = await self._session.execute(count_stmt)
         total = cast("int", total_result.scalar_one())
 
-        stmt = stmt.order_by(Notification.created_at.desc()).offset(skip).limit(limit)
+        # Apply sorting
+        sort_column = self._get_sort_column(sort_by)
+        if sort_order.lower() == "asc":
+            stmt = stmt.order_by(sort_column.asc())
+        else:
+            stmt = stmt.order_by(sort_column.desc())
+
+        stmt = stmt.offset(skip).limit(limit)
         result = await self._session.execute(stmt)
         notifications = result.scalars().all()
 

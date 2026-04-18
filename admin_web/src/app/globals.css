@@ -77,3 +77,67 @@ body {
   background-color: var(--background);
   color: var(--foreground);
 }
+
+/* Swagger UI Custom Styles */
+.swagger-ui-wrapper .swagger-ui {
+  font-family: inherit;
+}
+
+.swagger-ui-wrapper .topbar {
+  display: none;
+}
+
+.swagger-ui-wrapper .info {
+  margin: 1rem 0;
+}
+
+.swagger-ui-wrapper .info .title {
+  color: var(--foreground);
+}
+
+.swagger-ui-wrapper .opblock .opblock-summary {
+  border-color: var(--border);
+}
+
+.swagger-ui-wrapper .opblock .opblock-summary-method {
+  font-weight: 600;
+}
+
+.swagger-ui-wrapper .btn.execute {
+  background-color: oklch(0.55 0.15 250);
+  border-color: oklch(0.55 0.15 250);
+  color: white;
+}
+
+.swagger-ui-wrapper .btn.execute:hover {
+  background-color: oklch(0.5 0.15 250);
+}
+
+.dark .swagger-ui-wrapper .swagger-ui {
+  color: var(--foreground);
+}
+
+.dark .swagger-ui-wrapper .opblock .opblock-summary-path {
+  color: var(--foreground);
+}
+
+.dark .swagger-ui-wrapper .opblock .opblock-section-header {
+  background: var(--card);
+}
+
+.dark .swagger-ui-wrapper .opblock .opblock-section-header h4 {
+  color: var(--foreground);
+}
+
+.dark .swagger-ui-wrapper .parameter__name {
+  color: var(--foreground);
+}
+
+.dark .swagger-ui-wrapper .parameter__type {
+  color: var(--muted-foreground);
+}
+
+.dark .swagger-ui-wrapper .response-col_status,
+.dark .swagger-ui-wrapper .response-col_description {
+  color: var(--foreground);
+}

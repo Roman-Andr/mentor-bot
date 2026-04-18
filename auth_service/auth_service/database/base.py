@@ -64,6 +64,12 @@ async def init_db() -> None:
         )
 
         # Create all tables
-        from auth_service.models import Department, Invitation, User, UserMentor  # noqa: F401, PLC0415
+        from auth_service.models import (  # noqa: F401, PLC0415
+            Department,
+            Invitation,
+            PasswordResetToken,
+            User,
+            UserMentor,
+        )
 
         await conn.run_sync(Base.metadata.create_all)

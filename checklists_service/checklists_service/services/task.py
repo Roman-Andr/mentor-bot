@@ -92,6 +92,7 @@ class TaskService:
         """Update task progress."""
         task = await self.get_task(task_id)
 
+        old_status = task.status
         task.status = progress_data.status
 
         if progress_data.notes:
@@ -103,7 +104,7 @@ class TaskService:
         if progress_data.attachments:
             task.attachments.extend(progress_data.attachments)
 
-        if progress_data.status == TaskStatus.COMPLETED and task.status != TaskStatus.COMPLETED:
+        if progress_data.status == TaskStatus.COMPLETED and old_status != TaskStatus.COMPLETED:
             task.completed_at = datetime.now(UTC)
 
             incomplete_deps = list(await self._uow.tasks.get_incomplete_dependencies(task_id))

@@ -11,8 +11,8 @@ from telegram_bot.keyboards.admin_detail import (
     get_back_to_admin_users_keyboard,
 )
 from telegram_bot.keyboards.calendar_kb import (
-    get_calendar_connected_keyboard,
     get_calendar_connect_keyboard,
+    get_calendar_connected_keyboard,
     get_calendar_not_connected_keyboard,
 )
 from telegram_bot.keyboards.checklist import (

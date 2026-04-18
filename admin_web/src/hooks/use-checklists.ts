@@ -163,6 +163,7 @@ export function useChecklists() {
     },
     searchable: true,
     searchParamName: "search",
+    sortable: true,
     filters: [
       { name: "status", defaultValue: "ALL" },
       { name: "department", defaultValue: "ALL", paramName: "department_id", transform: (v) => parseInt(v) },
@@ -249,5 +250,10 @@ export function useChecklists() {
     isCreating: entity.isSubmitting,
     isUpdating: entity.isSubmitting,
     isDeleting: entity.isDeleting,
+
+    // Sorting
+    sortField: entity.sortField,
+    sortDirection: entity.sortDirection,
+    toggleSort: entity.toggleSort,
   };
 }

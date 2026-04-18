@@ -4,6 +4,7 @@ from collections.abc import Sequence
 from datetime import UTC, datetime
 from typing import Any, cast
 
+import sqlalchemy
 from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -20,6 +21,19 @@ class ChecklistRepository(SqlAlchemyBaseRepository[Checklist, int], IChecklistRe
         """Initialize ChecklistRepository with database session."""
         super().__init__(session, Checklist)
 
+    def _get_sort_column(self, sort_by: str | None) -> "sqlalchemy.Column":
+        """Get SQLAlchemy column for sorting."""
+        column_map = {
+            "employeeId": Checklist.employee_id,
+            "status": Checklist.status,
+            "progress": Checklist.progress_percentage,
+            "startDate": Checklist.start_date,
+            "dueDate": Checklist.due_date,
+            "completedAt": Checklist.completed_at,
+            "createdAt": Checklist.created_at,
+        }
+        return column_map.get(sort_by, Checklist.created_at)
+
     async def find_checklists(
         self,
         *,
@@ -30,6 +44,8 @@ class ChecklistRepository(SqlAlchemyBaseRepository[Checklist, int], IChecklistRe
         department_id: int | None = None,
         search: str | None = None,
         overdue_only: bool = False,
+        sort_by: str | None = None,
+        sort_order: str = "desc",
     ) -> tuple[Sequence[Checklist], int]:
         """Find checklists with filtering and return results with total count."""
         count_stmt = select(func.count(Checklist.id))
@@ -64,7 +80,14 @@ class ChecklistRepository(SqlAlchemyBaseRepository[Checklist, int], IChecklistRe
         total_result = await self._session.execute(count_stmt)
         total = cast("int", total_result.scalar_one())
 
-        stmt = stmt.offset(skip).limit(limit).order_by(Checklist.created_at.desc())
+        # Apply sorting
+        sort_column = self._get_sort_column(sort_by)
+        if sort_order.lower() == "asc":
+            stmt = stmt.order_by(sort_column.asc())
+        else:
+            stmt = stmt.order_by(sort_column.desc())
+
+        stmt = stmt.offset(skip).limit(limit)
         result = await self._session.execute(stmt)
         checklists = result.scalars().all()
 

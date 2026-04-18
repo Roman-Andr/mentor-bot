@@ -159,11 +159,13 @@ async def process_escalation_title(
 
     if escalation:
         escalation_id = escalation.get("id", "N/A")
+        # Use reason from response (maps to title) or fallback to title
+        display_reason = escalation.get("reason", title)
         await message.answer(
             t(
                 "escalation.created",
                 locale=locale,
-                title=title,
+                title=display_reason,
                 category=category,
                 id=escalation_id,
             ),
@@ -225,10 +227,13 @@ async def escalation_details(
         return
 
     status = escalation.get("status", "unknown")
-    title = escalation.get("title", "N/A")
-    category = escalation.get("category", "General")
+    # escalation_service uses 'reason' instead of 'title' and 'type' instead of 'category'
+    title = escalation.get("reason", "N/A")
+    category = escalation.get("type", "General")
     created_at = escalation.get("created_at", "N/A")
-    description = escalation.get("description", "No description")
+    # description is stored in context
+    context = escalation.get("context", {})
+    description = context.get("description", "No description")
 
     status_map = {
         "open": t("escalation.status_open", locale=locale),
@@ -260,3 +265,103 @@ async def escalation_details(
             parse_mode="Markdown",
         )
     await callback.answer()
+
+
+@router.callback_query(F.data.startswith("escalation:view:"))
+async def view_escalation_from_notification(
+    callback: CallbackQuery, user: dict, auth_token: str, *, locale: str = "en"
+) -> None:
+    """Show escalation details when user clicks notification link."""
+    if not user or not auth_token:
+        await callback.answer(t("common.auth_required_short", locale=locale))
+        return
+
+    escalation_id = int(callback.data.split(":")[-1])
+
+    escalation = await escalation_client.get_escalation_status(
+        escalation_id, auth_token
+    )
+
+    if not escalation:
+        await callback.answer(t("common.error_generic", locale=locale), show_alert=True)
+        return
+
+    # Check if user is authorized (requester, assignee, or HR)
+    is_authorized = (
+        escalation.get("user_id") == user["id"]
+        or escalation.get("assigned_to") == user["id"]
+        or user.get("role") in ["HR", "ADMIN"]
+    )
+
+    if not is_authorized:
+        await callback.answer(
+            t("escalation.access_denied", locale=locale, default="You don't have access to this escalation"),
+            show_alert=True,
+        )
+        return
+
+    status = escalation.get("status", "unknown")
+    title = escalation.get("reason", "N/A")
+    category = escalation.get("type", "General")
+    priority = escalation.get("priority", "MEDIUM")
+    created_at = escalation.get("created_at", "N/A")
+    context = escalation.get("context", {})
+    description = context.get("description", "No description")
+
+    status_map = {
+        "PENDING": t("escalation.status_pending", locale=locale, default="Pending"),
+        "ASSIGNED": t("escalation.status_assigned", locale=locale, default="Assigned"),
+        "IN_PROGRESS": t("escalation.status_in_progress", locale=locale, default="In Progress"),
+        "RESOLVED": t("escalation.status_resolved", locale=locale),
+        "CLOSED": t("escalation.status_closed", locale=locale),
+    }
+
+    status_emoji = {
+        "PENDING": "\u23f3",
+        "ASSIGNED": "\ud83d\udccc",
+        "IN_PROGRESS": "\U0001f504",
+        "RESOLVED": "\u2705",
+        "CLOSED": "\U0001f512",
+    }.get(status, "\u2753")
+
+    text = (
+        f"*\U0001f4de Escalation #{escalation_id}*\n\n"
+        f"*Status:* {status_emoji} {status_map.get(status, status)}\n"
+        f"*Type:* {category}\n"
+        f"*Priority:* {priority}\n"
+        f"*Created:* {created_at}\n\n"
+        f"*Title:* {title}\n\n"
+        f"*Description:*\n{description}"
+    )
+
+    if escalation.get("assigned_to_name"):
+        text += f"\n\n*Assigned to:* {escalation['assigned_to_name']}"
+
+    from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(
+            text=t("escalation.add_comment", locale=locale, default="📝 Add Comment"),
+            callback_data=f"escalation:comment:{escalation_id}"
+        )],
+        [InlineKeyboardButton(
+            text=t("common.back", locale=locale, default="🔙 Back"),
+            callback_data="escalations:list"
+        )],
+    ])
+
+    if callback.message:
+        await callback.message.edit_text(
+            text,
+            reply_markup=keyboard,
+            parse_mode="Markdown",
+        )
+    await callback.answer()
+
+
+@router.callback_query(F.data == "escalations:list")
+async def list_my_escalations(
+    callback: CallbackQuery, user: dict, auth_token: str, *, locale: str = "en"
+) -> None:
+    """Show list of user's escalations (used as back button from details)."""
+    await my_escalations(callback, user, auth_token, locale=locale)

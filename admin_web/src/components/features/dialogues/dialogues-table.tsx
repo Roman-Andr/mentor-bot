@@ -4,6 +4,7 @@ import { useTranslations } from "@/hooks/use-translations";
 import { Button } from "@/components/ui/button";
 import { SearchInput } from "@/components/ui/search-input";
 import { Select } from "@/components/ui/select";
+import { SortableTableHead } from "@/components/ui/sortable-table-head";
 import {
   Table,
   TableBody,
@@ -19,6 +20,7 @@ import { cn } from "@/lib/utils";
 import { Edit, Trash2, Power } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { DialogueRow } from "@/hooks/use-dialogues";
+import type { SortDirection } from "@/hooks/use-sorting";
 
 const CATEGORIES_LABELS: Record<string, string> = {
   VACATION: "Vacation & Time Off",
@@ -59,6 +61,9 @@ interface DialoguesTableProps {
   pageSize?: number;
   onPageChange: (page: number) => void;
   onPageSizeChange?: (size: number) => void;
+  sortField?: string | null;
+  sortDirection?: SortDirection;
+  onSort?: (field: string) => void;
 }
 
 export function DialoguesTable({
@@ -77,10 +82,20 @@ export function DialoguesTable({
   pageSize,
   onPageChange,
   onPageSizeChange,
+  sortField,
+  sortDirection = "asc",
+  onSort,
 }: DialoguesTableProps) {
   const t = useTranslations();
   const confirm = useConfirm();
   const router = useRouter();
+
+  const columns = [
+    { key: "title", label: t("dialogues.name"), sortable: true },
+    { key: "category", label: t("dialogues.category"), sortable: true },
+    { key: "stepsCount", label: t("dialogues.stepsCount"), sortable: true },
+    { key: "isActive", label: t("common.status"), sortable: true },
+  ];
 
   const handleEdit = (d: DialogueRow) => {
     router.push(`/dialogues/${d.id}`);
@@ -140,10 +155,18 @@ export function DialoguesTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>{t("dialogues.name")}</TableHead>
-            <TableHead>{t("dialogues.category")}</TableHead>
-            <TableHead>{t("dialogues.stepsCount")}</TableHead>
-            <TableHead>{t("common.status")}</TableHead>
+            {columns.map((col) => (
+              <SortableTableHead
+                key={col.key}
+                field={col.key}
+                sortable={col.sortable && !!onSort}
+                sortField={sortField ?? null}
+                sortDirection={sortDirection}
+                onSort={onSort ?? (() => {})}
+              >
+                {col.label}
+              </SortableTableHead>
+            ))}
             <TableHead className="w-25">{t("common.actions")}</TableHead>
           </TableRow>
         </TableHeader>

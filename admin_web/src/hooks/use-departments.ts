@@ -71,6 +71,7 @@ export function useDepartments() {
     },
     searchable: true,
     searchParamName: "search",
+    sortable: true,
     pageSize: 20,
   });
 }

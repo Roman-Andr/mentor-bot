@@ -9,6 +9,8 @@ export const usersApi = {
     search?: string;
     skip?: number;
     limit?: number;
+    sort_by?: string;
+    sort_order?: "asc" | "desc";
   }) => {
     const qs = buildQueryString(params);
     return fetchApi<UserListResponse>(`/api/v1/users${qs ? `?${qs}` : ""}`);

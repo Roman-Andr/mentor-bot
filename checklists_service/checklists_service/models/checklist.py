@@ -54,8 +54,8 @@ class Checklist(Base):
     updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), onupdate=func.now(), nullable=True)
 
     # Relationships
-    template: Mapped["Template"] = relationship("Template", back_populates="checklists")
-    tasks: Mapped[list["Task"]] = relationship("Task", back_populates="checklist", cascade="all, delete-orphan")
+    template: Mapped[Template] = relationship("Template", back_populates="checklists")
+    tasks: Mapped[list[Task]] = relationship("Task", back_populates="checklist", cascade="all, delete-orphan")
 
     def __repr__(self) -> str:
         """Representation of Checklist."""
@@ -103,7 +103,7 @@ class Task(Base):
     updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), onupdate=func.now(), nullable=True)
 
     # Relationships
-    checklist: Mapped["Checklist"] = relationship("Checklist", back_populates="tasks")
+    checklist: Mapped[Checklist] = relationship("Checklist", back_populates="tasks")
 
     def __repr__(self) -> str:
         """Representation of Task."""

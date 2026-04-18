@@ -21,6 +21,8 @@ class INotificationRepository(BaseRepository["Notification", int]):
         user_id: int | None = None,
         notification_type: NotificationType | None = None,
         status: NotificationStatus | None = None,
+        sort_by: str | None = None,
+        sort_order: str = "desc",
     ) -> tuple[Sequence[Notification], int]:
         """Find notifications with filtering and return results with total count."""
 

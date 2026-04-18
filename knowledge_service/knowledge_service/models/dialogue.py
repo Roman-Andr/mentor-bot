@@ -37,7 +37,7 @@ class DialogueScenario(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), onupdate=func.now(), nullable=True)
 
-    steps: Mapped[list["DialogueStep"]] = relationship(
+    steps: Mapped[list[DialogueStep]] = relationship(
         "DialogueStep", back_populates="scenario", cascade="all, delete-orphan", order_by="DialogueStep.step_number"
     )
 
@@ -70,13 +70,13 @@ class DialogueStep(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), onupdate=func.now(), nullable=True)
 
-    scenario: Mapped["DialogueScenario"] = relationship("DialogueScenario", back_populates="steps")
-    next_step: Mapped["DialogueStep | None"] = relationship(
+    scenario: Mapped[DialogueScenario] = relationship("DialogueScenario", back_populates="steps")
+    next_step: Mapped[DialogueStep | None] = relationship(
         "DialogueStep",
         foreign_keys=[next_step_id],
         remote_side="DialogueStep.id",
     )
-    parent_step: Mapped["DialogueStep | None"] = relationship(
+    parent_step: Mapped[DialogueStep | None] = relationship(
         "DialogueStep",
         foreign_keys=[parent_step_id],
         remote_side="DialogueStep.id",

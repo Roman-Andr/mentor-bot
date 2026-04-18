@@ -25,12 +25,16 @@ async def get_departments(
     skip: Annotated[int, Query(ge=0)] = 0,
     limit: Annotated[int, Query(ge=1, le=1000)] = 100,
     search: Annotated[str | None, Query()] = None,
+    sort_by: Annotated[str | None, Query()] = None,
+    sort_order: Annotated[str, Query()] = "asc",
 ) -> DepartmentListResponse:
     """Get paginated list of departments (admin only)."""
     departments, total = await department_service.get_departments(
         skip=skip,
         limit=limit,
         search=search,
+        sort_by=sort_by,
+        sort_order=sort_order,
     )
 
     pages = (total + limit - 1) // limit if limit > 0 else 0

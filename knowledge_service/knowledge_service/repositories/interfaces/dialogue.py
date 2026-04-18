@@ -33,6 +33,8 @@ class IDialogueScenarioRepository(BaseRepository[DialogueScenario, int]):
         category: str | None = None,
         is_active: bool | None = None,
         search: str | None = None,
+        sort_by: str | None = None,
+        sort_order: str = "asc",
     ) -> tuple[Sequence[DialogueScenario], int]:
         """Find scenarios with filtering, return results + total count."""
 

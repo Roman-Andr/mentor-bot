@@ -34,6 +34,8 @@ class IUserRepository(BaseRepository["User", int]):
         department_id: int | None = None,
         role: UserRole | None = None,
         is_active: bool | None = None,
+        sort_by: str | None = None,
+        sort_order: str = "desc",
     ) -> tuple[Sequence[User], int]:
         """Find users with filtering and return results with total count."""
 

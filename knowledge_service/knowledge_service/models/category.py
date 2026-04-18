@@ -30,7 +30,7 @@ class Category(Base):
 
     # Target audience filtering
     department_id: Mapped[int | None] = mapped_column(ForeignKey("departments.id"), nullable=True)
-    department: Mapped["Department | None"] = relationship("Department", back_populates="categories")
+    department: Mapped[Department | None] = relationship("Department", back_populates="categories")
     position: Mapped[str | None] = mapped_column(String(100), nullable=True)
     level: Mapped[EmployeeLevel | None] = mapped_column(String(50), nullable=True, index=True)
 
@@ -43,9 +43,9 @@ class Category(Base):
     updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), onupdate=func.now(), nullable=True)
 
     # Relationships
-    parent: Mapped["Category | None"] = relationship("Category", remote_side=[id], back_populates="children")
-    children: Mapped[list["Category"]] = relationship("Category", back_populates="parent", cascade="all, delete-orphan")
-    articles: Mapped[list["Article"]] = relationship("Article", back_populates="category", cascade="all, delete-orphan")
+    parent: Mapped[Category | None] = relationship("Category", remote_side=[id], back_populates="children")
+    children: Mapped[list[Category]] = relationship("Category", back_populates="parent", cascade="all, delete-orphan")
+    articles: Mapped[list[Article]] = relationship("Article", back_populates="category", cascade="all, delete-orphan")
 
     def __repr__(self) -> str:
         """Representation of Category."""

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SearchInput } from "@/components/ui/search-input";
 import { Select } from "@/components/ui/select";
+import { SortableTableHead } from "@/components/ui/sortable-table-head";
 import { StatusBadge } from "@/components/ui/status-badge";
 import {
   Table,
@@ -20,6 +21,7 @@ import { BookOpen, Eye, Pin, Star, Trash2, SquarePen } from "lucide-react";
 import type { Category } from "@/types";
 import { ARTICLE_STATUSES } from "@/lib/constants";
 import type { ArticleRow } from "@/hooks/use-articles";
+import type { SortDirection } from "@/hooks/use-sorting";
 
 export type { ArticleRow };
 
@@ -43,6 +45,9 @@ interface ArticlesTableProps {
   pageSize?: number;
   onPageChange?: (page: number) => void;
   onPageSizeChange?: (size: number) => void;
+  sortField?: string | null;
+  sortDirection?: SortDirection;
+  onSort?: (field: string) => void;
 }
 
 export function ArticlesTable({
@@ -65,8 +70,20 @@ export function ArticlesTable({
   pageSize,
   onPageChange,
   onPageSizeChange,
+  sortField,
+  sortDirection = "asc",
+  onSort,
 }: ArticlesTableProps) {
   const t = useTranslations();
+
+  const columns = [
+    { key: "title", label: t("knowledge.article"), sortable: true },
+    { key: "category", label: t("knowledge.category"), sortable: true },
+    { key: "author", label: t("knowledge.author"), sortable: true },
+    { key: "viewCount", label: t("knowledge.viewCount"), sortable: true },
+    { key: "status", label: t("common.status"), sortable: true },
+    { key: "createdAt", label: t("common.createdAt"), sortable: true },
+  ];
 
   const categoryOptions = [
     { value: "ALL", label: t("common.all") },
@@ -121,12 +138,18 @@ export function ArticlesTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>{t("knowledge.article")}</TableHead>
-            <TableHead>{t("knowledge.category")}</TableHead>
-            <TableHead>{t("knowledge.author")}</TableHead>
-            <TableHead>{t("knowledge.viewCount")}</TableHead>
-            <TableHead>{t("common.status")}</TableHead>
-            <TableHead>{t("common.createdAt")}</TableHead>
+            {columns.map((col) => (
+              <SortableTableHead
+                key={col.key}
+                field={col.key}
+                sortable={col.sortable && !!onSort}
+                sortField={sortField ?? null}
+                sortDirection={sortDirection}
+                onSort={onSort ?? (() => {})}
+              >
+                {col.label}
+              </SortableTableHead>
+            ))}
             <TableHead className="w-25">{t("common.actions")}</TableHead>
           </TableRow>
         </TableHeader>

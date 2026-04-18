@@ -61,24 +61,23 @@ class AuthService:
         """Refresh access token using refresh token."""
         try:
             payload = decode_token(refresh_data.refresh_token)
-
-            # Verify token type
-            if payload.get("type") != "refresh":
-                msg = "Invalid token type"
-                raise AuthException(msg)
-
-            # Get user
-            user = await self._uow.users.get_by_id(payload["user_id"])
-            if not user or not user.is_active:
-                msg = "User not found or inactive"
-                raise AuthException(msg)
-
-            # Generate new token
-            return self.create_token_for_user(user)
-
         except Exception as e:
             msg = "Invalid refresh token"
             raise AuthException(msg) from e
+
+        # Verify token type
+        if payload.get("type") != "refresh":
+            msg = "Invalid token type"
+            raise AuthException(msg)
+
+        # Get user
+        user = await self._uow.users.get_by_id(payload["user_id"])
+        if not user or not user.is_active:
+            msg = "User not found or inactive"
+            raise AuthException(msg)
+
+        # Generate new token
+        return self.create_token_for_user(user)
 
     async def authenticate_with_telegram(self, telegram_data: TelegramAuthRequest) -> tuple[User, Token]:
         """Authenticate user with Telegram data."""

@@ -10,10 +10,12 @@ from notification_service.repositories.implementations.notification import (
     NotificationRepository,
     ScheduledNotificationRepository,
 )
+from notification_service.repositories.implementations.template import NotificationTemplateRepository
 from notification_service.repositories.interfaces.notification import (
     INotificationRepository,
     IScheduledNotificationRepository,
 )
+from notification_service.repositories.interfaces.template import INotificationTemplateRepository
 
 
 @runtime_checkable
@@ -22,22 +24,23 @@ class IUnitOfWork(Protocol):
 
     notifications: INotificationRepository
     scheduled_notifications: IScheduledNotificationRepository
+    templates: INotificationTemplateRepository
 
     async def commit(self) -> None:
         """Commit all changes made in this unit of work."""
-        ...
+        ...  # pragma: no cover
 
     async def rollback(self) -> None:
         """Rollback all changes made in this unit of work."""
-        ...
+        ...  # pragma: no cover
 
     async def __aenter__(self) -> Self:
         """Enter async context manager."""
-        ...
+        ...  # pragma: no cover
 
     async def __aexit__(self, *args: object) -> None:
         """Exit async context manager."""
-        ...
+        ...  # pragma: no cover
 
 
 class SqlAlchemyUnitOfWork(IUnitOfWork):
@@ -53,6 +56,7 @@ class SqlAlchemyUnitOfWork(IUnitOfWork):
         self._session = self._session_factory()
         self.notifications = NotificationRepository(self._session)
         self.scheduled_notifications = ScheduledNotificationRepository(self._session)
+        self.templates = NotificationTemplateRepository(self._session)
         return self
 
     async def __aexit__(self, *args: object) -> None:

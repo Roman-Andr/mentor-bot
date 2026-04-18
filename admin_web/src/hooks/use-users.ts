@@ -150,6 +150,9 @@ export function useUsers() {
       updateErrorKey: "users.updateError",
       deleteErrorKey: "users.deleteError",
     },
+    sortable: true,
+    sortFieldParam: "sort_by",
+    sortDirectionParam: "sort_order",
   });
 
   // Fetch departments for the filter dropdown
@@ -268,6 +271,11 @@ export function useUsers() {
     isCreating: entity.isSubmitting,
     isUpdating: entity.isSubmitting,
     isDeleting: entity.isDeleting,
+
+    // Sorting
+    sortField: entity.sortField,
+    sortDirection: entity.sortDirection,
+    toggleSort: entity.toggleSort,
 
     // Mentor assignment
     assignMentorDialogOpen,

@@ -1,5 +1,6 @@
 """Document access keyboards."""
 
+from aiogram.types import InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from telegram_bot.core.enums import ButtonStyle
@@ -7,7 +8,7 @@ from telegram_bot.i18n import t
 from telegram_bot.keyboards.utils import create_inline_button
 
 
-def get_documents_menu_keyboard(*, locale: str = "en") -> InlineKeyboardBuilder:
+def get_documents_menu_keyboard(*, locale: str = "en") -> InlineKeyboardMarkup:
     """Build documents menu keyboard."""
     builder = InlineKeyboardBuilder()
     builder.add(
@@ -31,12 +32,12 @@ def get_documents_menu_keyboard(*, locale: str = "en") -> InlineKeyboardBuilder:
         ),
     )
     builder.adjust(1)
-    return builder
+    return builder.as_markup()
 
 
 def get_article_list_keyboard(
     articles: list[dict], back_callback: str, *, locale: str = "en"
-) -> InlineKeyboardBuilder:
+) -> InlineKeyboardMarkup:
     """Build keyboard with article buttons."""
     builder = InlineKeyboardBuilder()
     for article in articles[:10]:
@@ -57,12 +58,12 @@ def get_article_list_keyboard(
         )
     )
     builder.adjust(1)
-    return builder
+    return builder.as_markup()
 
 
 def get_article_detail_keyboard(
     attachments: list, article_id: int, *, locale: str = "en"
-) -> InlineKeyboardBuilder:
+) -> InlineKeyboardMarkup:
     """Build keyboard for article detail view with attachment downloads."""
     builder = InlineKeyboardBuilder()
     for att in attachments:
@@ -82,7 +83,7 @@ def get_article_detail_keyboard(
         )
     )
     builder.adjust(1)
-    return builder
+    return builder.as_markup()
 
 
 def _get_file_emoji(mime_type: str | None) -> str:

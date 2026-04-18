@@ -115,6 +115,19 @@ export const queryKeys = {
     activity: () => [...queryKeys.dashboard.all, "activity"] as const,
     departments: () => [...queryKeys.dashboard.all, "departments"] as const,
   },
+
+  // Feedback
+  feedback: {
+    all: ["feedback"] as const,
+    pulse: (params: unknown) => [...queryKeys.feedback.all, "pulse", params] as const,
+    pulseStats: () => [...queryKeys.feedback.all, "pulse", "stats"] as const,
+    pulseAnonymityStats: () => [...queryKeys.feedback.all, "pulse", "anonymity-stats"] as const,
+    experience: (params: unknown) => [...queryKeys.feedback.all, "experience", params] as const,
+    experienceStats: () => [...queryKeys.feedback.all, "experience", "stats"] as const,
+    experienceAnonymityStats: () => [...queryKeys.feedback.all, "experience", "anonymity-stats"] as const,
+    comments: (params: unknown) => [...queryKeys.feedback.all, "comments", params] as const,
+    commentAnonymityStats: () => [...queryKeys.feedback.all, "comments", "anonymity-stats"] as const,
+  },
 } as const;
 
 // Helper to invalidate all list queries for an entity

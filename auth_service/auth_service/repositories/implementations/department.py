@@ -2,6 +2,7 @@
 
 from typing import cast
 
+import sqlalchemy
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -23,12 +24,24 @@ class DepartmentRepository(SqlAlchemyBaseRepository[Department, int], IDepartmen
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none()
 
+    def _get_sort_column(self, sort_by: str | None) -> "sqlalchemy.Column":
+        """Get SQLAlchemy column for sorting."""
+        column_map = {
+            "name": Department.name,
+            "description": Department.description,
+            "createdAt": Department.created_at,
+            "updatedAt": Department.updated_at,
+        }
+        return column_map.get(sort_by, Department.name)
+
     async def find_departments(
         self,
         *,
         skip: int = 0,
         limit: int = 100,
         search: str | None = None,
+        sort_by: str | None = None,
+        sort_order: str = "asc",
     ) -> tuple[list[Department], int]:
         """Find departments with filtering and return results with total count."""
         count_stmt = select(func.count(Department.id))
@@ -45,7 +58,14 @@ class DepartmentRepository(SqlAlchemyBaseRepository[Department, int], IDepartmen
         total_result = await self._session.execute(count_stmt)
         total = cast("int", total_result.scalar_one())
 
-        stmt = stmt.offset(skip).limit(limit).order_by(Department.name.asc())
+        # Apply sorting
+        sort_column = self._get_sort_column(sort_by)
+        if sort_order.lower() == "asc":
+            stmt = stmt.order_by(sort_column.asc())
+        else:
+            stmt = stmt.order_by(sort_column.desc())
+
+        stmt = stmt.offset(skip).limit(limit)
         result = await self._session.execute(stmt)
         departments = list(result.scalars().all())
 

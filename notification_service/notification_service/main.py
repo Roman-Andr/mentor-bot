@@ -14,9 +14,10 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
 
-from notification_service.api import notifications
+from notification_service.api import notifications, templates
+from notification_service.api.endpoints import email
 from notification_service.config import settings
-from notification_service.database import init_db
+from notification_service.database import engine, init_db
 from notification_service.middleware.auth import AuthTokenMiddleware
 from notification_service.schemas import HealthCheck, ServiceStatus
 from notification_service.services.scheduler import scheduler
@@ -60,11 +61,12 @@ app = FastAPI(
 
 # Add middleware
 
-# Rate-limit
-limiter = Limiter(key_func=get_remote_address, default_limits=["100/minute"])
-app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
-app.add_middleware(SlowAPIMiddleware)
+# Rate-limit (disabled in debug mode)
+if not settings.DEBUG:
+    limiter = Limiter(key_func=get_remote_address, default_limits=["100/minute"])
+    app.state.limiter = limiter
+    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+    app.add_middleware(SlowAPIMiddleware)
 
 app.add_middleware(AuthTokenMiddleware)
 app.add_middleware(
@@ -78,6 +80,8 @@ app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.ALLOWED_HOSTS)
 
 # Include routers
 app.include_router(notifications.router, prefix=f"{settings.API_V1_PREFIX}/notifications", tags=["notifications"])
+app.include_router(email.router, prefix=f"{settings.API_V1_PREFIX}/email", tags=["email"])
+app.include_router(templates.router, prefix=f"{settings.API_V1_PREFIX}/templates", tags=["templates"])
 
 
 @app.get("/")
@@ -94,12 +98,22 @@ async def root() -> ServiceStatus:
 @app.get("/health")
 async def health_check() -> HealthCheck:
     """Health check endpoint for load balancers and monitoring."""
+    from sqlalchemy import text
+
+    # Check database connectivity
+    try:
+        async with engine.connect() as conn:
+            await conn.execute(text("SELECT 1"))
+            db_status = "connected"
+    except Exception:
+        db_status = "disconnected"
+
     return HealthCheck(
-        status="healthy",
+        status="healthy" if db_status == "connected" else "unhealthy",
         service="notification",
         timestamp=datetime.now(UTC).isoformat(),
         dependencies={
-            "database": "connected",
+            "database": db_status,
             "redis": "not_configured",  # Not used yet, could be added later
         },
     )

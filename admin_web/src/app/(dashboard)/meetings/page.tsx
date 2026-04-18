@@ -2,31 +2,22 @@
 
 import { useState } from "react";
 import { useTranslations } from "@/hooks/use-translations";
-import { Button } from "@/components/ui/button";
-import { Select } from "@/components/ui/select";
-import { SearchInput } from "@/components/ui/search-input";
 import { Dialog } from "@/components/ui/dialog";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { DataTable } from "@/components/ui/data-table";
 import { PageContent } from "@/components/layout/page-content";
-import { CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Trash2, SquarePen, Calendar, UserPlus, Users } from "lucide-react";
+import { Calendar, UserPlus, Users } from "lucide-react";
 import { MEETING_TYPES } from "@/lib/constants";
 import { formatDate } from "@/lib/utils";
 import { useMeetings } from "@/hooks/use-meetings";
 import { useDepartments } from "@/hooks/use-departments";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/lib/api";
+import { EntityPage } from "@/components/entity";
 import { MeetingFormDialog } from "@/components/meetings/meeting-form-dialog";
 import { AssignDialog, AssignmentsDialog } from "@/components/meetings";
 import type { User, UserMeeting } from "@/types";
+import type { MeetingItem, MeetingFormData } from "@/hooks/use-meetings";
+import { Button } from "@/components/ui/button";
+import { Select } from "@/components/ui/select";
 
 export default function MeetingsPage() {
   const t = useTranslations();
@@ -100,23 +91,31 @@ export default function MeetingsPage() {
     }
   };
 
-  return (
-    <PageContent
-      title={t("meetings.title")}
-      subtitle={t("meetings.title")}
-      actions={
+  const renderActionButtons = (item: MeetingItem) => {
+    return (
+      <div className="flex gap-1">
         <Button
-          className="gap-2"
-          onClick={() => {
-            m.resetForm();
-            m.setIsCreateDialogOpen(true);
-          }}
+          variant="ghost"
+          size="icon"
+          title={t("meetings.assignedUsers")}
+          onClick={() => openAssignmentsDialog(item.id, item.title)}
         >
-          <Plus className="size-4" />
-          {t("meetings.scheduleMeeting")}
+          <Users className="size-4" />
         </Button>
-      }
-    >
+        <Button
+          variant="ghost"
+          size="icon"
+          title={t("meetings.assignMeeting")}
+          onClick={() => openAssignDialog(item.id, item.title)}
+        >
+          <UserPlus className="size-4" />
+        </Button>
+      </div>
+    );
+  };
+
+  return (
+    <PageContent title={t("meetings.title")} subtitle={t("meetings.title")}>
       <Dialog open={m.isCreateDialogOpen} onOpenChange={m.setIsCreateDialogOpen}>
         <MeetingFormDialog
           mode="create"
@@ -164,118 +163,140 @@ export default function MeetingsPage() {
         onRemoveAssignment={handleRemoveAssignment}
       />
 
-      <DataTable
-        loading={m.loading}
-        empty={m.meetings.length === 0}
-        emptyMessage={t("meetings.noMeetings")}
-        currentPage={m.currentPage}
-        totalPages={m.totalPages}
-        totalCount={m.totalCount}
+      <EntityPage<MeetingItem, MeetingFormData>
+        title={t("meetings.meetings")}
+        items={m.meetings}
+        totalItems={m.totalCount}
         pageSize={m.pageSize}
-        onPageChange={m.setCurrentPage}
+        currentPage={m.currentPage}
+        isLoading={m.loading}
         onPageSizeChange={m.setPageSize}
-        showPageSizeSelector={true}
-        header={
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>
-                {t("meetings.meetings")}{" "}
-                <span className="text-muted-foreground text-sm font-normal">({m.totalCount})</span>
-              </CardTitle>
-              <div className="flex gap-2">
-                <SearchInput value={m.searchQuery} onChange={m.setSearchQuery} />
-                <Select value={m.typeFilter} onChange={m.setTypeFilter} options={MEETING_TYPES} />
-                <Button variant="outline" onClick={m.resetFilters}>
-                  {t("common.reset")}
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
+        isCreateOpen={m.isCreateDialogOpen}
+        isEditOpen={m.isEditDialogOpen}
+        selectedItem={m.selectedMeeting}
+        onCreateOpen={() => {
+          m.resetForm();
+          m.setIsCreateDialogOpen(true);
+        }}
+        onEditOpen={m.openEditDialog}
+        onDelete={m.handleDelete}
+        onCloseDialog={() => {
+          m.setIsCreateDialogOpen(false);
+          m.setIsEditDialogOpen(false);
+          m.resetForm();
+        }}
+        formData={m.formData}
+        onFormChange={(data) => m.setFormData(data)}
+        onSubmit={m.handleCreate}
+        isSubmitting={m.isCreating}
+        submitError={null}
+        searchQuery={m.searchQuery}
+        onSearchChange={m.setSearchQuery}
+        onPageChange={m.setCurrentPage}
+        createButtonLabel={t("meetings.scheduleMeeting")}
+        emptyStateMessage={t("meetings.noMeetings")}
+        searchPlaceholder={t("common.search")}
+        getItemKey={(item) => item.id}
+        sortField={m.sortField}
+        sortDirection={m.sortDirection}
+        onSort={m.toggleSort}
+        filters={
+          <Select
+            value={m.typeFilter}
+            onChange={m.setTypeFilter}
+            options={MEETING_TYPES}
+          />
         }
-      >
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t("meetings.name")}</TableHead>
-              <TableHead>{t("meetings.type")}</TableHead>
-              <TableHead>{t("meetings.department")}</TableHead>
-              <TableHead>{t("meetings.deadlineDays")}</TableHead>
-              <TableHead>{t("meetings.isMandatory")}</TableHead>
-              <TableHead>{t("meetings.order")}</TableHead>
-              <TableHead>{t("common.created")}</TableHead>
-              <TableHead className="w-45">{t("common.actions")}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {m.meetings.map((meeting) => (
-              <TableRow
-                key={meeting.id}
-                className="hover:bg-muted cursor-pointer"
-                onClick={() => m.openEditDialog(meeting)}
-              >
-                <TableCell>
-                  <div>
-                    <p className="font-medium">{meeting.title}</p>
-                    {meeting.description && (
-                      <p className="text-muted-foreground line-clamp-1 max-w-64 text-sm">
-                        {meeting.description}
-                      </p>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell>{MEETING_TYPES.find(t => t.value === meeting.type)?.label || meeting.type}</TableCell>
-                <TableCell>{meeting.department || d.items.find(dept => dept.id === meeting.departmentId)?.name || "-"}</TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-1">
-                    <Calendar className="text-muted-foreground size-4" />
-                    {meeting.deadlineDays} {t("common.days")}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  {meeting.isMandatory ? (
-                    <span className="text-green-600">{t("common.yes")}</span>
-                  ) : (
-                    <span className="text-muted-foreground">{t("common.no")}</span>
-                  )}
-                </TableCell>
-                <TableCell>{meeting.order}</TableCell>
-                <TableCell>{formatDate(meeting.createdAt)}</TableCell>
-                <TableCell onClick={(e) => e.stopPropagation()}>
-                  <div className="flex gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      title={t("meetings.assignedUsers")}
-                      onClick={() => openAssignmentsDialog(meeting.id, meeting.title)}
-                    >
-                      <Users className="size-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      title={t("meetings.assignMeeting")}
-                      onClick={() => openAssignDialog(meeting.id, meeting.title)}
-                    >
-                      <UserPlus className="size-4" />
-                    </Button>
-                     <Button variant="ghost" size="icon" onClick={() => m.openEditDialog(meeting)}>
-                       <SquarePen className="size-4" />
-                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-red-500"
-                      onClick={() => m.handleDelete(meeting.id)}
-                    >
-                      <Trash2 className="size-4" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </DataTable>
+        columns={[
+          {
+            key: "title",
+            header: t("meetings.name"),
+            cell: (item) => (
+              <div>
+                <p className="font-medium">{item.title}</p>
+                {item.description && (
+                  <p className="text-muted-foreground line-clamp-1 max-w-64 text-sm">
+                    {item.description}
+                  </p>
+                )}
+              </div>
+            ),
+            sortable: true,
+          },
+          {
+            key: "type",
+            header: t("meetings.type"),
+            cell: (item) => MEETING_TYPES.find((t) => t.value === item.type)?.label || item.type,
+            sortable: true,
+          },
+          {
+            key: "department",
+            header: t("meetings.department"),
+            cell: (item) =>
+              item.department || d.items.find((dept) => dept.id === item.departmentId)?.name || "—",
+            sortable: true,
+          },
+          {
+            key: "deadlineDays",
+            header: t("meetings.deadlineDays"),
+            cell: (item) => (
+              <div className="flex items-center gap-1">
+                <Calendar className="text-muted-foreground size-4" />
+                {item.deadlineDays} {t("common.days")}
+              </div>
+            ),
+            sortable: true,
+          },
+          {
+            key: "isMandatory",
+            header: t("meetings.isMandatory"),
+            cell: (item) =>
+              item.isMandatory ? (
+                <span className="text-green-600">{t("common.yes")}</span>
+              ) : (
+                <span className="text-muted-foreground">{t("common.no")}</span>
+              ),
+            sortable: true,
+          },
+          {
+            key: "order",
+            header: t("meetings.order"),
+            cell: (item) => item.order,
+            sortable: true,
+            width: "w-24",
+          },
+          {
+            key: "createdAt",
+            header: t("common.created"),
+            cell: (item) => formatDate(item.createdAt),
+            sortable: true,
+            width: "w-32",
+          },
+          {
+            key: "assignments",
+            header: "",
+            cell: renderActionButtons,
+            width: "w-24",
+          },
+        ]}
+        renderForm={({ formData, onChange }) => (
+          <MeetingFormDialog
+            mode="create"
+            formData={formData}
+            departments={d.items}
+            onFormDataChange={(value) => {
+              if (typeof value === "function") {
+                onChange(value(formData));
+              } else {
+                onChange(value);
+              }
+            }}
+            onSubmit={() => {}}
+            onCancel={() => {}}
+          />
+        )}
+        isFormValid={!!m.formData.title}
+      />
     </PageContent>
   );
 }

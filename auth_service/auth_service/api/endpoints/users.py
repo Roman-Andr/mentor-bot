@@ -39,6 +39,8 @@ async def get_users(
     department_id: Annotated[int | None, Query()] = None,
     role: Annotated[UserRole | None, Query()] = None,
     is_active: Annotated[bool | None, Query()] = None,
+    sort_by: Annotated[str | None, Query()] = None,
+    sort_order: Annotated[str, Query()] = "desc",
 ) -> UserListResponse:
     """Get paginated list of users (admin only)."""
     users, total = await user_service.get_users(
@@ -48,6 +50,8 @@ async def get_users(
         department_id=department_id,
         role=role,
         is_active=is_active,
+        sort_by=sort_by,
+        sort_order=sort_order,
     )
 
     pages = (total + limit - 1) // limit if limit > 0 else 0

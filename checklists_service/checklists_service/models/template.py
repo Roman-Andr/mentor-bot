@@ -27,7 +27,7 @@ class Template(Base):
 
     # Target audience
     department_id: Mapped[int | None] = mapped_column(ForeignKey("departments.id"), nullable=True)
-    department: Mapped["Department | None"] = relationship("Department", back_populates="templates")
+    department: Mapped[Department | None] = relationship("Department", back_populates="templates")
     position: Mapped[str | None] = mapped_column(String(100), nullable=True)
     level: Mapped[EmployeeLevel | None] = mapped_column(Enum(EmployeeLevel, native=False), nullable=True)
 
@@ -48,10 +48,10 @@ class Template(Base):
     updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), onupdate=func.now(), nullable=True)
 
     # Relationships
-    checklists: Mapped[list["Checklist"]] = relationship(
+    checklists: Mapped[list[Checklist]] = relationship(
         "Checklist", back_populates="template", cascade="all, delete-orphan"
     )
-    tasks: Mapped[list["TaskTemplate"]] = relationship(
+    tasks: Mapped[list[TaskTemplate]] = relationship(
         "TaskTemplate", back_populates="template", cascade="all, delete-orphan"
     )
 
@@ -95,7 +95,7 @@ class TaskTemplate(Base):
     updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), onupdate=func.now(), nullable=True)
 
     # Relationships
-    template: Mapped["Template"] = relationship("Template", back_populates="tasks")
+    template: Mapped[Template] = relationship("Template", back_populates="tasks")
 
     def __repr__(self) -> str:
         """Representation of TaskTemplate."""

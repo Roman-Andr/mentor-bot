@@ -139,6 +139,9 @@ export default function UsersPage() {
             pageSize={u.pageSize}
             onPageChange={u.setCurrentPage}
             onPageSizeChange={u.setPageSize}
+            sortField={u.sortField}
+            sortDirection={u.sortDirection}
+            onSort={u.toggleSort}
           />
 
           <AssignMentorDialog

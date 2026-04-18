@@ -106,6 +106,8 @@ class CategoryService:
         search: str | None = None,
         *,
         include_tree: bool = False,
+        sort_by: str | None = None,
+        sort_order: str = "asc",
     ) -> tuple[list[Category], int]:
         """Get paginated list of categories with filters."""
         if include_tree:
@@ -117,6 +119,8 @@ class CategoryService:
             parent_id=parent_id,
             department_id=department_id,
             search=search,
+            sort_by=sort_by,
+            sort_order=sort_order,
         )
         return list(items), total
 

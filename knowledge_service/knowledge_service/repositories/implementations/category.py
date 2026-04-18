@@ -3,6 +3,7 @@
 from collections.abc import Sequence
 from typing import cast
 
+import sqlalchemy
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -45,6 +46,18 @@ class CategoryRepository(SqlAlchemyBaseRepository[Category, int], ICategoryRepos
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none() is not None
 
+    def _get_sort_column(self, sort_by: str | None) -> "sqlalchemy.Column":
+        """Get SQLAlchemy column for sorting."""
+        column_map = {
+            "name": Category.name,
+            "slug": Category.slug,
+            "order": Category.order,
+            "createdAt": Category.created_at,
+            "updatedAt": Category.updated_at,
+            "department": Category.department_id,
+        }
+        return column_map.get(sort_by, Category.order)
+
     async def find_categories(
         self,
         *,
@@ -53,6 +66,8 @@ class CategoryRepository(SqlAlchemyBaseRepository[Category, int], ICategoryRepos
         parent_id: int | None = None,
         department_id: int | None = None,
         search: str | None = None,
+        sort_by: str | None = None,
+        sort_order: str = "asc",
     ) -> tuple[Sequence[Category], int]:
         """Find categories with filters and return total count."""
         stmt = select(Category)
@@ -80,7 +95,14 @@ class CategoryRepository(SqlAlchemyBaseRepository[Category, int], ICategoryRepos
 
         total = cast("int", (await self._session.execute(count_stmt)).scalar_one())
 
-        stmt = stmt.order_by(Category.order, Category.name).offset(skip).limit(limit)
+        # Apply sorting
+        sort_column = self._get_sort_column(sort_by)
+        if sort_order.lower() == "asc":
+            stmt = stmt.order_by(sort_column.asc())
+        else:
+            stmt = stmt.order_by(sort_column.desc())
+
+        stmt = stmt.offset(skip).limit(limit)
         result = await self._session.execute(stmt)
         return result.scalars().all(), total
 

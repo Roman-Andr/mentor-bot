@@ -3,13 +3,14 @@
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Header, HTTPException, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Response, status
 from fastapi.security import OAuth2PasswordRequestForm
 
 from auth_service.api.deps import (
     AuthServiceDep,
     CurrentUser,
 )
+from auth_service.config import settings
 from auth_service.core import (
     AuthException,
     ConflictException,
@@ -20,8 +21,6 @@ from auth_service.core.telegram import verify_telegram_api_key
 from auth_service.schemas import (
     LoginRequest,
     MessageResponse,
-    PasswordResetConfirm,
-    PasswordResetRequest,
     RefreshTokenRequest,
     TelegramApiKeyAuth,
     TelegramAuthRequest,
@@ -37,10 +36,14 @@ router = APIRouter()
 
 @router.post("/login")
 async def login(
+    response: Response,
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     auth_service: AuthServiceDep,
 ) -> Token:
-    """Login with email and password using repository pattern."""
+    """Login with email and password using repository pattern.
+
+    Sets httpOnly cookies for token storage (secure against XSS).
+    """
     login_data = LoginRequest(email=form_data.username, password=form_data.password)
 
     try:
@@ -51,15 +54,38 @@ async def login(
             detail=str(e.detail),
         ) from e
     else:
+        # Set httpOnly cookies for secure token storage
+        # secure=False in DEBUG mode for local testing, True in production
+        cookie_secure = not settings.DEBUG
+        response.set_cookie(
+            key="access_token",
+            value=token.access_token,
+            httponly=True,
+            secure=cookie_secure,
+            samesite="lax",
+            max_age=token.expires_in,
+        )
+        response.set_cookie(
+            key="refresh_token",
+            value=token.refresh_token,
+            httponly=True,
+            secure=cookie_secure,
+            samesite="lax",
+            max_age=7 * 24 * 3600,  # 7 days in seconds
+        )
         return token
 
 
 @router.post("/refresh")
 async def refresh_token(
+    response: Response,
     refresh_data: RefreshTokenRequest,
     auth_service: AuthServiceDep,
 ) -> Token:
-    """Refresh access token using refresh token."""
+    """Refresh access token using refresh token.
+
+    Updates httpOnly cookies with new tokens.
+    """
     try:
         token = await auth_service.refresh_access_token(refresh_data)
     except AuthException as e:
@@ -68,6 +94,25 @@ async def refresh_token(
             detail=str(e.detail),
         ) from e
     else:
+        # Update httpOnly cookies with new tokens
+        # secure=False in DEBUG mode for local testing, True in production
+        cookie_secure = not settings.DEBUG
+        response.set_cookie(
+            key="access_token",
+            value=token.access_token,
+            httponly=True,
+            secure=cookie_secure,
+            samesite="lax",
+            max_age=token.expires_in,
+        )
+        response.set_cookie(
+            key="refresh_token",
+            value=token.refresh_token,
+            httponly=True,
+            secure=cookie_secure,
+            samesite="lax",
+            max_age=7 * 24 * 3600,  # 7 days in seconds
+        )
         return token
 
 
@@ -141,22 +186,6 @@ async def register_with_invitation(
         return token
 
 
-@router.post("/password/reset")
-async def request_password_reset(
-    _reset_data: PasswordResetRequest,
-) -> MessageResponse:
-    """Request password reset link."""
-    return MessageResponse(message="Password reset not implemented yet")
-
-
-@router.post("/password/reset/confirm")
-async def confirm_password_reset(
-    _confirm_data: PasswordResetConfirm,
-) -> MessageResponse:
-    """Confirm password reset with token."""
-    return MessageResponse(message="Password reset not implemented yet")
-
-
 @router.get("/me")
 async def get_current_user_info(
     current_user: CurrentUser,
@@ -166,6 +195,8 @@ async def get_current_user_info(
 
 
 @router.post("/logout")
-async def logout() -> MessageResponse:
-    """Logout user (client should discard tokens)."""
+async def logout(response: Response) -> MessageResponse:
+    """Logout user and clear httpOnly cookies."""
+    response.delete_cookie(key="access_token")
+    response.delete_cookie(key="refresh_token")
     return MessageResponse(message="Successfully logged out")

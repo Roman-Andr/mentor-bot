@@ -95,6 +95,11 @@ export interface UseEntityOptions<TItem, TForm, TCreatePayload, TUpdatePayload> 
   searchable?: boolean;
   searchParamName?: string;
 
+  // Sorting
+  sortable?: boolean;
+  sortFieldParam?: string;
+  sortDirectionParam?: string;
+
   // Custom mutations factory
   customMutations?: (context: UseEntityContext<TItem, TForm>) => Record<string, UseMutationResult<unknown, Error, unknown, unknown>>;
 }
@@ -131,6 +136,13 @@ export interface UseEntityResult<TItem, TForm> {
   filterValues: Record<string, string>;
   setFilterValue: (name: string, value: string) => void;
   resetFilters: () => void;
+
+  // Sorting
+  sortField: string | null;
+  sortDirection: "asc" | "desc";
+  toggleSort: (field: string) => void;
+  setSort: (field: string, direction: "asc" | "desc") => void;
+  clearSort: () => void;
 
   // Dialogs
   isCreateDialogOpen: boolean;
@@ -213,6 +225,9 @@ export function useEntity<TItem, TForm, TCreatePayload = unknown, TUpdatePayload
     filters = [],
     searchable = true,
     searchParamName = "search",
+    sortable = false,
+    sortFieldParam = "sort_by",
+    sortDirectionParam = "sort_order",
     customMutations: customMutationsConfig,
   } = options;
 
@@ -274,6 +289,10 @@ export function useEntity<TItem, TForm, TCreatePayload = unknown, TUpdatePayload
     return initial;
   });
 
+  // Sorting state
+  const [sortField, setSortField] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+
   // Pagination state - use global settings
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSizeState, setPageSizeLocal] = useState(globalPageSize);
@@ -316,8 +335,14 @@ export function useEntity<TItem, TForm, TCreatePayload = unknown, TUpdatePayload
       }
     }
 
+    // Add sorting
+    if (sortable && sortField) {
+      params[sortFieldParam] = sortField;
+      params[sortDirectionParam] = sortDirection;
+    }
+
     return params;
-  }, [currentPage, pageSizeState, searchable, debouncedSearch, searchParamName, filters, filterValues]);
+  }, [currentPage, pageSizeState, searchable, debouncedSearch, searchParamName, filters, filterValues, sortable, sortField, sortDirection, sortFieldParam, sortDirectionParam]);
 
   // Query key
   const listQueryKey = useMemo(
@@ -458,6 +483,28 @@ export function useEntity<TItem, TForm, TCreatePayload = unknown, TUpdatePayload
     setCurrentPage(1); // Reset to first page on filter change
   }, []);
 
+  // Sorting handlers
+  const toggleSort = useCallback((field: string) => {
+    if (sortField === field) {
+      // Same column: toggle direction
+      setSortDirection((currentDir) => (currentDir === "asc" ? "desc" : "asc"));
+    } else {
+      // Different column: reset to asc
+      setSortField(field);
+      setSortDirection("asc");
+    }
+  }, [sortField]);
+
+  const setSort = useCallback((field: string, direction: "asc" | "desc") => {
+    setSortField(field);
+    setSortDirection(direction);
+  }, []);
+
+  const clearSort = useCallback(() => {
+    setSortField(null);
+    setSortDirection("asc");
+  }, []);
+
   const handleSubmit = useCallback(() => {
     if (selectedItem) {
       const payload = toUpdatePayload(formData);
@@ -557,6 +604,13 @@ export function useEntity<TItem, TForm, TCreatePayload = unknown, TUpdatePayload
 
     // Custom mutations
     customMutations,
+
+    // Sorting
+    sortField,
+    sortDirection,
+    toggleSort,
+    setSort,
+    clearSort,
 
     // Utilities
     invalidate,

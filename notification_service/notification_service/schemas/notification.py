@@ -60,3 +60,13 @@ class ScheduledNotificationResponse(ScheduledNotificationCreate):
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class NotificationListResponse(BaseModel):
+    """Paginated list of notifications response schema."""
+
+    total: int
+    notifications: list[NotificationResponse]
+    page: int
+    size: int
+    pages: int

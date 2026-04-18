@@ -35,6 +35,9 @@ class Settings(BaseSettings):
     AUTH_SERVICE_URL: str = Field(default="http://auth_service:8000")
     AUTH_SERVICE_TIMEOUT: int = Field(default=10, ge=1)
 
+    # Service-to-service authentication
+    SERVICE_API_KEY: str | None = Field(default=None)
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", case_sensitive=True, extra="ignore")
 
 

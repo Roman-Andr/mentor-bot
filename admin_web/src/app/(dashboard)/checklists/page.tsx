@@ -84,6 +84,9 @@ export default function ChecklistsPage() {
         pageSize={c.pageSize}
         onPageChange={c.setCurrentPage}
         onPageSizeChange={c.setPageSize}
+        sortField={c.sortField}
+        sortDirection={c.sortDirection}
+        onSort={c.toggleSort}
       />
     </PageContent>
   );

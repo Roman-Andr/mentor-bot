@@ -50,15 +50,13 @@ async def get_current_user(
 
     async with httpx.AsyncClient() as client:
         try:
-
-            async def call_auth_service() -> httpx.Response:
-                return await client.get(
+            response = await auth_service_circuit_breaker.call(
+                lambda: client.get(
                     f"{settings.AUTH_SERVICE_URL}/api/v1/auth/me",
                     headers={"Authorization": f"Bearer {credentials.credentials}"},
                     timeout=settings.AUTH_SERVICE_TIMEOUT,
                 )
-
-            response = await auth_service_circuit_breaker.call(call_auth_service)
+            )
 
             if response.status_code != status.HTTP_200_OK:
                 msg = "Invalid authentication credentials"

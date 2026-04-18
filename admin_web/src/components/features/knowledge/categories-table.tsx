@@ -4,6 +4,7 @@ import { useTranslations } from "@/hooks/use-translations";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SearchInput } from "@/components/ui/search-input";
+import { SortableTableHead } from "@/components/ui/sortable-table-head";
 import {
   Table,
   TableBody,
@@ -16,6 +17,7 @@ import { DataTable } from "@/components/ui/data-table";
 import { CardHeader, CardTitle } from "@/components/ui/card";
 import { Trash2, SquarePen } from "lucide-react";
 import type { CategoryRow } from "@/hooks/use-categories";
+import type { SortDirection } from "@/hooks/use-sorting";
 
 interface CategoriesTableProps {
   categories: CategoryRow[];
@@ -30,6 +32,9 @@ interface CategoriesTableProps {
   onPageSizeChange?: (size: number) => void;
   onEdit: (category: CategoryRow) => void;
   onDelete: (id: number) => void;
+  sortField?: string | null;
+  sortDirection?: SortDirection;
+  onSort?: (field: string) => void;
 }
 
 export function CategoriesTable({
@@ -45,8 +50,20 @@ export function CategoriesTable({
   onPageSizeChange,
   onEdit,
   onDelete,
+  sortField,
+  sortDirection = "asc",
+  onSort,
 }: CategoriesTableProps) {
   const t = useTranslations();
+
+  const columns = [
+    { key: "name", label: t("knowledge.name"), sortable: true },
+    { key: "slug", label: "Slug", sortable: true },
+    { key: "description", label: t("common.description"), sortable: false },
+    { key: "articles_count", label: t("knowledge.articles"), sortable: true },
+    { key: "order", label: t("knowledge.order"), sortable: true },
+    { key: "createdAt", label: t("common.createdAt"), sortable: true },
+  ];
 
   return (
     <DataTable
@@ -71,12 +88,18 @@ export function CategoriesTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>{t("knowledge.name")}</TableHead>
-            <TableHead>Slug</TableHead>
-            <TableHead>{t("common.description")}</TableHead>
-            <TableHead>{t("knowledge.articles")}</TableHead>
-            <TableHead>{t("knowledge.order")}</TableHead>
-            <TableHead>{t("common.createdAt")}</TableHead>
+            {columns.map((col) => (
+              <SortableTableHead
+                key={col.key}
+                field={col.key}
+                sortable={col.sortable && !!onSort}
+                sortField={sortField ?? null}
+                sortDirection={sortDirection}
+                onSort={onSort ?? (() => {})}
+              >
+                {col.label}
+              </SortableTableHead>
+            ))}
             <TableHead className="w-25">{t("common.actions")}</TableHead>
           </TableRow>
         </TableHeader>

@@ -81,13 +81,12 @@ class ChecklistsServiceClient:
                 await invalidate_cache("checklists_user:*")
                 await invalidate_cache("assigned_tasks:*")
                 return response.json()
-            else:
-                logger.error(
-                    "Update task %s failed: %s - %s",
-                    task_id,
-                    response.status_code,
-                    response.text,
-                )
+            logger.error(
+                "Update task %s failed: %s - %s",
+                task_id,
+                response.status_code,
+                response.text,
+            )
         except httpx.RequestError:
             logger.exception("Checklists service update task failed")
         return None
@@ -107,13 +106,12 @@ class ChecklistsServiceClient:
                 await invalidate_cache("assigned_tasks:*")
                 await invalidate_cache("checklist_tasks:*")
                 return response.json()
-            else:
-                logger.error(
-                    "Complete task %s failed: %s - %s",
-                    task_id,
-                    response.status_code,
-                    response.text,
-                )
+            logger.error(
+                "Complete task %s failed: %s - %s",
+                task_id,
+                response.status_code,
+                response.text,
+            )
         except httpx.RequestError:
             logger.exception("Checklists service complete task failed")
         return None

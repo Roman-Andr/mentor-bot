@@ -680,7 +680,7 @@ async def download_task_file(
             await callback.answer(
                 t("tasks.download_failed", locale=locale), show_alert=True
             )
-    except Exception as e:
+    except Exception:
         logger.exception("Failed to send task attachment")
         await callback.answer(
             t("tasks.download_failed", locale=locale), show_alert=True

@@ -1,5 +1,7 @@
 """Response schemas for common API endpoints."""
 
+from datetime import datetime
+
 from pydantic import BaseModel, Field
 
 
@@ -17,8 +19,8 @@ class HealthCheck(BaseModel):
 
     status: str = Field(..., description="Health status")
     service: str = Field(..., description="Service name")
-    timestamp: str | None = Field(None, description="Check timestamp")
-    dependencies: dict | None = Field(default_factory=dict, description="Dependency health status")
+    timestamp: datetime | None = Field(None, description="Check timestamp")
+    dependencies: dict | None = Field(None, description="Dependency health status")
 
 
 class MessageResponse(BaseModel):

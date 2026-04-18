@@ -36,6 +36,7 @@ async def get_articles(
     featured_only: Annotated[bool, Query()] = False,
     pinned_only: Annotated[bool, Query()] = False,
     sort_by: Annotated[str | None, Query()] = None,
+    sort_order: Annotated[str, Query()] = "desc",
 ) -> ArticleListResponse:
     """Get paginated list of articles."""
     user_filters = {}
@@ -59,7 +60,7 @@ async def get_articles(
                 "status": status,
                 "featured_only": featured_only,
                 "pinned_only": pinned_only,
-                "only_published": current_user.role in ["HR", "ADMIN"],
+                "only_published": current_user.role not in ["HR", "ADMIN"],
             },
             sort_by=sort_by_enum,
             page=page,
@@ -97,6 +98,8 @@ async def get_articles(
         featured_only=featured_only,
         pinned_only=pinned_only,
         user_filters=user_filters,
+        sort_by=sort_by,
+        sort_order=sort_order,
     )
 
     pages = (total + limit - 1) // limit if limit > 0 else 0

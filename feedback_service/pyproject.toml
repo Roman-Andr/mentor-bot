@@ -7,9 +7,9 @@ dependencies = [
     "aiofiles>=25.1.0",
     "alembic>=1.18.4",
     "asyncpg>=0.31.0",
-    "fastapi>=0.135.3",
+    "fastapi>=0.136.0",
     "httpx>=0.28.1",
-    "pydantic>=2.12.5",
+    "pydantic>=2.13.2",
     "pydantic-settings>=2.13.1",
     "python-dotenv>=1.2.2",
     "slowapi>=0.1.9",
@@ -26,3 +26,9 @@ dev = [
   "pytest-cov>=7.0.0",
   "ruff>=0.14.14",
 ]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+pythonpath = [".", "feedback_service"]
+addopts = "-q"

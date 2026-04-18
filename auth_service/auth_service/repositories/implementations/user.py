@@ -69,13 +69,20 @@ class UserRepository(SqlAlchemyBaseRepository[User, int], IUserRepository):
         department_id: int | None = None,
         role: UserRole | None = None,
         is_active: bool | None = None,
+        sort_by: str | None = None,
+        sort_order: str = "desc",
     ) -> tuple[Sequence[User], int]:
         """Find users with filtering and return results with total count."""
+        from auth_service.models.user_mentor import UserMentor
+
         # Count query
         count_stmt = select(func.count(User.id))
 
         # Results query
-        stmt = select(User).options(selectinload(User.department))
+        stmt = select(User).options(
+            selectinload(User.department),
+            selectinload(User.mentor_assignments).selectinload(UserMentor.mentor),
+        )
 
         # Apply filters to both queries
         if search:
@@ -104,12 +111,39 @@ class UserRepository(SqlAlchemyBaseRepository[User, int], IUserRepository):
         total_result = await self._session.execute(count_stmt)
         total = cast("int", total_result.scalar_one())
 
+        # Apply sorting
+        sort_column = self._get_sort_column(sort_by)
+        if sort_order.lower() == "asc":
+            stmt = stmt.order_by(sort_column.asc())
+        else:
+            stmt = stmt.order_by(sort_column.desc())
+
         # Get paginated results
-        stmt = stmt.offset(skip).limit(limit).order_by(User.created_at.desc())
+        stmt = stmt.offset(skip).limit(limit)
         result = await self._session.execute(stmt)
         users = result.scalars().all()
 
         return users, total
+
+    def _get_sort_column(self, sort_by: str | None) -> " sqlalchemy.Column":
+        """Get SQLAlchemy column for sorting."""
+        from sqlalchemy import desc, asc, case, nullslast
+
+        # Map frontend field names to database columns
+        column_map = {
+            "name": User.first_name,
+            "employee_id": User.employee_id,
+            "department": User.department_id,  # Sort by department ID
+            "position": User.position,
+            "role": User.role,
+            "isActive": User.is_active,
+            "createdAt": User.created_at,
+            "email": User.email,
+            "first_name": User.first_name,
+            "last_name": User.last_name,
+        }
+
+        return column_map.get(sort_by, User.created_at)
 
     async def update(self, entity: User) -> User:
         """Update user and reload with department relationship."""

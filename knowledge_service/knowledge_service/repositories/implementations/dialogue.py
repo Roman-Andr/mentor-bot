@@ -3,6 +3,7 @@
 from collections.abc import Sequence
 from typing import cast
 
+import sqlalchemy
 from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -86,6 +87,18 @@ class DialogueScenarioRepository(SqlAlchemyBaseRepository[DialogueScenario, int]
         result = await self._session.execute(stmt)
         return result.scalars().all(), total
 
+    def _get_sort_column(self, sort_by: str | None) -> "sqlalchemy.Column":
+        """Get SQLAlchemy column for sorting."""
+        column_map = {
+            "title": DialogueScenario.title,
+            "category": DialogueScenario.category,
+            "isActive": DialogueScenario.is_active,
+            "displayOrder": DialogueScenario.display_order,
+            "createdAt": DialogueScenario.created_at,
+            "updatedAt": DialogueScenario.updated_at,
+        }
+        return column_map.get(sort_by, DialogueScenario.display_order)
+
     async def find_scenarios(
         self,
         *,
@@ -94,6 +107,8 @@ class DialogueScenarioRepository(SqlAlchemyBaseRepository[DialogueScenario, int]
         category: str | None = None,
         is_active: bool | None = None,
         search: str | None = None,
+        sort_by: str | None = None,
+        sort_order: str = "asc",
     ) -> tuple[Sequence[DialogueScenario], int]:
         """Find scenarios with filtering."""
         stmt = select(DialogueScenario).options(selectinload(DialogueScenario.steps))
@@ -117,7 +132,14 @@ class DialogueScenarioRepository(SqlAlchemyBaseRepository[DialogueScenario, int]
 
         total = cast("int", (await self._session.execute(count_stmt)).scalar_one())
 
-        stmt = stmt.order_by(DialogueScenario.display_order).offset(skip).limit(limit)
+        # Apply sorting
+        sort_column = self._get_sort_column(sort_by)
+        if sort_order.lower() == "asc":
+            stmt = stmt.order_by(sort_column.asc())
+        else:
+            stmt = stmt.order_by(sort_column.desc())
+
+        stmt = stmt.offset(skip).limit(limit)
         result = await self._session.execute(stmt)
         return result.scalars().all(), total
 

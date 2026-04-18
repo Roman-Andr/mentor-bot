@@ -138,6 +138,7 @@ export function useArticles() {
       { name: "status", defaultValue: "ALL" },
       { name: "category", defaultValue: "ALL", paramName: "category_id", transform: (v) => parseInt(v) },
     ],
+    sortable: true,
     labels: {
       createdKey: "knowledge.articleCreated",
       updatedKey: "knowledge.articleUpdated",
@@ -271,5 +272,11 @@ export function useArticles() {
     // Loading states
     isSubmitting: entity.isSubmitting,
     isDeleting: entity.isDeleting,
+
+    // Sorting
+    sortField: entity.sortField,
+    sortDirection: entity.sortDirection,
+    toggleSort: entity.toggleSort,
   };
 }
+

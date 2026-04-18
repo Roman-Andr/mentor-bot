@@ -129,6 +129,7 @@ export function useTemplates() {
     toForm,
     searchable: true,
     searchParamName: "search",
+    sortable: true,
     filters: [{ name: "status", defaultValue: "ALL" }],
     labels: {
       createdKey: "templates.created",
@@ -271,5 +272,10 @@ export function useTemplates() {
     isCreating: entity.isSubmitting,
     isUpdating: entity.isSubmitting,
     isDeleting: entity.isDeleting,
+
+    // Sorting
+    sortField: entity.sortField,
+    sortDirection: entity.sortDirection,
+    toggleSort: entity.toggleSort,
   };
 }

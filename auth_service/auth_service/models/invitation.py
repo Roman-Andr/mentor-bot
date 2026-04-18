@@ -34,14 +34,14 @@ class Invitation(Base):
     first_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
     last_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
     department_id: Mapped[int | None] = mapped_column(ForeignKey("departments.id"), nullable=True)
-    department: Mapped["Department | None"] = relationship("Department", back_populates="invitations")
+    department: Mapped[Department | None] = relationship("Department", back_populates="invitations")
     position: Mapped[str | None] = mapped_column(String(100), nullable=True)
     level: Mapped[EmployeeLevel | None] = mapped_column(Enum(EmployeeLevel, native=False), nullable=True)
     role: Mapped[UserRole] = mapped_column(Enum(UserRole), default=UserRole.NEWBIE, nullable=False)
 
     # Mentor assignment
     mentor_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
-    mentor: Mapped["User | None"] = relationship("User", foreign_keys=[mentor_id])
+    mentor: Mapped[User | None] = relationship("User", foreign_keys=[mentor_id])
 
     # Status
     status: Mapped[InvitationStatus] = mapped_column(
@@ -55,7 +55,7 @@ class Invitation(Base):
 
     # Relationships
     user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
-    user: Mapped["User | None"] = relationship("User", foreign_keys=[user_id], back_populates="invitations")
+    user: Mapped[User | None] = relationship("User", foreign_keys=[user_id], back_populates="invitations")
 
     def __repr__(self) -> str:
         """Representation of Invitation."""

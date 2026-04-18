@@ -58,14 +58,12 @@ class AuthMiddleware(BaseMiddleware):
                 )
 
                 if user_data:
-                    await user_cache.set_user(
-                        tg_user.id,
-                        {
-                            **user_data,
-                            "access_token": auth_result["access_token"],
-                            "refresh_token": auth_result["refresh_token"],
-                        },
-                    )
+                    user_data = {
+                        **user_data,
+                        "access_token": auth_result["access_token"],
+                        "refresh_token": auth_result["refresh_token"],
+                    }
+                    await user_cache.set_user(tg_user.id, user_data)
 
         if user_data:
             data["user"] = user_data

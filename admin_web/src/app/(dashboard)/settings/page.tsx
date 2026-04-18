@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
 import { useTheme } from "next-themes";
 import { useTranslations } from "@/hooks/use-translations";
 import { Button } from "@/components/ui/button";
@@ -11,9 +12,38 @@ import { PageHeader } from "@/components/layout/page-header";
 import { useToast } from "@/hooks/use-toast";
 import { Globe, Palette, Save } from "lucide-react";
 
-
 export default function SettingsPage() {
   const t = useTranslations();
+  const router = useRouter();
+  const { theme: currentTheme, setTheme } = useTheme();
+  const currentLocale = useLocale();
+  const { toast } = useToast();
+  const [isPending, startTransition] = useTransition();
+  const [activeSection, setActiveSection] = useState<"appearance" | "language">("appearance");
+
+  // Track previous values to detect external changes
+  const prevThemeRef = useRef(currentTheme);
+  const prevLocaleRef = useRef(currentLocale);
+
+  // User selections (synced with external values when they change)
+  const [selectedTheme, setSelectedTheme] = useState(currentTheme || "system");
+  const [selectedLanguage, setSelectedLanguage] = useState(currentLocale || "ru");
+
+  // Sync with external theme changes (from sidebar)
+  if (currentTheme !== prevThemeRef.current) {
+    prevThemeRef.current = currentTheme;
+    if (currentTheme && currentTheme !== selectedTheme) {
+      setSelectedTheme(currentTheme);
+    }
+  }
+
+  // Sync with external locale changes (from sidebar)
+  if (currentLocale !== prevLocaleRef.current) {
+    prevLocaleRef.current = currentLocale;
+    if (currentLocale && currentLocale !== selectedLanguage) {
+      setSelectedLanguage(currentLocale);
+    }
+  }
 
   const themes = [
     { value: "light" as const, label: t("settings.themeLight") },
@@ -25,21 +55,10 @@ export default function SettingsPage() {
     { value: "ru", label: t("settings.languageRu") },
     { value: "en", label: t("settings.languageEn") },
   ];
-  const router = useRouter();
-  const { theme: currentTheme, setTheme } = useTheme();
-  const { toast } = useToast();
-  const [isPending, startTransition] = useTransition();
-  const [activeSection, setActiveSection] = useState<"appearance" | "language">("appearance");
 
-  const [selectedTheme, setSelectedTheme] = useState(currentTheme || "system");
-  const [selectedLanguage, setSelectedLanguage] = useState(
-    document.cookie.match(/locale=([^;]+)/)?.[1] || "ru"
-  );
-
-  const handleSave = () => {
+  const handleSave = useCallback(() => {
     setTheme(selectedTheme);
 
-    const currentLocale = document.cookie.match(/locale=([^;]+)/)?.[1] || "ru";
     if (selectedLanguage !== currentLocale) {
       document.cookie = `locale=${selectedLanguage};path=/;max-age=31536000`;
       startTransition(() => {
@@ -48,12 +67,12 @@ export default function SettingsPage() {
     }
 
     toast(t("settings.saved"), "success");
-  };
+  }, [selectedTheme, selectedLanguage, currentLocale, setTheme, router, toast, t]);
 
-  const handleCancel = () => {
+  const handleCancel = useCallback(() => {
     setSelectedTheme(currentTheme || "system");
-    setSelectedLanguage(document.cookie.match(/locale=([^;]+)/)?.[1] || "ru");
-  };
+    setSelectedLanguage(currentLocale || "ru");
+  }, [currentTheme, currentLocale]);
 
   return (
     <div className="space-y-6 p-6">

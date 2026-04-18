@@ -9,8 +9,8 @@ from aiogram.types import CallbackQuery, Message
 
 from telegram_bot.i18n import t
 from telegram_bot.keyboards.calendar_kb import (
-    get_calendar_connected_keyboard,
     get_calendar_connect_keyboard,
+    get_calendar_connected_keyboard,
     get_calendar_not_connected_keyboard,
 )
 from telegram_bot.services.calendar_client import CalendarClient

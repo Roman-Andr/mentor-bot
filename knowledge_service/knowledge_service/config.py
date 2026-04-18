@@ -50,10 +50,18 @@ class Settings(BaseSettings):
     CIRCUIT_BREAKER_FAILURE_THRESHOLD: int = Field(default=3, ge=1)
     CIRCUIT_BREAKER_RECOVERY_TIMEOUT: int = Field(default=30, ge=1)
 
-    # File Storage
+    # File Storage - S3/MinIO
     MAX_FILE_SIZE_MB: int = Field(default=10, ge=1)
-    ALLOWED_FILE_TYPES: list[str] = Field(default=["pdf", "jpg", "jpeg", "png", "docx", "xlsx", "txt"])
-    STORAGE_PATH: str = Field(default="/var/lib/knowledge/files")
+    ALLOWED_FILE_TYPES: list[str] = Field(
+        default=["pdf", "jpg", "jpeg", "png", "docx", "xlsx", "txt", "md", "ics", "zip", "py", "pptx"]
+    )
+    S3_ENDPOINT: str = Field(default="http://minio:9000")
+    S3_ACCESS_KEY: str = Field(default="")
+    S3_SECRET_KEY: str = Field(default="")
+    S3_REGION: str = Field(default="us-east-1")
+    S3_USE_SSL: bool = Field(default=False)
+    KNOWLEDGE_S3_BUCKET: str = Field(default="knowledge-files")
+    S3_PRESIGNED_URL_EXPIRY: int = Field(default=3600, ge=60, le=604800)
 
     # Search Configuration
     SEARCH_RESULTS_LIMIT: int = Field(default=10, ge=1, le=100)

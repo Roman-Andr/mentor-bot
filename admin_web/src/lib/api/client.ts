@@ -1,32 +1,6 @@
-import { TOKEN_KEY, USER_KEY } from "@/lib/storage-keys";
-
-function getAuthToken(): string | null {
-  if (typeof window === "undefined") return null;
-  try {
-    return localStorage.getItem(TOKEN_KEY);
-  } catch {
-    return null;
-  }
-}
-
-export function setAuthToken(token: string | null) {
-  if (typeof window === "undefined") return;
-  try {
-    if (token) {
-      localStorage.setItem(TOKEN_KEY, token);
-    } else {
-      localStorage.removeItem(TOKEN_KEY);
-    }
-  } catch {
-    // ignore storage errors
-  }
-}
+import { USER_KEY } from "@/lib/storage-keys";
 
 function handleUnauthorized() {
-  const hadToken = !!getAuthToken();
-  if (!hadToken) return;
-  localStorage.removeItem(TOKEN_KEY);
-  localStorage.removeItem(USER_KEY);
   if (typeof window !== "undefined") {
     window.location.href = "/login";
   }
@@ -79,17 +53,16 @@ export async function fetchApi<T>(
   options?: RequestInit,
 ): Promise<ApiResponse<T>> {
   try {
-    const token = getAuthToken();
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
       ...(options?.headers as Record<string, string>),
     };
 
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
-    }
-
-    const response = await fetch(endpoint, { ...options, headers });
+    const response = await fetch(endpoint, {
+      ...options,
+      headers,
+      credentials: "include",  // Send httpOnly cookies automatically
+    });
     const result = await handleResponse<T>(response);
 
     if (result.success) {
@@ -107,14 +80,11 @@ export async function fetchUpload<T>(
   method: string = "POST",
 ): Promise<ApiResponse<T>> {
   try {
-    const token = getAuthToken();
-    const headers: Record<string, string> = {};
-
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
-    }
-
-    const response = await fetch(endpoint, { method, headers, body: formData });
+    const response = await fetch(endpoint, {
+      method,
+      body: formData,
+      credentials: "include",  // Send httpOnly cookies automatically
+    });
     const result = await handleResponse<T>(response);
 
     if (result.success) {
@@ -131,17 +101,16 @@ export async function fetchApiNew<T>(
   options?: RequestInit,
 ): Promise<ApiResult<T>> {
   try {
-    const token = getAuthToken();
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
       ...(options?.headers as Record<string, string>),
     };
 
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
-    }
-
-    const response = await fetch(endpoint, { ...options, headers });
+    const response = await fetch(endpoint, {
+      ...options,
+      headers,
+      credentials: "include",  // Send httpOnly cookies automatically
+    });
     return handleResponse<T>(response);
   } catch (error) {
     return {

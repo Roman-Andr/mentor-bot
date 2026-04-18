@@ -114,6 +114,8 @@ class InvitationService:
         department_id: int | None = None,
         *,
         expired_only: bool = False,
+        sort_by: str | None = None,
+        sort_order: str = "desc",
     ) -> tuple[list[Invitation], int]:
         """Get paginated list of invitations with filters."""
         invitations, total = await self._uow.invitations.find_invitations(
@@ -124,6 +126,8 @@ class InvitationService:
             status=status,
             department_id=department_id,
             expired_only=expired_only,
+            sort_by=sort_by,
+            sort_order=sort_order,
         )
         return list(invitations), total
 

@@ -3,6 +3,7 @@
 from collections.abc import Sequence
 from typing import cast
 
+import sqlalchemy
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -19,6 +20,19 @@ class EscalationRepository(SqlAlchemyBaseRepository[EscalationRequest, int], IEs
         """Initialize EscalationRepository with database session."""
         super().__init__(session, EscalationRequest)
 
+    def _get_sort_column(self, sort_by: str | None) -> "sqlalchemy.Column":
+        """Get SQLAlchemy column for sorting."""
+        column_map = {
+            "type": EscalationRequest.type,
+            "status": EscalationRequest.status,
+            "user": EscalationRequest.user_id,
+            "assignedTo": EscalationRequest.assigned_to,
+            "createdAt": EscalationRequest.created_at,
+            "updatedAt": EscalationRequest.updated_at,
+            "resolvedAt": EscalationRequest.resolved_at,
+        }
+        return column_map.get(sort_by, EscalationRequest.created_at)
+
     async def find_requests(
         self,
         *,
@@ -29,6 +43,8 @@ class EscalationRepository(SqlAlchemyBaseRepository[EscalationRequest, int], IEs
         escalation_type: EscalationType | None = None,
         status: EscalationStatus | None = None,
         search: str | None = None,
+        sort_by: str | None = None,
+        sort_order: str = "desc",
     ) -> tuple[Sequence[EscalationRequest], int]:
         """Find escalation requests with filtering and return results with total count."""
         count_stmt = select(func.count(EscalationRequest.id))
@@ -60,7 +76,14 @@ class EscalationRepository(SqlAlchemyBaseRepository[EscalationRequest, int], IEs
         total_result = await self._session.execute(count_stmt)
         total = cast("int", total_result.scalar_one())
 
-        stmt = stmt.order_by(EscalationRequest.created_at.desc()).offset(skip).limit(limit)
+        # Apply sorting
+        sort_column = self._get_sort_column(sort_by)
+        if sort_order.lower() == "asc":
+            stmt = stmt.order_by(sort_column.asc())
+        else:
+            stmt = stmt.order_by(sort_column.desc())
+
+        stmt = stmt.offset(skip).limit(limit)
         result = await self._session.execute(stmt)
         requests = result.scalars().all()
 

@@ -9,3 +9,4 @@ export * from "./meeting";
 export * from "./escalation";
 export * from "./notification";
 export * from "./analytics";
+export * from "./feedback";

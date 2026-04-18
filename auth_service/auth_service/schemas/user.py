@@ -32,7 +32,7 @@ class UserCreate(UserBase):
 class UserUpdate(BaseModel):
     """User update schema."""
 
-    email: EmailStr
+    email: EmailStr | None = None
     first_name: str | None = Field(None, min_length=1, max_length=100)
     last_name: str | None = Field(None, max_length=100)
     phone: str | None = Field(None, max_length=20)

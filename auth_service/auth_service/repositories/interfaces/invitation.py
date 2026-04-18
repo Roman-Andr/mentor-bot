@@ -35,6 +35,8 @@ class IInvitationRepository(BaseRepository["Invitation", int]):
         status: InvitationStatus | None = None,
         department_id: int | None = None,
         expired_only: bool = False,
+        sort_by: str | None = None,
+        sort_order: str = "desc",
     ) -> tuple[Sequence[Invitation], int]:
         """Find invitations with filtering and return results with total count."""
 

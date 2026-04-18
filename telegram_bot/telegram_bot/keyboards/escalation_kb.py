@@ -1,5 +1,6 @@
 """Escalation keyboards."""
 
+from aiogram.types import InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from telegram_bot.core.enums import ButtonStyle
@@ -7,7 +8,7 @@ from telegram_bot.i18n import t
 from telegram_bot.keyboards.utils import create_inline_button
 
 
-def get_escalation_menu_keyboard(*, locale: str = "en") -> InlineKeyboardBuilder:
+def get_escalation_menu_keyboard(*, locale: str = "en") -> InlineKeyboardMarkup:
     """Build escalation menu keyboard."""
     builder = InlineKeyboardBuilder()
     builder.add(
@@ -26,10 +27,10 @@ def get_escalation_menu_keyboard(*, locale: str = "en") -> InlineKeyboardBuilder
         ),
     )
     builder.adjust(1)
-    return builder
+    return builder.as_markup()
 
 
-def get_new_escalation_keyboard(*, locale: str = "en") -> InlineKeyboardBuilder:
+def get_new_escalation_keyboard(*, locale: str = "en") -> InlineKeyboardMarkup:
     """Build new escalation type selection keyboard."""
     builder = InlineKeyboardBuilder()
     builder.add(
@@ -59,10 +60,10 @@ def get_new_escalation_keyboard(*, locale: str = "en") -> InlineKeyboardBuilder:
         ),
     )
     builder.adjust(1)
-    return builder
+    return builder.as_markup()
 
 
-def get_my_escalations_keyboard(*, locale: str = "en") -> InlineKeyboardBuilder:
+def get_my_escalations_keyboard(*, locale: str = "en") -> InlineKeyboardMarkup:
     """Build back button keyboard for my escalations."""
     builder = InlineKeyboardBuilder()
     builder.add(
@@ -71,10 +72,10 @@ def get_my_escalations_keyboard(*, locale: str = "en") -> InlineKeyboardBuilder:
             callback_data="escalate_menu",
         )
     )
-    return builder
+    return builder.as_markup()
 
 
-def get_escalation_details_keyboard(*, locale: str = "en") -> InlineKeyboardBuilder:
+def get_escalation_details_keyboard(*, locale: str = "en") -> InlineKeyboardMarkup:
     """Build back button keyboard for escalation details."""
     builder = InlineKeyboardBuilder()
     builder.add(
@@ -83,4 +84,4 @@ def get_escalation_details_keyboard(*, locale: str = "en") -> InlineKeyboardBuil
             callback_data="my_escalations",
         )
     )
-    return builder
+    return builder.as_markup()

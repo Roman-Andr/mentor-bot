@@ -37,6 +37,8 @@ async def get_checklists(
     search: Annotated[str | None, Query()] = None,
     *,
     overdue_only: Annotated[bool, Query()] = False,
+    sort_by: Annotated[str | None, Query()] = None,
+    sort_order: Annotated[str, Query()] = "desc",
 ) -> ChecklistListResponse:
     """Get paginated list of checklists."""
     checklist_service = ChecklistService(uow)
@@ -58,6 +60,8 @@ async def get_checklists(
         department_id=department_id,
         search=search,
         overdue_only=overdue_only,
+        sort_by=sort_by,
+        sort_order=sort_order,
     )
 
     stats = await checklist_service.get_checklist_stats(user_id or current_user.id)
@@ -70,7 +74,11 @@ async def get_checklists(
             ChecklistResponse(
                 **checklist.__dict__,
                 is_overdue=checklist.due_date < datetime.now(UTC) and checklist.status != ChecklistStatus.COMPLETED,
-                days_remaining=(checklist.due_date - datetime.now(UTC)).days if checklist.due_date else None,
+                days_remaining=(
+                    (checklist.due_date - datetime.now(UTC)).days
+                    if checklist.due_date and checklist.status != ChecklistStatus.COMPLETED
+                    else None
+                ),
             )
             for checklist in checklists
         ],
@@ -125,7 +133,11 @@ async def get_checklist(
         return ChecklistResponse(
             **checklist.__dict__,
             is_overdue=checklist.due_date < datetime.now(UTC) and checklist.status != ChecklistStatus.COMPLETED,
-            days_remaining=(checklist.due_date - datetime.now(UTC)).days if checklist.due_date else None,
+            days_remaining=(
+                (checklist.due_date - datetime.now(UTC)).days
+                if checklist.due_date and checklist.status != ChecklistStatus.COMPLETED
+                else None
+            ),
         )
     except NotFoundException as e:
         raise HTTPException(
@@ -156,9 +168,11 @@ async def update_checklist(
             **updated_checklist.__dict__,
             is_overdue=updated_checklist.due_date < datetime.now(UTC)
             and updated_checklist.status != ChecklistStatus.COMPLETED,
-            days_remaining=(updated_checklist.due_date - datetime.now(UTC)).days
-            if updated_checklist.due_date
-            else None,
+            days_remaining=(
+                (updated_checklist.due_date - datetime.now(UTC)).days
+                if updated_checklist.due_date and updated_checklist.status != ChecklistStatus.COMPLETED
+                else None
+            ),
         )
     except NotFoundException as e:
         raise HTTPException(

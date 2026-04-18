@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useTranslations } from "@/hooks/use-translations";
 import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PDFExportButton } from "@/components/features/reports/pdf-export-button";
 import { api } from "@/lib/api";
 import type { ChecklistStats } from "@/types";
 import { AnalyticsStats } from "@/components/features/analytics/analytics-stats";
@@ -110,10 +111,23 @@ export default function AnalyticsPage() {
           <h1 className="text-foreground text-2xl font-bold">{t("analytics.title")}</h1>
           <p className="text-muted-foreground">{t("analytics.overview")}</p>
         </div>
-        <Button className="gap-2" onClick={handleExport}>
-          <Download className="size-4" />
-          {t("common.export")}
-        </Button>
+        <div className="flex items-center gap-2">
+          <PDFExportButton
+            data={{
+              stats,
+              userCount,
+              monthlyData,
+              completionTimeData,
+              departmentData,
+            }}
+            variant="outline"
+            size="default"
+          />
+          <Button className="gap-2" onClick={handleExport}>
+            <Download className="size-4" />
+            CSV
+          </Button>
+        </div>
       </div>
 
       <AnalyticsStats stats={stats} userCount={userCount} />

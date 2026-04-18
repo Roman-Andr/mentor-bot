@@ -15,7 +15,7 @@ export interface InvitationItem {
   invitationUrl: string;
 }
 
-interface InvitationFormData {
+export interface InvitationFormData {
   email: string;
   role: string;
   employee_id: string;
@@ -98,6 +98,7 @@ export function useInvitations() {
       { name: "role", defaultValue: "ALL" },
       { name: "status", defaultValue: "ALL" },
     ],
+    sortable: true,
     labels: {
       createdKey: "invitations.created",
       deletedKey: "invitations.deleted",
@@ -209,5 +210,10 @@ export function useInvitations() {
     isResending: resendMutation.isPending,
     isRevoking: revokeMutation.isPending,
     isDeleting: entity.isDeleting,
+
+    // Sorting
+    sortField: entity.sortField,
+    sortDirection: entity.sortDirection,
+    toggleSort: entity.toggleSort,
   };
 }

@@ -3,6 +3,8 @@
 import logging
 from datetime import UTC, datetime, timedelta
 
+from sqlalchemy.exc import IntegrityError
+
 from meeting_service.core import (
     ConflictException,
     NotFoundException,
@@ -70,6 +72,8 @@ class MeetingService:
         *,
         is_mandatory: bool | None = None,
         search: str | None = None,
+        sort_by: str | None = None,
+        sort_order: str = "asc",
     ) -> tuple[list[Meeting], int]:
         """Get paginated list of meeting templates with filters."""
         meetings, total = await self._uow.meetings.find_meetings(
@@ -81,6 +85,8 @@ class MeetingService:
             level=level,
             is_mandatory=is_mandatory,
             search=search,
+            sort_by=sort_by,
+            sort_order=sort_order,
         )
         return list(meetings), total
 
@@ -110,7 +116,7 @@ class MeetingService:
         # Check if meeting exists
         meeting = await self.get_meeting(assignment_data.meeting_id)
 
-        # Check if already assigned
+        # Check if already assigned (early check to avoid unnecessary DB operations)
         existing = await self._uow.user_meetings.get_user_meeting(assignment_data.user_id, assignment_data.meeting_id)
         if existing:
             msg = "Meeting already assigned to this user"
@@ -122,7 +128,12 @@ class MeetingService:
             scheduled_at=assignment_data.scheduled_at,
             status=MeetingStatus.SCHEDULED,
         )
-        created_assignment = await self._uow.user_meetings.create(assignment)
+        try:
+            created_assignment = await self._uow.user_meetings.create(assignment)
+        except IntegrityError as e:
+            # Database unique constraint violated - race condition protection
+            msg = "Meeting already assigned to this user"
+            raise ConflictException(msg) from e
 
         # Try to create Google Calendar event if scheduled_at is provided
         if assignment_data.scheduled_at:

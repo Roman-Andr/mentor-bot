@@ -23,6 +23,8 @@ class IChecklistRepository(BaseRepository["Checklist", int]):
         department_id: int | None = None,
         search: str | None = None,
         overdue_only: bool = False,
+        sort_by: str | None = None,
+        sort_order: str = "desc",
     ) -> tuple[Sequence[Checklist], int]:
         """Find checklists with filtering and return results with total count."""
 

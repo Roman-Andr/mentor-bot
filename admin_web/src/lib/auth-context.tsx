@@ -1,8 +1,6 @@
 "use client";
 
 import { createContext, useEffect, useState, type ReactNode } from "react";
-import { setAuthToken } from "./api";
-import { TOKEN_KEY, USER_KEY } from "./storage-keys";
 
 interface AuthUser {
   id: number;
@@ -14,7 +12,6 @@ interface AuthUser {
 
 interface AuthContextType {
   user: AuthUser | null;
-  token: string | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
@@ -23,42 +20,19 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(() => {
-    if (typeof window === "undefined") return null;
-    try {
-      const storedUser = localStorage.getItem(USER_KEY);
-      const storedToken = localStorage.getItem(TOKEN_KEY);
-      if (storedToken && storedUser) {
-        setAuthToken(storedToken);
-        return JSON.parse(storedUser);
-      }
-    } catch {
-      localStorage.removeItem(TOKEN_KEY);
-      localStorage.removeItem(USER_KEY);
-    }
-    return null;
-  });
+  // User state is derived from httpOnly cookie validation, NOT localStorage
+  // This prevents XSS attacks from stealing user data
+  const [user, setUser] = useState<AuthUser | null>(null);
 
-  const [token, setToken] = useState<string | null>(() => {
-    if (typeof window === "undefined") return null;
-    try {
-      return localStorage.getItem(TOKEN_KEY);
-    } catch {
-      return null;
-    }
-  });
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const validateToken = async () => {
-      if (!token) {
-        setIsLoading(false);
-        return;
-      }
+    const validateSession = async () => {
       try {
         const response = await fetch("/api/v1/auth/me", {
-          headers: { Authorization: `Bearer ${token}` },
+          credentials: "include",  // Send httpOnly cookies
         });
         if (response.ok) {
           const userData = await response.json();
@@ -70,30 +44,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             last_name: userData.last_name,
           };
           setUser(validatedUser);
-          localStorage.setItem(USER_KEY, JSON.stringify(validatedUser));
+          setIsAuthenticated(true);
         } else if (response.status === 401) {
           setUser(null);
-          setToken(null);
-          setAuthToken(null);
-          localStorage.removeItem(TOKEN_KEY);
-          localStorage.removeItem(USER_KEY);
+          setIsAuthenticated(false);
         }
       } catch {
-        // keep stored session on network errors
+        // Network errors don't clear user state - auth state is server-side
       }
       setIsLoading(false);
     };
-    validateToken();
+    validateSession();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  useEffect(() => {
-    if (token) {
-      setAuthToken(token);
-    } else {
-      setAuthToken(null);
-    }
-  }, [token]);
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
@@ -106,6 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
         },
+        credentials: "include",  // Receive httpOnly cookies
         body: formData.toString(),
       });
 
@@ -116,28 +80,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       const data = await response.json();
-      const accessToken: string = data.access_token;
-
-      if (!accessToken) {
-        console.error("Login response missing access_token");
-        return false;
-      }
-
-      localStorage.setItem(TOKEN_KEY, accessToken);
-      setAuthToken(accessToken);
-      setToken(accessToken);
 
       const userResponse = await fetch("/api/v1/auth/me", {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
+        credentials: "include",  // Send httpOnly cookies
       });
 
       if (!userResponse.ok) {
         console.error("Failed to fetch user:", userResponse.status);
-        localStorage.removeItem(TOKEN_KEY);
-        setAuthToken(null);
-        setToken(null);
         return false;
       }
 
@@ -151,7 +100,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       };
 
       setUser(user);
-      localStorage.setItem(USER_KEY, JSON.stringify(user));
+      setIsAuthenticated(true);
+      // User data is NOT stored in localStorage (XSS prevention)
+      // Auth tokens are in httpOnly cookies, user data is fetched from server
 
       return true;
     } catch (error) {
@@ -160,16 +111,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    // Call logout endpoint to clear httpOnly cookies
+    try {
+      await fetch("/api/v1/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch {
+      // ignore errors
+    }
     setUser(null);
-    setToken(null);
-    setAuthToken(null);
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
+    setIsAuthenticated(false);
+    // No localStorage to clear - auth is entirely cookie-based
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, isLoading, login, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

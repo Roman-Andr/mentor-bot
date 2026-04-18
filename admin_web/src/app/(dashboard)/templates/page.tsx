@@ -83,6 +83,9 @@ export default function TemplatesPage() {
         pageSize={tmpl.pageSize}
         onPageChange={tmpl.setCurrentPage}
         onPageSizeChange={tmpl.setPageSize}
+        sortField={tmpl.sortField}
+        sortDirection={tmpl.sortDirection}
+        onSort={tmpl.toggleSort}
       />
     </PageContent>
   );

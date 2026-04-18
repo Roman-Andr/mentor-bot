@@ -108,17 +108,18 @@ class ChecklistService:
                 title=task_template.title,
                 description=task_template.description,
                 category=task_template.category,
-                order=idx,
+                order=task_template.order,
                 due_date=task_due_date,
                 assignee_id=assignee_id,
                 assignee_role=task_template.assignee_role or template.default_assignee_role,
                 depends_on=task_template.depends_on.copy(),
+                blocks=[],
             )
             tasks.append(task)
 
         task_map = {task.template_task_id: task for task in tasks if task.template_task_id}
         for task in tasks:
-            if task.template_task_id and task.template_task_id in task_map:
+            if task.depends_on:
                 for dep_id in task.depends_on:
                     if dep_id in task_map:
                         task_map[dep_id].blocks.append(task.template_task_id)
@@ -186,6 +187,8 @@ class ChecklistService:
         search: str | None = None,
         *,
         overdue_only: bool = False,
+        sort_by: str | None = None,
+        sort_order: str = "desc",
     ) -> tuple[list[Checklist], int]:
         """Get paginated list of checklists with filters."""
         status_enum = ChecklistStatus(status) if status else None
@@ -198,6 +201,8 @@ class ChecklistService:
             department_id=department_id,
             search=search,
             overdue_only=overdue_only,
+            sort_by=sort_by,
+            sort_order=sort_order,
         )
         return list(checklists), total
 
@@ -295,8 +300,11 @@ class ChecklistService:
                 task_due_date = min(task_due_date, due_date)
 
                 assignee_id = None
-                if task_template.auto_assign and task_template.assignee_role == "MENTOR" and checklist.mentor_id:
-                    assignee_id = checklist.mentor_id
+                if task_template.auto_assign and task_template.assignee_role:
+                    if task_template.assignee_role == "MENTOR" and checklist.mentor_id:
+                        assignee_id = checklist.mentor_id
+                    elif task_template.assignee_role == "HR" and checklist.hr_id:
+                        assignee_id = checklist.hr_id
 
                 task = Task(
                     checklist_id=checklist.id,
@@ -304,17 +312,18 @@ class ChecklistService:
                     title=task_template.title,
                     description=task_template.description,
                     category=task_template.category,
-                    order=idx,
+                    order=task_template.order,
                     due_date=task_due_date,
                     assignee_id=assignee_id,
                     assignee_role=task_template.assignee_role or template.default_assignee_role,
-                    depends_on=task_template.depends_on.copy(),
+                    depends_on=task_template.depends_on.copy() if task_template.depends_on else [],
+                    blocks=[],
                 )
                 tasks.append(task)
 
             task_map = {task.template_task_id: task for task in tasks if task.template_task_id}
             for task in tasks:
-                if task.template_task_id and task.template_task_id in task_map:
+                if task.depends_on:
                     for dep_id in task.depends_on:
                         if dep_id in task_map:
                             task_map[dep_id].blocks.append(task.template_task_id)

@@ -50,12 +50,18 @@ class Settings(BaseSettings):
     CIRCUIT_BREAKER_FAILURE_THRESHOLD: int = Field(default=3, ge=1)
     CIRCUIT_BREAKER_RECOVERY_TIMEOUT: int = Field(default=30, ge=1)
 
-    # File Storage
-    STORAGE_PATH: str = Field(default="./storage")
+    # File Storage - S3/MinIO
     MAX_FILE_SIZE_MB: int = Field(default=10, ge=1)
     ALLOWED_FILE_TYPES: list[str] = Field(
-        default=[".pdf", ".doc", ".docx", ".xls", ".xlsx", ".txt", ".png", ".jpg", ".jpeg"]
+        default=[".pdf", ".doc", ".docx", ".xls", ".xlsx", ".txt", ".png", ".jpg", ".jpeg", ".pptx", ".py", ".md", ".ics", ".zip"]
     )
+    S3_ENDPOINT: str = Field(default="http://minio:9000")
+    S3_ACCESS_KEY: str = Field(default="")
+    S3_SECRET_KEY: str = Field(default="")
+    S3_REGION: str = Field(default="us-east-1")
+    S3_USE_SSL: bool = Field(default=False)
+    CHECKLISTS_S3_BUCKET: str = Field(default="checklists-files")
+    S3_PRESIGNED_URL_EXPIRY: int = Field(default=3600, ge=60, le=604800)
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", case_sensitive=True, extra="ignore")
 

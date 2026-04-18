@@ -25,7 +25,7 @@ class Department(Base):
     updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), onupdate=func.now(), nullable=True)
 
     # Relationships
-    templates: Mapped[list["Template"]] = relationship("Template", back_populates="department")
+    templates: Mapped[list[Template]] = relationship("Template", back_populates="department")
 
     def __repr__(self) -> str:
         """Representation of Department."""

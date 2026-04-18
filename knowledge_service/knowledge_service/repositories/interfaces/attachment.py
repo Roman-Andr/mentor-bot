@@ -13,5 +13,5 @@ class IAttachmentRepository(BaseRepository["Attachment", int]):
     """Attachment repository interface."""
 
     @abstractmethod
-    async def get_by_article(self, article_id: int) -> list["Attachment"]:
+    async def get_by_article(self, article_id: int) -> list[Attachment]:
         """Get all attachments for an article, ordered by order field."""

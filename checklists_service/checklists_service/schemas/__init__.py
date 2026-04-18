@@ -1,5 +1,6 @@
 """Pydantic schemas for request/response validation."""
 
+from checklists_service.core import TaskStatus
 from checklists_service.schemas.checklist import (
     AutoCreateChecklistsRequest,
     ChecklistBase,
@@ -58,6 +59,7 @@ __all__ = [
     "TaskCreate",
     "TaskProgress",
     "TaskResponse",
+    "TaskStatus",
     "TaskTemplateCreate",
     "TaskTemplateResponse",
     "TaskUpdate",

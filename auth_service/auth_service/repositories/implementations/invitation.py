@@ -4,6 +4,7 @@ from collections.abc import Sequence
 from datetime import UTC, datetime, timedelta
 from typing import cast
 
+import sqlalchemy
 from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -56,6 +57,21 @@ class InvitationRepository(SqlAlchemyBaseRepository[Invitation, int], IInvitatio
         result = await self._session.execute(stmt)
         return result.scalars().all()
 
+    def _get_sort_column(self, sort_by: str | None) -> "sqlalchemy.Column":
+        """Get SQLAlchemy column for sorting."""
+        column_map = {
+            "email": Invitation.email,
+            "firstName": Invitation.first_name,
+            "lastName": Invitation.last_name,
+            "employeeId": Invitation.employee_id,
+            "role": Invitation.role,
+            "status": Invitation.status,
+            "department": Invitation.department_id,
+            "createdAt": Invitation.created_at,
+            "expiresAt": Invitation.expires_at,
+        }
+        return column_map.get(sort_by, Invitation.created_at)
+
     async def find_invitations(
         self,
         *,
@@ -66,6 +82,8 @@ class InvitationRepository(SqlAlchemyBaseRepository[Invitation, int], IInvitatio
         status: InvitationStatus | None = None,
         department_id: int | None = None,
         expired_only: bool = False,
+        sort_by: str | None = None,
+        sort_order: str = "desc",
     ) -> tuple[Sequence[Invitation], int]:
         """Find invitations with filtering and return results with total count."""
         count_stmt = select(func.count(Invitation.id))
@@ -99,7 +117,14 @@ class InvitationRepository(SqlAlchemyBaseRepository[Invitation, int], IInvitatio
         total_result = await self._session.execute(count_stmt)
         total = cast("int", total_result.scalar_one())
 
-        stmt = stmt.offset(skip).limit(limit).order_by(Invitation.created_at.desc())
+        # Apply sorting
+        sort_column = self._get_sort_column(sort_by)
+        if sort_order.lower() == "asc":
+            stmt = stmt.order_by(sort_column.asc())
+        else:
+            stmt = stmt.order_by(sort_column.desc())
+
+        stmt = stmt.offset(skip).limit(limit)
         result = await self._session.execute(stmt)
         invitations = result.scalars().all()
 

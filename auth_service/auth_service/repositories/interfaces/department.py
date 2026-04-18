@@ -20,5 +20,7 @@ class IDepartmentRepository(BaseRepository["Department", int]):
         skip: int = 0,
         limit: int = 100,
         search: str | None = None,
+        sort_by: str | None = None,
+        sort_order: str = "asc",
     ) -> tuple[list[Department], int]:
         """Find departments with filtering and return results with total count."""

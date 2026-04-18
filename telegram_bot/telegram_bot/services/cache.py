@@ -49,7 +49,7 @@ class UserCache:
             data = await self.redis.get(self._user_key(telegram_id))
             if data:
                 return pickle.loads(data)
-        except pickle.UnpicklingError, RedisError:
+        except (pickle.UnpicklingError, RedisError):
             return None
         return None
 
@@ -99,7 +99,7 @@ class UserCache:
             data = await self.redis.get(self._user_session_key(telegram_id))
             if data:
                 return pickle.loads(data)
-        except pickle.UnpicklingError, RedisError:
+        except (pickle.UnpicklingError, RedisError):
             return None
         return None
 
@@ -152,7 +152,7 @@ class UserCache:
                         # Extract telegram_id from key
                         telegram_id = int(key.decode().split(":")[1])
                         users[telegram_id] = pickle.loads(data)
-                except pickle.UnpicklingError, RedisError, ValueError:
+                except (pickle.UnpicklingError, RedisError, ValueError):
                     continue
         except RedisError:
             return {}

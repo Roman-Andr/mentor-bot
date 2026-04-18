@@ -14,7 +14,15 @@
     "successfulCompletions": "Successful Completions",
     "title": "Analytics",
     "totalNewbies": "Total Newbies",
-    "users": "Users"
+    "users": "Users",
+    "exportPDF": "Export PDF",
+    "generatedAt": "Generated at",
+    "summary": "Summary",
+    "monthlyDynamics": "Monthly Dynamics",
+    "completionTimeDistribution": "Completion Time Distribution",
+    "range": "Range",
+    "count": "Count",
+    "month": "Month"
   },
   "auth": {
     "email": "Email",
@@ -123,6 +131,7 @@
     "dashboardUpdated": "Dashboard updated",
     "daysAverage": "days average",
     "daysRemaining": "days left",
+    "daysOverdue": "days overdue",
     "errorLoading": "Error loading data",
     "escalations": "Escalations",
     "inWork": "In progress",
@@ -388,6 +397,7 @@
   },
   "nav": {
     "analytics": "Analytics",
+    "apiDocs": "API Docs",
     "appName": "Mentor Bot",
     "checklists": "Checklists",
     "dashboard": "Dashboard",

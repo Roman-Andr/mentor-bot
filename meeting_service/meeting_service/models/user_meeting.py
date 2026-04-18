@@ -3,7 +3,7 @@
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, Enum, ForeignKey, Integer, String, Text
+from sqlalchemy import DateTime, Enum, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
@@ -18,6 +18,11 @@ class UserMeeting(Base):
     """Meeting assigned to a specific user."""
 
     __tablename__ = "user_meetings"
+
+    # Prevent duplicate assignments - database-level race condition protection
+    __table_args__ = (
+        UniqueConstraint("user_id", "meeting_id", name="uq_user_meeting_assignment"),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
 
@@ -38,7 +43,7 @@ class UserMeeting(Base):
     updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), onupdate=func.now(), nullable=True)
 
     # Relationships
-    meeting: Mapped["Meeting"] = relationship("Meeting", back_populates="assignments")
+    meeting: Mapped[Meeting] = relationship("Meeting", back_populates="assignments")
 
     def __repr__(self) -> str:
         """Representation of UserMeeting."""

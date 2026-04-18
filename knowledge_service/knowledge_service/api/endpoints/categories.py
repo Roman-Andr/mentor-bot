@@ -31,6 +31,8 @@ async def get_categories(
     search: Annotated[str | None, Query()] = None,
     *,
     include_tree: Annotated[bool, Query()] = False,
+    sort_by: Annotated[str | None, Query()] = None,
+    sort_order: Annotated[str, Query()] = "asc",
 ) -> CategoryListResponse:
     """Get paginated list of categories."""
     user_department_id = current_user.department_id
@@ -78,6 +80,8 @@ async def get_categories(
         parent_id=parent_id,
         department_id=department_id,
         search=search,
+        sort_by=sort_by,
+        sort_order=sort_order,
     )
 
     pages = (total + limit - 1) // limit if limit > 0 else 0

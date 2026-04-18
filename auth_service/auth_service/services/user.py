@@ -119,6 +119,8 @@ class UserService:
         role: UserRole | None = None,
         *,
         is_active: bool | None = None,
+        sort_by: str | None = None,
+        sort_order: str = "desc",
     ) -> tuple[list[User], int]:
         """Get paginated list of users with filtering."""
         users, total = await self._uow.users.find_users(
@@ -128,6 +130,8 @@ class UserService:
             department_id=department_id,
             role=role,
             is_active=is_active,
+            sort_by=sort_by,
+            sort_order=sort_order,
         )
         return list(users), total
 

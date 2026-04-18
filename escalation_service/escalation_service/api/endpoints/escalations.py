@@ -24,6 +24,22 @@ from escalation_service.schemas import (
 router = APIRouter()
 
 
+@router.get("/assigned-to-me")
+async def get_my_assigned_escalations(
+    escalation_service: EscalationServiceDep,
+    current_user: CurrentUser,
+    skip: Annotated[int, Query(ge=0)] = 0,
+    limit: Annotated[int, Query(ge=1, le=100)] = 50,
+) -> list[EscalationRequestResponse]:
+    """Get escalation requests assigned to the current user."""
+    requests, _ = await escalation_service.get_escalations(
+        skip=skip,
+        limit=limit,
+        assigned_to=current_user.id,
+    )
+    return [EscalationRequestResponse.model_validate(req) for req in requests]
+
+
 @router.get("/")
 @router.get("")
 async def get_escalations(
@@ -33,9 +49,11 @@ async def get_escalations(
     limit: Annotated[int, Query(ge=1, le=1000)] = 100,
     user_id: Annotated[int | None, Query()] = None,
     assigned_to: Annotated[int | None, Query()] = None,
-    escalation_type: Annotated[EscalationType | None, Query()] = None,
-    status: Annotated[EscalationStatus | None, Query()] = None,
+    escalation_type: Annotated[EscalationType | None, Query(alias="type")] = None,
+    escalation_status: Annotated[EscalationStatus | None, Query()] = None,
     search: Annotated[str | None, Query()] = None,
+    sort_by: Annotated[str | None, Query()] = None,
+    sort_order: Annotated[str, Query()] = "desc",
 ) -> EscalationRequestListResponse:
     """Get paginated list of escalation requests."""
     # Authorization: regular users can only see their own requests
@@ -54,8 +72,10 @@ async def get_escalations(
         user_id=user_id,
         assigned_to=assigned_to,
         escalation_type=escalation_type,
-        status=status,
+        status=escalation_status,
         search=search,
+        sort_by=sort_by,
+        sort_order=sort_order,
     )
 
     pages = (total + limit - 1) // limit if limit > 0 else 0
@@ -77,7 +97,6 @@ async def create_escalation(
     current_user: CurrentUser,
 ) -> EscalationRequestResponse:
     """Create a new escalation request."""
-    # Ensure the request is created for the current user unless HR/Admin
     if data.user_id != current_user.id and not current_user.has_role(["HR", "ADMIN"]):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -191,22 +210,6 @@ async def get_user_escalations(
         skip=skip,
         limit=limit,
         user_id=user_id,
-    )
-    return [EscalationRequestResponse.model_validate(req) for req in requests]
-
-
-@router.get("/assigned-to-me")
-async def get_my_assigned_escalations(
-    escalation_service: EscalationServiceDep,
-    current_user: CurrentUser,
-    skip: Annotated[int, Query(ge=0)] = 0,
-    limit: Annotated[int, Query(ge=1, le=100)] = 50,
-) -> list[EscalationRequestResponse]:
-    """Get escalation requests assigned to the current user."""
-    requests, _ = await escalation_service.get_escalations(
-        skip=skip,
-        limit=limit,
-        assigned_to=current_user.id,
     )
     return [EscalationRequestResponse.model_validate(req) for req in requests]
 

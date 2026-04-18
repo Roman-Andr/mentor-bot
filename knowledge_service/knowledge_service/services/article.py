@@ -6,6 +6,7 @@ from typing import Any
 from slugify import slugify
 
 from knowledge_service.core import ArticleStatus, NotFoundException
+from knowledge_service.core.security import sanitize_html
 from knowledge_service.models import Article
 from knowledge_service.repositories import IUnitOfWork
 from knowledge_service.schemas import ArticleCreate, ArticleUpdate
@@ -30,8 +31,8 @@ class ArticleService:
         article = Article(
             title=article_data.title,
             slug=slug,
-            content=article_data.content,
-            excerpt=article_data.excerpt,
+            content=sanitize_html(article_data.content),
+            excerpt=sanitize_html(article_data.excerpt) if article_data.excerpt else None,
             category_id=article_data.category_id,
             author_id=author_id,
             author_name=author_name,
@@ -97,15 +98,19 @@ class ArticleService:
             article.slug = slug
             article.title = update_dict["title"]
 
-        if (
-            "status" in update_dict
-            and update_dict["status"] == ArticleStatus.PUBLISHED
-            and article.status != ArticleStatus.PUBLISHED
-        ):
-            article.published_at = datetime.now(UTC)
+        if "status" in update_dict:
+            if (
+                update_dict["status"] == ArticleStatus.PUBLISHED
+                and article.status != ArticleStatus.PUBLISHED
+            ):
+                article.published_at = datetime.now(UTC)
+            article.status = update_dict["status"]
 
         for field, value in update_dict.items():
             if field not in ["title", "status", "tag_ids"]:
+                # Sanitize HTML content to prevent XSS
+                if field in ("content", "excerpt") and value:
+                    value = sanitize_html(value)
                 setattr(article, field, value)
 
         if "tag_ids" in update_dict:
@@ -153,6 +158,8 @@ class ArticleService:
         *,
         featured_only: bool = False,
         pinned_only: bool = False,
+        sort_by: str | None = None,
+        sort_order: str = "desc",
     ) -> tuple[list[Article], int]:
         """Get paginated list of articles with filters."""
         items, total = await self._uow.articles.find_articles(
@@ -166,6 +173,8 @@ class ArticleService:
             featured_only=featured_only,
             pinned_only=pinned_only,
             user_filters=user_filters,
+            sort_by=sort_by,
+            sort_order=sort_order,
         )
         return list(items), total
 

@@ -1,12 +1,10 @@
 """Attachment management endpoints."""
 
-import mimetypes
-import shutil
-from pathlib import Path
+import logging
 from typing import Annotated
 
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
-from fastapi.responses import FileResponse
+from fastapi.responses import RedirectResponse
 
 from knowledge_service.api import ArticleServiceDep, AttachmentServiceDep, CurrentUser
 from knowledge_service.config import settings
@@ -14,8 +12,15 @@ from knowledge_service.core import NotFoundException, PermissionDenied, Validati
 from knowledge_service.core.enums import ArticleStatus, AttachmentType
 from knowledge_service.core.security import validate_file_size, validate_file_type, validate_filename
 from knowledge_service.schemas import AttachmentListResponse, AttachmentResponse, MessageResponse
+from knowledge_service.utils import StorageError, get_storage_service
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/attachments", tags=["attachments"])
+
+
+def _get_object_name(article_id: int, filename: str) -> str:
+    """Generate S3 object name from article ID and filename."""
+    return f"articles/{article_id}/{filename}"
 
 
 @router.get("/article/{article_id}")
@@ -46,6 +51,21 @@ async def list_article_attachments(
         raise PermissionDenied(msg)
 
     attachments = await attachment_service.get_attachments_by_article(article_id)
+
+    # Generate presigned URLs for each attachment
+    storage = get_storage_service()
+    for attachment in attachments:
+        if attachment.type == AttachmentType.FILE:
+            object_name = _get_object_name(attachment.article_id, attachment.name)
+            try:
+                attachment.url = storage.get_presigned_url(
+                    object_name,
+                    expires=settings.S3_PRESIGNED_URL_EXPIRY,
+                )
+            except StorageError:
+                # Keep original URL if presigned URL generation fails
+                pass
+
     return AttachmentListResponse(
         total=len(attachments),
         attachments=[AttachmentResponse.model_validate(a) for a in attachments],
@@ -78,21 +98,36 @@ async def upload_attachment(
         raise ValidationException(msg)
 
     safe_filename = validate_filename(file.filename or "unknown")
-    storage_path = Path(settings.STORAGE_PATH) / str(article_id)
-    storage_path.mkdir(parents=True, exist_ok=True)
 
-    file_path = storage_path / safe_filename
+    # Read file content
+    file_content = await file.read()
+
+    # Upload to S3
+    storage = get_storage_service()
+    object_name = _get_object_name(article_id, safe_filename)
+
     try:
-        with file_path.open("wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"File save failed: {e}") from e
+        await storage.upload_file(
+            file_data=file_content,
+            object_name=object_name,
+            content_type=file.content_type,
+            metadata={
+                "article_id": str(article_id),
+                "uploaded_by": str(current_user.id),
+                "original_filename": file.filename or "unknown",
+            },
+        )
+        # Use presigned URL for immediate access
+        file_url = storage.get_presigned_url(object_name, expires=settings.S3_PRESIGNED_URL_EXPIRY)
+    except StorageError as e:
+        logger.error("Failed to upload file to S3: %s", e)
+        raise HTTPException(status_code=500, detail=f"File upload failed: {e}") from e
 
     attachment = await attachment_service.create_attachment(
         article_id=article_id,
         name=safe_filename,
         attachment_type=AttachmentType.FILE,
-        url=f"/api/v1/attachments/file/{article_id}/{safe_filename}",
+        url=file_url,
         file_size=file.size,
         mime_type=file.content_type,
         description=description,
@@ -116,10 +151,9 @@ async def batch_upload_attachments(
         msg = "Cannot attach files to other users' articles"
         raise PermissionDenied(msg)
 
-    storage_path = Path(settings.STORAGE_PATH) / str(article_id)
-    storage_path.mkdir(parents=True, exist_ok=True)
-
     created_attachments = []
+    storage = get_storage_service()
+
     for file in files:
         if not validate_file_size(file.size or 0):
             continue
@@ -127,18 +161,29 @@ async def batch_upload_attachments(
             continue
 
         safe_filename = validate_filename(file.filename or "unknown")
-        file_path = storage_path / safe_filename
+        file_content = await file.read()
+
+        object_name = _get_object_name(article_id, safe_filename)
         try:
-            with file_path.open("wb") as buffer:
-                shutil.copyfileobj(file.file, buffer)
-        except Exception:
+            await storage.upload_file(
+                file_data=file_content,
+                object_name=object_name,
+                content_type=file.content_type,
+                metadata={
+                    "article_id": str(article_id),
+                    "uploaded_by": str(current_user.id),
+                    "original_filename": file.filename or "unknown",
+                },
+            )
+            file_url = storage.get_presigned_url(object_name, expires=settings.S3_PRESIGNED_URL_EXPIRY)
+        except StorageError:
             continue
 
         attachment = await attachment_service.create_attachment(
             article_id=article_id,
             name=safe_filename,
             attachment_type=AttachmentType.FILE,
-            url=f"/api/v1/attachments/file/{article_id}/{safe_filename}",
+            url=file_url,
             file_size=file.size,
             mime_type=file.content_type,
             description=None,
@@ -159,8 +204,8 @@ async def get_attachment_file(
     filename: str,
     article_service: ArticleServiceDep,
     current_user: CurrentUser,
-) -> FileResponse:
-    """Serve attachment file."""
+) -> RedirectResponse:
+    """Serve attachment file via S3 presigned URL."""
     article = await article_service.get_article_by_id(article_id)
     if (
         article.status != ArticleStatus.PUBLISHED
@@ -179,17 +224,17 @@ async def get_attachment_file(
         msg = "Access to attachments from other departments is not allowed"
         raise PermissionDenied(msg)
 
-    file_path = Path(settings.STORAGE_PATH) / str(article_id) / filename
-    if not file_path.exists():
-        msg = "File not found"
-        raise NotFoundException(msg)
-
-    mime_type, _ = mimetypes.guess_type(filename)
-    return FileResponse(
-        path=file_path,
-        filename=filename,
-        media_type=mime_type or "application/octet-stream",
-    )
+    # Redirect to presigned URL for direct S3 access
+    storage = get_storage_service()
+    object_name = _get_object_name(article_id, filename)
+    try:
+        presigned_url = storage.get_presigned_url(
+            object_name,
+            expires=settings.S3_PRESIGNED_URL_EXPIRY,
+        )
+        return RedirectResponse(url=presigned_url)
+    except StorageError as e:
+        raise NotFoundException("File not found") from e
 
 
 @router.delete("/{attachment_id}")
@@ -207,9 +252,13 @@ async def delete_attachment(
         msg = "Cannot delete other users' attachments"
         raise PermissionDenied(msg)
 
-    file_path = Path(settings.STORAGE_PATH) / str(attachment.article_id) / attachment.name
-    if file_path.exists():
-        file_path.unlink()
+    # Delete from S3
+    storage = get_storage_service()
+    object_name = _get_object_name(attachment.article_id, attachment.name)
+    try:
+        await storage.delete_file(object_name)
+    except StorageError as e:
+        logger.warning("Failed to delete file from S3 (continuing with DB deletion): %s", e)
 
     await attachment_service.delete_attachment(attachment_id)
     return MessageResponse(message="Attachment deleted successfully")

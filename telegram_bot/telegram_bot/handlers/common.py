@@ -141,7 +141,6 @@ async def my_mentor(
         await msg.answer(t("common.auth_required", locale=locale))
         return
 
-    import logging
 
     mentor_id = user.get("mentor_id")
 

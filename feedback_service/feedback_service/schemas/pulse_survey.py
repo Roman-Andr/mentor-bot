@@ -8,15 +8,16 @@ from pydantic import BaseModel, Field
 class PulseSurveyCreate(BaseModel):
     """Schema for creating a pulse survey entry."""
 
-    user_id: int = Field(..., description="User ID", ge=1)
     rating: int = Field(..., description="Rating from 1 to 10", ge=1, le=10)
+    is_anonymous: bool = Field(default=False, description="Submit anonymously")
 
 
 class PulseSurveyResponse(BaseModel):
     """Schema for pulse survey response."""
 
     id: int
-    user_id: int
+    user_id: int | None = None
+    is_anonymous: bool
     rating: int
     submitted_at: datetime
 

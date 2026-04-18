@@ -43,7 +43,7 @@ class Article(Base):
 
     # Target audience filtering
     department_id: Mapped[int | None] = mapped_column(ForeignKey("departments.id"), nullable=True)
-    department: Mapped["Department | None"] = relationship("Department", back_populates="articles")
+    department: Mapped[Department | None] = relationship("Department", back_populates="articles")
     position: Mapped[str | None] = mapped_column(String(100), nullable=True)
     level: Mapped[EmployeeLevel | None] = mapped_column(String(50), nullable=True, index=True)
 
@@ -71,11 +71,16 @@ class Article(Base):
     published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # Relationships
-    category: Mapped["Category | None"] = relationship("Category", back_populates="articles")
-    attachments: Mapped[list["Attachment"]] = relationship(
+    category: Mapped[Category | None] = relationship("Category", back_populates="articles")
+    attachments: Mapped[list[Attachment]] = relationship(
         "Attachment", back_populates="article", cascade="all, delete-orphan"
     )
-    tags: Mapped[list["Tag"]] = relationship("Tag", secondary=article_tags, back_populates="articles")
+    tags: Mapped[list[Tag]] = relationship("Tag", secondary=article_tags, back_populates="articles")
+
+    @property
+    def is_published(self) -> bool:
+        """Check if article is published."""
+        return self.status == ArticleStatus.PUBLISHED
 
     def __repr__(self) -> str:
         """Representation of Article."""

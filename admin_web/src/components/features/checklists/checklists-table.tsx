@@ -6,6 +6,7 @@ import { SearchInput } from "@/components/ui/search-input";
 import { Select } from "@/components/ui/select";
 import { DataTable } from "@/components/ui/data-table";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { SortableTableHead } from "@/components/ui/sortable-table-head";
 import {
   Table,
   TableBody,
@@ -19,6 +20,7 @@ import { SquarePen, Trash2, CheckCircle, AlertTriangle, Clock } from "lucide-rea
 import { CHECKLIST_STATUSES } from "@/lib/constants";
 import { formatDate } from "@/lib/utils";
 import type { ChecklistItem } from "@/hooks/use-checklists";
+import type { SortDirection } from "@/hooks/use-sorting";
 
 interface ChecklistsTableProps {
   checklists: ChecklistItem[];
@@ -40,6 +42,9 @@ interface ChecklistsTableProps {
   pageSize?: number;
   onPageChange: (page: number) => void;
   onPageSizeChange?: (size: number) => void;
+  sortField?: string | null;
+  sortDirection?: SortDirection;
+  onSort?: (field: string) => void;
 }
 
 export function ChecklistsTable({
@@ -62,8 +67,20 @@ export function ChecklistsTable({
   pageSize,
   onPageChange,
   onPageSizeChange,
+  sortField,
+  sortDirection = "asc",
+  onSort,
 }: ChecklistsTableProps) {
   const t = useTranslations();
+
+  const columns = [
+    { key: "employee", label: t("checklists.employee"), sortable: true },
+    { key: "status", label: t("common.status"), sortable: true },
+    { key: "progress", label: t("checklists.progress"), sortable: false },
+    { key: "tasks", label: t("checklists.tasks"), sortable: true },
+    { key: "start_date", label: t("checklists.startDate"), sortable: true },
+    { key: "due_date", label: t("checklists.dueDate"), sortable: true },
+  ];
 
   const departmentOptions = [
     { value: "ALL", label: t("common.all") },
@@ -111,12 +128,18 @@ export function ChecklistsTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>{t("checklists.employee")}</TableHead>
-            <TableHead>{t("common.status")}</TableHead>
-            <TableHead>{t("checklists.progress")}</TableHead>
-            <TableHead>{t("checklists.tasks")}</TableHead>
-            <TableHead>{t("checklists.startDate")}</TableHead>
-            <TableHead>{t("checklists.dueDate")}</TableHead>
+            {columns.map((col) => (
+              <SortableTableHead
+                key={col.key}
+                field={col.key}
+                sortable={col.sortable && !!onSort}
+                sortField={sortField ?? null}
+                sortDirection={sortDirection}
+                onSort={onSort ?? (() => {})}
+              >
+                {col.label}
+              </SortableTableHead>
+            ))}
             <TableHead className="w-25">{t("common.actions")}</TableHead>
           </TableRow>
         </TableHeader>
