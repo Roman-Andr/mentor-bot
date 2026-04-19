@@ -158,7 +158,8 @@ class TestSqlAlchemyUowHelper:
 
 
 class TestIUnitOfWorkProtocol:
-    """Tests for IUnitOfWork Protocol interface definition.
+    """
+    Tests for IUnitOfWork Protocol interface definition.
 
     These tests cover the Protocol method body lines (containing `...`)
     that would otherwise show as missing in coverage reports.

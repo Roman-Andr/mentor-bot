@@ -6,6 +6,7 @@ import secrets
 from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING
 
+import bcrypt
 from sqlalchemy import select
 
 from auth_service.core import hash_password
@@ -38,18 +39,39 @@ class PasswordResetService:
 
     @staticmethod
     def _hash_token(token: str) -> str:
-        """Hash a token for secure storage."""
-        return hashlib.sha256(token.encode()).hexdigest()
+        """Hash a token for secure storage using bcrypt with SHA256 pre-hash.
 
-    async def _get_token_record(self, token_hash: str) -> PasswordResetToken | None:
-        """Get token record by its hash."""
+        Uses SHA256 to reduce token to fixed length (bcrypt has 72-byte limit),
+        then bcrypt for computationally expensive hashing.
+        """
+        # Pre-hash with SHA256 to handle tokens of any length
+        pre_hash = hashlib.sha256(token.encode("utf-8")).digest()
+        salt = bcrypt.gensalt(rounds=12)
+        hashed = bcrypt.hashpw(pre_hash, salt)
+        return hashed.decode("utf-8")
+
+    @staticmethod
+    def _verify_token(token: str, token_hash: str) -> bool:
+        """Verify a token against its hash."""
+        # Use same pre-hashing as _hash_token
+        pre_hash = hashlib.sha256(token.encode("utf-8")).digest()
+        return bcrypt.checkpw(pre_hash, token_hash.encode("utf-8"))
+
+    async def _get_valid_token_record(self, token: str) -> PasswordResetToken | None:
+        """Get valid (unused, unexpired) token record by verifying token against stored hashes."""
         stmt = (
             select(PasswordResetToken)
-            .where(PasswordResetToken.token_hash == token_hash)
             .where(PasswordResetToken.used_at.is_(None))
+            .where(PasswordResetToken.expires_at > datetime.now(UTC))
         )
         result = await self._session.execute(stmt)
-        return result.scalar_one_or_none()
+        tokens = result.scalars().all()
+
+        # Verify token against each hash (bcrypt requires individual checking)
+        for token_record in tokens:
+            if self._verify_token(token, token_record.token_hash):
+                return token_record
+        return None
 
     async def _count_recent_requests(self, user_id: int) -> int:
         """Count password reset requests in the last hour for a user."""
@@ -67,7 +89,8 @@ class PasswordResetService:
         email: str,
         ip_address: str | None = None,
     ) -> tuple[bool, str | None, User | None]:
-        """Request a password reset for a user.
+        """
+        Request a password reset for a user.
 
         Args:
             email: User's email address
@@ -76,6 +99,7 @@ class PasswordResetService:
         Returns:
             Tuple of (success, raw_token, user). raw_token is None if rate limited or user not found.
             Always returns success=True to prevent email enumeration, but token may be None.
+
         """
         # Find user by email
         user = await self._uow.users.get_by_email(email)
@@ -118,24 +142,20 @@ class PasswordResetService:
         return True, raw_token, user
 
     async def validate_token(self, token: str) -> User | None:
-        """Validate a password reset token.
+        """
+        Validate a password reset token.
 
         Args:
             token: The raw token to validate
 
         Returns:
             User if token is valid and not expired, None otherwise
+
         """
-        token_hash = self._hash_token(token)
-        token_record = await self._get_token_record(token_hash)
+        token_record = await self._get_valid_token_record(token)
 
         if not token_record:
-            logger.debug("Token not found or already used")
-            return None
-
-        # Check expiration
-        if datetime.now(UTC) > token_record.expires_at:
-            logger.debug("Token expired")
+            logger.debug("Token not found, already used, or invalid")
             return None
 
         # Get user
@@ -147,7 +167,8 @@ class PasswordResetService:
         return user
 
     async def confirm_reset(self, token: str, new_password: str) -> bool:
-        """Confirm password reset with a valid token.
+        """
+        Confirm password reset with a valid token.
 
         Args:
             token: The raw reset token
@@ -155,17 +176,12 @@ class PasswordResetService:
 
         Returns:
             True if password was successfully reset, False otherwise
+
         """
-        token_hash = self._hash_token(token)
-        token_record = await self._get_token_record(token_hash)
+        token_record = await self._get_valid_token_record(token)
 
         if not token_record:
-            logger.warning("Confirm reset failed: token not found or already used")
-            return False
-
-        # Check expiration
-        if datetime.now(UTC) > token_record.expires_at:
-            logger.warning("Confirm reset failed: token expired")
+            logger.warning("Confirm reset failed: token not found, already used, or invalid")
             return False
 
         # Get user

@@ -14,13 +14,14 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
+from sqlalchemy import text
 
 from checklists_service.api import checklists, departments, tasks, templates
 from checklists_service.config import settings
 from checklists_service.database import engine, init_db
 from checklists_service.middleware.auth import AuthTokenMiddleware
 from checklists_service.schemas import HealthCheck, ServiceStatus
-from checklists_service.utils import cache
+from checklists_service.utils import cache, shutdown_storage
 
 # Configure logging
 logging.basicConfig(
@@ -44,6 +45,7 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
 
     # Cleanup
     await cache.disconnect()
+    shutdown_storage()
     logger.info("Shutting down Checklists Service...")
 
 
@@ -109,8 +111,6 @@ async def root() -> ServiceStatus:
 @app.get("/health")
 async def health_check() -> HealthCheck:
     """Health check endpoint for load balancers and monitoring."""
-    from sqlalchemy import text
-
     # Check database connectivity
     try:
         async with engine.connect() as conn:

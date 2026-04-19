@@ -55,7 +55,7 @@ class TestGetMeetingMaterials:
     async def test_get_materials_success(self, mock_uow, mock_user_hr):
         """Test getting all materials for a meeting."""
         # Arrange
-        meeting = Meeting(id=1, title="Test Meeting", type=MeetingType.HR)
+        meeting = Meeting(id=1, title="Test Meeting", type=MeetingType.HR, duration_minutes=60)
         materials = [
             MeetingMaterial(
                 id=1,
@@ -113,7 +113,7 @@ class TestGetMeetingMaterials:
     async def test_get_materials_empty_list(self, mock_uow, mock_user_hr):
         """Test getting materials when meeting has no materials."""
         # Arrange
-        meeting = Meeting(id=1, title="Test Meeting", type=MeetingType.HR)
+        meeting = Meeting(id=1, title="Test Meeting", type=MeetingType.HR, duration_minutes=60)
         mock_uow.meetings.get_by_id.return_value = meeting
         mock_uow.materials.get_by_meeting.return_value = []
 
@@ -135,7 +135,7 @@ class TestAddMeetingMaterial:
     async def test_add_material_success(self, mock_uow, mock_user_hr):
         """Test adding a material to a meeting."""
         # Arrange
-        meeting = Meeting(id=1, title="Test Meeting", type=MeetingType.HR)
+        meeting = Meeting(id=1, title="Test Meeting", type=MeetingType.HR, duration_minutes=60)
         new_material = MeetingMaterial(
             id=1,
             meeting_id=1,
@@ -193,7 +193,7 @@ class TestAddMeetingMaterial:
     async def test_add_material_validation_error(self, mock_uow, mock_user_hr):
         """Test adding material with invalid data returns 422."""
         # Arrange
-        meeting = Meeting(id=1, title="Test Meeting", type=MeetingType.HR)
+        meeting = Meeting(id=1, title="Test Meeting", type=MeetingType.HR, duration_minutes=60)
         mock_uow.meetings.get_by_id.return_value = meeting
 
         app = create_test_app(mock_uow, mock_user_hr)
@@ -214,7 +214,7 @@ class TestAddMeetingMaterial:
     async def test_add_material_all_types(self, mock_uow, mock_user_hr):
         """Test adding materials of all supported types."""
         # Arrange
-        meeting = Meeting(id=1, title="Test Meeting", type=MeetingType.HR)
+        meeting = Meeting(id=1, title="Test Meeting", type=MeetingType.HR, duration_minutes=60)
         mock_uow.meetings.get_by_id.return_value = meeting
 
         app = create_test_app(mock_uow, mock_user_hr)

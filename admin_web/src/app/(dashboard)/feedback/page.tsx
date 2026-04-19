@@ -1,10 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import { useTranslations } from "@/hooks/use-translations";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
-import { SearchInput } from "@/components/ui/search-input";
 import { StatusBadge } from "@/components/ui/status-badge";
 import {
   Table,
@@ -26,12 +24,6 @@ import type { FeedbackType } from "@/types";
 export default function FeedbackPage() {
   const t = useTranslations();
   const f = useFeedback();
-  const [selectedType, setSelectedType] = useState<FeedbackType | "all">("all");
-
-  const filteredItems =
-    selectedType === "all"
-      ? f.feedbackItems
-      : f.feedbackItems.filter((item) => item.type === selectedType);
 
   return (
     <PageContent title={t("feedback.title")} subtitle={t("feedback.subtitle")}>
@@ -107,7 +99,7 @@ export default function FeedbackPage() {
       {/* Feedback Table */}
       <DataTable
         loading={f.loading}
-        empty={filteredItems.length === 0}
+        empty={f.feedbackItems.length === 0}
         emptyMessage={t("common.noData")}
         currentPage={f.currentPage}
         totalPages={f.totalPages}
@@ -124,10 +116,9 @@ export default function FeedbackPage() {
                 <span className="text-muted-foreground text-sm font-normal">({f.totalCount})</span>
               </CardTitle>
               <div className="flex gap-2 flex-wrap">
-                <SearchInput value={f.searchQuery} onChange={f.setSearchQuery} />
                 <Select
-                  value={selectedType}
-                  onChange={(value) => setSelectedType(value as FeedbackType | "all")}
+                  value={f.typeFilter}
+                  onChange={(value) => f.setTypeFilter(value as FeedbackType | "all")}
                   options={FEEDBACK_TYPES}
                 />
                 <Select
@@ -156,7 +147,7 @@ export default function FeedbackPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredItems.map((item) => (
+            {f.feedbackItems.map((item) => (
               <TableRow key={`${item.type}-${item.id}`}>
                 <TableCell>{item.id}</TableCell>
                 <TableCell>

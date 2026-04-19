@@ -8,6 +8,8 @@ import pytest
 from notification_service.config import settings
 from notification_service.services.email import (
     EmailService as EmailServiceClass,
+)
+from notification_service.services.email import (
     _sanitize_email_header,
     _validate_email_address,
 )
@@ -27,7 +29,7 @@ class TestHelperFunctions:
         assert result == ""
 
     def test_sanitize_email_header_removes_newlines(self) -> None:
-        """_sanitize_email_header removes \r, \n, and \0 characters."""
+        r"""_sanitize_email_header removes \r, \n, and \0 characters."""
         header = "test\r\nheader\0value"
         result = _sanitize_email_header(header)
         assert result == "testheadervalue"
@@ -67,6 +69,14 @@ class TestHelperFunctions:
         assert _validate_email_address("<user@example.com>") is False
         assert _validate_email_address("user@example.com>") is False
         assert _validate_email_address("<user@example.com") is False
+
+    def test_validate_email_address_with_invalid_format(self) -> None:
+        """Test lines 47-48: _validate_email_address returns False for invalid format via EmailNotValidError."""
+        # Email that passes dangerous_chars check but fails RFC validation
+        # This triggers the EmailNotValidError exception path
+        assert _validate_email_address("not-an-email") is False
+        assert _validate_email_address("@nodomain.com") is False
+        assert _validate_email_address("spaces in@email.com") is False
 
 
 class TestEmailServiceDryRun:

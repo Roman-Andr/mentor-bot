@@ -62,6 +62,7 @@ class Settings(BaseSettings):
     S3_USE_SSL: bool = Field(default=False)
     CHECKLISTS_S3_BUCKET: str = Field(default="checklists-files")
     S3_PRESIGNED_URL_EXPIRY: int = Field(default=3600, ge=60, le=604800)
+    S3_SECURE_MODE: bool = Field(default=False)
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", case_sensitive=True, extra="ignore")
 

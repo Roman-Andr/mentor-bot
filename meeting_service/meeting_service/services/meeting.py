@@ -37,7 +37,9 @@ class MeetingService:
     async def create_meeting(self, meeting_data: MeetingCreate) -> Meeting:
         """Create a new meeting template."""
         meeting = Meeting(**meeting_data.model_dump())
-        return await self._uow.meetings.create(meeting)
+        created = await self._uow.meetings.create(meeting)
+        await self._uow.commit()
+        return created
 
     async def get_meeting(self, meeting_id: int) -> Meeting:
         """Get meeting template by ID."""
@@ -113,6 +115,18 @@ class MeetingService:
     # --- User assignments ---
     async def assign_meeting(self, assignment_data: UserMeetingCreate) -> UserMeeting:
         """Assign a meeting template to a user."""
+        # Validate scheduled_at is in the future if provided
+        if assignment_data.scheduled_at:
+            # Handle both timezone-aware and naive datetimes
+            scheduled_at = assignment_data.scheduled_at
+            now = datetime.now(UTC)
+            if scheduled_at.tzinfo is None:
+                # Treat naive datetime as UTC
+                scheduled_at = scheduled_at.replace(tzinfo=UTC)
+            if scheduled_at < now:
+                msg = "Meeting time must be in the future"
+                raise ValidationException(msg)
+
         # Check if meeting exists
         meeting = await self.get_meeting(assignment_data.meeting_id)
 
@@ -147,7 +161,7 @@ class MeetingService:
                         "timeZone": "UTC",
                     },
                     "end": {
-                        "dateTime": (assignment_data.scheduled_at + timedelta(hours=1)).isoformat(),
+                        "dateTime": (assignment_data.scheduled_at + timedelta(minutes=meeting.duration_minutes)).isoformat(),
                         "timeZone": "UTC",
                     },
                 }
@@ -159,6 +173,7 @@ class MeetingService:
                 # Don't fail the assignment if calendar sync fails
                 logger.warning("Failed to create Google Calendar event: %s", e)
 
+        await self._uow.commit()
         return created_assignment
 
     async def get_user_meetings(
@@ -212,6 +227,11 @@ class MeetingService:
             new_scheduled_at = update_dict["scheduled_at"]
             old_scheduled_at = assignment.scheduled_at
 
+            # Validate new scheduled_at is in the future if provided
+            if new_scheduled_at and new_scheduled_at < datetime.now(UTC):
+                msg = "Meeting time must be in the future"
+                raise ValidationException(msg)
+
             # Only proceed if the time actually changed
             if new_scheduled_at != old_scheduled_at:
                 gc_service = GoogleCalendarService(self._uow)
@@ -239,7 +259,7 @@ class MeetingService:
                             "timeZone": "UTC",
                         },
                         "end": {
-                            "dateTime": (new_scheduled_at + timedelta(hours=1)).isoformat(),
+                            "dateTime": (new_scheduled_at + timedelta(minutes=meeting.duration_minutes)).isoformat(),
                             "timeZone": "UTC",
                         },
                     }

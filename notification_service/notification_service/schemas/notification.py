@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 from notification_service.core.enums import NotificationChannel, NotificationStatus, NotificationType
 
@@ -12,7 +12,7 @@ class NotificationBase(BaseModel):
 
     user_id: int
     recipient_telegram_id: int | None = None
-    recipient_email: str | None = Field(None, max_length=255)
+    recipient_email: EmailStr | None = Field(None, max_length=255)
     type: NotificationType
     channel: NotificationChannel
     subject: str | None = Field(None, max_length=500)
@@ -42,13 +42,14 @@ class ScheduledNotificationCreate(BaseModel):
 
     user_id: int
     recipient_telegram_id: int | None = None
-    recipient_email: str | None = Field(None, max_length=255)
+    recipient_email: EmailStr | None = Field(None, max_length=255)
     type: NotificationType
     channel: NotificationChannel
     subject: str | None = Field(None, max_length=500)
     body: str = Field(..., min_length=1)
     data: dict = Field(default_factory=dict)
     scheduled_time: datetime  # When to send
+    max_retries: int = Field(default=3, ge=0, le=10)
 
 
 class ScheduledNotificationResponse(ScheduledNotificationCreate):
@@ -58,6 +59,8 @@ class ScheduledNotificationResponse(ScheduledNotificationCreate):
     processed: bool
     processed_at: datetime | None = None
     created_at: datetime
+    retry_count: int
+    failed_at: datetime | None = None
 
     model_config = ConfigDict(from_attributes=True)
 

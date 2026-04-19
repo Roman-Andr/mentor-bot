@@ -53,14 +53,14 @@ class TestSearchArticles:
     async def test_search_articles_with_filters(
         self,
         mock_search_service: AsyncMock,
-        mock_user: UserInfo,
+        mock_admin_user: UserInfo,
     ) -> None:
-        """Test search with various filters."""
+        """Test search with various filters (admin can specify department_id)."""
         search_query = SearchQuery(
             query="python",
             category_id=1,
             tag_ids=[1, 2],
-            department_id=1,
+            department_id=2,  # Admin can search other departments
             position="Developer",
             level="JUNIOR",
             only_published=True,
@@ -72,16 +72,60 @@ class TestSearchArticles:
         await search_articles(
             search_query=search_query,
             search_service=mock_search_service,
-            current_user=mock_user,
+            current_user=mock_admin_user,
         )
 
         call_kwargs = mock_search_service.search_articles.call_args[1]
         assert call_kwargs["query"] == "python"
         assert call_kwargs["filters"]["category_id"] == 1
         assert call_kwargs["filters"]["tag_ids"] == [1, 2]
-        assert call_kwargs["filters"]["department_id"] == 1
+        assert call_kwargs["filters"]["department_id"] == 2  # Admin's requested department
         assert call_kwargs["filters"]["position"] == "Developer"
         assert call_kwargs["filters"]["level"] == "JUNIOR"
+
+    async def test_search_articles_regular_user_cannot_search_other_departments(
+        self,
+        mock_search_service: AsyncMock,
+        mock_user: UserInfo,
+    ) -> None:
+        """Test that regular users cannot search other departments."""
+        search_query = SearchQuery(
+            query="python",
+            department_id=999,  # Trying to search another department
+            page=1,
+            size=10,
+        )
+
+        with pytest.raises(HTTPException) as exc_info:
+            await search_articles(
+                search_query=search_query,
+                search_service=mock_search_service,
+                current_user=mock_user,
+            )
+
+        assert exc_info.value.status_code == status.HTTP_403_FORBIDDEN
+
+    async def test_search_articles_regular_user_department_forced(
+        self,
+        mock_search_service: AsyncMock,
+        mock_user: UserInfo,
+    ) -> None:
+        """Test that regular users are forced to their own department."""
+        search_query = SearchQuery(
+            query="python",
+            page=1,
+            size=10,
+        )
+
+        await search_articles(
+            search_query=search_query,
+            search_service=mock_search_service,
+            current_user=mock_user,
+        )
+
+        call_kwargs = mock_search_service.search_articles.call_args[1]
+        # Regular user's department_id should be forced, not query's
+        assert call_kwargs["filters"]["department_id"] == mock_user.department_id
 
     async def test_search_articles_user_filters_applied(
         self,

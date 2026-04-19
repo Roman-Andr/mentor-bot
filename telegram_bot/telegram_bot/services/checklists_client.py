@@ -1,6 +1,7 @@
 """HTTP client for checklists service integration."""
 
 import logging
+import os
 
 import httpx
 from fastapi import status
@@ -209,10 +210,7 @@ class ChecklistsServiceClient:
             from io import BytesIO
 
             # Handle both bytes and file-like objects (BytesIO)
-            if isinstance(file_content, bytes):
-                file_obj = BytesIO(file_content)
-            else:
-                file_obj = file_content
+            file_obj = BytesIO(file_content) if isinstance(file_content, bytes) else file_content
 
             files = {"file": (filename, file_obj, "application/octet-stream")}
             data = {"description": description} if description else {}
@@ -249,6 +247,11 @@ class ChecklistsServiceClient:
         self, task_id: int, filename: str, auth_token: str
     ) -> bytes | None:
         """Download a task attachment file."""
+        # Sanitize filename to prevent path traversal
+        filename = os.path.basename(filename)
+        filename = "".join(c for c in filename if c.isalnum() or c in "._-")
+        if not filename:
+            return None
         try:
             response = await self.client.get(
                 f"{settings.API_V1_PREFIX}/tasks/{task_id}/attachments/file/{filename}",

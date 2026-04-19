@@ -30,6 +30,7 @@ def repository(mock_session):
 class TestGetByMeeting:
     """Tests for get_by_meeting method (lines 22-24)."""
 
+    @pytest.mark.asyncio
     async def test_get_by_meeting_returns_materials(self, mock_session, repository):
         """Test get_by_meeting returns materials for a specific meeting."""
         # Arrange
@@ -61,6 +62,7 @@ class TestGetByMeeting:
         assert "WHERE" in query_str
         assert "ORDER BY" in query_str
 
+    @pytest.mark.asyncio
     async def test_get_by_meeting_returns_empty_list(self, mock_session, repository):
         """Test get_by_meeting returns empty list when no materials found."""
         # Arrange
@@ -81,6 +83,7 @@ class TestGetByMeeting:
 class TestMaterialRepositoryInheritance:
     """Tests for inherited methods from SqlAlchemyBaseRepository."""
 
+    @pytest.mark.asyncio
     async def test_material_repository_uses_correct_model(self, mock_session):
         """Test that MaterialRepository is initialized with MeetingMaterial model."""
         # Arrange & Act

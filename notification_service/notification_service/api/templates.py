@@ -3,8 +3,11 @@
 from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Query, status
+from jinja2 import BaseLoader, TemplateError
+from jinja2.sandbox import SandboxedEnvironment
 
 from notification_service.api.deps import AdminUser, DatabaseSession, HRUser
+from notification_service.models import NotificationTemplate
 from notification_service.repositories.unit_of_work import SqlAlchemyUnitOfWork
 from notification_service.schemas import (
     TemplateCreate,
@@ -106,8 +109,6 @@ async def create_template(
     current_user: AdminUser,
 ) -> TemplateResponse:
     """Create a new notification template (admin only)."""
-    from notification_service.models import NotificationTemplate
-
     async with SqlAlchemyUnitOfWork(lambda: db) as uow:
         # Check if an active template with same name/channel/language exists
         existing = await uow.templates.get_by_name_channel_language(
@@ -152,8 +153,6 @@ async def update_template(
     current_user: AdminUser,
 ) -> TemplateResponse:
     """Update a template (creates new version, keeps old one inactive)."""
-    from notification_service.models import NotificationTemplate
-
     async with SqlAlchemyUnitOfWork(lambda: db) as uow:
         # Get existing template
         existing = await uow.templates.get_by_id(template_id)
@@ -269,9 +268,7 @@ async def preview_template(
     _current_user: HRUser,
 ) -> TemplateRenderResponse:
     """Preview a template body with variables (no DB lookup)."""
-    from jinja2 import BaseLoader, Environment, TemplateError
-
-    env = Environment(loader=BaseLoader(), autoescape=True)
+    env = SandboxedEnvironment(loader=BaseLoader(), autoescape=True)
 
     try:
         # Determine which body to render

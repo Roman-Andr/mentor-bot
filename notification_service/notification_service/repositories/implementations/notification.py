@@ -1,14 +1,14 @@
 """SQLAlchemy implementations of notification repositories."""
 
 from collections.abc import Sequence
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import cast
 
-import sqlalchemy
-from sqlalchemy import and_, func, select
+from sqlalchemy import Column, and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from notification_service.core.enums import NotificationStatus, NotificationType
+from notification_service.core.exceptions import NotFoundException
 from notification_service.models import Notification, ScheduledNotification
 from notification_service.repositories.implementations.base import SqlAlchemyBaseRepository
 from notification_service.repositories.interfaces.notification import (
@@ -24,7 +24,7 @@ class NotificationRepository(SqlAlchemyBaseRepository[Notification, int], INotif
         """Initialize NotificationRepository with database session."""
         super().__init__(session, Notification)
 
-    def _get_sort_column(self, sort_by: str | None) -> "sqlalchemy.Column":
+    def _get_sort_column(self, sort_by: str | None) -> Column:
         """Get SQLAlchemy column for sorting."""
         column_map = {
             "type": Notification.type,
@@ -67,10 +67,7 @@ class NotificationRepository(SqlAlchemyBaseRepository[Notification, int], INotif
 
         # Apply sorting
         sort_column = self._get_sort_column(sort_by)
-        if sort_order.lower() == "asc":
-            stmt = stmt.order_by(sort_column.asc())
-        else:
-            stmt = stmt.order_by(sort_column.desc())
+        stmt = stmt.order_by(sort_column.asc() if sort_order.lower() == "asc" else sort_column.desc())
 
         stmt = stmt.offset(skip).limit(limit)
         result = await self._session.execute(stmt)
@@ -119,11 +116,27 @@ class ScheduledNotificationRepository(
         """Mark a scheduled notification as processed."""
         notification = await self.get_by_id(notification_id)
         if not notification:
-            msg = f"ScheduledNotification with ID {notification_id} not found"
-            raise ValueError(msg)
+            not_found_msg = "ScheduledNotification"
+            raise NotFoundException(not_found_msg)
 
         notification.processed = True
-        notification.processed_at = datetime.now(notification.scheduled_time.tzinfo)
+        notification.processed_at = datetime.now(UTC)
+        await self._session.flush()
+        await self._session.refresh(notification)
+        return notification
+
+    async def increment_retry(
+        self, notification_id: int, next_scheduled_time: datetime
+    ) -> ScheduledNotification:
+        """Increment retry count and update scheduled time for next attempt."""
+        notification = await self.get_by_id(notification_id)
+        if not notification:
+            not_found_msg = "ScheduledNotification"
+            raise NotFoundException(not_found_msg)
+
+        notification.retry_count += 1
+        notification.failed_at = datetime.now(UTC)
+        notification.scheduled_time = next_scheduled_time
         await self._session.flush()
         await self._session.refresh(notification)
         return notification

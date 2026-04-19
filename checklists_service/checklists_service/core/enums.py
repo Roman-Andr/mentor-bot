@@ -1,9 +1,9 @@
 """Enum definitions for the Checklists Service."""
 
-from enum import Enum
+from enum import StrEnum
 
 
-class TaskCategory(str, Enum):
+class TaskCategory(StrEnum):
     """Task category enumeration."""
 
     DOCUMENTATION = "DOCUMENTATION"
@@ -17,7 +17,7 @@ class TaskCategory(str, Enum):
     OTHER = "OTHER"
 
 
-class Status(str, Enum):
+class Status(StrEnum):
     """Base status enumeration."""
 
     PENDING = "PENDING"
@@ -31,7 +31,7 @@ TaskStatus = Status
 ChecklistStatus = Status
 
 
-class TemplateStatus(str, Enum):
+class TemplateStatus(StrEnum):
     """Template status enumeration."""
 
     DRAFT = "DRAFT"
@@ -40,7 +40,7 @@ class TemplateStatus(str, Enum):
     DEPRECATED = "DEPRECATED"
 
 
-class EmployeeLevel(str, Enum):
+class EmployeeLevel(StrEnum):
     """Employee level enumeration."""
 
     JUNIOR = "JUNIOR"

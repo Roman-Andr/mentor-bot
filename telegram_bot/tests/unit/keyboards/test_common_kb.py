@@ -1,15 +1,14 @@
 """Unit tests for telegram_bot/keyboards/common_kb.py."""
 
-from aiogram.types import InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from telegram_bot.keyboards.common_kb import (
     get_help_keyboard,
+    get_mentor_tasks_keyboard,
     get_my_mentor_keyboard,
     get_my_mentor_no_mentor_keyboard,
     get_progress_keyboard,
     get_schedule_mentor_keyboard,
-    get_mentor_tasks_keyboard,
 )
 
 

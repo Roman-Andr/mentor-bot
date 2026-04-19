@@ -147,6 +147,7 @@ class TestCreateUser:
 
         assert user == created_user
         mock_uow.users.create.assert_called_once()
+        mock_uow.commit.assert_awaited_once()  # Verify transaction committed
 
     async def test_create_user_duplicate_email_raises(self, mock_uow, sample_user):
         """Test creating user with duplicate email raises ConflictException."""
@@ -275,6 +276,35 @@ class TestDeactivateUser:
         await service.deactivate_user(1)
 
         mock_uow.users.deactivate_user.assert_called_once_with(1)
+
+
+class TestDeleteUser:
+    """Tests for UserService.delete_user method (covers lines 116-117)."""
+
+    async def test_delete_user_success(self, mock_uow, sample_user):
+        """Test deleting a user (covers lines 116-117)."""
+        from unittest.mock import AsyncMock
+        mock_uow.users.get_by_id.return_value = sample_user
+        mock_uow.users.delete = AsyncMock(return_value=True)
+        service = UserService(mock_uow)
+
+        await service.delete_user(1)
+
+        # Line 116: Verify user exists
+        mock_uow.users.get_by_id.assert_called_once_with(1)
+        # Line 117: Delete the user
+        mock_uow.users.delete.assert_awaited_once_with(1)
+
+    async def test_delete_user_not_found_raises(self, mock_uow):
+        """Test deleting non-existent user raises NotFoundException."""
+        mock_uow.users.get_by_id.return_value = None
+        service = UserService(mock_uow)
+
+        with pytest.raises(NotFoundException) as exc_info:
+            await service.delete_user(999)
+
+        assert "not found" in str(exc_info.value.detail).lower()
+        mock_uow.users.delete.assert_not_called()
 
 
 class TestGetUsers:

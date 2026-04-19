@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useTranslations } from "@/hooks/use-translations";
 import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PDFExportButton } from "@/components/features/reports/pdf-export-button";
 import { api } from "@/lib/api";
 import type { ChecklistStats } from "@/types";
+import { PageContent } from "@/components/layout/page-content";
 import { AnalyticsStats } from "@/components/features/analytics/analytics-stats";
 import { MonthlyChart } from "@/components/features/analytics/monthly-chart";
 import { DepartmentChart } from "@/components/features/analytics/department-chart";
@@ -56,32 +57,36 @@ export default function AnalyticsPage() {
     loadData();
   }, []);
 
-  const departmentData = stats?.by_department
-    ? Object.entries(stats.by_department).map(([name, value], index) => ({
-        name,
-        value,
-        color: ["#3B82F6", "#8B5CF6", "#10B981", "#F59E0B", "#EF4444"][index % 5],
-      }))
-    : [
-        { name: "Development", value: 45, color: "#3B82F6" },
-        { name: "Design", value: 18, color: "#8B5CF6" },
-        { name: "QA", value: 15, color: "#10B981" },
-        { name: "Marketing", value: 22, color: "#F59E0B" },
-      ];
+  const departmentData = useMemo(() =>
+    stats?.by_department
+      ? Object.entries(stats.by_department).map(([name, value]) => ({
+          name,
+          value,
+          color: "", // Color is assigned in the chart component
+        }))
+      : [],
+    [stats?.by_department]
+  );
 
   const handleExport = () => {
-    const csvContent = [
+    const rows = [
       [t("analytics.totalNewbies"), String(stats?.total || userCount)],
       [t("common.completed"), String(stats?.completed || 0)],
       [t("common.inProgress"), String(stats?.in_progress || 0)],
       [t("analytics.overdue"), String(stats?.overdue || 0)],
       [t("analytics.averageTime"), String(Math.round(stats?.avg_completion_days || 0))],
       [t("analytics.completionRate"), String(Math.round(stats?.completion_rate || 0))],
-    ]
+    ];
+
+    const csvContent = rows
       .map((row) => row.join(","))
       .join("\n");
 
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const bom = "\uFEFF";
+    const content = bom + csvContent;
+
+    const blob = new Blob([content], { type: "text/csv;charset=utf-8;" });
+
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
     link.download = "analytics_export.csv";
@@ -90,27 +95,19 @@ export default function AnalyticsPage() {
 
   if (loading) {
     return (
-      <div className="space-y-6 p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-foreground text-2xl font-bold">{t("analytics.title")}</h1>
-            <p className="text-muted-foreground">{t("analytics.overview")}</p>
-          </div>
-        </div>
+      <PageContent title={t("analytics.title")} subtitle={t("analytics.overview")}>
         <div className="flex h-64 items-center justify-center">
           <div className="text-muted-foreground">{t("common.loading")}</div>
         </div>
-      </div>
+      </PageContent>
     );
   }
 
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-foreground text-2xl font-bold">{t("analytics.title")}</h1>
-          <p className="text-muted-foreground">{t("analytics.overview")}</p>
-        </div>
+    <PageContent
+      title={t("analytics.title")}
+      subtitle={t("analytics.overview")}
+      actions={
         <div className="flex items-center gap-2">
           <PDFExportButton
             data={{
@@ -123,24 +120,26 @@ export default function AnalyticsPage() {
             variant="outline"
             size="default"
           />
-          <Button className="gap-2" onClick={handleExport}>
-            <Download className="size-4" />
+          <Button onClick={handleExport}>
+            <Download className="mr-2 h-4 w-4" />
             CSV
           </Button>
         </div>
-      </div>
+      }
+    >
+      <div className="space-y-6">
+        <AnalyticsStats stats={stats} userCount={userCount} />
 
-      <AnalyticsStats stats={stats} userCount={userCount} />
+        <div className="grid gap-6 lg:grid-cols-2">
+          <MonthlyChart data={monthlyData} />
+          <DepartmentChart data={departmentData} />
+        </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <MonthlyChart data={monthlyData} />
-        <DepartmentChart data={departmentData} />
+        <div className="grid gap-6 lg:grid-cols-2">
+          <CompletionTimeChart data={completionTimeData} />
+          <ChecklistStatus stats={stats} />
+        </div>
       </div>
-
-      <div className="grid gap-4 md:grid-cols-2">
-        <CompletionTimeChart data={completionTimeData} />
-        <ChecklistStatus stats={stats} />
-      </div>
-    </div>
+    </PageContent>
   );
 }

@@ -3,8 +3,8 @@
 from collections.abc import AsyncGenerator, Awaitable, Callable
 from typing import Annotated
 
-from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi import Depends, HTTPException, Request, status
+from fastapi.security import HTTPBearer
 
 from auth_service.core import AuthException, PermissionDenied, UserRole
 from auth_service.database import AsyncSessionLocal
@@ -12,20 +12,26 @@ from auth_service.models import User
 from auth_service.repositories.unit_of_work import SqlAlchemyUnitOfWork
 from auth_service.services import AuthService, DepartmentService, InvitationService, UserService
 
-# Security
+# Security - supports both Authorization header and httpOnly cookies
 security = HTTPBearer(auto_error=False)
+
+
+def get_token_from_request(request: Request) -> str | None:
+    """Extract token from Authorization header or httpOnly cookie."""
+    # First, try Authorization header (Bearer token)
+    auth_header = request.headers.get("authorization", "")
+    if auth_header.lower().startswith("bearer "):
+        return auth_header[7:]  # Strip "Bearer " prefix
+
+    # Fall back to httpOnly cookie
+    return request.cookies.get("access_token")
 
 
 # Unit of Work
 async def get_uow() -> AsyncGenerator[SqlAlchemyUnitOfWork]:
     """Get Unit of Work instance for current request."""
     async with SqlAlchemyUnitOfWork(AsyncSessionLocal) as uow:
-        try:
-            yield uow
-            await uow.commit()
-        except Exception:
-            await uow.rollback()
-            raise
+        yield uow
 
 
 # Service dependencies
@@ -55,16 +61,18 @@ DepartmentServiceDep = Annotated[DepartmentService, Depends(get_department_servi
 
 # User authentication
 async def get_current_user(
-    credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)],
+    request: Request,
     auth_service: AuthServiceDep,
 ) -> User:
-    """Get current authenticated user."""
-    if not credentials:
+    """Get current authenticated user from header or cookie."""
+    token = get_token_from_request(request)
+
+    if not token:
         msg = "Not authenticated"
         raise AuthException(msg)
 
     try:
-        user = await auth_service.get_current_user(credentials.credentials)
+        user = await auth_service.get_current_user(token)
         if not user.is_active:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,

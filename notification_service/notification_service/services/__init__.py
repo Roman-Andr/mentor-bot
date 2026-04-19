@@ -9,7 +9,7 @@ from notification_service.services.template import TemplateService
 __all__ = [
     "EmailService",
     "NotificationService",
-    "TemplateService",
     "TelegramService",
+    "TemplateService",
     "scheduler",
 ]

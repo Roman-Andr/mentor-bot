@@ -483,7 +483,6 @@ class TestChecklistServiceCreate:
         created_tasks = []
         def capture_task(task):
             created_tasks.append(task)
-            return None
         mock_uow.tasks.create.side_effect = capture_task
         mock_uow.checklists.update.return_value = created_checklist
 
@@ -1326,7 +1325,6 @@ class TestChecklistServiceAutoCreate:
         created_tasks_list: list[Task] = []
         def capture_task(task):
             created_tasks_list.append(task)
-            return None
         mock_uow.tasks.create.side_effect = capture_task
 
         mock_uow.checklists.update.return_value = created_checklist
@@ -1405,8 +1403,6 @@ class TestChecklistServiceAutoCreate:
         sample_datetime: datetime,
     ) -> None:
         """Test auto_create_checklists uses department filter when specified."""
-        from checklists_service.models import TaskTemplate
-
         sample_template.duration_days = 30
         mock_uow.templates.find_matching.return_value = [sample_template]
         mock_uow.checklists.get_by_user_and_template.return_value = None

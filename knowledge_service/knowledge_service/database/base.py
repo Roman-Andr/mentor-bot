@@ -69,8 +69,11 @@ async def init_db() -> None:
             ArticleView,
             Attachment,
             Category,
+            DialogueScenario,
+            DialogueStep,
             SearchHistory,
             Tag,
+            article_tags,
         )
 
         await conn.run_sync(Base.metadata.create_all)

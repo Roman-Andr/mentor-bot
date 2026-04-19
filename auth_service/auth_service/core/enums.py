@@ -1,9 +1,9 @@
 """Enum definitions for the Auth Service."""
 
-from enum import Enum
+from enum import StrEnum
 
 
-class UserRole(str, Enum):
+class UserRole(StrEnum):
     """User role enumeration."""
 
     NEWBIE = "NEWBIE"
@@ -12,7 +12,7 @@ class UserRole(str, Enum):
     ADMIN = "ADMIN"
 
 
-class InvitationStatus(str, Enum):
+class InvitationStatus(StrEnum):
     """Invitation status enumeration."""
 
     PENDING = "PENDING"
@@ -20,7 +20,7 @@ class InvitationStatus(str, Enum):
     REVOKED = "REVOKED"
 
 
-class EmployeeLevel(str, Enum):
+class EmployeeLevel(StrEnum):
     """Employee level enumeration."""
 
     JUNIOR = "JUNIOR"

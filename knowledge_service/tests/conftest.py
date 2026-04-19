@@ -2,7 +2,6 @@
 
 import os
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -24,14 +23,11 @@ os.environ.setdefault("S3_USE_SSL", "false")
 os.environ.setdefault("KNOWLEDGE_S3_BUCKET", "test-knowledge-bucket")
 os.environ.setdefault("S3_PRESIGNED_URL_EXPIRY", "3600")
 
+from pathlib import Path
+
 from knowledge_service.api.deps import UserInfo
 from knowledge_service.core import ArticleStatus, AttachmentType, DialogueCategory, EmployeeLevel
 from knowledge_service.models import Article, Attachment, Category, DialogueScenario, Tag
-
-if TYPE_CHECKING:
-    from pathlib import Path
-
-from unittest.mock import AsyncMock
 
 
 @pytest.fixture
@@ -220,7 +216,7 @@ def mock_attachment() -> Attachment:
         article_id=1,
         name="test_file.pdf",
         type=AttachmentType.FILE,
-        url="/api/v1/attachments/file/1/test_file.pdf",
+        url="http://localhost/api/v1/attachments/file/1/test_file.pdf",
         file_size=1024,
         mime_type="application/pdf",
         description="Test file",

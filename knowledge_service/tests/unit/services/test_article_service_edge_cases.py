@@ -1,4 +1,5 @@
-"""Tests for Article Service edge cases.
+"""
+Tests for Article Service edge cases.
 
 Covers lines 95-96 in services/article.py:
 - The while loop incrementing counter when generating slugs
@@ -9,9 +10,9 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from knowledge_service.core import ArticleStatus, NotFoundException
-from knowledge_service.models import Article, Tag
-from knowledge_service.schemas import ArticleCreate, ArticleUpdate
+from knowledge_service.core import ArticleStatus
+from knowledge_service.models import Article
+from knowledge_service.schemas import ArticleUpdate
 from knowledge_service.services.article import ArticleService
 
 
@@ -60,7 +61,8 @@ class TestUpdateArticleSlugCollisionLoop:
     async def test_update_article_title_with_multiple_slug_collisions(
         self, mock_uow, sample_article
     ):
-        """Test update_article with multiple slug collisions - covers lines 95-96.
+        """
+        Test update_article with multiple slug collisions - covers lines 95-96.
 
         This tests the while loop incrementing the counter multiple times:
         - Line 94: First check returns True (exists)
@@ -93,7 +95,8 @@ class TestUpdateArticleSlugCollisionLoop:
     async def test_update_article_title_with_single_slug_collision(
         self, mock_uow, sample_article
     ):
-        """Test update_article with single slug collision.
+        """
+        Test update_article with single slug collision.
 
         This covers line 95-96 being executed once.
         """

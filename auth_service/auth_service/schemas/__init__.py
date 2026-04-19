@@ -12,12 +12,6 @@ from auth_service.schemas.auth import (
     Token,
     TokenPayload,
 )
-from auth_service.schemas.password_reset import (
-    PasswordResetConfirmSchema,
-    PasswordResetRequestSchema,
-    PasswordResetResponse,
-    PasswordResetValidateSchema,
-)
 from auth_service.schemas.department import (
     DepartmentCreate,
     DepartmentListResponse,
@@ -30,6 +24,12 @@ from auth_service.schemas.invitation import (
     InvitationListResponse,
     InvitationResponse,
     InvitationStats,
+)
+from auth_service.schemas.password_reset import (
+    PasswordResetConfirmSchema,
+    PasswordResetRequestSchema,
+    PasswordResetResponse,
+    PasswordResetValidateSchema,
 )
 from auth_service.schemas.responses import (
     HealthCheck,

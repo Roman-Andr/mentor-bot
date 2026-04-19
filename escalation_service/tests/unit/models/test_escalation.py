@@ -1,9 +1,6 @@
 """Unit tests for escalation_service/models/escalation.py."""
 
-from datetime import UTC, datetime
-from unittest.mock import MagicMock
 
-import pytest
 
 from escalation_service.core.enums import EscalationSource, EscalationStatus, EscalationType
 from escalation_service.models import EscalationRequest
@@ -56,8 +53,8 @@ class TestEscalationRequestModel:
         assert "EscalationRequest" in repr_str
         assert "id=1" in repr_str
         assert "user_id=100" in repr_str
-        assert "type=<EscalationType.GENERAL" in repr_str or "type=EscalationType.GENERAL" in repr_str
-        assert "status=<EscalationStatus.PENDING" in repr_str or "status=EscalationStatus.PENDING" in repr_str
+        assert "type=GENERAL" in repr_str
+        assert "status=PENDING" in repr_str
 
     def test_escalation_request_repr_with_different_status(self):
         """Test EscalationRequest __repr__ with different statuses."""

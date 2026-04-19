@@ -18,7 +18,6 @@ from knowledge_service.api.endpoints.attachments import (
 from knowledge_service.core import ArticleStatus, NotFoundException, PermissionDenied, ValidationException
 
 if TYPE_CHECKING:
-    from pathlib import Path
     from unittest.mock import AsyncMock
 
     from knowledge_service.api.deps import UserInfo
@@ -298,7 +297,7 @@ class TestBatchUploadAttachments:
                 files=[mock_file1, mock_file2],
             )
 
-        assert result.total == 2
+        assert result.total_uploaded == 2
         assert mock_storage_service.upload_file.call_count == 2
 
     async def test_batch_upload_skips_invalid_files(
@@ -335,7 +334,7 @@ class TestBatchUploadAttachments:
             )
 
         # Only valid file should be processed
-        assert result.total == 1
+        assert result.total_uploaded == 1
         mock_storage_service.upload_file.assert_called_once()
 
 
@@ -647,7 +646,8 @@ class TestListAttachmentsStorageError:
         mock_article: Article,
         mock_attachment: Attachment,
     ) -> None:
-        """Test that StorageError when generating presigned URL is ignored - covers lines 65-67.
+        """
+        Test that StorageError when generating presigned URL is ignored - covers lines 65-67.
 
         When get_presigned_url raises StorageError, the original URL should be kept.
         """
@@ -686,7 +686,8 @@ class TestDeleteAttachmentStorageError:
         mock_article: Article,
         mock_attachment: Attachment,
     ) -> None:
-        """Test that StorageError when deleting from S3 is logged but continues - covers lines 260-261.
+        """
+        Test that StorageError when deleting from S3 is logged but continues - covers lines 260-261.
 
         When delete_file raises StorageError, DB deletion should still proceed.
         """

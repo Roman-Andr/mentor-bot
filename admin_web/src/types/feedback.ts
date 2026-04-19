@@ -1,4 +1,4 @@
-"""Feedback types for admin web."""
+/** Feedback types for admin web. */
 
 export interface PulseSurvey {
   id: number;

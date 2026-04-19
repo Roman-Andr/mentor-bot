@@ -89,6 +89,7 @@ class TestRootEndpoints:
         with patch("meeting_service.main.settings", mock_settings):
             with patch("meeting_service.main.init_db", mock_init_db):
                 from fastapi.testclient import TestClient
+
                 from meeting_service.main import app
 
                 # Create client

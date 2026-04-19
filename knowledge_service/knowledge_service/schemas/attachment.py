@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, HttpUrl
 
 from knowledge_service.core import AttachmentType
 
@@ -13,7 +13,7 @@ class AttachmentBase(BaseModel):
     article_id: int
     name: str = Field(..., min_length=1, max_length=500)
     type: AttachmentType
-    url: str = Field(..., max_length=2000)
+    url: HttpUrl = Field(..., max_length=2000)
     file_size: int | None = Field(None, ge=0)
     mime_type: str | None = Field(None, max_length=100)
     description: str | None = Field(None, max_length=500)
@@ -40,3 +40,19 @@ class AttachmentListResponse(BaseModel):
 
     total: int
     attachments: list[AttachmentResponse]
+
+
+class FileUploadError(BaseModel):
+    """Error information for a failed file upload."""
+
+    filename: str | None = None
+    error: str
+
+
+class BatchUploadResponse(BaseModel):
+    """Batch file upload response with success and error details."""
+
+    total_uploaded: int
+    total_failed: int
+    attachments: list[AttachmentResponse]
+    errors: list[FileUploadError]

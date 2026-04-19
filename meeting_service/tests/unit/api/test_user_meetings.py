@@ -102,7 +102,7 @@ class TestGetMyMeetings:
         now = datetime.now(UTC)
         meeting = Meeting(
             id=1, title="My Meeting", type=MeetingType.HR,
-            is_mandatory=True, order=0, deadline_days=7, created_at=now
+            is_mandatory=True, order=0, deadline_days=7, duration_minutes=60, created_at=now
         )
         user_meeting = UserMeeting(
             id=1,
@@ -174,7 +174,7 @@ class TestAssignMeeting:
         now = datetime.now(UTC)
         meeting = Meeting(
             id=1, title="Test Meeting", type=MeetingType.HR,
-            is_mandatory=True, order=0, deadline_days=7, created_at=now
+            is_mandatory=True, order=0, deadline_days=7, duration_minutes=60, created_at=now
         )
         mock_uow.meetings.get_by_id.return_value = meeting
         mock_uow.user_meetings.get_user_meeting.return_value = None
@@ -213,7 +213,7 @@ class TestAssignMeeting:
         now = datetime.now(UTC)
         meeting = Meeting(
             id=1, title="Test Meeting", type=MeetingType.HR,
-            is_mandatory=True, order=0, deadline_days=7, created_at=now
+            is_mandatory=True, order=0, deadline_days=7, duration_minutes=60, created_at=now
         )
         mock_uow.meetings.get_by_id.return_value = meeting
         mock_uow.user_meetings.get_user_meeting.return_value = None
@@ -255,7 +255,7 @@ class TestAssignMeeting:
         now = datetime.now(UTC)
         meeting = Meeting(
             id=1, title="Test Meeting", type=MeetingType.HR,
-            is_mandatory=True, order=0, deadline_days=7, created_at=now
+            is_mandatory=True, order=0, deadline_days=7, duration_minutes=60, created_at=now
         )
         mock_uow.meetings.get_by_id.return_value = meeting
 
@@ -310,7 +310,7 @@ class TestGetAssignment:
         now = datetime.now(UTC)
         meeting = Meeting(
             id=1, title="Test Meeting", type=MeetingType.HR,
-            is_mandatory=True, order=0, deadline_days=7, created_at=now
+            is_mandatory=True, order=0, deadline_days=7, duration_minutes=60, created_at=now
         )
         assignment = UserMeeting(
             id=1,
@@ -339,7 +339,7 @@ class TestGetAssignment:
         now = datetime.now(UTC)
         meeting = Meeting(
             id=1, title="Test Meeting", type=MeetingType.HR,
-            is_mandatory=True, order=0, deadline_days=7, created_at=now
+            is_mandatory=True, order=0, deadline_days=7, duration_minutes=60, created_at=now
         )
         assignment = UserMeeting(
             id=1,
@@ -677,11 +677,11 @@ class TestAutoAssign:
         meetings = [
             Meeting(
                 id=1, title="HR Meeting", type=MeetingType.HR,
-                is_mandatory=True, department_id=1, order=0, deadline_days=7, created_at=now
+                is_mandatory=True, department_id=1, order=0, deadline_days=7, duration_minutes=60, created_at=now
             ),
             Meeting(
                 id=2, title="Security", type=MeetingType.SECURITY,
-                is_mandatory=True, department_id=1, order=1, deadline_days=7, created_at=now
+                is_mandatory=True, department_id=1, order=1, deadline_days=7, duration_minutes=60, created_at=now
             ),
         ]
         mock_uow.meetings.find_meetings.return_value = (meetings, 2)
@@ -711,7 +711,7 @@ class TestAutoAssign:
         meetings = [
             Meeting(
                 id=1, title="Dev Meeting", type=MeetingType.TEAM,
-                is_mandatory=True, order=0, deadline_days=7, created_at=now
+                is_mandatory=True, order=0, deadline_days=7, duration_minutes=60, created_at=now
             ),
         ]
         mock_uow.meetings.find_meetings.return_value = (meetings, 1)
@@ -743,7 +743,7 @@ class TestGetMeetingAssignments:
         now = datetime.now(UTC)
         meeting = Meeting(
             id=1, title="Test Meeting", type=MeetingType.HR,
-            is_mandatory=True, order=0, deadline_days=7, created_at=now
+            is_mandatory=True, order=0, deadline_days=7, duration_minutes=60, created_at=now
         )
         mock_uow.meetings.get_by_id.return_value = meeting
 
@@ -771,7 +771,7 @@ class TestGetMeetingAssignments:
         now = datetime.now(UTC)
         meeting = Meeting(
             id=1, title="Test Meeting", type=MeetingType.HR,
-            is_mandatory=True, order=0, deadline_days=7, created_at=now
+            is_mandatory=True, order=0, deadline_days=7, duration_minutes=60, created_at=now
         )
         mock_uow.meetings.get_by_id.return_value = meeting
 

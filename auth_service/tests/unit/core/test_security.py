@@ -130,6 +130,14 @@ class TestCreateAccessToken:
         assert decoded["role"] == "admin"
         assert decoded["custom"] == "value"
 
+    def test_create_access_token_includes_type_access(self):
+        """Test that access token includes 'type': 'access' claim."""
+        data = {"sub": "123", "user_id": 123}
+        token = create_access_token(data)
+        decoded = decode_token(token)
+
+        assert decoded.get("type") == "access"
+
 
 class TestCreateRefreshToken:
     """Tests for create_refresh_token function."""
@@ -215,6 +223,44 @@ class TestDecodeToken:
             decode_token("")
 
         assert exc_info.value.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_decode_token_with_expected_type_access(self):
+        """Test that decode_token validates access token type correctly."""
+        data = {"sub": "123", "user_id": 123}
+        token = create_access_token(data)
+        decoded = decode_token(token, expected_type="access")
+
+        assert decoded["user_id"] == 123
+
+    def test_decode_token_with_expected_type_refresh(self):
+        """Test that decode_token validates refresh token type correctly."""
+        data = {"sub": "123", "user_id": 123}
+        token = create_refresh_token(data)
+        decoded = decode_token(token, expected_type="refresh")
+
+        assert decoded["user_id"] == 123
+
+    def test_decode_refresh_token_as_access_raises_401(self):
+        """Test that using refresh token as access token raises 401."""
+        data = {"sub": "123", "user_id": 123}
+        refresh_token = create_refresh_token(data)
+
+        with pytest.raises(HTTPException) as exc_info:
+            decode_token(refresh_token, expected_type="access")
+
+        assert exc_info.value.status_code == status.HTTP_401_UNAUTHORIZED
+        assert "type" in exc_info.value.detail.lower()
+
+    def test_decode_access_token_as_refresh_raises_401(self):
+        """Test that using access token as refresh token raises 401."""
+        data = {"sub": "123", "user_id": 123}
+        access_token = create_access_token(data)
+
+        with pytest.raises(HTTPException) as exc_info:
+            decode_token(access_token, expected_type="refresh")
+
+        assert exc_info.value.status_code == status.HTTP_401_UNAUTHORIZED
+        assert "type" in exc_info.value.detail.lower()
 
 
 class TestGetPasswordHash:

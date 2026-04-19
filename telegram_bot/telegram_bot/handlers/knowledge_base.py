@@ -31,6 +31,7 @@ from telegram_bot.states.auth_states import (
     SearchStates,
 )
 from telegram_bot.utils.cache import cache, cached
+from telegram_bot.utils.file_rate_limiter import file_upload_rate_limit
 from telegram_bot.utils.formatters import format_search_results
 
 logger = logging.getLogger(__name__)
@@ -615,10 +616,7 @@ async def kb_category_articles(
     try:
         category_id = int(parts[2])
         # Handle page parameter if present: kb_cat_{id}_page_{page}
-        if len(parts) >= 5 and parts[3] == "page":
-            page = int(parts[4])
-        else:
-            page = 1
+        page = int(parts[4]) if len(parts) >= 5 and parts[3] == "page" else 1
     except (ValueError, IndexError) as e:
         logger.error(f"Failed to parse callback data: {e}, parts: {parts}")
         await callback.answer(t("common.error_generic", locale=locale))
@@ -1097,6 +1095,7 @@ async def process_article_content(message: Message, state: FSMContext) -> None:
 
 
 @router.message(ArticleCreateStates.waiting_for_files, F.document)
+@file_upload_rate_limit(max_uploads=20, window_seconds=3600)
 async def process_article_file(message: Message, state: FSMContext) -> None:
     """Receive a file for the new article being created."""
     document = message.document
@@ -1282,6 +1281,7 @@ async def process_upload_article_id(
 
 
 @router.message(FileUploadStates.waiting_for_files, F.document)
+@file_upload_rate_limit(max_uploads=20, window_seconds=3600)
 async def process_upload_file(message: Message, state: FSMContext) -> None:
     """Receive a file for uploading to an article."""
     document = message.document

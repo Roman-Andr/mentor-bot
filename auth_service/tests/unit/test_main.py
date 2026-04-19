@@ -2,7 +2,6 @@
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import pytest
 from fastapi.testclient import TestClient
 
 from auth_service.main import app, lifespan
@@ -133,7 +132,8 @@ class TestLifespan:
 
         with patch("auth_service.main.init_db", new_callable=AsyncMock):
             with patch("auth_service.main.logger"):
-                with patch("auth_service.utils.department_sync.department_sync_client") as mock_sync_client:
+                # Patch where it's imported in main.py, not where it's defined
+                with patch("auth_service.main.department_sync_client") as mock_sync_client:
                     mock_sync_client.close = AsyncMock()
 
                     async with lifespan(mock_app):

@@ -7,6 +7,7 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth_service.core.enums import EmployeeLevel, InvitationStatus, UserRole
+from auth_service.core.exceptions import NotFoundException, ValidationException
 from auth_service.models import Department, Invitation
 from auth_service.repositories.implementations.invitation import InvitationRepository
 
@@ -292,7 +293,7 @@ class TestInvitationRepository:
 
         repo = InvitationRepository(mock_session)
 
-        with pytest.raises(ValueError, match="Invitation with ID 999 not found"):
+        with pytest.raises(NotFoundException):
             await repo.mark_as_used(999, 10)
 
     async def test_mark_as_used_not_pending(self, mock_session, mock_result, sample_invitation):
@@ -303,7 +304,7 @@ class TestInvitationRepository:
 
         repo = InvitationRepository(mock_session)
 
-        with pytest.raises(ValueError, match="Invitation is not pending"):
+        with pytest.raises(ValidationException, match="Invitation is not pending"):
             await repo.mark_as_used(1, 10)
 
     async def test_mark_as_used_expired(self, mock_session, mock_result, expired_invitation):
@@ -313,7 +314,7 @@ class TestInvitationRepository:
 
         repo = InvitationRepository(mock_session)
 
-        with pytest.raises(ValueError, match="Invitation has expired"):
+        with pytest.raises(ValidationException, match="Invitation has expired"):
             await repo.mark_as_used(2, 10)
 
     async def test_update_status_success(self, mock_session, mock_result, sample_invitation):
@@ -335,7 +336,7 @@ class TestInvitationRepository:
 
         repo = InvitationRepository(mock_session)
 
-        with pytest.raises(ValueError, match="Invitation with ID 999 not found"):
+        with pytest.raises(NotFoundException):
             await repo.update_status(999, InvitationStatus.REVOKED)
 
     async def test_get_statistics(self, mock_session, mock_result):

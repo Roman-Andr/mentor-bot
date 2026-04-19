@@ -6,12 +6,14 @@ from typing import Protocol, Self, runtime_checkable
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from meeting_service.repositories.implementations.department import DepartmentRepository
 from meeting_service.repositories.implementations.google_calendar_account import (
     SQLAlchemyGoogleCalendarAccountRepository,
 )
 from meeting_service.repositories.implementations.material import MaterialRepository
 from meeting_service.repositories.implementations.meeting import MeetingRepository
 from meeting_service.repositories.implementations.user_meeting import UserMeetingRepository
+from meeting_service.repositories.interfaces.department import IDepartmentRepository
 from meeting_service.repositories.interfaces.google_calendar_account import IGoogleCalendarAccountRepository
 from meeting_service.repositories.interfaces.material import IMaterialRepository
 from meeting_service.repositories.interfaces.meeting import IMeetingRepository
@@ -26,6 +28,7 @@ class IUnitOfWork(Protocol):
     materials: IMaterialRepository
     user_meetings: IUserMeetingRepository
     google_calendar_accounts: IGoogleCalendarAccountRepository
+    departments: IDepartmentRepository
 
     async def commit(self) -> None:
         """Commit all changes made in this unit of work."""
@@ -55,11 +58,16 @@ class SqlAlchemyUnitOfWork(IUnitOfWork):
         self.materials = MaterialRepository(self._session)
         self.user_meetings = UserMeetingRepository(self._session)
         self.google_calendar_accounts = SQLAlchemyGoogleCalendarAccountRepository(self._session)
+        self.departments = DepartmentRepository(self._session)
         return self
 
-    async def __aexit__(self, *args: object) -> None:
+    async def __aexit__(
+        self, exc_type: type[BaseException] | None, exc_val: BaseException | None, exc_tb: object
+    ) -> None:
         """Exit async context manager and clean up session."""
         if self._session:
+            if exc_type:
+                await self._session.rollback()
             await self._session.close()
             self._session = None
 

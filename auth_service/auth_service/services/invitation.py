@@ -2,6 +2,7 @@
 
 from datetime import UTC, datetime, timedelta
 
+from auth_service.config import settings
 from auth_service.core import (
     ConflictException,
     InvitationStatus,
@@ -42,6 +43,13 @@ class InvitationService:
             msg = "Employee ID already in use"
             raise ConflictException(msg)
 
+        # Check if mentor exists when specified
+        if invitation_data.mentor_id is not None:
+            mentor = await self._uow.users.get_by_id(invitation_data.mentor_id)
+            if not mentor:
+                msg = "Mentor not found"
+                raise NotFoundException(msg)
+
         # Create invitation
         invitation = Invitation(
             token=generate_invitation_token(),
@@ -59,7 +67,9 @@ class InvitationService:
         )
 
         # Save invitation
-        return await self._uow.invitations.create(invitation)
+        created = await self._uow.invitations.create(invitation)
+        await self._uow.commit()
+        return created
 
     async def get_invitation_by_id(self, invitation_id: int) -> Invitation:
         """Get invitation by ID."""
@@ -145,4 +155,4 @@ class InvitationService:
 
     def generate_invitation_url(self, token: str) -> str:
         """Generate invitation URL for Telegram bot."""
-        return f"https://t.me/company_hr_mentor_bot?start={token}"
+        return f"https://t.me/{settings.TELEGRAM_BOT_USERNAME}?start={token}"

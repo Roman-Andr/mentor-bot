@@ -2,12 +2,12 @@
 
 import logging
 from datetime import datetime
+from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Query, status
 
-from feedback_service.api.deps import CurrentUser, DbDep, HRAdminUser, check_user_access
+from feedback_service.api.deps import CurrentUser, HRAdminUser, UOWDep, check_user_access
 from feedback_service.models import Comment, ExperienceRating, PulseSurvey
-from feedback_service.repositories import CommentRepository, ExperienceRatingRepository, PulseSurveyRepository
 from feedback_service.schemas import (
     CommentCreate,
     CommentListResponse,
@@ -34,13 +34,11 @@ logger = logging.getLogger(__name__)
 @router.post("/pulse", status_code=status.HTTP_201_CREATED)
 async def submit_pulse_survey(
     data: PulseSurveyCreate,
-    db: DbDep,
+    uow: UOWDep,
     current_user: CurrentUser,
 ) -> PulseSurveyResponse:
     """Submit a daily pulse survey rating. Can be anonymous."""
     try:
-        pulse_repo = PulseSurveyRepository(db)
-
         if data.is_anonymous:
             # Store without user_id but keep department for analytics
             pulse_survey = PulseSurvey(
@@ -60,7 +58,7 @@ async def submit_pulse_survey(
                 rating=data.rating,
             )
 
-        result = await pulse_repo.create(pulse_survey)
+        result = await uow.pulse_surveys.create(pulse_survey)
         return PulseSurveyResponse.model_validate(result)
     except Exception:
         logger.exception("Failed to submit pulse survey")
@@ -69,15 +67,16 @@ async def submit_pulse_survey(
         ) from None
 
 
-@router.get("/pulse", response_model=PulseSurveyListResponse)
+@router.get("/pulse")
 async def get_pulse_surveys(
-    db: DbDep,
+    uow: UOWDep,
     current_user: CurrentUser,
     user_id: int | None = None,
     from_date: datetime | None = None,
     to_date: datetime | None = None,
-    skip: int = Query(0, ge=0),
-    limit: int = Query(50, ge=1, le=100),
+    search: Annotated[str | None, Query(description="Search in position level")] = None,
+    skip: Annotated[int, Query(ge=0)] = 0,
+    limit: Annotated[int, Query(ge=1, le=100)] = 50,
 ) -> PulseSurveyListResponse:
     """
     Get pulse surveys.
@@ -88,11 +87,11 @@ async def get_pulse_surveys(
     effective_user_id = check_user_access(current_user, user_id, ["HR", "ADMIN"], "pulse surveys")
 
     try:
-        repo = PulseSurveyRepository(db)
-        surveys, total = await repo.get_by_user(
+        surveys, total = await uow.pulse_surveys.get_by_user(
             user_id=effective_user_id,
             from_date=from_date,
             to_date=to_date,
+            search=search,
             skip=skip,
             limit=limit,
         )
@@ -111,9 +110,9 @@ async def get_pulse_surveys(
         ) from None
 
 
-@router.get("/pulse/stats", response_model=PulseStatsResponse)
+@router.get("/pulse/stats")
 async def get_pulse_stats(
-    db: DbDep,
+    uow: UOWDep,
     current_user: CurrentUser,
     user_id: int | None = None,
     from_date: datetime | None = None,
@@ -128,13 +127,12 @@ async def get_pulse_stats(
     effective_user_id = check_user_access(current_user, user_id, ["HR", "ADMIN"], "pulse stats")
 
     try:
-        repo = PulseSurveyRepository(db)
-        stats = await repo.get_stats(
+        stats = await uow.pulse_surveys.get_stats(
             user_id=effective_user_id,
             from_date=from_date,
             to_date=to_date,
         )
-        distribution = await repo.get_rating_distribution(
+        distribution = await uow.pulse_surveys.get_rating_distribution(
             user_id=effective_user_id,
             from_date=from_date,
             to_date=to_date,
@@ -154,7 +152,7 @@ async def get_pulse_stats(
 
 @router.get("/pulse/anonymity-stats")
 async def get_pulse_anonymity_stats(
-    db: DbDep,
+    uow: UOWDep,
     current_user: HRAdminUser,
     department_id: int | None = None,
     from_date: datetime | None = None,
@@ -162,8 +160,7 @@ async def get_pulse_anonymity_stats(
 ) -> dict:
     """Get anonymity stats for pulse surveys (HR/Admin only)."""
     try:
-        repo = PulseSurveyRepository(db)
-        stats = await repo.get_anonymity_stats(
+        stats = await uow.pulse_surveys.get_anonymity_stats(
             department_id=department_id,
             from_date=from_date,
             to_date=to_date,
@@ -184,13 +181,11 @@ async def get_pulse_anonymity_stats(
 @router.post("/experience", status_code=status.HTTP_201_CREATED)
 async def submit_experience_rating(
     data: ExperienceRatingCreate,
-    db: DbDep,
+    uow: UOWDep,
     current_user: CurrentUser,
 ) -> ExperienceRatingResponse:
     """Submit an experience rating. Can be anonymous."""
     try:
-        rating_repo = ExperienceRatingRepository(db)
-
         if data.is_anonymous:
             # Store without user_id but keep department for analytics
             rating = ExperienceRating(
@@ -208,7 +203,7 @@ async def submit_experience_rating(
                 rating=data.rating,
             )
 
-        result = await rating_repo.create(rating)
+        result = await uow.experience_ratings.create(rating)
         return ExperienceRatingResponse.model_validate(result)
     except Exception:
         logger.exception("Failed to submit experience rating")
@@ -217,17 +212,17 @@ async def submit_experience_rating(
         ) from None
 
 
-@router.get("/experience", response_model=ExperienceRatingListResponse)
+@router.get("/experience")
 async def get_experience_ratings(
-    db: DbDep,
+    uow: UOWDep,
     current_user: CurrentUser,
     user_id: int | None = None,
     from_date: datetime | None = None,
     to_date: datetime | None = None,
-    min_rating: int | None = Query(None, ge=1, le=5),
-    max_rating: int | None = Query(None, ge=1, le=5),
-    skip: int = Query(0, ge=0),
-    limit: int = Query(50, ge=1, le=100),
+    min_rating: Annotated[int | None, Query(ge=1, le=5)] = None,
+    max_rating: Annotated[int | None, Query(ge=1, le=5)] = None,
+    skip: Annotated[int, Query(ge=0)] = 0,
+    limit: Annotated[int, Query(ge=1, le=100)] = 50,
 ) -> ExperienceRatingListResponse:
     """
     Get experience ratings with filters.
@@ -238,8 +233,7 @@ async def get_experience_ratings(
     effective_user_id = check_user_access(current_user, user_id, ["HR", "ADMIN"], "experience ratings")
 
     try:
-        repo = ExperienceRatingRepository(db)
-        ratings, total = await repo.get_by_user(
+        ratings, total = await uow.experience_ratings.get_by_user(
             user_id=effective_user_id,
             from_date=from_date,
             to_date=to_date,
@@ -263,9 +257,9 @@ async def get_experience_ratings(
         ) from None
 
 
-@router.get("/experience/stats", response_model=ExperienceStatsResponse)
+@router.get("/experience/stats")
 async def get_experience_stats(
-    db: DbDep,
+    uow: UOWDep,
     current_user: CurrentUser,
     user_id: int | None = None,
     from_date: datetime | None = None,
@@ -280,13 +274,12 @@ async def get_experience_stats(
     effective_user_id = check_user_access(current_user, user_id, ["HR", "ADMIN"], "experience stats")
 
     try:
-        repo = ExperienceRatingRepository(db)
-        stats = await repo.get_stats(
+        stats = await uow.experience_ratings.get_stats(
             user_id=effective_user_id,
             from_date=from_date,
             to_date=to_date,
         )
-        distribution = await repo.get_rating_distribution(
+        distribution = await uow.experience_ratings.get_rating_distribution(
             user_id=effective_user_id,
             from_date=from_date,
             to_date=to_date,
@@ -311,13 +304,11 @@ async def get_experience_stats(
 @router.post("/comments", status_code=status.HTTP_201_CREATED)
 async def submit_comment(
     data: CommentCreate,
-    db: DbDep,
+    uow: UOWDep,
     current_user: CurrentUser,
 ) -> CommentResponse:
     """Submit a comment or suggestion. Can be anonymous."""
     try:
-        comment_repo = CommentRepository(db)
-
         if data.is_anonymous:
             # Store without user_id but keep department for analytics
             comment = Comment(
@@ -339,7 +330,7 @@ async def submit_comment(
                 contact_email=None,
             )
 
-        result = await comment_repo.create(comment)
+        result = await uow.comments.create(comment)
         return CommentResponse.model_validate(result)
     except Exception:
         logger.exception("Failed to submit comment")
@@ -348,17 +339,17 @@ async def submit_comment(
         ) from None
 
 
-@router.get("/comments", response_model=CommentListResponse)
+@router.get("/comments")
 async def get_comments(
-    db: DbDep,
+    uow: UOWDep,
     current_user: CurrentUser,
     user_id: int | None = None,
     from_date: datetime | None = None,
     to_date: datetime | None = None,
-    search: str | None = Query(None, description="Search in comment text"),
-    has_reply: bool | None = Query(None, description="Filter by reply status"),
-    skip: int = Query(0, ge=0),
-    limit: int = Query(50, ge=1, le=100),
+    search: Annotated[str | None, Query(description="Search in comment text")] = None,
+    has_reply: Annotated[bool | None, Query(description="Filter by reply status")] = None,
+    skip: Annotated[int, Query(ge=0)] = 0,
+    limit: Annotated[int, Query(ge=1, le=100)] = 50,
 ) -> CommentListResponse:
     """
     Get comments with filters.
@@ -369,8 +360,7 @@ async def get_comments(
     effective_user_id = check_user_access(current_user, user_id, ["HR", "ADMIN"], "comments")
 
     try:
-        repo = CommentRepository(db)
-        comments, total = await repo.get_by_user(
+        comments, total = await uow.comments.get_by_user(
             user_id=effective_user_id,
             from_date=from_date,
             to_date=to_date,
@@ -394,19 +384,17 @@ async def get_comments(
         ) from None
 
 
-@router.post("/comments/{comment_id}/reply", response_model=CommentResponse)
+@router.post("/comments/{comment_id}/reply")
 async def reply_to_comment(
     comment_id: int,
     data: CommentReplyCreate,
-    db: DbDep,
+    uow: UOWDep,
     current_user: HRAdminUser,
 ) -> CommentResponse:
     """HR/Admin can reply to comments. Cannot reply to anonymous comments unless contact email is provided."""
     try:
-        repo = CommentRepository(db)
-
         # Check if comment exists and is not anonymous without contact info
-        comment = await repo.get_by_id(comment_id)
+        comment = await uow.comments.get_by_id(comment_id)
         if not comment:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -420,7 +408,7 @@ async def reply_to_comment(
                 detail="Cannot reply to anonymous comments without contact information",
             )
 
-        comment = await repo.add_reply(
+        comment = await uow.comments.add_reply(
             comment_id=comment_id,
             reply=data.reply,
             replied_by=current_user.id,

@@ -1,4 +1,5 @@
-"""Tests for main.py - FastAPI application.
+"""
+Tests for main.py - FastAPI application.
 
 Covers all lines in main.py (3-105) including:
 - Application lifespan
@@ -9,7 +10,6 @@ Covers all lines in main.py (3-105) including:
 - Health check endpoint
 """
 
-from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest

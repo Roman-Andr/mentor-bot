@@ -151,6 +151,9 @@ async def process_meeting_datetime(
 
     try:
         dt = datetime.strptime(datetime_str, "%Y-%m-%d %H:%M").replace(tzinfo=UTC)
+        if dt <= datetime.now(UTC):
+            await message.answer(t("meetings.past_datetime", locale=locale))
+            return
         await state.update_data(scheduled_at=dt.isoformat(), datetime_str=datetime_str)
         await message.answer(t("meetings.enter_duration", locale=locale))
         await state.set_state(MeetingStates.waiting_for_duration)

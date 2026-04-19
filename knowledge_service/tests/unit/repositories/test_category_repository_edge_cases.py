@@ -6,7 +6,6 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from knowledge_service.core import EmployeeLevel
 from knowledge_service.models import Category
 from knowledge_service.repositories.implementations.category import CategoryRepository
 
@@ -22,7 +21,8 @@ class TestCategoryRepositoryEdgeCases:
         return session
 
     async def test_has_circular_reference_category_not_found(self, mock_session):
-        """Test has_circular_reference when category in chain is not found.
+        """
+        Test has_circular_reference when category in chain is not found.
 
         This covers line 117 in category.py - when category is None, the loop breaks.
         """

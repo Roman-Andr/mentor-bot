@@ -36,6 +36,7 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 480
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+    BCRYPT_ROUNDS: int = 12
 
     # API
     API_V1_PREFIX: str = "/api/v1"
@@ -50,6 +51,7 @@ class Settings(BaseSettings):
 
     # Telegram
     TELEGRAM_API_KEY: str = Field(default="TELEGRAM_API_KEY")
+    TELEGRAM_BOT_USERNAME: str = Field(default="company_hr_mentor_bot")
 
     # Inter-service communication
     CHECKLISTS_SERVICE_URL: str = Field(default="http://localhost:8002")

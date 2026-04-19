@@ -47,9 +47,13 @@ class SqlAlchemyUnitOfWork(IUnitOfWork):
         self.escalations = EscalationRepository(self._session)
         return self
 
-    async def __aexit__(self, *args: object) -> None:
+    async def __aexit__(
+        self, exc_type: type[BaseException] | None, exc_val: BaseException | None, exc_tb: object
+    ) -> None:
         """Exit async context manager and clean up session."""
         if self._session:
+            if exc_type:
+                await self._session.rollback()
             await self._session.close()
             self._session = None
 

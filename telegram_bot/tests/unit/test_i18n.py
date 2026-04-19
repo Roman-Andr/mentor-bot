@@ -52,7 +52,7 @@ class TestI18n:
 
     def test_t_function_empty_kwargs(self):
         """Test t() function with empty kwargs (no formatting branch)."""
-        result = t("common.back_button", locale="en", **{})
+        result = t("common.back_button", locale="en")
 
         assert isinstance(result, str)
         assert "[common.back_button]" in result
@@ -68,7 +68,7 @@ class TestI18n:
         assert "8" in r2
         assert "[feedback.pulse_thanks]" in r2
 
-        r3 = t("common.back_button", locale="en", **{})
+        r3 = t("common.back_button", locale="en")
         assert "[common.back_button]" in r3
 
     def test_t_function_no_kwargs_branch(self):

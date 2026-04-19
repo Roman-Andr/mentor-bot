@@ -1,9 +1,10 @@
 """FastAPI dependencies for authentication and authorization via HTTP."""
 
+from secrets import compare_digest
 from typing import Annotated
 
 import httpx
-from fastapi import Depends, HTTPException, Request, status
+from fastapi import Depends, Header, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -95,6 +96,24 @@ async def require_hr(
         msg = "HR access required"
         raise PermissionDenied(msg)
     return current_user
+
+
+async def verify_service_api_key(
+    x_api_key: Annotated[str | None, Header(alias="X-Service-Api-Key")] = None,
+) -> bool:
+    """Verify service-to-service API key."""
+    if not settings.SERVICE_API_KEY:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Service API key not configured",
+        )
+    if not x_api_key or not compare_digest(x_api_key, settings.SERVICE_API_KEY):
+        msg = "Invalid service API key"
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=msg)
+    return True
+
+
+ServiceAuth = Annotated[bool, Depends(verify_service_api_key)]
 
 
 # Type aliases for dependencies

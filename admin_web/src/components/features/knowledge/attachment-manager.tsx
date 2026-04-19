@@ -5,8 +5,8 @@ import { useTranslations } from "@/hooks/use-translations";
 import { Button } from "@/components/ui/button";
 import { useConfirm } from "@/hooks/use-confirm";
 import { attachmentsApi } from "@/lib/api";
-import type { Attachment } from "@/types";
-import { FileText, Trash2, Upload, Download, Loader2, X } from "lucide-react";
+import type { Attachment, FileUploadError } from "@/types";
+import { FileText, Trash2, Upload, Download, Loader2, X, AlertCircle } from "lucide-react";
 
 const ALLOWED_TYPES = ["pdf", "jpg", "jpeg", "png", "docx", "xlsx", "txt"];
 const MAX_FILE_SIZE_MB = 10;
@@ -47,7 +47,7 @@ export function AttachmentManager({
   const t = useTranslations();
   const confirm = useConfirm();
   const [uploading, setUploading] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadErrors, setUploadErrors] = useState<FileUploadError[]>([]);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -66,46 +66,55 @@ export function AttachmentManager({
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    setUploadError(null);
+    setUploadErrors([]);
 
     if (articleId) {
       const filesToUpload: File[] = [];
+      const clientErrors: FileUploadError[] = [];
+
       for (const file of Array.from(files)) {
         const error = validateFile(file);
         if (error) {
-          setUploadError(error);
-          break;
+          clientErrors.push({ filename: file.name, error });
+          continue;
         }
         filesToUpload.push(file);
       }
 
+      setUploadErrors(clientErrors);
+
       if (filesToUpload.length > 0) {
         setUploading(true);
-        const newAttachments: Attachment[] = [];
-        for (const file of filesToUpload) {
-          const response = await attachmentsApi.upload(articleId, file);
-          if (response.data) {
-            newAttachments.push(response.data);
-          } else {
-            setUploadError(response.error || t("common.error"));
-            break;
+        const response = await attachmentsApi.uploadMultiple(articleId, filesToUpload);
+
+        if (response.data) {
+          const { attachments: newAttachments, errors: serverErrors } = response.data;
+          const allErrors = [...clientErrors, ...serverErrors];
+          setUploadErrors(allErrors);
+
+          if (newAttachments.length > 0) {
+            onAttachmentsChange([...attachments, ...newAttachments]);
           }
-        }
-        if (newAttachments.length > 0) {
-          onAttachmentsChange([...attachments, ...newAttachments]);
+        } else {
+          setUploadErrors([...clientErrors, { filename: null, error: response.error || t("common.error") }]);
         }
         setUploading(false);
       }
     } else if (onPendingFilesChange) {
       const newFiles: File[] = [];
+      const clientErrors: FileUploadError[] = [];
+
       for (const file of Array.from(files)) {
         const error = validateFile(file);
         if (error) {
-          setUploadError(error);
-          break;
+          clientErrors.push({ filename: file.name, error });
+          continue;
         }
         newFiles.push(file);
       }
+
+      setUploadErrors(clientErrors);
+
       if (newFiles.length > 0) {
         onPendingFilesChange([...pendingFiles, ...newFiles]);
       }
@@ -176,7 +185,26 @@ export function AttachmentManager({
         />
       </div>
 
-      {uploadError && <p className="text-xs text-red-500">{uploadError}</p>}
+      {uploadErrors.length > 0 && (
+        <div className="rounded-md border border-red-200 bg-red-50 p-3">
+          <div className="mb-2 flex items-center gap-2">
+            <AlertCircle className="size-4 text-red-600" />
+            <span className="text-sm font-medium text-red-800">
+              {uploadErrors.length === 1
+                ? t("knowledge.uploadError")
+                : t("knowledge.uploadErrors", { count: uploadErrors.length })}
+            </span>
+          </div>
+          <ul className="space-y-1">
+            {uploadErrors.map((err, idx) => (
+              <li key={idx} className="text-xs text-red-700">
+                {err.filename ? `${err.filename}: ` : ""}
+                {err.error}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {attachments.length > 0 && (
         <div className="divide-y rounded-md border">

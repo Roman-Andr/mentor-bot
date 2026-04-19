@@ -16,6 +16,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { DataTable } from "@/components/ui/data-table";
+import { DataTableSkeleton } from "@/components/ui/table-skeleton";
 import { CardHeader, CardTitle } from "@/components/ui/card";
 import { Mail, Trash2, RefreshCw, Ban, Copy, Check } from "lucide-react";
 import { useState } from "react";
@@ -90,6 +91,7 @@ export function InvitationsTable({
       onPageChange={onPageChange}
       onPageSizeChange={onPageSizeChange}
       showPageSizeSelector={!!onPageSizeChange}
+      skeleton={<DataTableSkeleton columns={7} rows={5} showHeader={false} />}
       header={
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -202,6 +204,7 @@ export function InvitationsTable({
                     className="text-muted-foreground"
                     onClick={() => handleCopy(invitation.invitationUrl, invitation.id)}
                     title={t("invitations.copyLink")}
+                    aria-label={t("invitations.copyLink")}
                   >
                     {copiedId === invitation.id ? (
                       <Check className="size-4 text-green-600" />
@@ -217,6 +220,7 @@ export function InvitationsTable({
                         className="text-blue-500"
                         onClick={() => onResend(invitation.id)}
                         title={t("invitations.resend")}
+                        aria-label={t("invitations.resend")}
                       >
                         <RefreshCw className="size-4" />
                       </Button>
@@ -226,6 +230,7 @@ export function InvitationsTable({
                         className="text-orange-500"
                         onClick={() => onRevoke(invitation.id)}
                         title={t("invitations.revoke")}
+                        aria-label={t("invitations.revoke")}
                       >
                         <Ban className="size-4" />
                       </Button>
@@ -237,6 +242,7 @@ export function InvitationsTable({
                     className="text-red-500"
                     onClick={() => onDelete(invitation.id)}
                     title={t("common.delete")}
+                    aria-label={t("common.delete")}
                   >
                     <Trash2 className="size-4" />
                   </Button>

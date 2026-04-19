@@ -134,16 +134,33 @@ async def update_user(
         ) from e
 
 
+@router.post("/{user_id}/deactivate")
+async def deactivate_user(
+    user_id: int,
+    user_service: UserServiceDep,
+    _current_user: AdminUser,
+) -> MessageResponse:
+    """Deactivate user account (soft delete) (admin only)."""
+    try:
+        await user_service.deactivate_user(user_id)
+        return MessageResponse(message="User deactivated successfully")
+    except NotFoundException as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e.detail),
+        ) from e
+
+
 @router.delete("/{user_id}")
 async def delete_user(
     user_id: int,
     user_service: UserServiceDep,
     _current_user: AdminUser,
 ) -> MessageResponse:
-    """Delete (deactivate) user (admin only)."""
+    """Permanently delete user (admin only)."""
     try:
-        await user_service.deactivate_user(user_id)
-        return MessageResponse(message="User deactivated successfully")
+        await user_service.delete_user(user_id)
+        return MessageResponse(message="User deleted successfully")
     except NotFoundException as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

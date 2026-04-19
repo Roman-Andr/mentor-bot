@@ -327,3 +327,82 @@ class TestVerifyServiceApiKey:
             await verify_service_api_key(None)
 
         assert exc_info.value.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+class TestGetUow:
+    """Tests for get_uow dependency."""
+
+    @patch("feedback_service.api.deps.SqlAlchemyUnitOfWork")
+    @patch("feedback_service.api.deps.AsyncSessionLocal")
+    async def test_get_uow_yields_uow_instance(
+        self, mock_session_local: MagicMock, mock_uow_class: MagicMock
+    ) -> None:
+        """Test get_uow yields a SqlAlchemyUnitOfWork instance."""
+        # Arrange
+        from feedback_service.api.deps import get_uow
+
+        mock_uow = MagicMock()
+        mock_uow_class.return_value.__aenter__ = AsyncMock(return_value=mock_uow)
+        mock_uow_class.return_value.__aexit__ = AsyncMock(return_value=None)
+
+        # Act
+        gen = get_uow()
+        result = await gen.__anext__()
+
+        # Assert
+        assert result == mock_uow
+        mock_uow_class.assert_called_once_with(mock_session_local)
+
+        # Clean up generator
+        from contextlib import suppress
+        with suppress(StopAsyncIteration):
+            await gen.__anext__()
+
+    @patch("feedback_service.api.deps.SqlAlchemyUnitOfWork")
+    @patch("feedback_service.api.deps.AsyncSessionLocal")
+    async def test_get_uow_closes_on_exit(
+        self, mock_session_local: MagicMock, mock_uow_class: MagicMock
+    ) -> None:
+        """Test get_uow properly closes UOW on generator exit."""
+        # Arrange
+        from feedback_service.api.deps import get_uow
+
+        mock_aexit = AsyncMock(return_value=None)
+        mock_uow_class.return_value.__aenter__ = AsyncMock(return_value=MagicMock())
+        mock_uow_class.return_value.__aexit__ = mock_aexit
+
+        # Act
+        gen = get_uow()
+        await gen.__anext__()
+
+        # Clean up
+        from contextlib import suppress
+        with suppress(StopAsyncIteration):
+            await gen.__anext__()
+
+        # Assert
+        mock_aexit.assert_called_once()
+
+    @patch("feedback_service.api.deps.SqlAlchemyUnitOfWork")
+    @patch("feedback_service.api.deps.AsyncSessionLocal")
+    async def test_get_uow_handles_exception(
+        self, mock_session_local: MagicMock, mock_uow_class: MagicMock
+    ) -> None:
+        """Test get_uow properly handles exceptions during yield."""
+        # Arrange
+        from feedback_service.api.deps import get_uow
+
+        mock_aexit = AsyncMock(return_value=None)
+        mock_uow_class.return_value.__aenter__ = AsyncMock(return_value=MagicMock())
+        mock_uow_class.return_value.__aexit__ = mock_aexit
+
+        # Act & Assert
+        gen = get_uow()
+        await gen.__anext__()
+
+        # Simulate exception
+        with pytest.raises(ValueError, match="Test error"):
+            await gen.athrow(ValueError("Test error"))
+
+        # Assert __aexit__ was called with exception info
+        mock_aexit.assert_called_once()

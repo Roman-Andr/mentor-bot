@@ -12,11 +12,14 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
+from sqlalchemy import text
 
 from auth_service.api import auth, departments, invitations, password_reset, user_mentors, users
 from auth_service.config import settings
 from auth_service.database import engine, init_db
 from auth_service.schemas import HealthCheck, ServiceStatus
+from auth_service.utils.department_sync import department_sync_client
+from auth_service.utils.integrations import checklists_service_client, notification_service_client
 
 # Configure logging
 logging.basicConfig(
@@ -34,9 +37,9 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     logger.info("Database initialized")
     yield
     logger.info("Shutting down Auth Service...")
-    from auth_service.utils.department_sync import department_sync_client
-
     await department_sync_client.close()
+    await checklists_service_client.aclose()
+    await notification_service_client.aclose()
 
 
 # Create FastAPI application
@@ -92,8 +95,6 @@ async def root() -> ServiceStatus:
 @app.get("/health")
 async def health_check() -> HealthCheck:
     """Health check endpoint for load balancers and monitoring."""
-    from sqlalchemy import text
-
     # Check database connectivity
     try:
         async with engine.connect() as conn:

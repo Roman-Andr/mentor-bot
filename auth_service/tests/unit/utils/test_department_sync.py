@@ -230,6 +230,304 @@ class TestSyncDepartment:
             mock_create.assert_any_await("http://checklists:8002", "Engineering", None)
 
 
+class TestUpdateDepartmentInService:
+    """Tests for update_department_in_service method."""
+
+    @pytest.fixture
+    def sync_client(self):
+        """Create a DepartmentSyncClient with mocked client."""
+        client = DepartmentSyncClient()
+        client._client = MagicMock(spec=httpx.AsyncClient)
+        return client
+
+    async def test_update_success_200(self, sync_client):
+        """Test successful update with 200 response."""
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        sync_client._client.put = AsyncMock(return_value=mock_response)
+
+        result = await sync_client.update_department_in_service(
+            "http://test-service", "OldName", "NewName", "New Description"
+        )
+
+        assert result is True
+
+    async def test_update_success_201(self, sync_client):
+        """Test successful update with 201 response."""
+        mock_response = MagicMock()
+        mock_response.status_code = 201
+        sync_client._client.put = AsyncMock(return_value=mock_response)
+
+        result = await sync_client.update_department_in_service(
+            "http://test-service", "OldName", "NewName", None
+        )
+
+        assert result is True
+
+    async def test_update_success_204(self, sync_client):
+        """Test successful update with 204 response."""
+        mock_response = MagicMock()
+        mock_response.status_code = 204
+        sync_client._client.put = AsyncMock(return_value=mock_response)
+
+        result = await sync_client.update_department_in_service(
+            "http://test-service", "OldName", "NewName", None
+        )
+
+        assert result is True
+
+    async def test_update_not_found_404(self, sync_client):
+        """Test update when department not found (404)."""
+        mock_response = MagicMock()
+        mock_response.status_code = 404
+        sync_client._client.put = AsyncMock(return_value=mock_response)
+
+        result = await sync_client.update_department_in_service(
+            "http://test-service", "OldName", "NewName", None
+        )
+
+        assert result is False
+
+    async def test_update_failure_401(self, sync_client):
+        """Test update with 401 unauthorized response."""
+        mock_response = MagicMock()
+        mock_response.status_code = 401
+        mock_response.text = "Unauthorized"
+        sync_client._client.put = AsyncMock(return_value=mock_response)
+
+        result = await sync_client.update_department_in_service(
+            "http://test-service", "OldName", "NewName", None
+        )
+
+        assert result is False
+
+    async def test_update_failure_500(self, sync_client):
+        """Test update with 500 server error."""
+        mock_response = MagicMock()
+        mock_response.status_code = 500
+        mock_response.text = "Internal Server Error"
+        sync_client._client.put = AsyncMock(return_value=mock_response)
+
+        result = await sync_client.update_department_in_service(
+            "http://test-service", "OldName", "NewName", None
+        )
+
+        assert result is False
+
+    async def test_update_request_error(self, sync_client):
+        """Test that RequestError is caught and returns False."""
+        sync_client._client.put = AsyncMock(side_effect=httpx.RequestError("Connection failed"))
+
+        result = await sync_client.update_department_in_service(
+            "http://test-service", "OldName", "NewName", None
+        )
+
+        assert result is False
+
+    async def test_update_generic_exception(self, sync_client):
+        """Test that generic exceptions are caught and return False."""
+        sync_client._client.put = AsyncMock(side_effect=Exception("Unexpected error"))
+
+        result = await sync_client.update_department_in_service(
+            "http://test-service", "OldName", "NewName", None
+        )
+
+        assert result is False
+
+
+class TestDeleteDepartmentInService:
+    """Tests for delete_department_in_service method."""
+
+    @pytest.fixture
+    def sync_client(self):
+        """Create a DepartmentSyncClient with mocked client."""
+        client = DepartmentSyncClient()
+        client._client = MagicMock(spec=httpx.AsyncClient)
+        return client
+
+    async def test_delete_success_200(self, sync_client):
+        """Test successful deletion with 200 response."""
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        sync_client._client.delete = AsyncMock(return_value=mock_response)
+
+        result = await sync_client.delete_department_in_service(
+            "http://test-service", "Engineering"
+        )
+
+        assert result is True
+
+    async def test_delete_success_204(self, sync_client):
+        """Test successful deletion with 204 response."""
+        mock_response = MagicMock()
+        mock_response.status_code = 204
+        sync_client._client.delete = AsyncMock(return_value=mock_response)
+
+        result = await sync_client.delete_department_in_service(
+            "http://test-service", "Engineering"
+        )
+
+        assert result is True
+
+    async def test_delete_already_deleted_404(self, sync_client):
+        """Test deletion when already deleted (404 treated as success)."""
+        mock_response = MagicMock()
+        mock_response.status_code = 404
+        sync_client._client.delete = AsyncMock(return_value=mock_response)
+
+        result = await sync_client.delete_department_in_service(
+            "http://test-service", "Engineering"
+        )
+
+        assert result is True
+
+    async def test_delete_failure_401(self, sync_client):
+        """Test delete with 401 unauthorized response."""
+        mock_response = MagicMock()
+        mock_response.status_code = 401
+        mock_response.text = "Unauthorized"
+        sync_client._client.delete = AsyncMock(return_value=mock_response)
+
+        result = await sync_client.delete_department_in_service(
+            "http://test-service", "Engineering"
+        )
+
+        assert result is False
+
+    async def test_delete_failure_500(self, sync_client):
+        """Test delete with 500 server error."""
+        mock_response = MagicMock()
+        mock_response.status_code = 500
+        mock_response.text = "Internal Server Error"
+        sync_client._client.delete = AsyncMock(return_value=mock_response)
+
+        result = await sync_client.delete_department_in_service(
+            "http://test-service", "Engineering"
+        )
+
+        assert result is False
+
+    async def test_delete_request_error(self, sync_client):
+        """Test that RequestError is caught and returns False."""
+        sync_client._client.delete = AsyncMock(side_effect=httpx.RequestError("Connection failed"))
+
+        result = await sync_client.delete_department_in_service(
+            "http://test-service", "Engineering"
+        )
+
+        assert result is False
+
+    async def test_delete_generic_exception(self, sync_client):
+        """Test that generic exceptions are caught and return False."""
+        sync_client._client.delete = AsyncMock(side_effect=Exception("Unexpected error"))
+
+        result = await sync_client.delete_department_in_service(
+            "http://test-service", "Engineering"
+        )
+
+        assert result is False
+
+
+class TestSyncDepartmentUpdate:
+    """Tests for sync_department_update method."""
+
+    @pytest.fixture
+    def sync_client(self):
+        """Create a DepartmentSyncClient."""
+        client = DepartmentSyncClient()
+        return client
+
+    @pytest.fixture
+    def mock_settings(self):
+        """Mock settings with service URLs."""
+        with patch("auth_service.utils.department_sync.settings") as settings:
+            settings.CHECKLISTS_SERVICE_URL = "http://checklists:8002"
+            settings.KNOWLEDGE_SERVICE_URL = "http://knowledge:8003"
+            settings.MEETING_SERVICE_URL = "http://meeting:8006"
+            yield settings
+
+    async def test_sync_update_all_services_success(self, sync_client, mock_settings):
+        """Test successful sync update to all services."""
+        with patch.object(
+            sync_client, "update_department_in_service", new_callable=AsyncMock
+        ) as mock_update:
+            mock_update.return_value = True
+
+            result = await sync_client.sync_department_update("OldName", "NewName", "New Desc")
+
+            assert result == {
+                "checklists": True,
+                "knowledge": True,
+                "meeting": True,
+            }
+            assert mock_update.await_count == 3
+
+    async def test_sync_update_partial_failure(self, sync_client, mock_settings):
+        """Test sync update when some services fail."""
+        with patch.object(
+            sync_client, "update_department_in_service", new_callable=AsyncMock
+        ) as mock_update:
+            mock_update.side_effect = [True, False, True]
+
+            result = await sync_client.sync_department_update("OldName", "NewName", None)
+
+            assert result == {
+                "checklists": True,
+                "knowledge": False,
+                "meeting": True,
+            }
+
+
+class TestSyncDepartmentDelete:
+    """Tests for sync_department_delete method."""
+
+    @pytest.fixture
+    def sync_client(self):
+        """Create a DepartmentSyncClient."""
+        client = DepartmentSyncClient()
+        return client
+
+    @pytest.fixture
+    def mock_settings(self):
+        """Mock settings with service URLs."""
+        with patch("auth_service.utils.department_sync.settings") as settings:
+            settings.CHECKLISTS_SERVICE_URL = "http://checklists:8002"
+            settings.KNOWLEDGE_SERVICE_URL = "http://knowledge:8003"
+            settings.MEETING_SERVICE_URL = "http://meeting:8006"
+            yield settings
+
+    async def test_sync_delete_all_services_success(self, sync_client, mock_settings):
+        """Test successful sync delete to all services."""
+        with patch.object(
+            sync_client, "delete_department_in_service", new_callable=AsyncMock
+        ) as mock_delete:
+            mock_delete.return_value = True
+
+            result = await sync_client.sync_department_delete("Engineering")
+
+            assert result == {
+                "checklists": True,
+                "knowledge": True,
+                "meeting": True,
+            }
+            assert mock_delete.await_count == 3
+
+    async def test_sync_delete_partial_failure(self, sync_client, mock_settings):
+        """Test sync delete when some services fail."""
+        with patch.object(
+            sync_client, "delete_department_in_service", new_callable=AsyncMock
+        ) as mock_delete:
+            mock_delete.side_effect = [False, True, False]
+
+            result = await sync_client.sync_department_delete("Engineering")
+
+            assert result == {
+                "checklists": False,
+                "knowledge": True,
+                "meeting": False,
+            }
+
+
 class TestDepartmentSyncClientSingleton:
     """Tests for the department_sync_client singleton."""
 

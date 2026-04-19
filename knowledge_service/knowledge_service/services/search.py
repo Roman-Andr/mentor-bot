@@ -220,7 +220,7 @@ class SearchService:
 
         suggestions = list(dict.fromkeys(suggestions))[:limit]
 
-        await cache.set(cache_key, suggestions, ttl=300)
+        await cache.set(cache_key, suggestions, ttl=settings.SEARCH_SUGGESTIONS_CACHE_TTL)
 
         return suggestions
 
@@ -236,7 +236,7 @@ class SearchService:
             return cached
 
         popular = await self._uow.search_history.get_popular_searches(department_id, limit)
-        await cache.set(cache_key, popular, ttl=3600)
+        await cache.set(cache_key, popular, ttl=settings.POPULAR_SEARCHES_CACHE_TTL)
 
         return popular
 

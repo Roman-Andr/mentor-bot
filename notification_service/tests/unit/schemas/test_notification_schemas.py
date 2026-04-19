@@ -175,6 +175,9 @@ class TestScheduledNotificationResponse:
             "processed": False,
             "processed_at": None,
             "created_at": now,
+            "retry_count": 0,
+            "max_retries": 3,
+            "failed_at": None,
         }
         result = ScheduledNotificationResponse(**data)
 
@@ -182,4 +185,7 @@ class TestScheduledNotificationResponse:
         assert result.processed is False
         assert result.processed_at is None
         assert result.created_at == now
+        assert result.retry_count == 0
+        assert result.max_retries == 3
+        assert result.failed_at is None
 

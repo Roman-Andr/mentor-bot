@@ -339,11 +339,12 @@ def generate_dashboard() -> Path:
 class QuietHandler(http.server.SimpleHTTPRequestHandler):
     """Suppress request logging."""
 
-    def log_message(self, format, *args):
-        pass
+    def log_message(self, format, *args) -> None:
+        """Suppress request logging."""
 
 
-def main():
+def main() -> None:
+    """Generate and serve coverage dashboard."""
     reports_dir = Path(REPORTS_DIR)
     if not reports_dir.exists():
         print(f"Error: {REPORTS_DIR} directory not found. Run 'make coverage' first.")

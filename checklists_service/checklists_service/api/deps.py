@@ -1,6 +1,7 @@
 """FastAPI dependencies for authentication and authorization via HTTP."""
 
 from collections.abc import AsyncGenerator
+from secrets import compare_digest
 from typing import Annotated
 
 import httpx
@@ -128,8 +129,11 @@ async def verify_service_api_key(
 ) -> bool:
     """Verify service-to-service API key."""
     if not settings.SERVICE_API_KEY:
-        return False
-    if not x_api_key or x_api_key != settings.SERVICE_API_KEY:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Service API key not configured",
+        )
+    if not x_api_key or not compare_digest(x_api_key, settings.SERVICE_API_KEY):
         msg = "Invalid service API key"
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=msg)
     return True
@@ -152,12 +156,7 @@ async def get_checklists_service_dep() -> ChecklistsServiceDep:
 async def get_uow() -> AsyncGenerator[SqlAlchemyUnitOfWork]:
     """Get Unit of Work instance for current request."""
     async with SqlAlchemyUnitOfWork(AsyncSessionLocal) as uow:
-        try:
-            yield uow
-            await uow.commit()
-        except Exception:
-            await uow.rollback()
-            raise
+        yield uow
 
 
 # Type aliases for dependencies

@@ -20,7 +20,7 @@ class AuthServiceClient:
         self.base_url = base_url or settings.AUTH_SERVICE_URL
         self.client = httpx.AsyncClient(base_url=self.base_url, timeout=settings.AUTH_SERVICE_TIMEOUT)
 
-    @cached(ttl=300, key_prefix="auth_user")
+    @cached(ttl=settings.AUTH_TOKEN_CACHE_TTL, key_prefix="auth_user")
     async def validate_token(self, token: str) -> dict[str, Any] | None:
         """Validate JWT token with auth service (cached)."""
         try:
@@ -36,7 +36,7 @@ class AuthServiceClient:
             logger.exception("Token validation error")
         return None
 
-    @cached(ttl=600, key_prefix="auth_user")
+    @cached(ttl=settings.AUTH_USER_CACHE_TTL, key_prefix="auth_user")
     async def get_user(self, user_id: int, token: str) -> dict[str, Any] | None:
         """Get user details from auth service (cached)."""
         try:

@@ -3,8 +3,11 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import select
 
 from checklists_service.api.deps import ChecklistsServiceDep, ServiceAuth, get_checklists_service_dep
+from checklists_service.database import AsyncSessionLocal
+from checklists_service.models.department import Department
 from checklists_service.schemas import DepartmentCreate, DepartmentResponse, MessageResponse
 
 router = APIRouter()
@@ -17,11 +20,6 @@ async def create_department(
     _auth: ServiceAuth,
 ) -> DepartmentResponse:
     """Create new department in checklists service (service-to-service only)."""
-    from sqlalchemy import select
-
-    from checklists_service.database import AsyncSessionLocal
-    from checklists_service.models.department import Department
-
     async with AsyncSessionLocal() as session:
         result = await session.execute(select(Department).where(Department.name == department_data.name))
         existing = result.scalar_one_or_none()
@@ -45,16 +43,43 @@ async def get_department(
     _auth: ServiceAuth,
 ) -> DepartmentResponse:
     """Get department by name (service-to-service only)."""
-    from sqlalchemy import select
-
-    from checklists_service.database import AsyncSessionLocal
-    from checklists_service.models.department import Department
-
     async with AsyncSessionLocal() as session:
         result = await session.execute(select(Department).where(Department.name == department_name))
         dept = result.scalar_one_or_none()
         if not dept:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Department not found")
+        return DepartmentResponse.model_validate(dept)
+
+
+@router.put("/{department_name}")
+async def update_department(
+    department_name: str,
+    department_data: DepartmentCreate,
+    _service: Annotated[ChecklistsServiceDep, Depends(get_checklists_service_dep)],
+    _auth: ServiceAuth,
+) -> DepartmentResponse:
+    """Update department in checklists service (service-to-service only)."""
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(select(Department).where(Department.name == department_name))
+        dept = result.scalar_one_or_none()
+        if not dept:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Department not found")
+
+        if department_data.name != department_name:
+            result = await session.execute(select(Department).where(Department.name == department_data.name))
+            existing = result.scalar_one_or_none()
+            if existing:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="Department with this name already exists",
+                )
+            dept.name = department_data.name
+
+        if department_data.description is not None:
+            dept.description = department_data.description
+
+        await session.commit()
+        await session.refresh(dept)
         return DepartmentResponse.model_validate(dept)
 
 
@@ -65,11 +90,6 @@ async def delete_department(
     _auth: ServiceAuth,
 ) -> MessageResponse:
     """Delete department (service-to-service only)."""
-    from sqlalchemy import select
-
-    from checklists_service.database import AsyncSessionLocal
-    from checklists_service.models.department import Department
-
     async with AsyncSessionLocal() as session:
         result = await session.execute(select(Department).where(Department.name == department_name))
         dept = result.scalar_one_or_none()

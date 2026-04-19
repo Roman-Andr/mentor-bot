@@ -26,6 +26,10 @@ export const usersApi = {
       method: "PUT",
       body: JSON.stringify(data),
     }),
+  deactivate: (id: number) =>
+    fetchApi<{ message: string }>(`/api/v1/users/${id}/deactivate`, {
+      method: "POST",
+    }),
   delete: (id: number) =>
     fetchApi<{ message: string }>(`/api/v1/users/${id}`, {
       method: "DELETE",

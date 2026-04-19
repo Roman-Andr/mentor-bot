@@ -13,8 +13,6 @@ services:
       args:
         SERVICE_NAME: telegram_bot
     container_name: telegram_bot
-    ports:
-      - "5670:5671"
     environment:
       <<: *common-env
       REDIS_URL: ${REDIS_URL}/3
@@ -84,11 +82,16 @@ services:
     container_name: auth_service
     ports:
       - "8001:8000"
-      - "5672:5671"
     environment:
       <<: *common-env
       REDIS_URL: ${REDIS_URL}/0
       TELEGRAM_API_KEY: ${TELEGRAM_API_KEY}
+      SECRET_KEY: ${SECRET_KEY}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      CHECKLISTS_SERVICE_URL: http://checklists_service:8000
+      KNOWLEDGE_SERVICE_URL: http://knowledge_service:8000
+      MEETING_SERVICE_URL: http://meeting_service:8000
+      NOTIFICATION_SERVICE_URL: http://notification_service:8000
     depends_on:
       postgres:
         condition: service_healthy
@@ -108,7 +111,6 @@ services:
     container_name: checklists_service
     ports:
       - "8002:8000"
-      - "5673:5671"
     environment:
       <<: *common-env
       REDIS_URL: ${REDIS_URL}/1
@@ -140,7 +142,6 @@ services:
     container_name: knowledge_service
     ports:
       - "8003:8000"
-      - "5674:5671"
     environment:
       <<: *common-env
       REDIS_URL: ${REDIS_URL}/2
@@ -172,7 +173,6 @@ services:
     container_name: notification_service
     ports:
       - "8004:8000"
-      - "5675:5671"
     environment:
       <<: *common-env
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
@@ -201,7 +201,6 @@ services:
     container_name: feedback_service
     ports:
       - "8007:8000"
-      - "5676:5671"
     environment:
       <<: *common-env
       API_V1_PREFIX: /api/v1
@@ -227,7 +226,6 @@ services:
     container_name: escalation_service
     ports:
       - "8005:8000"
-      - "5677:5671"
     environment:
       <<: *common-env
       API_V1_PREFIX: /api/v1
@@ -253,7 +251,6 @@ services:
     container_name: meeting_service
     ports:
       - "8006:8000"
-      - "5678:5671"
     environment:
       <<: *common-env
       REDIS_URL: ${REDIS_URL}/4
@@ -291,8 +288,8 @@ services:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 300s
       timeout: 1s
-      retries: 10
-      start_period: 5s
+      retries: 50
+      start_period: 30s
       start_interval: 1s
 
   redis:
@@ -318,8 +315,8 @@ services:
     image: dpage/pgadmin4:9.14
     restart: unless-stopped
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@admin.com
-      PGADMIN_DEFAULT_PASSWORD: root
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@admin.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-changeme}
     networks:
       - mentor_network
     ports:

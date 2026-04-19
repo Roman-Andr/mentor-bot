@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from aiogram import Bot
-from aiogram.types import CallbackQuery, InlineQuery, Message, Update, User
+from aiogram.types import CallbackQuery, InlineQuery, Message, User
 
 from telegram_bot.middlewares import auth as auth_module
 from telegram_bot.middlewares.auth import AuthMiddleware

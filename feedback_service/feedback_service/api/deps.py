@@ -1,14 +1,17 @@
 """FastAPI dependencies for authentication and authorization via HTTP."""
 
+from collections.abc import AsyncGenerator
+from secrets import compare_digest
 from typing import Annotated
 
 import httpx
-from fastapi import Depends, Header, HTTPException, Request, status
+from fastapi import Depends, Header, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from feedback_service.config import settings
-from feedback_service.database import get_db
+from feedback_service.database import AsyncSessionLocal, get_db
+from feedback_service.repositories import SqlAlchemyUnitOfWork
 
 security = HTTPBearer(auto_error=False)
 
@@ -62,6 +65,7 @@ def check_user_access(
 
     Raises:
         HTTPException: 403 if user tries to view another user's data without permission
+
     """
     if user_id and user_id != current_user.id:
         if not current_user.has_role(allowed_roles):
@@ -70,7 +74,7 @@ def check_user_access(
                 detail=f"Can only view your own {resource_name}",
             )
         return user_id
-    elif not user_id and not current_user.has_role(allowed_roles):
+    if not user_id and not current_user.has_role(allowed_roles):
         return current_user.id
     return user_id
 
@@ -157,10 +161,16 @@ async def verify_service_api_key(
     if not settings.SERVICE_API_KEY:
         msg = "Service API key not configured"
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=msg)
-    if not x_api_key or x_api_key != settings.SERVICE_API_KEY:
+    if not x_api_key or not compare_digest(x_api_key, settings.SERVICE_API_KEY):
         msg = "Invalid service API key"
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=msg)
     return True
+
+
+async def get_uow() -> AsyncGenerator[SqlAlchemyUnitOfWork]:
+    """Get Unit of Work instance for current request."""
+    async with SqlAlchemyUnitOfWork(AsyncSessionLocal) as uow:
+        yield uow
 
 
 # Type aliases for dependencies
@@ -169,3 +179,4 @@ AdminUser = Annotated[UserInfo, Depends(require_admin)]
 HRAdminUser = Annotated[UserInfo, Depends(require_hr_or_admin)]
 DbDep = Annotated[AsyncSession, Depends(get_db)]
 ServiceAuth = Annotated[bool, Depends(verify_service_api_key)]
+UOWDep = Annotated[SqlAlchemyUnitOfWork, Depends(get_uow)]

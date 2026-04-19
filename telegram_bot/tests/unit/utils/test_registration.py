@@ -12,7 +12,7 @@ class TestRegisterByToken:
 
     @pytest.fixture(autouse=True)
     def setup_mocks(self):
-        """Setup common mocks."""
+        """Set up common mocks."""
         self.mock_tg_user = MagicMock()
         self.mock_tg_user.id = 123456
         self.mock_tg_user.username = "testuser"

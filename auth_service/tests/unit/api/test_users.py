@@ -431,12 +431,64 @@ class TestUpdateUser:
             app.dependency_overrides.pop(deps.get_user_service, None)
 
 
+class TestDeactivateUser:
+    """Tests for POST /api/v1/users/{user_id}/deactivate endpoint (covers lines 144-148)."""
+
+    def test_deactivate_user_success(self, admin_user, mock_user_service):
+        """Test admin can deactivate a user (covers lines 144-148)."""
+        mock_user_service.deactivate_user = AsyncMock(return_value=None)
+
+        async def mock_require_admin() -> User:
+            return admin_user
+
+        app.dependency_overrides[_admin_user_dependency] = mock_require_admin
+        app.dependency_overrides[deps.get_user_service] = lambda: mock_user_service
+
+        try:
+            client = get_test_client()
+            response = client.post(
+                "/api/v1/users/5/deactivate",
+                headers=create_auth_headers(admin_user.id, admin_user.role),
+            )
+
+            assert response.status_code == 200
+            data = response.json()
+            assert "deactivated" in data["message"].lower()
+            mock_user_service.deactivate_user.assert_awaited_once_with(5)
+        finally:
+            app.dependency_overrides.pop(_admin_user_dependency, None)
+            app.dependency_overrides.pop(deps.get_user_service, None)
+
+    def test_deactivate_user_not_found(self, admin_user, mock_user_service):
+        """Test deactivating non-existent user returns 404 (covers lines 147-148)."""
+        mock_user_service.deactivate_user = AsyncMock(side_effect=NotFoundException("User"))
+
+        async def mock_require_admin() -> User:
+            return admin_user
+
+        app.dependency_overrides[_admin_user_dependency] = mock_require_admin
+        app.dependency_overrides[deps.get_user_service] = lambda: mock_user_service
+
+        try:
+            client = get_test_client()
+            response = client.post(
+                "/api/v1/users/999/deactivate",
+                headers=create_auth_headers(admin_user.id, admin_user.role),
+            )
+
+            assert response.status_code == 404
+            assert "not found" in response.json()["detail"].lower()
+        finally:
+            app.dependency_overrides.pop(_admin_user_dependency, None)
+            app.dependency_overrides.pop(deps.get_user_service, None)
+
+
 class TestDeleteUser:
     """Tests for DELETE /api/v1/users/{user_id} endpoint."""
 
     def test_delete_user_success(self, admin_user, mock_user_service):
-        """Test admin can delete (deactivate) user."""
-        mock_user_service.deactivate_user = AsyncMock(return_value=None)
+        """Test admin can permanently delete user."""
+        mock_user_service.delete_user = AsyncMock(return_value=None)
 
         async def mock_require_admin() -> User:
             return admin_user
@@ -453,14 +505,14 @@ class TestDeleteUser:
 
             assert response.status_code == 200
             data = response.json()
-            assert "deactivated" in data["message"].lower()
+            assert "deleted" in data["message"].lower()
         finally:
             app.dependency_overrides.pop(_admin_user_dependency, None)
             app.dependency_overrides.pop(deps.get_user_service, None)
 
     def test_delete_user_not_found(self, admin_user, mock_user_service):
         """Test deleting non-existent user returns 404."""
-        mock_user_service.deactivate_user = AsyncMock(side_effect=NotFoundException("User"))
+        mock_user_service.delete_user = AsyncMock(side_effect=NotFoundException("User"))
 
         async def mock_require_admin() -> User:
             return admin_user

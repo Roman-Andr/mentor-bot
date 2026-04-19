@@ -96,14 +96,14 @@ class TestRenderTemplate:
 
         assert result == "Hello World"
 
-    def test_render_missing_variables_unchanged(self) -> None:
-        """Variables not provided remain as placeholders."""
+    def test_render_missing_variables_as_empty(self) -> None:
+        """Missing variables render as empty strings (Jinja2 default behavior)."""
         template = "Hello {{ name }}, welcome to {{ place }}"
         variables = {"name": "John"}  # place is missing
 
         result = render_template(template, variables)
 
-        assert result == "Hello John, welcome to {{ place }}"
+        assert result == "Hello John, welcome to "
 
     def test_render_converts_values_to_strings(self) -> None:
         """Non-string values are converted to strings."""
@@ -113,6 +113,17 @@ class TestRenderTemplate:
         result = render_template(template, variables)
 
         assert result == "Count: 42, Active: True"
+
+    def test_render_escapes_html_prevents_xss(self) -> None:
+        """HTML in variables is escaped to prevent XSS attacks."""
+        template = "Hello {{ name }}"
+        variables = {"name": "<script>alert('xss')</script>"}
+
+        result = render_template(template, variables)
+
+        assert "<script>" not in result
+        assert "&lt;script&gt;" in result
+        assert result == "Hello &lt;script&gt;alert(&#39;xss&#39;)&lt;/script&gt;"
 
 
 class TestGetDefaultPasswordResetTemplate:
@@ -182,8 +193,6 @@ class TestSendEmail:
 
     async def test_send_email_success(self) -> None:
         """Send email with valid API key."""
-        from notification_service.api.endpoints.email import EmailSendRequest, EmailSendResponse
-
         request = EmailSendRequest(
             to_email="user@example.com",
             template="password_reset",
@@ -208,8 +217,6 @@ class TestSendEmail:
 
     async def test_send_email_with_custom_subject(self) -> None:
         """Send email with custom subject override."""
-        from notification_service.api.endpoints.email import EmailSendRequest
-
         request = EmailSendRequest(
             to_email="user@example.com",
             template="password_reset",
@@ -234,8 +241,6 @@ class TestSendEmail:
 
     async def test_send_email_missing_api_key(self) -> None:
         """Reject request without API key."""
-        from notification_service.api.endpoints.email import EmailSendRequest
-
         request = EmailSendRequest(
             to_email="user@example.com",
             template="password_reset",
@@ -254,8 +259,6 @@ class TestSendEmail:
 
     async def test_send_email_invalid_api_key(self) -> None:
         """Reject request with invalid API key."""
-        from notification_service.api.endpoints.email import EmailSendRequest
-
         request = EmailSendRequest(
             to_email="user@example.com",
             template="password_reset",
@@ -273,8 +276,6 @@ class TestSendEmail:
 
     async def test_send_email_template_error(self) -> None:
         """Handle template error gracefully."""
-        from notification_service.api.endpoints.email import EmailSendRequest
-
         request = EmailSendRequest(
             to_email="user@example.com",
             template="nonexistent_template_xyz",  # No default exists
@@ -293,8 +294,6 @@ class TestSendEmail:
 
     async def test_send_email_service_error(self) -> None:
         """Handle email service error gracefully."""
-        from notification_service.api.endpoints.email import EmailSendRequest
-
         request = EmailSendRequest(
             to_email="user@example.com",
             template="password_reset",

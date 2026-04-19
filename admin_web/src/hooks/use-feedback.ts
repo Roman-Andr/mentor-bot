@@ -29,8 +29,7 @@ export function useFeedback() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
 
-  // Search and filters
-  const [searchQuery, setSearchQuery] = useState("");
+  // Filters
   const [typeFilter, setTypeFilter] = useState<FeedbackType | "all">("all");
   const [anonymityFilter, setAnonymityFilter] = useState<"all" | "anonymous" | "attributed">("all");
 
@@ -42,7 +41,7 @@ export function useFeedback() {
   // Calculate skip based on page
   const skip = useMemo(() => (currentPage - 1) * pageSize, [currentPage, pageSize]);
 
-  // Fetch pulse surveys
+  // Fetch pulse surveys (only when typeFilter is "all" or "pulse")
   const {
     data: pulseData,
     isLoading: isPulseLoading,
@@ -57,9 +56,10 @@ export function useFeedback() {
         to_date: undefined,
       }),
     staleTime: 60 * 1000,
+    enabled: typeFilter === "all" || typeFilter === "pulse",
   });
 
-  // Fetch experience ratings
+  // Fetch experience ratings (only when typeFilter is "all" or "experience")
   const {
     data: experienceData,
     isLoading: isExperienceLoading,
@@ -74,9 +74,10 @@ export function useFeedback() {
         to_date: undefined,
       }),
     staleTime: 60 * 1000,
+    enabled: typeFilter === "all" || typeFilter === "experience",
   });
 
-  // Fetch comments
+  // Fetch comments (only when typeFilter is "all" or "comment")
   const {
     data: commentsData,
     isLoading: isCommentsLoading,
@@ -87,11 +88,11 @@ export function useFeedback() {
       feedbackApi.getComments({
         skip,
         limit: pageSize,
-        search: searchQuery || undefined,
         from_date: undefined,
         to_date: undefined,
       }),
     staleTime: 60 * 1000,
+    enabled: typeFilter === "all" || typeFilter === "comment",
   });
 
   // Fetch stats
@@ -158,30 +159,21 @@ export function useFeedback() {
     const items: FeedbackItem[] = [];
 
     if (pulseData?.data?.items) {
-      items.push(
-        ...pulseData.data.items.map((item: PulseSurvey) => ({
-          ...item,
-          type: "pulse" as FeedbackType,
-        }))
-      );
+      for (const item of pulseData.data.items) {
+        items.push({ ...item, type: "pulse" as FeedbackType });
+      }
     }
 
     if (experienceData?.data?.items) {
-      items.push(
-        ...experienceData.data.items.map((item: ExperienceRating) => ({
-          ...item,
-          type: "experience" as FeedbackType,
-        }))
-      );
+      for (const item of experienceData.data.items) {
+        items.push({ ...item, type: "experience" as FeedbackType });
+      }
     }
 
     if (commentsData?.data?.items) {
-      items.push(
-        ...commentsData.data.items.map((item: Comment) => ({
-          ...item,
-          type: "comment" as FeedbackType,
-        }))
-      );
+      for (const item of commentsData.data.items) {
+        items.push({ ...item, type: "comment" as FeedbackType });
+      }
     }
 
     // Sort by submitted_at descending
@@ -202,14 +194,18 @@ export function useFeedback() {
     return items;
   }, [feedbackItems, anonymityFilter]);
 
-  // Calculate totals
+  // Calculate totals based on type filter
   const totalCount = useMemo(() => {
+    if (typeFilter === "pulse") return pulseData?.data?.total || 0;
+    if (typeFilter === "experience") return experienceData?.data?.total || 0;
+    if (typeFilter === "comment") return commentsData?.data?.total || 0;
+    // typeFilter === "all" - sum all totals
     return (
       (pulseData?.data?.total || 0) +
       (experienceData?.data?.total || 0) +
       (commentsData?.data?.total || 0)
     );
-  }, [pulseData, experienceData, commentsData]);
+  }, [pulseData, experienceData, commentsData, typeFilter]);
 
   const totalPages = useMemo(() => Math.ceil(totalCount / pageSize), [totalCount, pageSize]);
 
@@ -248,7 +244,6 @@ export function useFeedback() {
   );
 
   const resetFilters = useCallback(() => {
-    setSearchQuery("");
     setTypeFilter("all");
     setAnonymityFilter("all");
     setCurrentPage(1);
@@ -285,9 +280,7 @@ export function useFeedback() {
     pageSize,
     setPageSize,
 
-    // Search & Filters
-    searchQuery,
-    setSearchQuery,
+    // Filters
     typeFilter,
     setTypeFilter,
     anonymityFilter,

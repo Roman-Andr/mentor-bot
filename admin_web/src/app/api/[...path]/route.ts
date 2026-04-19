@@ -1,4 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
+
+// Debug logging for cookie issues
+const DEBUG = process.env.NODE_ENV === "development";
+const log = (...args: unknown[]) => {
+  if (DEBUG) console.log("[API Proxy]", ...args);
+};
 
 const SERVICE_MAP: Record<string, string> = {
   auth: process.env.AUTH_SERVICE_URL || "http://localhost:8001",
@@ -80,6 +87,7 @@ async function proxyRequest(request: NextRequest, pathSegments: string[]): Promi
   if (result.error) return result.error;
 
   const targetUrl = result.url;
+  const path = pathSegments.join("/");
 
   const headers = new Headers();
   request.headers.forEach((value, key) => {
@@ -91,6 +99,27 @@ async function proxyRequest(request: NextRequest, pathSegments: string[]): Promi
   const hasBody = request.method !== "GET" && request.method !== "HEAD";
   const body = hasBody ? await request.arrayBuffer() : undefined;
 
+  // Forward cookies from the original request and extract access_token
+  const cookieHeader = request.headers.get("cookie");
+  let accessToken: string | undefined;
+  if (cookieHeader) {
+    headers.set("Cookie", cookieHeader);
+    // Extract access_token from cookies for Authorization header injection
+    const cookieStore = await cookies();
+    accessToken = cookieStore.get("access_token")?.value;
+    log("→ Forwarding cookies to", path, "access_token present:", !!accessToken);
+  } else {
+    log("→ No cookies to forward to", path);
+  }
+
+  // For services that only support Bearer tokens (not cookies), inject Authorization header
+  // auth_service supports cookies directly, but other services need the header
+  const hasAuthHeader = headers.has("authorization") || headers.has("Authorization");
+  if (!hasAuthHeader && accessToken) {
+    headers.set("Authorization", `Bearer ${accessToken}`);
+    log("→ Injected Authorization header from access_token cookie");
+  }
+
   let fetchResponse: Response;
   try {
     fetchResponse = await fetch(targetUrl.toString(), {
@@ -99,9 +128,12 @@ async function proxyRequest(request: NextRequest, pathSegments: string[]): Promi
       body,
       redirect: "manual",
     });
-  } catch {
+  } catch (err) {
+    log("✗ Fetch failed:", err);
     return NextResponse.json({ error: "Service unavailable" }, { status: 502 });
   }
+
+  log("← Backend response:", fetchResponse.status, "for", path);
 
   if (fetchResponse.status >= 300 && fetchResponse.status < 400) {
     const location = fetchResponse.headers.get("location");
@@ -118,6 +150,15 @@ async function proxyRequest(request: NextRequest, pathSegments: string[]): Promi
       responseHeaders.set(key, value);
     }
   });
+
+  // Forward Set-Cookie headers from backend to client (critical for auth)
+  const setCookieHeaders = fetchResponse.headers.getSetCookie?.() ?? [];
+  for (const cookie of setCookieHeaders) {
+    responseHeaders.append("Set-Cookie", cookie);
+    log("↔ Forwarding Set-Cookie:", cookie.substring(0, 80) + "...");
+  }
+
+  log("← Response headers:", Array.from(responseHeaders.keys()).join(", "));
 
   return new NextResponse(fetchResponse.body, {
     status: fetchResponse.status,

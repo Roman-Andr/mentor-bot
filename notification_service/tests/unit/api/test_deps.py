@@ -258,20 +258,13 @@ class TestRequireAdmin:
             await require_admin(user)
 
     async def test_accepts_hr_as_admin_equivalent(self) -> None:
-        """HR role is also accepted for admin requirement."""
-        # The actual implementation requires HR or ADMIN
-        # Let's check what the actual requirement is
+        """HR role is also accepted for admin requirement (both HR and ADMIN pass)."""
+        # The actual implementation requires HR or ADMIN via has_role(["HR", "ADMIN"])
         user = UserInfo({"id": 1, "email": "hr@example.com", "role": "HR", "is_active": True})
 
-        # According to the code, require_admin checks for ["ADMIN"] only
-        # If the implementation uses has_role(["ADMIN"]), HR won't pass
-        try:
-            result = await require_admin(user)
-            # If it succeeds, HR is accepted
-            assert result.role == "HR"
-        except PermissionDenied:
-            # If it fails, only ADMIN is accepted
-            pass
+        result = await require_admin(user)
+        # HR is accepted as admin equivalent
+        assert result.role == "HR"
 
 
 class TestRequireHR:
@@ -299,6 +292,50 @@ class TestRequireHR:
 
         with pytest.raises(PermissionDenied, match="HR access required"):
             await require_hr(user)
+
+
+class TestServiceApiKeyVerification:
+    """Tests for verify_service_api_key function."""
+
+    async def test_returns_true_when_api_key_valid(self) -> None:
+        """Returns True when valid service API key provided."""
+        from notification_service.api.deps import verify_service_api_key
+
+        result = await verify_service_api_key("test-api-key")
+        assert result is True
+
+    async def test_raises_when_api_key_missing(self) -> None:
+        """Raises HTTPException 401 when no API key provided."""
+        from notification_service.api.deps import verify_service_api_key
+
+        with pytest.raises(HTTPException) as exc_info:
+            await verify_service_api_key(None)
+
+        assert exc_info.value.status_code == status.HTTP_401_UNAUTHORIZED
+        assert "Invalid service API key" in exc_info.value.detail
+
+    async def test_raises_when_api_key_invalid(self) -> None:
+        """Raises HTTPException 401 when invalid API key provided."""
+        from notification_service.api.deps import verify_service_api_key
+
+        with pytest.raises(HTTPException) as exc_info:
+            await verify_service_api_key("wrong-api-key")
+
+        assert exc_info.value.status_code == status.HTTP_401_UNAUTHORIZED
+        assert "Invalid service API key" in exc_info.value.detail
+
+    async def test_raises_when_service_key_not_configured(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Raises HTTPException 500 when SERVICE_API_KEY not configured (lines 105-109)."""
+        from notification_service.api.deps import verify_service_api_key
+        from notification_service import config
+
+        monkeypatch.setattr(config.settings, "SERVICE_API_KEY", None)
+
+        with pytest.raises(HTTPException) as exc_info:
+            await verify_service_api_key("any-key")
+
+        assert exc_info.value.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert "Service API key not configured" in exc_info.value.detail
 
 
 class TestDependencyTypeAliases:

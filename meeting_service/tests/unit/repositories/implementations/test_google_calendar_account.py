@@ -48,6 +48,7 @@ def sample_account():
 class TestGetByUserId:
     """Tests for get_by_user_id method."""
 
+    @pytest.mark.asyncio
     async def test_get_by_user_id_found(self, mock_session, repository, sample_account):
         """Test get_by_user_id returns account when found."""
         # Arrange
@@ -64,6 +65,7 @@ class TestGetByUserId:
         assert result.access_token == "test_access_token"
         mock_session.execute.assert_called_once()
 
+    @pytest.mark.asyncio
     async def test_get_by_user_id_not_found(self, mock_session, repository):
         """Test get_by_user_id returns None when account not found."""
         # Arrange
@@ -78,6 +80,7 @@ class TestGetByUserId:
         assert result is None
         mock_session.execute.assert_called_once()
 
+    @pytest.mark.asyncio
     async def test_get_by_user_id_zero_user_id(self, mock_session, repository):
         """Test get_by_user_id with user_id of 0."""
         # Arrange
@@ -95,6 +98,7 @@ class TestGetByUserId:
 class TestGetByAccountEmail:
     """Tests for get_by_account_email method."""
 
+    @pytest.mark.asyncio
     async def test_get_by_account_email_found(self, mock_session, repository, sample_account):
         """Test get_by_account_email returns account when found."""
         # Arrange - simulate the model having an account_email field
@@ -108,6 +112,7 @@ class TestGetByAccountEmail:
         # Assert
         assert result == sample_account
 
+    @pytest.mark.asyncio
     async def test_get_by_account_email_not_found(self, mock_session, repository):
         """Test get_by_account_email returns None when account not found."""
         # Arrange
@@ -125,6 +130,7 @@ class TestGetByAccountEmail:
 class TestGetActiveAccounts:
     """Tests for get_active_accounts method."""
 
+    @pytest.mark.asyncio
     async def test_get_active_accounts_returns_list(self, mock_session, repository, sample_account):
         """Test get_active_accounts returns list of active accounts."""
         # Arrange
@@ -143,6 +149,7 @@ class TestGetActiveAccounts:
         assert result[0].user_id == 100
         assert result[1].user_id == 101
 
+    @pytest.mark.asyncio
     async def test_get_active_accounts_empty(self, mock_session, repository):
         """Test get_active_accounts returns empty list when no active accounts."""
         # Arrange
@@ -158,6 +165,7 @@ class TestGetActiveAccounts:
         # Assert
         assert result == []
 
+    @pytest.mark.asyncio
     async def test_get_active_accounts_with_limit(self, mock_session, repository, sample_account):
         """Test get_active_accounts with limit parameter."""
         # Arrange
@@ -178,6 +186,7 @@ class TestGetActiveAccounts:
 class TestUpdateTokens:
     """Tests for update_tokens method."""
 
+    @pytest.mark.asyncio
     async def test_update_tokens_success(self, mock_session, repository, sample_account):
         """Test update_tokens updates access token and refresh token."""
         # Arrange
@@ -200,6 +209,7 @@ class TestUpdateTokens:
         mock_session.commit.assert_called_once()
         mock_session.refresh.assert_called_once_with(sample_account)
 
+    @pytest.mark.asyncio
     async def test_update_tokens_only_access_token(self, mock_session, repository, sample_account):
         """Test update_tokens with only access token."""
         # Arrange
@@ -222,6 +232,7 @@ class TestUpdateTokens:
 class TestMarkInactive:
     """Tests for mark_inactive method."""
 
+    @pytest.mark.asyncio
     async def test_mark_inactive_success(self, mock_session, repository, sample_account):
         """Test mark_inactive disables sync for account."""
         # Arrange
@@ -235,6 +246,7 @@ class TestMarkInactive:
         mock_session.commit.assert_called_once()
         mock_session.refresh.assert_called_once_with(sample_account)
 
+    @pytest.mark.asyncio
     async def test_mark_inactive_already_inactive(self, mock_session, repository):
         """Test mark_inactive on already inactive account."""
         # Arrange
@@ -256,6 +268,7 @@ class TestMarkInactive:
 class TestCreate:
     """Tests for create method."""
 
+    @pytest.mark.asyncio
     async def test_create_adds_account(self, mock_session, repository, sample_account):
         """Test create adds account to session and commits."""
         # Act
@@ -267,6 +280,7 @@ class TestCreate:
         mock_session.commit.assert_called_once()
         mock_session.refresh.assert_called_once_with(sample_account)
 
+    @pytest.mark.asyncio
     async def test_create_without_refresh_token(self, mock_session, repository):
         """Test create with account that has no refresh token."""
         # Arrange
@@ -288,6 +302,7 @@ class TestCreate:
 class TestUpdate:
     """Tests for update method."""
 
+    @pytest.mark.asyncio
     async def test_update_commits_changes(self, mock_session, repository, sample_account):
         """Test update commits and refreshes account."""
         # Modify the account
@@ -306,6 +321,7 @@ class TestUpdate:
 class TestDelete:
     """Tests for delete method."""
 
+    @pytest.mark.asyncio
     async def test_delete_existing_account(self, mock_session, repository, sample_account):
         """Test delete removes account by user_id."""
         # Arrange
@@ -321,6 +337,7 @@ class TestDelete:
         mock_session.delete.assert_called_once_with(sample_account)
         mock_session.commit.assert_called_once()
 
+    @pytest.mark.asyncio
     async def test_delete_not_found(self, mock_session, repository):
         """Test delete when account not found."""
         # Arrange
@@ -349,6 +366,7 @@ class TestRepositoryInitialization:
 class TestEdgeCases:
     """Tests for edge cases and error handling."""
 
+    @pytest.mark.asyncio
     async def test_get_by_user_id_negative_id(self, mock_session, repository):
         """Test get_by_user_id with negative user_id."""
         # Arrange
@@ -362,6 +380,7 @@ class TestEdgeCases:
         # Assert
         assert result is None
 
+    @pytest.mark.asyncio
     async def test_delete_zero_user_id(self, mock_session, repository):
         """Test delete with user_id of 0."""
         # Arrange
@@ -375,6 +394,7 @@ class TestEdgeCases:
         # Assert
         mock_session.delete.assert_not_called()
 
+    @pytest.mark.asyncio
     async def test_update_tokens_none_values(self, mock_session, repository, sample_account):
         """Test update_tokens with None values preserves existing tokens."""
         # Arrange
@@ -394,6 +414,7 @@ class TestEdgeCases:
         assert result.refresh_token == original_refresh
         assert result.token_expiry == original_expiry
 
+    @pytest.mark.asyncio
     async def test_create_with_expired_token(self, mock_session, repository):
         """Test create with expired token date."""
         # Arrange

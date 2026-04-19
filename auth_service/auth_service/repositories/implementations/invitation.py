@@ -4,12 +4,12 @@ from collections.abc import Sequence
 from datetime import UTC, datetime, timedelta
 from typing import cast
 
-import sqlalchemy
-from sqlalchemy import and_, func, select
+from sqlalchemy import Column, and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from auth_service.core import InvitationStatus, UserRole
+from auth_service.core.exceptions import NotFoundException, ValidationException
 from auth_service.models import Invitation
 from auth_service.repositories.implementations.base import SqlAlchemyBaseRepository
 from auth_service.repositories.interfaces.invitation import IInvitationRepository
@@ -57,7 +57,7 @@ class InvitationRepository(SqlAlchemyBaseRepository[Invitation, int], IInvitatio
         result = await self._session.execute(stmt)
         return result.scalars().all()
 
-    def _get_sort_column(self, sort_by: str | None) -> "sqlalchemy.Column":
+    def _get_sort_column(self, sort_by: str | None) -> Column:
         """Get SQLAlchemy column for sorting."""
         column_map = {
             "email": Invitation.email,
@@ -119,10 +119,7 @@ class InvitationRepository(SqlAlchemyBaseRepository[Invitation, int], IInvitatio
 
         # Apply sorting
         sort_column = self._get_sort_column(sort_by)
-        if sort_order.lower() == "asc":
-            stmt = stmt.order_by(sort_column.asc())
-        else:
-            stmt = stmt.order_by(sort_column.desc())
+        stmt = stmt.order_by(sort_column.asc() if sort_order.lower() == "asc" else sort_column.desc())
 
         stmt = stmt.offset(skip).limit(limit)
         result = await self._session.execute(stmt)
@@ -140,16 +137,16 @@ class InvitationRepository(SqlAlchemyBaseRepository[Invitation, int], IInvitatio
         """Mark invitation as used and link to user."""
         invitation = await self.get_by_id(invitation_id)
         if not invitation:
-            msg = f"Invitation with ID {invitation_id} not found"
-            raise ValueError(msg)
+            not_found_msg = "Invitation"
+            raise NotFoundException(not_found_msg)
 
         if invitation.status != InvitationStatus.PENDING:
-            msg = "Invitation is not pending"
-            raise ValueError(msg)
+            not_pending_msg = "Invitation is not pending"
+            raise ValidationException(not_pending_msg)
 
         if invitation.expires_at < datetime.now(UTC):
-            msg = "Invitation has expired"
-            raise ValueError(msg)
+            expired_msg = "Invitation has expired"
+            raise ValidationException(expired_msg)
 
         invitation.status = InvitationStatus.USED
         invitation.used_at = datetime.now(UTC)
@@ -162,8 +159,8 @@ class InvitationRepository(SqlAlchemyBaseRepository[Invitation, int], IInvitatio
         """Update invitation status."""
         invitation = await self.get_by_id(invitation_id)
         if not invitation:
-            msg = f"Invitation with ID {invitation_id} not found"
-            raise ValueError(msg)
+            not_found_msg = "Invitation"
+            raise NotFoundException(not_found_msg)
 
         invitation.status = status
         await self._session.flush()

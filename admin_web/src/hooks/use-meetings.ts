@@ -12,6 +12,7 @@ export interface MeetingItem {
   position: string;
   level: string;
   deadlineDays: number;
+  durationMinutes: number;
   isMandatory: boolean;
   order: number;
   createdAt: string;
@@ -25,6 +26,7 @@ export interface MeetingFormData {
   position: string;
   level: string;
   deadline_days: number;
+  duration_minutes: number;
   is_mandatory: boolean;
   order: number;
 }
@@ -40,6 +42,7 @@ function mapMeeting(m: Meeting): MeetingItem {
     position: m.position || "",
     level: m.level || "",
     deadlineDays: m.deadline_days,
+    durationMinutes: m.duration_minutes,
     isMandatory: m.is_mandatory,
     order: m.order,
     createdAt: m.created_at,
@@ -54,6 +57,7 @@ const defaultFormData: MeetingFormData = {
   position: "",
   level: "",
   deadline_days: 7,
+  duration_minutes: 60,
   is_mandatory: true,
   order: 0,
 };
@@ -67,6 +71,7 @@ function toPayload(form: MeetingFormData) {
     position: form.position || null,
     level: form.level || null,
     deadline_days: form.deadline_days,
+    duration_minutes: form.duration_minutes,
     is_mandatory: form.is_mandatory,
     order: form.order,
   };
@@ -81,6 +86,7 @@ function toForm(meeting: MeetingItem): MeetingFormData {
     position: meeting.position,
     level: meeting.level,
     deadline_days: meeting.deadlineDays,
+    duration_minutes: meeting.durationMinutes,
     is_mandatory: meeting.isMandatory,
     order: meeting.order,
   };

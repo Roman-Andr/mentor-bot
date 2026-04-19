@@ -1,7 +1,7 @@
 """Unit tests for Department repository implementation."""
 
 from datetime import UTC, datetime
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -189,3 +189,27 @@ class TestDepartmentRepository:
 
         assert total == 2
         assert len(departments) == 2
+
+    async def test_has_users_true(self, mock_session, mock_result):
+        """Test has_users when department has users (covers lines 72-75)."""
+        count_result = MagicMock()
+        count_result.scalar_one.return_value = 5  # 5 users in this department
+        mock_session.execute.return_value = count_result
+
+        repo = DepartmentRepository(mock_session)
+        result = await repo.has_users(department_id=1)
+
+        assert result is True
+        mock_session.execute.assert_awaited_once()
+
+    async def test_has_users_false(self, mock_session, mock_result):
+        """Test has_users when department has no users (covers lines 72-75)."""
+        count_result = MagicMock()
+        count_result.scalar_one.return_value = 0  # No users
+        mock_session.execute.return_value = count_result
+
+        repo = DepartmentRepository(mock_session)
+        result = await repo.has_users(department_id=1)
+
+        assert result is False
+        mock_session.execute.assert_awaited_once()

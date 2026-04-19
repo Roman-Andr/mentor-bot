@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { useTranslations } from "@/hooks/use-translations";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,14 +53,16 @@ export function ArticleFormDialog({
 
   const isEdit = mode === "edit";
 
-  const statusLabels: Record<string, string> = {
-    PUBLISHED: t("knowledge.published"),
-    DRAFT: t("knowledge.draft"),
-  };
-  const articleStatuses = articleStatusValues.map((s) => ({
-    value: s.value,
-    label: statusLabels[s.value] ?? s.value,
-  }));
+  const articleStatuses = useMemo(() => {
+    const statusLabels: Record<string, string> = {
+      PUBLISHED: t("knowledge.published"),
+      DRAFT: t("knowledge.draft"),
+    };
+    return articleStatusValues.map((s) => ({
+      value: s.value,
+      label: statusLabels[s.value] ?? s.value,
+    }));
+  }, [t]);
 
   const update = (field: keyof ArticleFormData, value: string | number | boolean) => {
     onFormDataChange({ ...formData, [field]: value });

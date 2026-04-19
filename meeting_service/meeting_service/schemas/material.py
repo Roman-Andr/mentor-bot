@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, HttpUrl
 
 from meeting_service.core.enums import MaterialType
 
@@ -12,7 +12,7 @@ class MaterialBase(BaseModel):
 
     title: str = Field(..., min_length=1, max_length=200)
     description: str | None = Field(None, max_length=500)
-    url: str = Field(..., max_length=500)
+    url: HttpUrl = Field(..., max_length=500)
     type: MaterialType
     order: int = 0
 

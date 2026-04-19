@@ -702,6 +702,7 @@ class TestScheduleTemplateNotification:
     ) -> None:
         """Schedule template notification successfully."""
         from datetime import UTC, datetime
+
         from notification_service.api.endpoints.notifications import schedule_template_notification
 
         mock_scheduled = create_mock_scheduled_response(
@@ -759,6 +760,7 @@ class TestScheduleTemplateNotification:
     ) -> None:
         """Returns 404 when template not found for scheduling."""
         from datetime import UTC, datetime
+
         from notification_service.api.endpoints.notifications import schedule_template_notification
         from notification_service.services.template import TemplateNotFoundError
 
@@ -799,6 +801,7 @@ class TestScheduleTemplateNotification:
     ) -> None:
         """Returns 400 when template variables missing for scheduling."""
         from datetime import UTC, datetime
+
         from notification_service.api.endpoints.notifications import schedule_template_notification
         from notification_service.services.template import MissingTemplateVariablesError
 

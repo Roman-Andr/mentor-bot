@@ -19,6 +19,7 @@ class MeetingBase(BaseModel):
     is_mandatory: bool = True
     order: int = 0
     deadline_days: int = Field(default=7, ge=0, le=365)
+    duration_minutes: int = Field(default=60, ge=1, le=480)
 
 
 class MeetingCreate(MeetingBase):
@@ -37,6 +38,7 @@ class MeetingUpdate(BaseModel):
     is_mandatory: bool | None = None
     order: int | None = None
     deadline_days: int | None = Field(None, ge=0, le=365)
+    duration_minutes: int | None = Field(None, ge=1, le=480)
 
 
 class MeetingResponse(MeetingBase):

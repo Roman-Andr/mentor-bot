@@ -31,8 +31,8 @@ class TestPasswordResetService:
     @pytest.fixture
     def active_user(self):
         """Create an active user for testing."""
-        from auth_service.models import User
         from auth_service.core.enums import UserRole
+        from auth_service.models import User
 
         return User(
             id=1,
@@ -49,8 +49,8 @@ class TestPasswordResetService:
     @pytest.fixture
     def inactive_user(self):
         """Create an inactive user for testing."""
-        from auth_service.models import User
         from auth_service.core.enums import UserRole
+        from auth_service.models import User
 
         return User(
             id=2,
@@ -62,6 +62,22 @@ class TestPasswordResetService:
             is_active=False,
             is_verified=True,
             role=UserRole.NEWBIE,
+        )
+
+    def _create_token_record(self, token: str, user_id: int, expired: bool = False, used: bool = False):
+        """Helper to create a PasswordResetToken with proper bcrypt hash."""
+        from auth_service.models import PasswordResetToken
+
+        expires_at = datetime.now(UTC) - timedelta(hours=1) if expired else datetime.now(UTC) + timedelta(hours=1)
+        used_at = datetime.now(UTC) if used else None
+
+        return PasswordResetToken(
+            id=1,
+            user_id=user_id,
+            token_hash=PasswordResetService._hash_token(token),
+            expires_at=expires_at,
+            created_at=datetime.now(UTC),
+            used_at=used_at,
         )
 
     @pytest.mark.asyncio
@@ -81,7 +97,7 @@ class TestPasswordResetService:
     async def test_confirm_reset_token_not_found(self, mock_uow, mock_session):
         """Test confirm_reset returns False when token not found."""
         service = PasswordResetService(mock_uow, mock_session)
-        service._get_token_record = AsyncMock(return_value=None)
+        service._get_valid_token_record = AsyncMock(return_value=None)
 
         result = await service.confirm_reset("invalid-token", "newpassword123")
 
@@ -90,20 +106,9 @@ class TestPasswordResetService:
     @pytest.mark.asyncio
     async def test_confirm_reset_token_expired(self, mock_uow, mock_session, active_user):
         """Test confirm_reset returns False when token expired."""
-        from auth_service.models import PasswordResetToken
-
-        # Create expired token record
-        expired_token = PasswordResetToken(
-            id=1,
-            user_id=active_user.id,
-            token_hash=PasswordResetService._hash_token("expired-token"),
-            expires_at=datetime.now(UTC) - timedelta(hours=1),
-            created_at=datetime.now(UTC),
-            used_at=None,
-        )
-
+        # Expired tokens are filtered out by _get_valid_token_record
         service = PasswordResetService(mock_uow, mock_session)
-        service._get_token_record = AsyncMock(return_value=expired_token)
+        service._get_valid_token_record = AsyncMock(return_value=None)
 
         result = await service.confirm_reset("expired-token", "newpassword123")
 
@@ -112,22 +117,12 @@ class TestPasswordResetService:
     @pytest.mark.asyncio
     async def test_confirm_reset_user_not_found(self, mock_uow, mock_session, active_user):
         """Test confirm_reset returns False when user not found."""
-        from auth_service.models import PasswordResetToken
-
-        # Create valid token record
-        valid_token = PasswordResetToken(
-            id=1,
-            user_id=active_user.id,
-            token_hash=PasswordResetService._hash_token("valid-token"),
-            expires_at=datetime.now(UTC) + timedelta(hours=1),
-            created_at=datetime.now(UTC),
-            used_at=None,
-        )
+        valid_token = self._create_token_record("valid-token", active_user.id)
 
         mock_uow.users.get_by_id = AsyncMock(return_value=None)
 
         service = PasswordResetService(mock_uow, mock_session)
-        service._get_token_record = AsyncMock(return_value=valid_token)
+        service._get_valid_token_record = AsyncMock(return_value=valid_token)
 
         result = await service.confirm_reset("valid-token", "newpassword123")
 
@@ -136,22 +131,12 @@ class TestPasswordResetService:
     @pytest.mark.asyncio
     async def test_confirm_reset_user_inactive(self, mock_uow, mock_session, inactive_user):
         """Test confirm_reset returns False when user is inactive."""
-        from auth_service.models import PasswordResetToken
-
-        # Create valid token record
-        valid_token = PasswordResetToken(
-            id=1,
-            user_id=inactive_user.id,
-            token_hash=PasswordResetService._hash_token("valid-token"),
-            expires_at=datetime.now(UTC) + timedelta(hours=1),
-            created_at=datetime.now(UTC),
-            used_at=None,
-        )
+        valid_token = self._create_token_record("valid-token", inactive_user.id)
 
         mock_uow.users.get_by_id = AsyncMock(return_value=inactive_user)
 
         service = PasswordResetService(mock_uow, mock_session)
-        service._get_token_record = AsyncMock(return_value=valid_token)
+        service._get_valid_token_record = AsyncMock(return_value=valid_token)
 
         result = await service.confirm_reset("valid-token", "newpassword123")
 
@@ -160,23 +145,13 @@ class TestPasswordResetService:
     @pytest.mark.asyncio
     async def test_confirm_reset_success(self, mock_uow, mock_session, active_user):
         """Test confirm_reset succeeds with valid token and active user."""
-        from auth_service.models import PasswordResetToken
-
-        # Create valid token record
-        valid_token = PasswordResetToken(
-            id=1,
-            user_id=active_user.id,
-            token_hash=PasswordResetService._hash_token("valid-token"),
-            expires_at=datetime.now(UTC) + timedelta(hours=1),
-            created_at=datetime.now(UTC),
-            used_at=None,
-        )
+        valid_token = self._create_token_record("valid-token", active_user.id)
 
         mock_uow.users.get_by_id = AsyncMock(return_value=active_user)
         mock_session.flush = AsyncMock()
 
         service = PasswordResetService(mock_uow, mock_session)
-        service._get_token_record = AsyncMock(return_value=valid_token)
+        service._get_valid_token_record = AsyncMock(return_value=valid_token)
 
         result = await service.confirm_reset("valid-token", "newSecurePass123")
 
@@ -186,41 +161,34 @@ class TestPasswordResetService:
         mock_session.flush.assert_awaited_once()
 
     @pytest.mark.asyncio
-    async def test_get_token_record_success(self, mock_uow, mock_session, active_user):
-        """Test _get_token_record returns token when found and not used."""
+    async def test_get_valid_token_record_success(self, mock_uow, mock_session, active_user):
+        """Test _get_valid_token_record returns token when found and valid."""
         from auth_service.models import PasswordResetToken
 
-        token_hash = PasswordResetService._hash_token("test-token")
-        mock_token = PasswordResetToken(
-            id=1,
-            user_id=active_user.id,
-            token_hash=token_hash,
-            expires_at=datetime.now(UTC) + timedelta(hours=1),
-            created_at=datetime.now(UTC),
-            used_at=None,
-        )
+        token = "test-token"
+        mock_token = self._create_token_record(token, active_user.id)
 
+        # Mock query to return list with our token
         mock_result = MagicMock()
-        mock_result.scalar_one_or_none.return_value = mock_token
+        mock_result.scalars.return_value.all.return_value = [mock_token]
         mock_session.execute = AsyncMock(return_value=mock_result)
 
         service = PasswordResetService(mock_uow, mock_session)
-        result = await service._get_token_record(token_hash)
+        result = await service._get_valid_token_record(token)
 
         assert result == mock_token
         mock_session.execute.assert_awaited_once()
 
     @pytest.mark.asyncio
-    async def test_get_token_record_not_found(self, mock_uow, mock_session):
-        """Test _get_token_record returns None when token not found."""
-        token_hash = PasswordResetService._hash_token("nonexistent-token")
-
+    async def test_get_valid_token_record_not_found(self, mock_uow, mock_session):
+        """Test _get_valid_token_record returns None when no matching token."""
+        # Mock query to return empty list
         mock_result = MagicMock()
-        mock_result.scalar_one_or_none.return_value = None
+        mock_result.scalars.return_value.all.return_value = []
         mock_session.execute = AsyncMock(return_value=mock_result)
 
         service = PasswordResetService(mock_uow, mock_session)
-        result = await service._get_token_record(token_hash)
+        result = await service._get_valid_token_record("nonexistent-token")
 
         assert result is None
 
@@ -245,24 +213,13 @@ class TestPasswordResetService:
     @pytest.mark.asyncio
     async def test_validate_token_user_inactive(self, mock_uow, mock_session, inactive_user):
         """Test validate_token returns None when user is inactive."""
-        from auth_service.models import PasswordResetToken
-
         token = "valid-token"
-
-        # Create valid token record
-        mock_token = PasswordResetToken(
-            id=1,
-            user_id=inactive_user.id,
-            token_hash=PasswordResetService._hash_token(token),
-            expires_at=datetime.now(UTC) + timedelta(hours=1),
-            created_at=datetime.now(UTC),
-            used_at=None,
-        )
+        mock_token = self._create_token_record(token, inactive_user.id)
 
         mock_uow.users.get_by_id = AsyncMock(return_value=inactive_user)
 
         service = PasswordResetService(mock_uow, mock_session)
-        service._get_token_record = AsyncMock(return_value=mock_token)
+        service._get_valid_token_record = AsyncMock(return_value=mock_token)
 
         result = await service.validate_token(token)
 

@@ -13,13 +13,13 @@ T = TypeVar("T")
 V = TypeVar("V", bound=int | str)
 
 
-def apply_date_filters(
-    query: Select[Any],
+def apply_date_filters[T](
+    query: Select[tuple[Any, ...]],
     model_class: type[T],
     from_date: datetime | None,
     to_date: datetime | None,
     date_column: str = "submitted_at",
-) -> Select[Any]:
+) -> Select[tuple[Any, ...]]:
     """
     Apply date range filters to a query.
 
@@ -32,7 +32,11 @@ def apply_date_filters(
 
     Returns:
         The modified query with date filters applied
+
     """
+    if from_date and to_date and from_date > to_date:
+        raise ValueError("from_date must be before or equal to to_date")
+
     date_attr = getattr(model_class, date_column)
 
     if from_date:
@@ -48,12 +52,12 @@ class DateFilterMixin:
 
     def _apply_date_filters(
         self,
-        query: Select[Any],
+        query: Select[tuple[Any, ...]],
         model_class: type[T],
         from_date: datetime | None,
         to_date: datetime | None,
         date_column: str = "submitted_at",
-    ) -> Select[Any]:
+    ) -> Select[tuple[Any, ...]]:
         """Apply date range filters to a query."""
         return apply_date_filters(query, model_class, from_date, to_date, date_column)
 

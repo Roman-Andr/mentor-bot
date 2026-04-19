@@ -1,6 +1,6 @@
 """Unit tests for Unit of Work pattern."""
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
@@ -181,7 +181,8 @@ class TestIUnitOfWorkProtocol:
         assert callable(mock_uow.rollback)
 
     async def test_iunitofwork_protocol_coverage(self):
-        """Execute protocol method bodies to cover lines 30, 34, 38, 42.
+        """
+        Execute protocol method bodies to cover lines 30, 34, 38, 42.
 
         The ... lines in the protocol are not just placeholders - they are
         executable Python code. We need to actually await the coroutines
@@ -191,10 +192,10 @@ class TestIUnitOfWorkProtocol:
         mock_uow = MagicMock()
 
         # Get the raw functions from the class body
-        raw_commit = IUnitOfWork.__dict__['commit']
-        raw_rollback = IUnitOfWork.__dict__['rollback']
-        raw_aenter = IUnitOfWork.__dict__['__aenter__']
-        raw_aexit = IUnitOfWork.__dict__['__aexit__']
+        raw_commit = IUnitOfWork.__dict__["commit"]
+        raw_rollback = IUnitOfWork.__dict__["rollback"]
+        raw_aenter = IUnitOfWork.__dict__["__aenter__"]
+        raw_aexit = IUnitOfWork.__dict__["__aexit__"]
 
         # Actually execute the coroutines to run the ... code
         # This is what triggers coverage of lines 30, 34, 38, 42

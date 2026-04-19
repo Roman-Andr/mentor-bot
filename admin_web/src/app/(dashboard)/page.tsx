@@ -44,7 +44,7 @@ export default function DashboardPage() {
       title: t("dashboard.escalations"),
       value: stats.overdue_tasks.toString(),
       change: "",
-      changeType: stats.overdue_tasks > 0 ? "negative" as const : "neutral" as const,
+      changeType: stats.overdue_tasks > 0 ? ("negative" as const) : ("neutral" as const),
       icon: AlertTriangle,
       color: "bg-red-500",
     },
@@ -55,7 +55,7 @@ export default function DashboardPage() {
       <div className="space-y-6 p-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-foreground text-2xl font-bold">{t("dashboard.title")}</h1>
+            <h1 className="text-2xl font-bold text-foreground">{t("dashboard.title")}</h1>
             <p className="text-muted-foreground">{t("dashboard.welcome")}</p>
           </div>
         </div>
@@ -71,7 +71,7 @@ export default function DashboardPage() {
       <div className="space-y-6 p-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-foreground text-2xl font-bold">{t("dashboard.title")}</h1>
+            <h1 className="text-2xl font-bold text-foreground">{t("dashboard.title")}</h1>
             <p className="text-muted-foreground">{t("dashboard.welcome")}</p>
           </div>
         </div>
@@ -88,10 +88,10 @@ export default function DashboardPage() {
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-foreground text-2xl font-bold">{t("dashboard.title")}</h1>
+          <h1 className="text-2xl font-bold text-foreground">{t("dashboard.title")}</h1>
           <p className="text-muted-foreground">{t("dashboard.welcome")}</p>
         </div>
-        <div className="text-muted-foreground flex items-center gap-2 text-sm">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <TrendingUp className="size-4" />
           <span>
             {t("common.refresh")}: {new Date().toLocaleDateString()}
@@ -118,7 +118,7 @@ export default function DashboardPage() {
               <div className="text-4xl font-bold text-blue-600">
                 {stats?.average_completion_days || 0}
               </div>
-              <p className="text-muted-foreground mt-2 text-sm">{t("dashboard.daysAverage")}</p>
+              <p className="mt-2 text-sm text-muted-foreground">{t("dashboard.daysAverage")}</p>
             </div>
           </CardContent>
         </Card>

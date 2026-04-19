@@ -2,10 +2,8 @@
 
 from datetime import UTC, datetime, timedelta
 
-import pytest
-
 from notification_service.core.enums import NotificationChannel, NotificationStatus, NotificationType
-from notification_service.models import Notification, ScheduledNotification
+from notification_service.models import Notification, NotificationTemplate, ScheduledNotification
 
 
 class TestNotificationModel:
@@ -52,8 +50,8 @@ class TestNotificationModel:
 
         assert "Notification" in repr_str
         assert "id=1" in repr_str
-        assert "type=NotificationType.GENERAL" in repr_str
-        assert "status=NotificationStatus.PENDING" in repr_str
+        assert "type=GENERAL" in repr_str
+        assert "status=PENDING" in repr_str
 
     def test_notification_repr_different_status(self):
         """Test Notification __repr__ with different status."""
@@ -69,8 +67,8 @@ class TestNotificationModel:
         repr_str = repr(notification)
 
         assert "id=2" in repr_str
-        assert "type=NotificationType.TASK_REMINDER" in repr_str
-        assert "status=NotificationStatus.SENT" in repr_str
+        assert "type=TASK_REMINDER" in repr_str
+        assert "status=SENT" in repr_str
 
     def test_notification_repr_failed_status(self):
         """Test Notification __repr__ with FAILED status."""
@@ -86,7 +84,7 @@ class TestNotificationModel:
         repr_str = repr(notification)
 
         assert "id=3" in repr_str
-        assert "status=NotificationStatus.FAILED" in repr_str
+        assert "status=FAILED" in repr_str
 
     def test_notification_optional_fields(self):
         """Test Notification with optional fields as None."""
@@ -252,3 +250,43 @@ class TestScheduledNotificationModel:
         assert notification2.data["task_id"] == 123
         assert notification2.data["nested"]["key"] == "value"
         assert notification2.data["list"] == [1, 2, 3]
+
+
+class TestNotificationTemplateModel:
+    """Tests for the NotificationTemplate model."""
+
+    def test_notification_template_repr(self):
+        """Test NotificationTemplate __repr__ method (line 49)."""
+        template = NotificationTemplate(
+            id=1,
+            name="welcome_email",
+            channel="email",
+            language="en",
+            subject="Welcome!",
+            body_html="<h1>Welcome</h1>",
+            body_text="Welcome!",
+        )
+
+        repr_str = repr(template)
+
+        assert "NotificationTemplate" in repr_str
+        assert "id=1" in repr_str
+        assert "name=welcome_email" in repr_str
+        assert "channel=email" in repr_str
+        assert "lang=en" in repr_str
+
+    def test_notification_template_repr_with_id_none(self):
+        """Test NotificationTemplate __repr__ when id is None (before save)."""
+        template = NotificationTemplate(
+            name="test_template",
+            channel="telegram",
+            language="ru",
+        )
+
+        repr_str = repr(template)
+
+        assert "NotificationTemplate" in repr_str
+        assert "id=None" in repr_str
+        assert "name=test_template" in repr_str
+        assert "channel=telegram" in repr_str
+        assert "lang=ru" in repr_str

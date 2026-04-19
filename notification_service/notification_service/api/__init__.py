@@ -1,5 +1,6 @@
 """API routers and dependencies for the Notification Service."""
 
+from notification_service.api import templates
 from notification_service.api.deps import (
     AdminUser,
     CurrentUser,
@@ -10,7 +11,6 @@ from notification_service.api.deps import (
     get_current_user,
 )
 from notification_service.api.endpoints import email, notifications
-from notification_service.api import templates
 
 __all__ = [
     "AdminUser",

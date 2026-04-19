@@ -18,6 +18,10 @@ class ChecklistsServiceClient:
         self.base_url = base_url or settings.CHECKLISTS_SERVICE_URL
         self.client = httpx.AsyncClient(base_url=self.base_url, timeout=30.0)
 
+    async def aclose(self) -> None:
+        """Close the HTTP client and release resources."""
+        await self.client.aclose()
+
     async def auto_create_checklists(
         self,
         user_id: int,
@@ -57,6 +61,10 @@ class NotificationServiceClient:
         # Default to localhost:8004 for notification service
         self.base_url = base_url or settings.NOTIFICATION_SERVICE_URL or "http://localhost:8004"
         self.client = httpx.AsyncClient(base_url=self.base_url, timeout=30.0)
+
+    async def aclose(self) -> None:
+        """Close the HTTP client and release resources."""
+        await self.client.aclose()
 
     async def send_password_reset_email(
         self,

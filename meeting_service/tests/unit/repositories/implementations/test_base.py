@@ -1,7 +1,7 @@
 """Unit tests for SqlAlchemyBaseRepository."""
 
 from collections.abc import Sequence
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from sqlalchemy import select

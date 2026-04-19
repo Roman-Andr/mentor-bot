@@ -14,9 +14,14 @@ from redis.asyncio import Redis
 from telegram_bot.bot import setup_bot
 from telegram_bot.config import settings
 from telegram_bot.database import init_db
+from telegram_bot.middlewares.throttling import throttling_service
 from telegram_bot.services.cache import user_cache
 from telegram_bot.utils import cache as redis_cache
 from telegram_bot.utils import scheduler
+from telegram_bot.utils.file_rate_limiter import (
+    connect_rate_limiter,
+    disconnect_rate_limiter,
+)
 
 # Configure logging
 logging.basicConfig(
@@ -38,6 +43,13 @@ async def lifespan(bot: Bot) -> AsyncGenerator[None]:
     await user_cache.connect()
     await redis_cache.connect()
 
+    # Initialize throttling service (if enabled)
+    if settings.THROTTLING_ENABLED:
+        await throttling_service.connect()
+
+    # Initialize file upload rate limiter
+    await connect_rate_limiter()
+
     # Setup bot commands
     await setup_bot_commands(bot)
 
@@ -54,6 +66,9 @@ async def lifespan(bot: Bot) -> AsyncGenerator[None]:
     await bot.session.close()
     await user_cache.disconnect()
     await redis_cache.disconnect()
+    await disconnect_rate_limiter()
+    if settings.THROTTLING_ENABLED:
+        await throttling_service.disconnect()
     if settings.ENABLE_NOTIFICATIONS:
         await scheduler.shutdown()
 

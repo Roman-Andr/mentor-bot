@@ -27,6 +27,7 @@ def mock_notification_client():
 class TestEscalationServiceCreate:
     """Tests for creating escalation requests."""
 
+    @pytest.mark.asyncio
     async def test_create_escalation_sets_pending_status(self, mock_uow: MagicMock) -> None:
         """Creating an escalation should set status to PENDING."""
         # Arrange
@@ -59,6 +60,7 @@ class TestEscalationServiceCreate:
 class TestEscalationServiceGet:
     """Tests for retrieving escalation requests."""
 
+    @pytest.mark.asyncio
     async def test_get_escalation_by_id_found(self, mock_uow: MagicMock) -> None:
         """Getting an existing escalation should return it."""
         # Arrange
@@ -73,6 +75,7 @@ class TestEscalationServiceGet:
         assert result == mock_request
         mock_uow.escalations.get_by_id.assert_awaited_once_with(1)
 
+    @pytest.mark.asyncio
     async def test_get_escalation_by_id_not_found(self, mock_uow: MagicMock) -> None:
         """Getting a non-existent escalation should raise NotFoundException."""
         # Arrange
@@ -83,6 +86,7 @@ class TestEscalationServiceGet:
         with pytest.raises(NotFoundException):
             await service.get_escalation_by_id(999)
 
+    @pytest.mark.asyncio
     async def test_get_escalations_with_filters(self, mock_uow: MagicMock) -> None:
         """Getting escalations with filters should pass them to repository."""
         # Arrange
@@ -122,6 +126,7 @@ class TestEscalationServiceGet:
 class TestEscalationServiceStateMachine:
     """Tests for escalation state machine transitions."""
 
+    @pytest.mark.asyncio
     async def test_pending_to_assigned_transition(self, mock_uow: MagicMock) -> None:
         """PENDING escalation can be assigned (PENDING→ASSIGNED)."""
         # Arrange
@@ -146,6 +151,7 @@ class TestEscalationServiceStateMachine:
         mock_uow.escalations.update.assert_awaited_once()
         mock_uow.commit.assert_awaited_once()
 
+    @pytest.mark.asyncio
     async def test_assigned_to_resolved_transition(self, mock_uow: MagicMock) -> None:
         """ASSIGNED escalation can be resolved (ASSIGNED→RESOLVED)."""
         # Arrange
@@ -170,6 +176,7 @@ class TestEscalationServiceStateMachine:
         mock_uow.escalations.update.assert_awaited_once()
         mock_uow.commit.assert_awaited_once()
 
+    @pytest.mark.asyncio
     async def test_pending_to_resolved_via_update_blocked(self, mock_uow: MagicMock) -> None:
         """PENDING -> RESOLVED is blocked - must go through IN_PROGRESS first."""
         # Arrange
@@ -196,6 +203,7 @@ class TestEscalationServiceStateMachine:
         assert "Invalid status transition" in str(exc_info.value.detail)
         mock_uow.escalations.update.assert_not_awaited()
 
+    @pytest.mark.asyncio
     async def test_resolve_sets_resolved_at_timestamp(self, mock_uow: MagicMock) -> None:
         """Resolving an escalation should set resolved_at timestamp."""
         # Arrange
@@ -222,6 +230,7 @@ class TestEscalationServiceStateMachine:
         assert result.resolved_at is not None
         assert before <= result.resolved_at <= after
 
+    @pytest.mark.asyncio
     async def test_update_escalation_with_resolution_note(self, mock_uow: MagicMock) -> None:
         """Updating with resolution_note should store it in context (IN_PROGRESS->RESOLVED)."""
         # Arrange
@@ -249,6 +258,7 @@ class TestEscalationServiceStateMachine:
         # Assert
         assert result.context.get("resolution_note") == "Issue resolved by HR team"
 
+    @pytest.mark.asyncio
     async def test_update_escalation_with_assignee(self, mock_uow: MagicMock) -> None:
         """Updating with assigned_to should update the assignee."""
         # Arrange
@@ -276,6 +286,7 @@ class TestEscalationServiceStateMachine:
 class TestEscalationServiceStatusTransitions:
     """Tests for various status transition scenarios."""
 
+    @pytest.mark.asyncio
     async def test_in_progress_to_resolved(self, mock_uow: MagicMock) -> None:
         """IN_PROGRESS escalation can be resolved."""
         # Arrange
@@ -297,6 +308,7 @@ class TestEscalationServiceStatusTransitions:
         # Assert
         assert result.status == EscalationStatus.RESOLVED
 
+    @pytest.mark.asyncio
     async def test_in_progress_status_can_be_resolved(self, mock_uow: MagicMock) -> None:
         """IN_PROGRESS escalation can be resolved (valid transition)."""
         # Arrange
@@ -320,6 +332,7 @@ class TestEscalationServiceStatusTransitions:
         # Assert
         assert result.status == EscalationStatus.RESOLVED
 
+    @pytest.mark.asyncio
     async def test_closed_status_via_update(self, mock_uow: MagicMock) -> None:
         """Escalation can be closed via update."""
         # Arrange
@@ -374,6 +387,7 @@ class TestEscalationServiceAllStatusValues:
             (EscalationStatus.CLOSED, EscalationStatus.CLOSED),
         ],
     )
+    @pytest.mark.asyncio
     async def test_valid_status_transitions_succeed(
         self,
         mock_uow: MagicMock,
@@ -402,6 +416,7 @@ class TestEscalationServiceAllStatusValues:
         # Assert
         assert result.status == new_status
 
+    @pytest.mark.asyncio
     @pytest.mark.parametrize("escalation_type", list(EscalationType))
     async def test_all_types_can_be_created(self, mock_uow: MagicMock, escalation_type: EscalationType) -> None:
         """Escalation can be created with any EscalationType."""
@@ -426,6 +441,7 @@ class TestEscalationServiceAllStatusValues:
 class TestEscalationServiceEdgeCases:
     """Tests for edge cases and error scenarios."""
 
+    @pytest.mark.asyncio
     async def test_get_escalation_by_id_raises_not_found(self, mock_uow: MagicMock) -> None:
         """Getting non-existent escalation raises NotFoundException."""
         # Arrange
@@ -439,6 +455,7 @@ class TestEscalationServiceEdgeCases:
         assert "not found" in str(exc_info.value.detail).lower()
         mock_uow.escalations.get_by_id.assert_awaited_once_with(999)
 
+    @pytest.mark.asyncio
     async def test_assign_escalation_not_found(self, mock_uow: MagicMock) -> None:
         """Assigning non-existent escalation raises NotFoundException."""
         # Arrange
@@ -449,6 +466,7 @@ class TestEscalationServiceEdgeCases:
         with pytest.raises(NotFoundException):
             await service.assign_escalation(999, 200)
 
+    @pytest.mark.asyncio
     async def test_resolve_escalation_not_found(self, mock_uow: MagicMock) -> None:
         """Resolving non-existent escalation raises NotFoundException."""
         # Arrange
@@ -459,6 +477,7 @@ class TestEscalationServiceEdgeCases:
         with pytest.raises(NotFoundException):
             await service.resolve_escalation(999)
 
+    @pytest.mark.asyncio
     async def test_update_escalation_not_found(self, mock_uow: MagicMock) -> None:
         """Updating non-existent escalation raises NotFoundException."""
         # Arrange
@@ -475,6 +494,7 @@ class TestEscalationServiceEdgeCases:
 class TestEscalationServiceStateMachineTransitions:
     """Comprehensive tests for escalation state machine transitions."""
 
+    @pytest.mark.asyncio
     async def test_pending_to_assigned_via_assign_method(self, mock_uow: MagicMock) -> None:
         """PENDING -> ASSIGNED via assign_escalation method."""
         # Arrange
@@ -499,6 +519,7 @@ class TestEscalationServiceStateMachineTransitions:
         mock_uow.escalations.update.assert_awaited_once()
         mock_uow.commit.assert_awaited_once()
 
+    @pytest.mark.asyncio
     async def test_pending_to_in_progress_via_update(self, mock_uow: MagicMock) -> None:
         """PENDING -> IN_PROGRESS via update_escalation."""
         # Arrange
@@ -522,6 +543,7 @@ class TestEscalationServiceStateMachineTransitions:
         # Assert
         assert result.status == EscalationStatus.IN_PROGRESS
 
+    @pytest.mark.asyncio
     async def test_in_progress_to_assigned_via_update(self, mock_uow: MagicMock) -> None:
         """IN_PROGRESS -> ASSIGNED via update_escalation."""
         # Arrange
@@ -545,6 +567,7 @@ class TestEscalationServiceStateMachineTransitions:
         # Assert
         assert result.status == EscalationStatus.ASSIGNED
 
+    @pytest.mark.asyncio
     async def test_assigned_to_in_progress_via_update(self, mock_uow: MagicMock) -> None:
         """ASSIGNED -> IN_PROGRESS via update_escalation."""
         # Arrange
@@ -568,6 +591,7 @@ class TestEscalationServiceStateMachineTransitions:
         # Assert
         assert result.status == EscalationStatus.IN_PROGRESS
 
+    @pytest.mark.asyncio
     async def test_pending_to_rejected_via_update(self, mock_uow: MagicMock) -> None:
         """PENDING -> REJECTED via update_escalation."""
         # Arrange
@@ -591,6 +615,7 @@ class TestEscalationServiceStateMachineTransitions:
         # Assert
         assert result.status == EscalationStatus.REJECTED
 
+    @pytest.mark.asyncio
     async def test_rejected_to_pending_via_update(self, mock_uow: MagicMock) -> None:
         """REJECTED -> PENDING via update_escalation (reopen)."""
         # Arrange
@@ -614,6 +639,7 @@ class TestEscalationServiceStateMachineTransitions:
         # Assert
         assert result.status == EscalationStatus.PENDING
 
+    @pytest.mark.asyncio
     async def test_any_status_to_closed_sets_resolved_at(self, mock_uow: MagicMock) -> None:
         """Transitioning to CLOSED status sets resolved_at timestamp."""
         # Arrange
@@ -643,6 +669,7 @@ class TestEscalationServiceStateMachineTransitions:
         assert result.resolved_at is not None
         assert before <= result.resolved_at <= after
 
+    @pytest.mark.asyncio
     async def test_resolve_method_sets_status_and_timestamp(self, mock_uow: MagicMock) -> None:
         """resolve_escalation method correctly sets RESOLVED status and resolved_at."""
         # Arrange
@@ -675,6 +702,7 @@ class TestEscalationServiceStateMachineTransitions:
 class TestEscalationServiceContextOperations:
     """Tests for escalation context operations."""
 
+    @pytest.mark.asyncio
     async def test_update_escalation_merges_resolution_note_with_existing_context(self, mock_uow: MagicMock) -> None:
         """Resolution note should be merged with existing context (IN_PROGRESS->RESOLVED)."""
         # Arrange
@@ -704,6 +732,7 @@ class TestEscalationServiceContextOperations:
         assert result.context["previous"] == "data"
         assert result.context["key"] == "value"
 
+    @pytest.mark.asyncio
     async def test_update_escalation_resolution_note_with_none_context(self, mock_uow: MagicMock) -> None:
         """Resolution note should work even if context was None initially."""
         # Arrange
@@ -734,6 +763,7 @@ class TestEscalationServiceContextOperations:
 class TestEscalationServiceGetEscalations:
     """Additional tests for get_escalations method."""
 
+    @pytest.mark.asyncio
     async def test_get_escalations_empty_list(self, mock_uow: MagicMock) -> None:
         """Getting escalations with no results returns empty list."""
         # Arrange
@@ -747,6 +777,7 @@ class TestEscalationServiceGetEscalations:
         assert requests == []
         assert total == 0
 
+    @pytest.mark.asyncio
     async def test_get_escalations_default_parameters(self, mock_uow: MagicMock) -> None:
         """Getting escalations uses default skip and limit."""
         # Arrange
@@ -761,6 +792,7 @@ class TestEscalationServiceGetEscalations:
         assert call_kwargs["skip"] == 0
         assert call_kwargs["limit"] == 100
 
+    @pytest.mark.asyncio
     async def test_get_escalations_with_search(self, mock_uow: MagicMock) -> None:
         """Search parameter is passed to repository."""
         # Arrange

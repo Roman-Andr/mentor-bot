@@ -47,6 +47,12 @@ async def create_user_mentor(
     _current_user: HRUser,
 ) -> UserMentorResponse:
     """Create a user-mentor relation (HR/admin only)."""
+    if data.user_id == data.mentor_id:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail="User cannot be their own mentor",
+        )
+
     existing = await uow.user_mentors.get_by_user_and_mentor(data.user_id, data.mentor_id)
     if existing:
         raise HTTPException(

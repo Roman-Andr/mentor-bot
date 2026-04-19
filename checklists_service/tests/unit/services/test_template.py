@@ -1,7 +1,7 @@
 """Unit tests for template service."""
 
-from datetime import datetime  # noqa: TC003
-from unittest.mock import MagicMock  # noqa: TC003
+from datetime import datetime
+from unittest.mock import MagicMock
 
 import pytest
 

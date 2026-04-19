@@ -4,8 +4,7 @@ from collections.abc import Sequence
 from datetime import date, timedelta
 from typing import cast
 
-import sqlalchemy
-from sqlalchemy import and_, func, or_, select, update
+from sqlalchemy import Column, and_, func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from sqlalchemy.sql.expression import text
@@ -84,7 +83,7 @@ class ArticleRepository(SqlAlchemyBaseRepository[Article, int], IArticleReposito
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none()
 
-    def _get_sort_column(self, sort_by: str | None) -> "sqlalchemy.Column":
+    def _get_sort_column(self, sort_by: str | None) -> Column:
         """Get SQLAlchemy column for sorting."""
         column_map = {
             "title": Article.title,
@@ -186,11 +185,10 @@ class ArticleRepository(SqlAlchemyBaseRepository[Article, int], IArticleReposito
                 stmt = stmt.order_by(Article.is_pinned.desc(), sort_column.asc())
             else:
                 stmt = stmt.order_by(Article.is_pinned.desc(), sort_column.desc())
+        elif sort_order.lower() == "asc":
+            stmt = stmt.order_by(sort_column.asc())
         else:
-            if sort_order.lower() == "asc":
-                stmt = stmt.order_by(sort_column.asc())
-            else:
-                stmt = stmt.order_by(sort_column.desc())
+            stmt = stmt.order_by(sort_column.desc())
 
         result = await self._session.execute(stmt)
         return result.scalars().all(), total

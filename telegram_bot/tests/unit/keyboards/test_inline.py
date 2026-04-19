@@ -179,7 +179,7 @@ class TestGetLanguageKeyboard:
         result = get_language_keyboard()
 
         # Function returns InlineKeyboardBuilder, not InlineKeyboardMarkup
-        assert isinstance(result, InlineKeyboardBuilder) or isinstance(result, InlineKeyboardMarkup)
+        assert isinstance(result, (InlineKeyboardBuilder, InlineKeyboardMarkup))
 
 
 class TestGetFeedbackKeyboards:

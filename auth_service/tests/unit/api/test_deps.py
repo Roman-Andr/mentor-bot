@@ -1,12 +1,10 @@
 """Unit tests for API dependencies (api/deps.py)."""
 
 from datetime import UTC, datetime
-from typing import get_args, get_origin
+from typing import get_origin
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPAuthorizationCredentials
 
 from auth_service.api import deps
 from auth_service.core import AuthException, PermissionDenied, UserRole
@@ -16,55 +14,23 @@ from auth_service.models import User
 class TestGetUow:
     """Tests for get_uow dependency."""
 
-    async def test_get_uow_exception_rollback(self):
-        """Test get_uow rolls back and re-raises on exception (covers lines 26-28)."""
+    async def test_get_uow_yields_uow_instance(self):
+        """Test get_uow yields UOW instance without explicit commit/rollback."""
         from auth_service.repositories.unit_of_work import SqlAlchemyUnitOfWork
 
         # Create a mock UOW
         mock_uow = MagicMock(spec=SqlAlchemyUnitOfWork)
-        mock_uow.commit = AsyncMock()
-        mock_uow.rollback = AsyncMock()
-        mock_uow.__aenter__ = AsyncMock(return_value=mock_uow)
-        mock_uow.__aexit__ = AsyncMock(return_value=None)
-
-        # Create mock session factory
-        mock_session_factory = MagicMock()
-
-        # Patch SqlAlchemyUnitOfWork to return our mock
-        with patch.object(deps, 'SqlAlchemyUnitOfWork', return_value=mock_uow):
-            gen = deps.get_uow()
-            uow = await gen.__anext__()  # Get the UOW from generator
-
-            # Simulate an exception during UOW use
-            with pytest.raises(ValueError, match="Test error"):
-                try:
-                    raise ValueError("Test error")
-                except Exception:
-                    await gen.athrow(ValueError("Test error"))
-
-        # Verify rollback was called
-        mock_uow.rollback.assert_awaited_once()
-
-    async def test_get_uow_success_commit(self):
-        """Test get_uow commits on successful completion."""
-        from auth_service.repositories.unit_of_work import SqlAlchemyUnitOfWork
-
-        # Create a mock UOW
-        mock_uow = MagicMock(spec=SqlAlchemyUnitOfWork)
-        mock_uow.commit = AsyncMock()
-        mock_uow.rollback = AsyncMock()
         mock_uow.__aenter__ = AsyncMock(return_value=mock_uow)
         mock_uow.__aexit__ = AsyncMock(return_value=None)
 
         # Patch SqlAlchemyUnitOfWork
-        with patch.object(deps, 'SqlAlchemyUnitOfWork', return_value=mock_uow):
+        with patch.object(deps, "SqlAlchemyUnitOfWork", return_value=mock_uow):
             async for uow in deps.get_uow():
-                # Normal operation without exception
-                pass
+                # Verify the UOW is yielded
+                assert uow is mock_uow
 
-        # Verify commit was called
-        mock_uow.commit.assert_awaited_once()
-        mock_uow.rollback.assert_not_awaited()
+        # Verify __aexit__ was called (commit/rollback handled by UOW context manager)
+        mock_uow.__aexit__.assert_awaited_once()
 
 
 class TestGetAuthService:
@@ -125,27 +91,45 @@ class TestGetCurrentUser:
     async def test_get_current_user_no_credentials(self):
         """Test get_current_user raises AuthException when no credentials."""
         mock_auth_service = MagicMock()
+        mock_request = MagicMock()
+        mock_request.headers = {}
+        mock_request.cookies = {}
 
         with pytest.raises(AuthException) as exc_info:
-            await deps.get_current_user(None, mock_auth_service)
+            await deps.get_current_user(mock_request, mock_auth_service)
 
         assert "Not authenticated" in str(exc_info.value.detail)
 
-    async def test_get_current_user_valid_token(self, admin_user):
-        """Test get_current_user returns user with valid token."""
+    async def test_get_current_user_valid_bearer_token(self, admin_user):
+        """Test get_current_user returns user with valid Bearer token in header."""
         mock_auth_service = MagicMock()
         mock_auth_service.get_current_user = AsyncMock(return_value=admin_user)
 
-        credentials = HTTPAuthorizationCredentials(scheme="Bearer", credentials="valid_token")
+        mock_request = MagicMock()
+        mock_request.headers = {"authorization": "Bearer valid_token"}
+        mock_request.cookies = {}
 
-        user = await deps.get_current_user(credentials, mock_auth_service)
+        user = await deps.get_current_user(mock_request, mock_auth_service)
 
         assert user == admin_user
         mock_auth_service.get_current_user.assert_called_once_with("valid_token")
 
+    async def test_get_current_user_valid_cookie_token(self, admin_user):
+        """Test get_current_user returns user with valid token in httpOnly cookie."""
+        mock_auth_service = MagicMock()
+        mock_auth_service.get_current_user = AsyncMock(return_value=admin_user)
+
+        mock_request = MagicMock()
+        mock_request.headers = {}
+        mock_request.cookies = {"access_token": "cookie_token"}
+
+        user = await deps.get_current_user(mock_request, mock_auth_service)
+
+        assert user == admin_user
+        mock_auth_service.get_current_user.assert_called_once_with("cookie_token")
+
     async def test_get_current_user_inactive_user(self):
         """Test get_current_user raises AuthException when user is inactive."""
-        from datetime import UTC
         inactive_user = User(
             id=1,
             email="inactive@example.com",
@@ -161,11 +145,13 @@ class TestGetCurrentUser:
         mock_auth_service = MagicMock()
         mock_auth_service.get_current_user = AsyncMock(return_value=inactive_user)
 
-        credentials = HTTPAuthorizationCredentials(scheme="Bearer", credentials="valid_token")
+        mock_request = MagicMock()
+        mock_request.headers = {"authorization": "Bearer valid_token"}
+        mock_request.cookies = {}
 
         # The inactive user check raises HTTPException but it's caught and wrapped in AuthException
         with pytest.raises(AuthException) as exc_info:
-            await deps.get_current_user(credentials, mock_auth_service)
+            await deps.get_current_user(mock_request, mock_auth_service)
 
         # The AuthException wraps the HTTPException with a generic message
         assert "Invalid authentication credentials" in str(exc_info.value.detail)
@@ -175,10 +161,12 @@ class TestGetCurrentUser:
         mock_auth_service = MagicMock()
         mock_auth_service.get_current_user = AsyncMock(side_effect=AuthException("Invalid token"))
 
-        credentials = HTTPAuthorizationCredentials(scheme="Bearer", credentials="invalid_token")
+        mock_request = MagicMock()
+        mock_request.headers = {"authorization": "Bearer invalid_token"}
+        mock_request.cookies = {}
 
         with pytest.raises(AuthException) as exc_info:
-            await deps.get_current_user(credentials, mock_auth_service)
+            await deps.get_current_user(mock_request, mock_auth_service)
 
         assert "Invalid authentication credentials" in str(exc_info.value.detail)
 
@@ -187,10 +175,12 @@ class TestGetCurrentUser:
         mock_auth_service = MagicMock()
         mock_auth_service.get_current_user = AsyncMock(side_effect=ValueError("Some error"))
 
-        credentials = HTTPAuthorizationCredentials(scheme="Bearer", credentials="token")
+        mock_request = MagicMock()
+        mock_request.headers = {"authorization": "Bearer token"}
+        mock_request.cookies = {}
 
         with pytest.raises(AuthException) as exc_info:
-            await deps.get_current_user(credentials, mock_auth_service)
+            await deps.get_current_user(mock_request, mock_auth_service)
 
         assert "Invalid authentication credentials" in str(exc_info.value.detail)
 

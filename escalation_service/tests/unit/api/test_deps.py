@@ -1,5 +1,6 @@
 """Unit tests for escalation_service/api/deps.py."""
 
+import contextlib
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
@@ -262,7 +263,7 @@ class TestUOWDependency:
 
     @pytest.mark.asyncio
     async def test_uow_rollback_on_exception(self):
-        """Test that UoW close is called on exception exit."""
+        """Test that UoW rollback and close are called on exception exit."""
         mock_session_factory = MagicMock()
         mock_session = AsyncMock()
         mock_session_factory.return_value = mock_session
@@ -279,7 +280,8 @@ class TestUOWDependency:
         except ValueError:
             await uow.__aexit__(*__import__("sys").exc_info())
 
-        # close should be called on exit (rollback is explicitly called by get_uow when catching exceptions)
+        # rollback and close should be called when exiting with an exception
+        mock_session.rollback.assert_awaited_once()
         mock_session.close.assert_awaited_once()
 
     @pytest.mark.asyncio
@@ -301,12 +303,12 @@ class TestUOWDependency:
             await uow.rollback()
 
 
-class TestGetUOWExceptionHandling:
-    """Tests for get_uow exception handling (lines 106-112)."""
+class TestGetUOW:
+    """Tests for get_uow dependency."""
 
     @pytest.mark.asyncio
-    async def test_get_uow_rollback_on_exception(self):
-        """Test that get_uow rolls back when exception occurs after yield."""
+    async def test_get_uow_yields_uow_instance(self):
+        """Test that get_uow yields a SqlAlchemyUnitOfWork instance."""
         from escalation_service.api.deps import get_uow
 
         mock_session_factory = MagicMock()
@@ -317,37 +319,32 @@ class TestGetUOWExceptionHandling:
             gen = get_uow()
             uow = await gen.asend(None)
 
-            # Simulate exception during request handling
-            with pytest.raises(ValueError, match="Test error"):
-                try:
-                    raise ValueError("Test error")
-                except Exception as exc:
-                    await gen.athrow(exc)
+            # Verify we got a UoW instance
+            assert isinstance(uow, SqlAlchemyUnitOfWork)
 
-            # Verify rollback was called
-            mock_session.rollback.assert_awaited_once()
-
-    @pytest.mark.asyncio
-    async def test_get_uow_commit_on_success(self):
-        """Test that get_uow commits when no exception occurs."""
-        from escalation_service.api.deps import get_uow
-
-        mock_session_factory = MagicMock()
-        mock_session = AsyncMock()
-        mock_session_factory.return_value = mock_session
-
-        with patch("escalation_service.api.deps.AsyncSessionLocal", mock_session_factory):
-            gen = get_uow()
-            uow = await gen.asend(None)
-
-            # Simulate successful request completion
-            try:
+            # Clean up generator
+            with contextlib.suppress(StopAsyncIteration):
                 await gen.asend(None)
-            except StopAsyncIteration:
-                pass
 
-            # Verify commit was called
-            mock_session.commit.assert_awaited_once()
+    @pytest.mark.asyncio
+    async def test_get_uow_closes_session_on_exit(self):
+        """Test that get_uow closes session on context exit."""
+        from escalation_service.api.deps import get_uow
+
+        mock_session_factory = MagicMock()
+        mock_session = AsyncMock()
+        mock_session_factory.return_value = mock_session
+
+        with patch("escalation_service.api.deps.AsyncSessionLocal", mock_session_factory):
+            gen = get_uow()
+            await gen.asend(None)
+
+            # Simulate successful completion (closes generator)
+            with contextlib.suppress(StopAsyncIteration):
+                await gen.asend(None)
+
+            # Verify close was called on session
+            mock_session.close.assert_awaited_once()
 
 
 class TestRequireAnyAssigneeOrHR:

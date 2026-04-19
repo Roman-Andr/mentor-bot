@@ -28,10 +28,7 @@ def format_welcome_message(
 
         # Extract department name (handle both string and dict formats)
         dept_raw = user_data.get("department", "N/A")
-        if isinstance(dept_raw, dict):
-            dept = dept_raw.get("name", "N/A")
-        else:
-            dept = dept_raw
+        dept = dept_raw.get("name", "N/A") if isinstance(dept_raw, dict) else dept_raw
 
         # Extract position
         pos = user_data.get("position", "N/A")

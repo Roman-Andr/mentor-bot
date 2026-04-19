@@ -1,6 +1,6 @@
 """Unit tests for notification_service/database.py."""
 
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -119,10 +119,8 @@ class TestGetDb:
 
             # Continue iteration - this should execute the code after yield
             # and reach the commit line before closing
-            try:
+            with suppress(StopAsyncIteration):
                 await gen.asend(None)
-            except StopAsyncIteration:
-                pass  # Generator exhausted after single yield
 
         # Verify session.close was called via the finally block
         mock_session.close.assert_awaited_once()

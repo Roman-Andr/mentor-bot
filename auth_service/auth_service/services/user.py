@@ -76,7 +76,9 @@ class UserService:
             is_verified=True,
         )
 
-        return await self._uow.users.create(user)
+        created = await self._uow.users.create(user)
+        await self._uow.commit()
+        return created
 
     async def update_user(self, user_id: int, user_data: UserUpdate) -> User:
         """Update user information."""
@@ -109,6 +111,12 @@ class UserService:
     async def deactivate_user(self, user_id: int) -> None:
         """Deactivate user account."""
         await self._uow.users.deactivate_user(user_id)
+
+    async def delete_user(self, user_id: int) -> None:
+        """Permanently delete user account."""
+        # Verify user exists before deleting
+        user = await self.get_user_by_id(user_id)
+        await self._uow.users.delete(user_id)
 
     async def get_users(
         self,

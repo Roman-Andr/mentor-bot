@@ -1,7 +1,5 @@
 """Tests for Unit of Work Protocol - covering lines 41, 45, 49, 53, 57."""
 
-from collections.abc import AsyncGenerator
-from contextlib import asynccontextmanager
 from typing import Self
 from unittest.mock import AsyncMock, MagicMock
 
@@ -14,7 +12,8 @@ from knowledge_service.repositories.unit_of_work import IUnitOfWork, SqlAlchemyU
 
 
 def test_protocol_import_triggers_coverage():
-    """Test that importing IUnitOfWork triggers coverage on Protocol lines.
+    """
+    Test that importing IUnitOfWork triggers coverage on Protocol lines.
 
     The Protocol class definition includes abstract method placeholders with ...
     which need to be "executed" (at import time) to achieve 100% coverage:
@@ -36,6 +35,7 @@ class MockUnitOfWork:
     """Mock implementation of IUnitOfWork for testing the Protocol."""
 
     def __init__(self):
+        """Initialize mock repositories and session."""
         self._articles = MagicMock()
         self._article_views = MagicMock()
         self._attachments = MagicMock()
@@ -48,34 +48,42 @@ class MockUnitOfWork:
 
     @property
     def articles(self):
+        """Return mock articles repository."""
         return self._articles
 
     @property
     def article_views(self):
+        """Return mock article views repository."""
         return self._article_views
 
     @property
     def attachments(self):
+        """Return mock attachments repository."""
         return self._attachments
 
     @property
     def categories(self):
+        """Return mock categories repository."""
         return self._categories
 
     @property
     def dialogue_scenarios(self):
+        """Return mock dialogue scenarios repository."""
         return self._dialogue_scenarios
 
     @property
     def dialogue_steps(self):
+        """Return mock dialogue steps repository."""
         return self._dialogue_steps
 
     @property
     def search_history(self):
+        """Return mock search history repository."""
         return self._search_history
 
     @property
     def tags(self):
+        """Return mock tags repository."""
         return self._tags
 
     @property
@@ -101,7 +109,8 @@ class MockUnitOfWork:
 
 
 class TestIUnitOfWorkProtocol:
-    """Test IUnitOfWork Protocol implementation.
+    """
+    Test IUnitOfWork Protocol implementation.
 
     This tests cover the Protocol's abstract method definitions:
     - line 41: session property

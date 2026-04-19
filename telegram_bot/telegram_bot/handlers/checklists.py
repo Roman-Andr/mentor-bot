@@ -27,6 +27,7 @@ from telegram_bot.keyboards.checklist_detail import (
 )
 from telegram_bot.services.checklists_client import checklists_client
 from telegram_bot.states.checklist_states import TaskAttachmentStates
+from telegram_bot.utils.file_rate_limiter import file_upload_rate_limit
 from telegram_bot.utils.formatters import (
     format_checklist_progress,
     format_task_detail,
@@ -403,6 +404,7 @@ async def noop_callback(callback: CallbackQuery, *, locale: str = "en") -> None:
 
 
 @router.message(TaskAttachmentStates.waiting_for_file, F.document)
+@file_upload_rate_limit(max_uploads=10, window_seconds=3600)
 async def receive_task_file(
     message: Message, state: FSMContext, auth_token: str, *, locale: str = "en"
 ) -> None:
@@ -442,6 +444,7 @@ async def receive_task_file(
 
 
 @router.message(TaskAttachmentStates.waiting_for_file, F.photo)
+@file_upload_rate_limit(max_uploads=10, window_seconds=3600)
 async def receive_task_photo(
     message: Message, state: FSMContext, auth_token: str, *, locale: str = "en"
 ) -> None:

@@ -11,6 +11,7 @@ from sqlalchemy import (
     ForeignKey,
     Integer,
     String,
+    event,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
@@ -78,6 +79,21 @@ class User(Base):
                 return assignment.mentor_id
         return None
 
+    @property
+    def full_name(self) -> str:
+        """Get full name combining first and last name."""
+        if self.last_name:
+            return f"{self.first_name} {self.last_name}"
+        return self.first_name
+
     def __repr__(self) -> str:
         """Representation of User."""
         return f"<User(id={self.id}, email={self.email}, role={self.role})>"
+
+
+@event.listens_for(User, "before_insert")
+@event.listens_for(User, "before_update")
+def normalize_email_case(_mapper: object, _connection: object, target: "User") -> None:
+    """Normalize email to lowercase before saving."""
+    if target.email:
+        target.email = target.email.lower()

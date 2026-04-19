@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Mock Data Setup Script for Mentor Bot
+Mock Data Setup Script for Mentor Bot.
 
 Creates test data across all microservices using JSON configuration files.
 Generates rich data for demonstration purposes - various statuses, roles, etc.
@@ -43,6 +43,8 @@ API_KEY = os.getenv("API_KEY", "test_api_key")
 
 
 class Colors:
+    """Terminal color codes for logging."""
+
     RED = "\033[0;31m"
     GREEN = "\033[0;32m"
     YELLOW = "\033[1;33m"
@@ -54,30 +56,37 @@ class Colors:
 
 
 def log_info(msg: str) -> None:
+    """Print info message to console."""
     print(f"{Colors.CYAN}[INFO]{Colors.NC} {msg}")
 
 
 def log_success(msg: str) -> None:
+    """Print success message to console."""
     print(f"{Colors.GREEN}[SUCCESS]{Colors.NC} {msg}")
 
 
 def log_warning(msg: str) -> None:
+    """Print warning message to console."""
     print(f"{Colors.YELLOW}[WARNING]{Colors.NC} {msg}")
 
 
 def log_error(msg: str) -> None:
+    """Print error message to console."""
     print(f"{Colors.RED}[ERROR]{Colors.NC} {msg}")
 
 
 def log_step(msg: str) -> None:
+    """Print step message to console."""
     print(f"{Colors.BLUE}>>>{Colors.NC} {Colors.BOLD}{msg}{Colors.NC}")
 
 
 def log_divider() -> None:
+    """Print divider line to console."""
     print(f"{Colors.BLUE}{'=' * 60}{Colors.NC}")
 
 
 def load_json(filename: str) -> Any:
+    """Load JSON file from mock data directory."""
     filepath = MOCK_DATA_DIR / filename
     with open(filepath) as f:
         return json.load(f)
@@ -734,7 +743,8 @@ async def create_article_views_async(
     article_ids: list[int],
     user_ids: dict[str, int],
 ) -> None:
-    """Create article views to simulate users reading knowledge base articles.
+    """
+    Create article views to simulate users reading knowledge base articles.
 
     Views are recorded by making GET requests to articles (the knowledge service
     automatically tracks views when articles are fetched).
@@ -881,43 +891,42 @@ def generate_mock_file_content(filename: str, content_type: str, file_size: int,
         # Generate pseudo-random filler
         filler = bytes((article_id * 7 + seed * 13 + i * 3) % 256 for i in range(remaining))
         return header + filler
-    elif content_type == "application/pdf":
+    if content_type == "application/pdf":
         # PDF header
         header = b"%PDF-1.4\n1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n"
         footer = b"\nxref\ntrailer\n<< /Size 1 /Root 1 0 R >>\n%%EOF"
         middle_size = max(0, file_size - len(header) - len(footer))
         middle = bytes((article_id * 11 + seed * 7 + i * 5) % 256 for i in range(middle_size))
         return header + middle + footer
-    elif content_type == "application/zip":
+    if content_type == "application/zip":
         # ZIP header
         header = bytes([0x50, 0x4B, 0x03, 0x04])
         remaining = max(0, file_size - len(header))
         filler = bytes((article_id * 3 + seed * 17 + i) % 256 for i in range(remaining))
         return header + filler
-    else:
-        # Text-based files - generate varied content
-        base_text = f"Mock content for {filename} (article {article_id}, file {seed})\n"
-        base_text += "=" * 50 + "\n"
-        base_text += f"Generated: Mock file for testing purposes\n"
-        base_text += f"Size target: {file_size} bytes\n"
-        base_text += f"Content type: {content_type}\n"
-        base_text += "-" * 50 + "\n"
+    # Text-based files - generate varied content
+    base_text = f"Mock content for {filename} (article {article_id}, file {seed})\n"
+    base_text += "=" * 50 + "\n"
+    base_text += "Generated: Mock file for testing purposes\n"
+    base_text += f"Size target: {file_size} bytes\n"
+    base_text += f"Content type: {content_type}\n"
+    base_text += "-" * 50 + "\n"
 
-        # Add filler to reach target size
-        current_len = len(base_text.encode("utf-8"))
-        if current_len < file_size:
-            lines_needed = (file_size - current_len) // 60 + 1
-            for i in range(lines_needed):
-                line = f"Line {i + 1}: " + "x" * 40 + f" (seed: {article_id + seed + i})\n"
-                base_text += line
-                if len(base_text.encode("utf-8")) >= file_size:
-                    break
+    # Add filler to reach target size
+    current_len = len(base_text.encode("utf-8"))
+    if current_len < file_size:
+        lines_needed = (file_size - current_len) // 60 + 1
+        for i in range(lines_needed):
+            line = f"Line {i + 1}: " + "x" * 40 + f" (seed: {article_id + seed + i})\n"
+            base_text += line
+            if len(base_text.encode("utf-8")) >= file_size:
+                break
 
-        content = base_text.encode("utf-8")[:file_size]
-        # Ensure exact size
-        if len(content) < file_size:
-            content = content + bytes(file_size - len(content))
-        return content[:file_size]
+    content = base_text.encode("utf-8")[:file_size]
+    # Ensure exact size
+    if len(content) < file_size:
+        content = content + bytes(file_size - len(content))
+    return content[:file_size]
 
 
 async def create_mock_task_attachments(
@@ -1157,9 +1166,20 @@ async def create_user_meetings(
 
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
 
+    # Use only first 3 templates per user to avoid duplicates
+    templates_to_assign = meeting_template_ids[:3]
+
     async with httpx.AsyncClient() as client:
-        for meet_tpl_id in meeting_template_ids[:3]:
-            scheduled_at = datetime.now() - timedelta(days=scheduled_days_ago)
+        for idx, meet_tpl_id in enumerate(templates_to_assign):
+            # For SCHEDULED: use future date (1-7 days ahead)
+            # For COMPLETED/MISSED/CANCELLED: schedule in future then update status
+            if status == "SCHEDULED":
+                # Vary the scheduled time slightly to avoid exact duplicates
+                days_ahead = max(1, 7 - scheduled_days_ago + idx)
+                scheduled_at = datetime.now() + timedelta(days=days_ahead, hours=idx * 2)
+            else:
+                # Schedule in near future then update status to simulate historical meeting
+                scheduled_at = datetime.now() + timedelta(days=1, hours=idx)
 
             try:
                 response = await client.post(
@@ -1183,6 +1203,9 @@ async def create_user_meetings(
                             headers=headers,
                             json={"status": status},
                         )
+                elif response.status_code == 409:
+                    # Meeting already assigned - skip silently
+                    pass
                 else:
                     log_warning(f"  Failed to create user meeting: {response.status_code} {response.text[:200]}")
 
@@ -1448,6 +1471,7 @@ async def create_user_mentors_async(
 
 
 async def main(skip_services: list[str] | None = None, dry_run: bool = False) -> None:
+    """Run mock data setup across all services with optional dry-run mode."""
     skip_services = skip_services or []
 
     log_divider()
@@ -1479,10 +1503,9 @@ async def main(skip_services: list[str] | None = None, dry_run: bool = False) ->
             log_error(f"{name} is not available. Exiting.")
             sys.exit(1)
 
-    if not dry_run:
-        if not create_admin_user():
-            log_error("Failed to create admin user. Exiting.")
-            sys.exit(1)
+    if not dry_run and not create_admin_user():
+        log_error("Failed to create admin user. Exiting.")
+        sys.exit(1)
 
     token = await get_admin_token()
     if not token:
@@ -1585,7 +1608,7 @@ async def main(skip_services: list[str] | None = None, dry_run: bool = False) ->
         log_info(f"  Tags:              {len(tags)}")
         log_info(f"  Articles:          {len(articles)}")
         log_info(f"  Article views:     {total_views} (users with varied reading activity)")
-        log_info(f"  Article attachments: Various files (PDFs, docs, images, spreadsheets)")
+        log_info("  Article attachments: Various files (PDFs, docs, images, spreadsheets)")
         log_info(f"  Dialogue scenarios: {len(scenarios)}")
     if "meeting" not in skip_services:
         meetings = load_json("meetings.json")

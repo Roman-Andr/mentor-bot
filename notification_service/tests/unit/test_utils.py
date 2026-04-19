@@ -2,8 +2,6 @@
 
 from datetime import UTC, datetime, timedelta, timezone
 
-import pytest
-
 from notification_service.utils import (
     format_datetime,
     from_timestamp,

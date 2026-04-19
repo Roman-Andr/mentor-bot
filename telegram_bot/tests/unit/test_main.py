@@ -1,6 +1,7 @@
 """Unit tests for telegram_bot/main.py."""
 
 import sys
+from contextlib import suppress
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -13,12 +14,12 @@ def mock_modules():
     # Save original modules to restore after test
     original_modules = {}
     mocks = {
-        'telegram_bot.database': MagicMock(),
-        'telegram_bot.database.connection': MagicMock(),
-        'telegram_bot.services.cache': MagicMock(),
-        'telegram_bot.utils.cache': MagicMock(),
-        'telegram_bot.utils.scheduler': MagicMock(),
-        'telegram_bot.bot': MagicMock(),
+        "telegram_bot.database": MagicMock(),
+        "telegram_bot.database.connection": MagicMock(),
+        "telegram_bot.services.cache": MagicMock(),
+        "telegram_bot.utils.cache": MagicMock(),
+        "telegram_bot.utils.scheduler": MagicMock(),
+        "telegram_bot.bot": MagicMock(),
     }
     for name, mock in mocks.items():
         if name in sys.modules:
@@ -38,7 +39,7 @@ class TestLifespan:
 
     @pytest.fixture(autouse=True)
     def setup_mocks(self, mock_modules):
-        """Setup common mocks."""
+        """Set up common mocks."""
         # Patch all the required dependencies
         self.patches = []
 
@@ -122,7 +123,7 @@ class TestSetupBotCommands:
 
     @pytest.fixture(autouse=True)
     def setup_settings(self):
-        """Setup settings mock."""
+        """Set up settings mock."""
         with patch("telegram_bot.main.settings") as mock_settings:
             self.mock_settings = mock_settings
             self.mock_settings.ADMIN_IDS = []
@@ -131,7 +132,6 @@ class TestSetupBotCommands:
     async def test_setup_bot_commands_basic(self, setup_settings):
         """Test basic bot commands setup without admin."""
         from telegram_bot.main import setup_bot_commands
-        from aiogram.types import BotCommand
 
         mock_bot = MagicMock()
         mock_bot.set_my_commands = AsyncMock()
@@ -154,7 +154,6 @@ class TestSetupBotCommands:
     async def test_setup_bot_commands_with_admin(self, setup_settings):
         """Test bot commands setup with admin IDs configured."""
         from telegram_bot.main import setup_bot_commands
-        from aiogram.types import BotCommand
 
         # Patch settings at the module level
         with patch("telegram_bot.main.settings") as patched_settings:
@@ -176,8 +175,9 @@ class TestSetupBotCommands:
 
     async def test_setup_bot_commands_verifies_command_structure(self, setup_settings):
         """Test that commands have proper description and command fields."""
-        from telegram_bot.main import setup_bot_commands
         from aiogram.types import BotCommand
+
+        from telegram_bot.main import setup_bot_commands
 
         mock_bot = MagicMock()
         mock_bot.set_my_commands = AsyncMock()
@@ -199,7 +199,7 @@ class TestMainFunction:
 
     @pytest.fixture(autouse=True)
     def setup_mocks(self, mock_modules):
-        """Setup all necessary mocks."""
+        """Set up all necessary mocks."""
         with patch("telegram_bot.main.Redis") as mock_redis_class, \
              patch("telegram_bot.main.RedisStorage") as mock_storage_class, \
              patch("telegram_bot.main.Bot") as mock_bot_class, \
@@ -239,10 +239,8 @@ class TestMainFunction:
         self.mock_bot_class.return_value = mock_bot
         self.mock_dispatcher_class.return_value = mock_dp
 
-        try:
+        with suppress(Exception):
             await main()
-        except Exception:
-            pass  # We expect this to potentially fail due to mocks
 
         # Verify core setup happened
         self.mock_redis_class.from_url.assert_called_once()
@@ -264,18 +262,17 @@ class TestMainModule:
 
             # Import fresh to check logging setup
             with patch.dict(sys.modules, {
-                'telegram_bot.database': MagicMock(),
-                'telegram_bot.database.connection': MagicMock(),
-                'telegram_bot.services.cache': MagicMock(),
-                'telegram_bot.utils.cache': MagicMock(),
-                'telegram_bot.utils.scheduler': MagicMock(),
-                'telegram_bot.bot': MagicMock(),
+                "telegram_bot.database": MagicMock(),
+                "telegram_bot.database.connection": MagicMock(),
+                "telegram_bot.services.cache": MagicMock(),
+                "telegram_bot.utils.cache": MagicMock(),
+                "telegram_bot.utils.scheduler": MagicMock(),
+                "telegram_bot.bot": MagicMock(),
             }):
                 import logging
                 # Force reimport by clearing cache
-                if 'telegram_bot.main' in sys.modules:
-                    del sys.modules['telegram_bot.main']
-                from telegram_bot import main as main_module
+                if "telegram_bot.main" in sys.modules:
+                    del sys.modules["telegram_bot.main"]
                 logger = logging.getLogger("telegram_bot.main")
                 assert logger is not None
 
@@ -283,23 +280,23 @@ class TestMainModule:
         """Test that __main__ entry point exists."""
         # Just verify the pattern exists in the code
         with patch.dict(sys.modules, {
-            'telegram_bot.database': MagicMock(),
-            'telegram_bot.database.connection': MagicMock(),
-            'telegram_bot.services.cache': MagicMock(),
-            'telegram_bot.utils.cache': MagicMock(),
-            'telegram_bot.utils.scheduler': MagicMock(),
-            'telegram_bot.bot': MagicMock(),
+            "telegram_bot.database": MagicMock(),
+            "telegram_bot.database.connection": MagicMock(),
+            "telegram_bot.services.cache": MagicMock(),
+            "telegram_bot.utils.cache": MagicMock(),
+            "telegram_bot.utils.scheduler": MagicMock(),
+            "telegram_bot.bot": MagicMock(),
         }):
-            if 'telegram_bot.main' in sys.modules:
-                del sys.modules['telegram_bot.main']
+            if "telegram_bot.main" in sys.modules:
+                del sys.modules["telegram_bot.main"]
             import telegram_bot.main as main_module
 
             # Verify the module has main function
-            assert hasattr(main_module, 'main')
+            assert hasattr(main_module, "main")
             assert callable(main_module.main)
 
             # Verify lifespan exists
-            assert hasattr(main_module, 'lifespan')
+            assert hasattr(main_module, "lifespan")
 
             # Verify setup_bot_commands exists
-            assert hasattr(main_module, 'setup_bot_commands')
+            assert hasattr(main_module, "setup_bot_commands")

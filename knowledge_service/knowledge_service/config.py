@@ -62,10 +62,17 @@ class Settings(BaseSettings):
     S3_USE_SSL: bool = Field(default=False)
     KNOWLEDGE_S3_BUCKET: str = Field(default="knowledge-files")
     S3_PRESIGNED_URL_EXPIRY: int = Field(default=3600, ge=60, le=604800)
+    S3_SECURE_MODE: bool = Field(default=False)
 
     # Search Configuration
     SEARCH_RESULTS_LIMIT: int = Field(default=10, ge=1, le=100)
     SEARCH_CACHE_TTL: int = Field(default=300, ge=1)
+    SEARCH_SUGGESTIONS_CACHE_TTL: int = Field(default=300, ge=1)
+    POPULAR_SEARCHES_CACHE_TTL: int = Field(default=3600, ge=1)
+
+    # Integration Cache TTLs
+    AUTH_TOKEN_CACHE_TTL: int = Field(default=300, ge=1)
+    AUTH_USER_CACHE_TTL: int = Field(default=600, ge=1)
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", case_sensitive=True, extra="ignore")
 

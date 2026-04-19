@@ -64,6 +64,12 @@ async def init_db() -> None:
         )
 
         # Create all tables
-        from meeting_service.models import Meeting, MeetingMaterial, UserMeeting  # noqa: F401, PLC0415
+        from meeting_service.models import (  # noqa: F401, PLC0415
+            Department,
+            GoogleCalendarAccount,
+            Meeting,
+            MeetingMaterial,
+            UserMeeting,
+        )
 
         await conn.run_sync(Base.metadata.create_all)

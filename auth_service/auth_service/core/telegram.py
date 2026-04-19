@@ -1,5 +1,7 @@
 """Telegram authentication validation module."""
 
+from secrets import compare_digest
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -11,7 +13,7 @@ MAX_AUTH_AGE_SECONDS = 60 * 5
 
 def verify_telegram_api_key(api_key: str) -> bool:
     """Validate Telegram API key."""
-    return api_key == settings.TELEGRAM_API_KEY
+    return compare_digest(api_key, settings.TELEGRAM_API_KEY)
 
 
 async def verify_telegram_user_exists(db: AsyncSession, telegram_id: int) -> bool:

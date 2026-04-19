@@ -1,7 +1,6 @@
 """Unit tests for telegram_bot/handlers/common.py."""
 
 from unittest.mock import AsyncMock, MagicMock, patch
-from datetime import UTC, datetime
 
 import pytest
 from aiogram.fsm.context import FSMContext
@@ -10,8 +9,8 @@ from aiogram.types import CallbackQuery, Message
 from telegram_bot.handlers.common import (
     cmd_about,
     cmd_help,
-    message_mentor,
     mentor_tasks,
+    message_mentor,
     my_mentor,
     progress,
     schedule_mentor,

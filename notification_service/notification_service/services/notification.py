@@ -2,7 +2,7 @@
 
 import logging
 from collections.abc import Sequence
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from notification_service.core.enums import NotificationChannel, NotificationStatus, NotificationType
@@ -108,9 +108,14 @@ class NotificationService:
         """Process all pending scheduled notifications whose time has come."""
         now = datetime.now(UTC)
         pending = await self._uow.scheduled_notifications.find_pending_before(now)
-        sent_notifications = []
+        processed_notifications = []
 
         for scheduled in pending:
+            # Skip if max retries exceeded
+            if scheduled.retry_count >= scheduled.max_retries:
+                await self._uow.scheduled_notifications.mark_processed(scheduled.id)
+                continue
+
             # Create notification record from scheduled data
             notification = Notification(
                 user_id=scheduled.user_id,
@@ -134,15 +139,38 @@ class NotificationService:
 
             await self._uow.notifications.update(saved)
 
-            # Mark scheduled as processed
-            await self._uow.scheduled_notifications.mark_processed(scheduled.id)
+            if success:
+                # Mark scheduled as processed only on success
+                await self._uow.scheduled_notifications.mark_processed(scheduled.id)
+            elif scheduled.retry_count + 1 >= scheduled.max_retries:
+                # Max retries reached, mark as processed (failed)
+                await self._uow.scheduled_notifications.mark_processed(scheduled.id)
+                logger.warning(
+                    "Scheduled notification %s failed after %d retries",
+                    scheduled.id,
+                    scheduled.max_retries,
+                )
+            else:
+                # Schedule retry with exponential backoff
+                backoff_minutes = 2 ** scheduled.retry_count
+                next_scheduled = now + timedelta(minutes=backoff_minutes)
+                await self._uow.scheduled_notifications.increment_retry(
+                    scheduled.id, next_scheduled
+                )
+                logger.info(
+                    "Scheduled notification %s failed, retrying in %d minutes (attempt %d/%d)",
+                    scheduled.id,
+                    backoff_minutes,
+                    scheduled.retry_count + 1,
+                    scheduled.max_retries,
+                )
 
-            sent_notifications.append(saved)
+            processed_notifications.append(saved)
 
-        if sent_notifications:
+        if processed_notifications:
             await self._uow.commit()
 
-        return sent_notifications
+        return processed_notifications
 
     async def send_template(
         self,
@@ -155,7 +183,8 @@ class NotificationService:
         notification_type: NotificationType = NotificationType.GENERAL,
         language: str = "en",
     ) -> Notification:
-        """Send a notification using a template.
+        """
+        Send a notification using a template.
 
         Args:
             template_name: Name of the template to use
@@ -173,6 +202,7 @@ class NotificationService:
         Raises:
             TemplateNotFoundError: If template is not found
             MissingTemplateVariablesError: If required variables are missing
+
         """
         # Render template
         channel_str = "email" if channel == NotificationChannel.EMAIL else "telegram"
@@ -234,7 +264,8 @@ class NotificationService:
         notification_type: NotificationType = NotificationType.GENERAL,
         language: str = "en",
     ) -> ScheduledNotification:
-        """Schedule a template-based notification for future sending.
+        """
+        Schedule a template-based notification for future sending.
 
         Args:
             template_name: Name of the template to use
@@ -249,6 +280,7 @@ class NotificationService:
 
         Returns:
             The created ScheduledNotification
+
         """
         # Render template
         channel_str = "email" if channel == NotificationChannel.EMAIL else "telegram"

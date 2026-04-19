@@ -81,7 +81,8 @@ def sample_scheduled_notification() -> ScheduledNotification:
 
 @pytest.fixture
 def client() -> TestClient:
-    """Create a FastAPI TestClient for integration tests.
+    """
+    Create a FastAPI TestClient for integration tests.
 
     Mocks database initialization and scheduler to avoid real connections.
     """

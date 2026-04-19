@@ -18,13 +18,12 @@ class TestGetDB:
         mock_session.close = AsyncMock()
 
         # Test that the session methods exist and can be called
-        assert hasattr(mock_session, 'commit')
-        assert hasattr(mock_session, 'rollback')
-        assert hasattr(mock_session, 'close')
+        assert hasattr(mock_session, "commit")
+        assert hasattr(mock_session, "rollback")
+        assert hasattr(mock_session, "close")
 
     async def test_get_db_exception_handling(self):
         """Test get_db rolls back and re-raises on exception (covers lines 52-53)."""
-        from collections.abc import AsyncGenerator
         from unittest.mock import AsyncMock
 
         # Create a mock session that will be yielded
@@ -41,7 +40,7 @@ class TestGetDB:
         mock_session_factory.return_value = mock_context_manager
 
         # Patch AsyncSessionLocal
-        with patch.object(base, 'AsyncSessionLocal', mock_session_factory):
+        with patch.object(base, "AsyncSessionLocal", mock_session_factory):
             gen = base.get_db()
             session = await gen.__anext__()  # Get the session from generator
 
@@ -74,7 +73,7 @@ class TestGetDB:
         mock_session_factory.return_value = mock_context_manager
 
         # Patch AsyncSessionLocal
-        with patch.object(base, 'AsyncSessionLocal', mock_session_factory):
+        with patch.object(base, "AsyncSessionLocal", mock_session_factory):
             async for session in base.get_db():  # noqa: B007
                 # Normal operation without exception
                 pass
@@ -104,7 +103,7 @@ class TestInitDB:
         mock_engine.begin = MagicMock(return_value=mock_begin_cm)
 
         # Patch the base module's engine
-        with patch.object(base, 'engine', mock_engine):
+        with patch.object(base, "engine", mock_engine):
             await base.init_db()
             # Verify begin was called
             mock_engine.begin.assert_called_once()
@@ -153,4 +152,4 @@ class TestMetadata:
     def test_metadata_obj_exists(self):
         """Test metadata object exists."""
         assert base.metadata_obj is not None
-        assert hasattr(base.metadata_obj, 'schema')
+        assert hasattr(base.metadata_obj, "schema")

@@ -1,6 +1,5 @@
 """Tests for custom exceptions - covering line 56 (ConflictException)."""
 
-import pytest
 from fastapi import status
 
 from knowledge_service.core.exceptions import (
@@ -72,7 +71,8 @@ class TestValidationException:
 
 
 class TestConflictException:
-    """Test ConflictException - covers line 56.
+    """
+    Test ConflictException - covers line 56.
 
     This tests the ConflictException which was previously uncovered.
     """

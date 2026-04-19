@@ -43,7 +43,7 @@ export function DepartmentBreakdown({ departments }: DepartmentBreakdownProps) {
               );
             })
           ) : (
-            <p className="text-muted-foreground py-4 text-center text-sm">{t("common.noData")}</p>
+            <p className="py-4 text-center text-sm text-muted-foreground">{t("common.noData")}</p>
           )}
         </div>
       </CardContent>

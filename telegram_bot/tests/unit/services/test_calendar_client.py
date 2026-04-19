@@ -12,7 +12,7 @@ class TestCalendarClient:
 
     @pytest.fixture(autouse=True)
     def setup(self):
-        """Setup test client."""
+        """Set up test client."""
         self.client = CalendarClient(base_url="http://test-meeting:8006")
         self.auth_token = "test_token_123"
         self.user_id = 123

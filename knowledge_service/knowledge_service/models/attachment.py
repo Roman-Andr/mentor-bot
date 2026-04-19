@@ -7,9 +7,9 @@ from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
+from knowledge_service.config import settings
 from knowledge_service.core import AttachmentType
 from knowledge_service.database import Base
-from knowledge_service.config import settings
 
 if TYPE_CHECKING:
     from knowledge_service.models import Article

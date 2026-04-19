@@ -1,7 +1,7 @@
 """Unit tests for S3 storage service."""
 
 from io import BytesIO
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 from botocore.exceptions import ClientError
@@ -135,7 +135,7 @@ class TestStorageServiceUpload:
         async def mock_run_in_executor(executor, func, *args):
             return func(*args)
 
-        with patch("asyncio.get_event_loop") as mock_loop:
+        with patch("asyncio.get_running_loop") as mock_loop:
             mock_loop.return_value.run_in_executor = mock_run_in_executor
 
             result = await mock_service.upload_file(
@@ -155,7 +155,7 @@ class TestStorageServiceUpload:
         async def mock_run_in_executor(executor, func, *args):
             return func(*args)
 
-        with patch("asyncio.get_event_loop") as mock_loop:
+        with patch("asyncio.get_running_loop") as mock_loop:
             mock_loop.return_value.run_in_executor = mock_run_in_executor
 
             result = await mock_service.upload_file(
@@ -174,7 +174,7 @@ class TestStorageServiceUpload:
         async def mock_run_in_executor(executor, func, *args):
             return func(*args)
 
-        with patch("asyncio.get_event_loop") as mock_loop:
+        with patch("asyncio.get_running_loop") as mock_loop:
             mock_loop.return_value.run_in_executor = mock_run_in_executor
 
             with pytest.raises(StorageError, match="Upload failed"):
@@ -217,7 +217,7 @@ class TestStorageServiceDownload:
         async def mock_run_in_executor(executor, func, *args):
             return func(*args)
 
-        with patch("asyncio.get_event_loop") as mock_loop:
+        with patch("asyncio.get_running_loop") as mock_loop:
             mock_loop.return_value.run_in_executor = mock_run_in_executor
 
             result = await mock_service.download_file("test/file.txt")
@@ -233,7 +233,7 @@ class TestStorageServiceDownload:
         async def mock_run_in_executor(executor, func, *args):
             return func(*args)
 
-        with patch("asyncio.get_event_loop") as mock_loop:
+        with patch("asyncio.get_running_loop") as mock_loop:
             mock_loop.return_value.run_in_executor = mock_run_in_executor
 
             with pytest.raises(FileNotFoundError, match="File not found"):
@@ -247,7 +247,7 @@ class TestStorageServiceDownload:
         async def mock_run_in_executor(executor, func, *args):
             return func(*args)
 
-        with patch("asyncio.get_event_loop") as mock_loop:
+        with patch("asyncio.get_running_loop") as mock_loop:
             mock_loop.return_value.run_in_executor = mock_run_in_executor
 
             with pytest.raises(FileNotFoundError, match="File not found"):
@@ -261,7 +261,7 @@ class TestStorageServiceDownload:
         async def mock_run_in_executor(executor, func, *args):
             return func(*args)
 
-        with patch("asyncio.get_event_loop") as mock_loop:
+        with patch("asyncio.get_running_loop") as mock_loop:
             mock_loop.return_value.run_in_executor = mock_run_in_executor
 
             with pytest.raises(StorageError, match="Download failed"):
@@ -298,7 +298,7 @@ class TestStorageServiceDelete:
         async def mock_run_in_executor(executor, func, *args):
             return func(*args)
 
-        with patch("asyncio.get_event_loop") as mock_loop:
+        with patch("asyncio.get_running_loop") as mock_loop:
             mock_loop.return_value.run_in_executor = mock_run_in_executor
 
             result = await mock_service.delete_file("test/file.txt")
@@ -314,7 +314,7 @@ class TestStorageServiceDelete:
         async def mock_run_in_executor(executor, func, *args):
             return func(*args)
 
-        with patch("asyncio.get_event_loop") as mock_loop:
+        with patch("asyncio.get_running_loop") as mock_loop:
             mock_loop.return_value.run_in_executor = mock_run_in_executor
 
             result = await mock_service.delete_file("test/file.txt")
@@ -329,7 +329,7 @@ class TestStorageServiceDelete:
         async def mock_run_in_executor(executor, func, *args):
             return func(*args)
 
-        with patch("asyncio.get_event_loop") as mock_loop:
+        with patch("asyncio.get_running_loop") as mock_loop:
             mock_loop.return_value.run_in_executor = mock_run_in_executor
 
             result = await mock_service.delete_file("test/file.txt")
@@ -344,7 +344,7 @@ class TestStorageServiceDelete:
         async def mock_run_in_executor(executor, func, *args):
             return func(*args)
 
-        with patch("asyncio.get_event_loop") as mock_loop:
+        with patch("asyncio.get_running_loop") as mock_loop:
             mock_loop.return_value.run_in_executor = mock_run_in_executor
 
             with pytest.raises(StorageError, match="Delete failed"):
@@ -381,7 +381,7 @@ class TestStorageServiceFileExists:
         async def mock_run_in_executor(executor, func, *args):
             return func(*args)
 
-        with patch("asyncio.get_event_loop") as mock_loop:
+        with patch("asyncio.get_running_loop") as mock_loop:
             mock_loop.return_value.run_in_executor = mock_run_in_executor
 
             result = await mock_service.file_exists("test/file.txt")
@@ -396,7 +396,7 @@ class TestStorageServiceFileExists:
         async def mock_run_in_executor(executor, func, *args):
             return func(*args)
 
-        with patch("asyncio.get_event_loop") as mock_loop:
+        with patch("asyncio.get_running_loop") as mock_loop:
             mock_loop.return_value.run_in_executor = mock_run_in_executor
 
             result = await mock_service.file_exists("test/file.txt")
@@ -411,7 +411,7 @@ class TestStorageServiceFileExists:
         async def mock_run_in_executor(executor, func, *args):
             return func(*args)
 
-        with patch("asyncio.get_event_loop") as mock_loop:
+        with patch("asyncio.get_running_loop") as mock_loop:
             mock_loop.return_value.run_in_executor = mock_run_in_executor
 
             result = await mock_service.file_exists("test/file.txt")
@@ -426,7 +426,7 @@ class TestStorageServiceFileExists:
         async def mock_run_in_executor(executor, func, *args):
             return func(*args)
 
-        with patch("asyncio.get_event_loop") as mock_loop:
+        with patch("asyncio.get_running_loop") as mock_loop:
             mock_loop.return_value.run_in_executor = mock_run_in_executor
 
             with pytest.raises(ClientError):
@@ -634,3 +634,75 @@ class TestGetStorageDependency:
 
             assert result is mock_service
             mock_get_service.assert_called_once()
+
+
+class TestStorageShutdown:
+    """Test storage shutdown functionality (lines 95, 358-359)."""
+
+    def test_shutdown_method(self) -> None:
+        """Test StorageService.shutdown method (line 95)."""
+        with patch("boto3.client") as mock_boto_client:
+            mock_executor = MagicMock()
+
+            with patch("checklists_service.utils.storage.ThreadPoolExecutor") as mock_executor_class:
+                mock_executor_class.return_value = mock_executor
+
+                mock_client = MagicMock()
+                mock_boto_client.return_value = mock_client
+                mock_client.head_bucket.return_value = None
+
+                service = StorageService(
+                    endpoint="http://minio:9000",
+                    access_key="test-key",
+                    secret_key="test-secret",
+                    bucket_name="test-bucket",
+                )
+
+                # Call shutdown
+                service.shutdown()
+
+                # Verify executor was shutdown with wait=True
+                mock_executor.shutdown.assert_called_once_with(wait=True)
+
+    def test_shutdown_storage_with_instance(self) -> None:
+        """Test shutdown_storage when instance exists (lines 358-359)."""
+        import checklists_service.utils.storage as storage_module
+
+        with patch("boto3.client") as mock_boto_client:
+            mock_executor = MagicMock()
+
+            with patch("checklists_service.utils.storage.ThreadPoolExecutor") as mock_executor_class:
+                mock_executor_class.return_value = mock_executor
+
+                mock_client = MagicMock()
+                mock_boto_client.return_value = mock_client
+                mock_client.head_bucket.return_value = None
+
+                # Reset and create instance
+                storage_module._storage_instance = None
+                service = get_storage_service()
+
+                # Verify instance exists
+                assert storage_module._storage_instance is not None
+
+                # Call shutdown_storage
+                from checklists_service.utils.storage import shutdown_storage
+                shutdown_storage()
+
+                # Verify executor was shutdown and instance is None
+                mock_executor.shutdown.assert_called_once_with(wait=True)
+                assert storage_module._storage_instance is None
+
+    def test_shutdown_storage_without_instance(self) -> None:
+        """Test shutdown_storage when no instance exists (lines 357-359)."""
+        import checklists_service.utils.storage as storage_module
+
+        # Ensure no instance exists
+        storage_module._storage_instance = None
+
+        # Call shutdown_storage - should not raise
+        from checklists_service.utils.storage import shutdown_storage
+        shutdown_storage()
+
+        # Instance should remain None
+        assert storage_module._storage_instance is None

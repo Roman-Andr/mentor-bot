@@ -55,6 +55,7 @@ class DepartmentService:
         )
 
         created = await self._uow.departments.create(department)
+        await self._uow.commit()
 
         await department_sync_client.sync_department(
             created.name,
@@ -64,8 +65,11 @@ class DepartmentService:
         return created
 
     async def update_department(self, department_id: int, department_data: DepartmentUpdate) -> Department:
-        """Update department information."""
+        """Update department information and sync to other services."""
         department = await self.get_department_by_id(department_id)
+
+        old_name = department.name
+        name_changed = False
 
         if department_data.name and department_data.name != department.name:
             existing = await self._uow.departments.get_by_name(department_data.name)
@@ -73,17 +77,37 @@ class DepartmentService:
                 msg = "Department with this name already exists"
                 raise ConflictException(msg)
             department.name = department_data.name
+            name_changed = True
 
         if department_data.description is not None:
             department.description = department_data.description
 
         department.updated_at = datetime.now(UTC)
 
-        return await self._uow.departments.update(department)
+        updated = await self._uow.departments.update(department)
+
+        if name_changed or department_data.description is not None:
+            await department_sync_client.sync_department_update(
+                old_name,
+                updated.name,
+                updated.description,
+            )
+
+        return updated
 
     async def delete_department(self, department_id: int) -> None:
-        """Delete department."""
+        """Delete department and sync deletion to other services."""
+        department = await self.get_department_by_id(department_id)
+        department_name = department.name
+
+        has_users = await self._uow.departments.has_users(department_id)
+        if has_users:
+            msg = "Cannot delete department with assigned users"
+            raise ConflictException(msg)
+
         deleted = await self._uow.departments.delete(department_id)
         if not deleted:
             msg = "Department"
             raise NotFoundException(msg)
+
+        await department_sync_client.sync_department_delete(department_name)

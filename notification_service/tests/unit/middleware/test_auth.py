@@ -129,7 +129,8 @@ class TestAuthTokenMiddleware:
 
     @pytest.mark.asyncio
     async def test_dispatch_with_service_api_key_bypass(self):
-        """Test middleware allows service-to-service auth to pass through.
+        """
+        Test middleware allows service-to-service auth to pass through.
 
         Service API key headers are handled differently and should
         be passed through without modification.

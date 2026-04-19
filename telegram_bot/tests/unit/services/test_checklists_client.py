@@ -12,7 +12,7 @@ class TestChecklistsServiceClient:
 
     @pytest.fixture(autouse=True)
     def setup(self):
-        """Setup test client."""
+        """Set up test client."""
         self.client = ChecklistsServiceClient(base_url="http://test-checklists:8002")
         self.auth_token = "test_token_123"
         self.user_id = 1
@@ -259,7 +259,7 @@ class TestChecklistsClientEdgeCases:
 
     @pytest.fixture(autouse=True)
     def setup(self):
-        """Setup test client."""
+        """Set up test client."""
         self.client = ChecklistsServiceClient(base_url="http://test-checklists:8002")
         self.auth_token = "test_token_123"
         self.user_id = 1
@@ -615,6 +615,23 @@ class TestChecklistsClientEdgeCases:
         result = await self.client.download_task_attachment(1, "file.pdf", self.auth_token)
 
         assert result is None
+
+    @patch("telegram_bot.services.checklists_client.httpx.AsyncClient.get")
+    async def test_download_task_attachment_empty_filename_after_sanitization(self, _mock_get):
+        """Test downloading attachment when filename becomes empty after sanitization - line 254."""
+        # Filename with only special characters that will be stripped
+        result = await self.client.download_task_attachment(1, "../../../", self.auth_token)
+
+        # Should return None when filename is empty after sanitization
+        assert result is None
+
+    @patch("telegram_bot.services.checklists_client.httpx.AsyncClient.get")
+    async def test_download_task_attachment_malicious_filename(self, _mock_get):
+        """Test downloading attachment with path traversal attempt."""
+        # Various malicious filenames that result in empty after sanitization
+        for malicious in ["..", "...", "../", "..\\", "/../", "", ".../.../"]:
+            result = await self.client.download_task_attachment(1, malicious, self.auth_token)
+            assert result is None, f"Failed for filename: {malicious}"
 
     async def test_invalidate_task_cache_without_checklist_id(self):
         """Test invalidating cache without checklist_id."""

@@ -4,8 +4,9 @@ import logging
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Request, status
 
+from auth_service.database import AsyncSessionLocal
+from auth_service.repositories.unit_of_work import SqlAlchemyUnitOfWork
 from auth_service.schemas import (
-    MessageResponse,
     PasswordResetConfirmSchema,
     PasswordResetRequestSchema,
     PasswordResetResponse,
@@ -19,20 +20,18 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.post("/request", response_model=PasswordResetResponse)
+@router.post("/request")
 async def request_password_reset(
     data: PasswordResetRequestSchema,
     request: Request,
     background_tasks: BackgroundTasks,
 ) -> PasswordResetResponse:
-    """Request password reset email.
+    """
+    Request password reset email.
 
     Always returns success to prevent email enumeration attacks.
     Rate limited to 3 requests per user per hour.
     """
-    from auth_service.database import AsyncSessionLocal
-    from auth_service.repositories.unit_of_work import SqlAlchemyUnitOfWork
-
     async with AsyncSessionLocal() as session:
         uow = SqlAlchemyUnitOfWork(AsyncSessionLocal)
         await uow.__aenter__()
@@ -55,6 +54,9 @@ async def request_password_reset(
                     reset_token=raw_token,
                 )
 
+            # Commit the transaction
+            await uow.commit()
+
             # Always return generic message to prevent enumeration
             return PasswordResetResponse(
                 message="If an account with this email exists, you will receive a password reset link",
@@ -64,15 +66,13 @@ async def request_password_reset(
             await uow.__aexit__(None, None, None)
 
 
-@router.post("/validate", response_model=PasswordResetResponse)
+@router.post("/validate")
 async def validate_reset_token(data: PasswordResetValidateSchema) -> PasswordResetResponse:
-    """Validate reset token without consuming it.
+    """
+    Validate reset token without consuming it.
 
     Returns success if token is valid and not expired.
     """
-    from auth_service.database import AsyncSessionLocal
-    from auth_service.repositories.unit_of_work import SqlAlchemyUnitOfWork
-
     async with AsyncSessionLocal() as session:
         uow = SqlAlchemyUnitOfWork(AsyncSessionLocal)
         await uow.__aenter__()
@@ -94,19 +94,17 @@ async def validate_reset_token(data: PasswordResetValidateSchema) -> PasswordRes
             await uow.__aexit__(None, None, None)
 
 
-@router.post("/confirm", response_model=PasswordResetResponse)
+@router.post("/confirm")
 async def confirm_password_reset(
     data: PasswordResetConfirmSchema,
     background_tasks: BackgroundTasks,
 ) -> PasswordResetResponse:
-    """Confirm password reset with valid token.
+    """
+    Confirm password reset with valid token.
 
     Updates the user's password and marks the token as used.
     Sends confirmation email on success.
     """
-    from auth_service.database import AsyncSessionLocal
-    from auth_service.repositories.unit_of_work import SqlAlchemyUnitOfWork
-
     async with AsyncSessionLocal() as session:
         uow = SqlAlchemyUnitOfWork(AsyncSessionLocal)
         await uow.__aenter__()

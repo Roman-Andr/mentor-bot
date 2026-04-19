@@ -24,6 +24,7 @@ export const meetingsApi = {
     position?: string | null;
     level?: string | null;
     deadline_days?: number;
+    duration_minutes?: number;
     is_mandatory?: boolean;
     order?: number;
   }) =>

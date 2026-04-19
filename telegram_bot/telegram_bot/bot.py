@@ -24,7 +24,7 @@ from telegram_bot.handlers import (
     settings as settings_handler,
 )
 from telegram_bot.middlewares import AuthMiddleware, LanguageMiddleware
-from telegram_bot.middlewares.throttling import ThrottlingMiddleware
+from telegram_bot.middlewares.throttling import throttling_service
 
 logger = logging.getLogger(__name__)
 
@@ -68,8 +68,8 @@ def setup_bot(dp: Dispatcher, bot: Bot) -> Dispatcher:
 
     # Register throttling only if explicitly enabled via env var (disabled by default for dev)
     if getattr(settings, "THROTTLING_ENABLED", False):
-        dp.update.outer_middleware(ThrottlingMiddleware())
-        logger.info("Throttling middleware enabled")
+        dp.update.outer_middleware(throttling_service.create_middleware())
+        logger.info("Throttling middleware enabled (Redis-based)")
     else:
         logger.info("Throttling middleware disabled")
 

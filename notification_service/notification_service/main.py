@@ -13,6 +13,7 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
+from sqlalchemy import text
 
 from notification_service.api import notifications, templates
 from notification_service.api.endpoints import email
@@ -98,8 +99,6 @@ async def root() -> ServiceStatus:
 @app.get("/health")
 async def health_check() -> HealthCheck:
     """Health check endpoint for load balancers and monitoring."""
-    from sqlalchemy import text
-
     # Check database connectivity
     try:
         async with engine.connect() as conn:

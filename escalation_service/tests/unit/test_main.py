@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi.testclient import TestClient
 
+from escalation_service.config import settings
 from escalation_service.main import app, lifespan, logger
 
 client = TestClient(app)
@@ -46,6 +47,24 @@ class TestMainApp:
         routes = [route.path for route in app.routes]
         assert "/" in routes
         assert "/health" in routes
+
+
+class TestRateLimiting:
+    """Tests for rate limiting configuration (lines 52-57)."""
+
+    @pytest.mark.asyncio
+    async def test_rate_limiting_disabled_when_debug_true(self):
+        """Test rate limiting is skipped when DEBUG=True (covers line 53->60 branch)."""
+        with patch.object(settings, "DEBUG", True):
+            # Reload main module to trigger the if not settings.DEBUG: check
+            import importlib
+            import escalation_service.main as main_module
+
+            importlib.reload(main_module)
+
+            # When DEBUG=True, the limiter should not be set on app.state
+            # (because the if block at lines 53-57 is skipped)
+            assert not hasattr(main_module.app.state, "limiter") or main_module.app.state.limiter is None
 
 
 class TestLogger:

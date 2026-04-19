@@ -10,6 +10,69 @@ from feedback_service.repositories import (
 )
 
 
+class TestPulseSurveyRepositoryEscapePattern:
+    """Tests for PulseSurveyRepository._escape_ilike_pattern method."""
+
+    def test_escape_ilike_pattern_escapes_backslash(self) -> None:
+        """Test _escape_ilike_pattern escapes backslash characters."""
+        # Arrange
+        pattern = r"test\value"
+
+        # Act
+        result = PulseSurveyRepository._escape_ilike_pattern(pattern)
+
+        # Assert
+        assert result == r"test\\value"
+
+    def test_escape_ilike_pattern_escapes_percent(self) -> None:
+        """Test _escape_ilike_pattern escapes percent characters."""
+        # Arrange
+        pattern = "test%value"
+
+        # Act
+        result = PulseSurveyRepository._escape_ilike_pattern(pattern)
+
+        # Assert
+        assert result == r"test\%value"
+
+    def test_escape_ilike_pattern_escapes_underscore(self) -> None:
+        """Test _escape_ilike_pattern escapes underscore characters."""
+        # Arrange
+        pattern = "test_value"
+
+        # Act
+        result = PulseSurveyRepository._escape_ilike_pattern(pattern)
+
+        # Assert
+        assert result == r"test\_value"
+
+    def test_escape_ilike_pattern_escapes_all_special_chars(self) -> None:
+        """Test _escape_ilike_pattern escapes all special characters."""
+        # Arrange - use a regular string to avoid raw string ending with backslash
+        pattern = "%_%\\"
+
+        # Act
+        result = PulseSurveyRepository._escape_ilike_pattern(pattern)
+
+        # Assert - result should have all special chars escaped
+        # Input: %_%\  (%, _, %, \)
+        # After replace \\ -> \\\\: %_%\\
+        # After replace % -> \%: \%\_%\\
+        # After replace _ -> \_: \%\_\%\\
+        assert result == "\\%\\_\\%\\\\"
+
+    def test_escape_ilike_pattern_no_special_chars(self) -> None:
+        """Test _escape_ilike_pattern returns unchanged when no special chars."""
+        # Arrange
+        pattern = "normal text"
+
+        # Act
+        result = PulseSurveyRepository._escape_ilike_pattern(pattern)
+
+        # Assert
+        assert result == "normal text"
+
+
 class TestPulseSurveyRepository:
     """Tests for PulseSurveyRepository."""
 
@@ -105,6 +168,69 @@ class TestExperienceRatingRepository:
 
         # Assert
         assert result == []
+
+
+class TestCommentRepositoryEscapePattern:
+    """Tests for CommentRepository._escape_ilike_pattern method."""
+
+    def test_escape_ilike_pattern_escapes_backslash(self) -> None:
+        """Test _escape_ilike_pattern escapes backslash characters."""
+        # Arrange
+        pattern = r"comment\test"
+
+        # Act
+        result = CommentRepository._escape_ilike_pattern(pattern)
+
+        # Assert
+        assert result == r"comment\\test"
+
+    def test_escape_ilike_pattern_escapes_percent(self) -> None:
+        """Test _escape_ilike_pattern escapes percent characters."""
+        # Arrange
+        pattern = "100% satisfied"
+
+        # Act
+        result = CommentRepository._escape_ilike_pattern(pattern)
+
+        # Assert
+        assert result == r"100\% satisfied"
+
+    def test_escape_ilike_pattern_escapes_underscore(self) -> None:
+        """Test _escape_ilike_pattern escapes underscore characters."""
+        # Arrange
+        pattern = "user_name"
+
+        # Act
+        result = CommentRepository._escape_ilike_pattern(pattern)
+
+        # Assert
+        assert result == r"user\_name"
+
+    def test_escape_ilike_pattern_escapes_all_special_chars(self) -> None:
+        """Test _escape_ilike_pattern escapes all special characters."""
+        # Arrange - use a regular string to avoid raw string ending with backslash
+        pattern = "_%\\test"
+
+        # Act
+        result = CommentRepository._escape_ilike_pattern(pattern)
+
+        # Assert - result should have all special chars escaped
+        # Input: _%\test (_, %, \, t, e, s, t)
+        # After replace \\ -> \\\\: _%\\test
+        # After replace % -> \%: _\%\\test
+        # After replace _ -> \_: \_\%\\test
+        assert result == "\\_\\%\\\\test"
+
+    def test_escape_ilike_pattern_no_special_chars(self) -> None:
+        """Test _escape_ilike_pattern returns unchanged when no special chars."""
+        # Arrange
+        pattern = "simple comment"
+
+        # Act
+        result = CommentRepository._escape_ilike_pattern(pattern)
+
+        # Assert
+        assert result == "simple comment"
 
 
 class TestCommentRepository:
@@ -211,6 +337,28 @@ class TestPulseSurveyRepositoryGetByUser:
         # Assert
         assert result == []
         assert total == 0
+
+    async def test_get_by_user_with_search(
+        self, pulse_survey_repo: PulseSurveyRepository, mock_db: MagicMock
+    ) -> None:
+        """Test get_by_user applies search filter and escapes special characters."""
+        # Arrange
+        mock_scalars = MagicMock()
+        mock_scalars.all.return_value = []
+        mock_result = MagicMock()
+        mock_result.scalars.return_value = mock_scalars
+        mock_result.scalar.return_value = 0
+        mock_db.execute.return_value = mock_result
+
+        # Act - use a search with special characters to test escaping
+        result, total = await pulse_survey_repo.get_by_user(
+            user_id=1, search="Engineer%_", skip=0, limit=50
+        )
+
+        # Assert
+        assert result == []
+        assert total == 0
+        assert mock_db.execute.call_count == 2  # Count + results queries
 
 
 class TestPulseSurveyRepositoryStats:

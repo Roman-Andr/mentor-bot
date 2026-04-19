@@ -3,7 +3,7 @@
 from datetime import datetime
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, HttpUrl
 
 from auth_service.core import EmployeeLevel, InvitationStatus, UserRole
 from auth_service.schemas.department import DepartmentResponse
@@ -38,7 +38,7 @@ class InvitationResponse(InvitationBase):
     expires_at: datetime
     used_at: datetime | None = None
     user_id: int | None = None
-    invitation_url: str
+    invitation_url: HttpUrl
     is_expired: bool
     department: DepartmentResponse | None = None
 

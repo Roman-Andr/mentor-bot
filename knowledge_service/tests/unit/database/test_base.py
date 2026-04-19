@@ -1,6 +1,6 @@
 """Tests for database module (database/base.py)."""
 
-from typing import TYPE_CHECKING
+import contextlib
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
 import pytest
@@ -9,9 +9,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from knowledge_service.database import AsyncSessionLocal, Base, get_db, init_db
 from knowledge_service.database.base import _create_search_indexes, engine, metadata_obj
-
-if TYPE_CHECKING:
-    from pathlib import Path
 
 
 class TestBaseMetadata:
@@ -74,10 +71,8 @@ class TestGetDB:
 
         # Throw exception into the generator - this simulates what happens
         # when an exception occurs in a route using the dependency
-        try:
+        with contextlib.suppress(ValueError):
             await gen.athrow(ValueError("Test exception"))
-        except ValueError:
-            pass
 
         mock_session.rollback.assert_called_once()
         mock_session.close.assert_awaited_once()

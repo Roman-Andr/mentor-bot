@@ -11,6 +11,7 @@ from google_auth_oauthlib.flow import Flow
 from meeting_service.api.deps import DatabaseSession
 from meeting_service.config import settings
 from meeting_service.core import ValidationException
+from meeting_service.database import AsyncSessionLocal
 from meeting_service.repositories.unit_of_work import SqlAlchemyUnitOfWork
 from meeting_service.services.google_calendar_service import GoogleCalendarService
 
@@ -68,7 +69,7 @@ async def connect_calendar(
 async def oauth_callback(
     code: str,
     state: str,
-    db: DatabaseSession,
+    _db: DatabaseSession,
 ) -> dict[str, str]:
     """Handle Google OAuth2 callback."""
     try:
@@ -99,7 +100,7 @@ async def oauth_callback(
         credentials = flow.credentials
 
         # Save credentials
-        async with SqlAlchemyUnitOfWork(lambda: db) as uow:
+        async with SqlAlchemyUnitOfWork(AsyncSessionLocal) as uow:
             service = GoogleCalendarService(uow)
             expiry = (
                 credentials.expiry.replace(tzinfo=UTC) if credentials.expiry else datetime.now(UTC) + timedelta(hours=1)
@@ -127,10 +128,10 @@ async def oauth_callback(
 @router.get("/status/{user_id}")
 async def get_calendar_status(
     user_id: int,
-    db: DatabaseSession,
+    _db: DatabaseSession,
 ) -> dict[str, bool]:
     """Check if user has connected Google Calendar."""
-    async with SqlAlchemyUnitOfWork(lambda: db) as uow:
+    async with SqlAlchemyUnitOfWork(AsyncSessionLocal) as uow:
         service = GoogleCalendarService(uow)
         account = await service.get_credentials(user_id)
         return {
@@ -142,10 +143,10 @@ async def get_calendar_status(
 @router.delete("/{user_id}")
 async def disconnect_calendar(
     user_id: int,
-    db: DatabaseSession,
+    _db: DatabaseSession,
 ) -> dict[str, str]:
     """Disconnect Google Calendar account."""
-    async with SqlAlchemyUnitOfWork(lambda: db) as uow:
+    async with SqlAlchemyUnitOfWork(AsyncSessionLocal) as uow:
         await uow.google_calendar_accounts.delete(user_id)
         await uow.commit()
 

@@ -12,7 +12,7 @@ class TestAuthMiddleware:
 
     @pytest.fixture(autouse=True)
     def setup_mocks(self):
-        """Setup common mocks."""
+        """Set up common mocks."""
         self.mock_bot = MagicMock()
         self.middleware = AuthMiddleware(self.mock_bot)
 

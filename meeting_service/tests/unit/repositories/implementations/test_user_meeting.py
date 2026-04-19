@@ -31,6 +31,7 @@ def repository(mock_session):
 class TestFindByUser:
     """Tests for find_by_user method (lines 31-45)."""
 
+    @pytest.mark.asyncio
     async def test_find_by_user_without_status(self, mock_session, repository):
         """Test find_by_user without status filter."""
         # Arrange
@@ -57,6 +58,7 @@ class TestFindByUser:
         assert total == 2
         assert mock_session.execute.call_count == 2
 
+    @pytest.mark.asyncio
     async def test_find_by_user_with_status_filter(self, mock_session, repository):
         """Test find_by_user with status filter."""
         # Arrange
@@ -79,6 +81,7 @@ class TestFindByUser:
         assert len(result) == 1
         assert result[0].status == MeetingStatus.COMPLETED
 
+    @pytest.mark.asyncio
     async def test_find_by_user_pagination(self, mock_session, repository):
         """Test find_by_user with pagination."""
         # Arrange
@@ -105,6 +108,7 @@ class TestFindByUser:
 class TestFindByMeeting:
     """Tests for find_by_meeting method (lines 56-70)."""
 
+    @pytest.mark.asyncio
     async def test_find_by_meeting_without_status(self, mock_session, repository):
         """Test find_by_meeting without status filter."""
         # Arrange
@@ -130,6 +134,7 @@ class TestFindByMeeting:
         assert len(result) == 2
         assert total == 2
 
+    @pytest.mark.asyncio
     async def test_find_by_meeting_with_status_filter(self, mock_session, repository):
         """Test find_by_meeting with status filter."""
         # Arrange
@@ -156,6 +161,7 @@ class TestFindByMeeting:
 class TestGetUserMeeting:
     """Tests for get_user_meeting method (lines 72-81)."""
 
+    @pytest.mark.asyncio
     async def test_get_user_meeting_returns_assignment(self, mock_session, repository):
         """Test get_user_meeting returns assignment when found."""
         # Arrange
@@ -180,6 +186,7 @@ class TestGetUserMeeting:
         assert "user_id" in query_str.lower()
         assert "meeting_id" in query_str.lower()
 
+    @pytest.mark.asyncio
     async def test_get_user_meeting_returns_none_when_not_found(self, mock_session, repository):
         """Test get_user_meeting returns None when assignment not found."""
         # Arrange
@@ -193,6 +200,7 @@ class TestGetUserMeeting:
         # Assert
         assert result is None
 
+    @pytest.mark.asyncio
     async def test_get_user_meeting_wrong_user(self, mock_session, repository):
         """Test get_user_meeting returns None for wrong user."""
         # Arrange

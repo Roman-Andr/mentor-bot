@@ -6,9 +6,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi.testclient import TestClient
 
-from auth_service.main import app
-from auth_service.models import PasswordResetToken, User
 from auth_service.core.enums import UserRole
+from auth_service.main import app
+from auth_service.models import User
 
 
 def get_test_client():
@@ -327,17 +327,19 @@ class TestPasswordResetServiceUnit:
         assert "\n" not in token
 
     def test_token_hashing(self, mock_uow, mock_session):
-        """Test that token hashing produces consistent results."""
+        """Test that token hashing uses bcrypt and verification works."""
         from auth_service.services.password_reset import PasswordResetService
 
         service = PasswordResetService(mock_uow, mock_session)
         token = "test-token-123"
         hash1 = service._hash_token(token)
-        hash2 = service._hash_token(token)
 
-        # Same token should produce same hash
-        assert hash1 == hash2
-        assert len(hash1) == 64  # SHA-256 hex length
+        # bcrypt hashes start with $2b$
+        assert hash1.startswith("$2b$")
+        # Verify the same token matches the hash
+        assert service._verify_token(token, hash1) is True
+        # Different token should not match
+        assert service._verify_token("wrong-token", hash1) is False
 
     def test_token_hashing_different_tokens(self, mock_uow, mock_session):
         """Test that different tokens produce different hashes."""
@@ -353,7 +355,6 @@ class TestPasswordResetServiceUnit:
     async def test_request_reset_creates_token(self, mock_uow, mock_session, active_user):
         """Test that request_reset creates a token record."""
         from auth_service.services.password_reset import PasswordResetService
-        from sqlalchemy import select
 
         mock_uow.users.get_by_email = AsyncMock(return_value=active_user)
         mock_session.add = MagicMock()
@@ -392,21 +393,25 @@ class TestPasswordResetServiceUnit:
     async def test_validate_token_valid(self, mock_uow, mock_session, active_user):
         """Test validate_token with valid token."""
         from auth_service.services.password_reset import PasswordResetService
+        from auth_service.models import PasswordResetToken
 
         token = "valid-token"
-        token_hash = PasswordResetService._hash_token(token)
 
-        # Create mock token record
-        mock_token = MagicMock()
-        mock_token.user_id = active_user.id
-        mock_token.expires_at = datetime.now(UTC) + timedelta(hours=1)
-        mock_token.used_at = None
+        # Create actual token record with bcrypt hash
+        mock_token = PasswordResetToken(
+            id=1,
+            user_id=active_user.id,
+            token_hash=PasswordResetService._hash_token(token),
+            expires_at=datetime.now(UTC) + timedelta(hours=1),
+            created_at=datetime.now(UTC),
+            used_at=None,
+        )
 
         mock_uow.users.get_by_id = AsyncMock(return_value=active_user)
 
-        # Mock the _get_token_record method
+        # Mock the _get_valid_token_record method
         service = PasswordResetService(mock_uow, mock_session)
-        service._get_token_record = AsyncMock(return_value=mock_token)
+        service._get_valid_token_record = AsyncMock(return_value=mock_token)
 
         result = await service.validate_token(token)
 
@@ -419,14 +424,9 @@ class TestPasswordResetServiceUnit:
 
         token = "expired-token"
 
-        # Create mock expired token record
-        mock_token = MagicMock()
-        mock_token.user_id = 1
-        mock_token.expires_at = datetime.now(UTC) - timedelta(hours=1)  # Expired
-        mock_token.used_at = None
-
+        # Expired tokens are filtered out by _get_valid_token_record
         service = PasswordResetService(mock_uow, mock_session)
-        service._get_token_record = AsyncMock(return_value=mock_token)
+        service._get_valid_token_record = AsyncMock(return_value=None)
 
         result = await service.validate_token(token)
 
@@ -440,7 +440,7 @@ class TestPasswordResetServiceUnit:
         token = "used-token"
 
         service = PasswordResetService(mock_uow, mock_session)
-        service._get_token_record = AsyncMock(return_value=None)  # Already used tokens return None
+        service._get_valid_token_record = AsyncMock(return_value=None)  # Already used tokens return None
 
         result = await service.validate_token(token)
 
@@ -450,21 +450,26 @@ class TestPasswordResetServiceUnit:
     async def test_confirm_reset_success(self, mock_uow, mock_session, active_user):
         """Test confirm_reset successfully updates password."""
         from auth_service.services.password_reset import PasswordResetService
+        from auth_service.models import PasswordResetToken
 
         token = "valid-token"
         new_password = "newSecurePass123"
 
-        # Create mock token record
-        mock_token = MagicMock()
-        mock_token.user_id = active_user.id
-        mock_token.expires_at = datetime.now(UTC) + timedelta(hours=1)
-        mock_token.used_at = None
+        # Create actual token record with bcrypt hash
+        mock_token = PasswordResetToken(
+            id=1,
+            user_id=active_user.id,
+            token_hash=PasswordResetService._hash_token(token),
+            expires_at=datetime.now(UTC) + timedelta(hours=1),
+            created_at=datetime.now(UTC),
+            used_at=None,
+        )
 
         mock_uow.users.get_by_id = AsyncMock(return_value=active_user)
         mock_session.flush = AsyncMock()
 
         service = PasswordResetService(mock_uow, mock_session)
-        service._get_token_record = AsyncMock(return_value=mock_token)
+        service._get_valid_token_record = AsyncMock(return_value=mock_token)
 
         result = await service.confirm_reset(token, new_password)
 
@@ -482,7 +487,7 @@ class TestPasswordResetServiceUnit:
         from auth_service.services.password_reset import PasswordResetService
 
         service = PasswordResetService(mock_uow, mock_session)
-        service._get_token_record = AsyncMock(return_value=None)
+        service._get_valid_token_record = AsyncMock(return_value=None)
 
         result = await service.confirm_reset("invalid-token", "newPassword123")
 

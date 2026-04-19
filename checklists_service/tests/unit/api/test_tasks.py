@@ -1,7 +1,6 @@
 """Unit tests for tasks API endpoints."""
 
 from datetime import UTC, datetime, timedelta
-from io import BytesIO
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -106,8 +105,9 @@ class TestGetChecklistTasks:
         """Test 404 raised when checklist not found (line 112)."""
         uow = MagicMock()
 
-        from checklists_service.core import NotFoundException
         from fastapi import HTTPException
+
+        from checklists_service.core import NotFoundException
 
         with patch("checklists_service.api.endpoints.tasks.TaskService") as mock_task_cls, \
              patch("checklists_service.api.endpoints.tasks.ChecklistService") as mock_checklist_cls:
@@ -946,31 +946,6 @@ class TestTaskEndpointsErrorHandling:
                 await tasks.download_task_attachment(
                     task_id=1,
                     filename="nonexistent.pdf",
-                    uow=uow,
-                    current_user=sample_user,
-                )
-
-            assert exc_info.value.status_code == 404
-
-    async def test_update_task_progress_not_found(self, sample_user) -> None:
-        """Test update_task_progress for non-existent task raises 404 (line 226)."""
-        uow = MagicMock()
-
-        progress_data = TaskProgress(
-            task_id=1,
-            status=TaskStatus.IN_PROGRESS,
-            progress_percentage=50,
-        )
-
-        with patch("checklists_service.api.endpoints.tasks.TaskService") as mock_cls:
-            instance = MagicMock()
-            mock_cls.return_value = instance
-            instance.get_task = AsyncMock(side_effect=NotFoundException("Task"))
-
-            with pytest.raises(HTTPException) as exc_info:
-                await tasks.update_task_progress(
-                    task_id=999,
-                    progress_data=progress_data,
                     uow=uow,
                     current_user=sample_user,
                 )

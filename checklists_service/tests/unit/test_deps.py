@@ -1,8 +1,7 @@
 """Tests for api/deps.py dependencies."""
 
-from datetime import UTC, datetime
-from types import TracebackType
-from unittest.mock import AsyncMock, MagicMock, Mock, patch
+from contextlib import suppress
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
 import pytest
@@ -10,13 +9,7 @@ from fastapi import HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials
 
 from checklists_service.api.deps import (
-    AdminUser,
-    AuthToken,
     ChecklistsServiceDep,
-    CurrentUser,
-    HRUser,
-    MentorUser,
-    ServiceAuth,
     UserInfo,
     get_auth_token,
     get_checklists_service_dep,
@@ -368,12 +361,14 @@ class TestVerifyServiceAPIKey:
             assert result is True
 
     async def test_verify_service_api_key_no_key_configured(self):
-        """Test when no API key is configured."""
+        """Test when no API key is configured raises HTTPException."""
         with patch("checklists_service.api.deps.settings") as mock_settings:
             mock_settings.SERVICE_API_KEY = None
 
-            result = await verify_service_api_key("some-key")
-            assert result is False
+            with pytest.raises(HTTPException) as exc_info:
+                await verify_service_api_key("some-key")
+            assert exc_info.value.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+            assert "Service API key not configured" in str(exc_info.value.detail)
 
     async def test_verify_service_api_key_invalid_key(self):
         """Test invalid API key raises exception."""
@@ -439,10 +434,8 @@ class TestGetDB:
             mock_session.commit.assert_not_awaited()
 
             # Complete the generator (simulate end of request)
-            try:
+            with suppress(StopAsyncIteration):
                 await gen.__anext__()
-            except StopAsyncIteration:
-                pass
 
             mock_session.commit.assert_awaited_once()
 
@@ -463,10 +456,8 @@ class TestGetDB:
             await gen.__anext__()
 
             # Simulate an exception during request
-            try:
+            with suppress(ValueError):
                 await gen.athrow(ValueError("Test error"))
-            except ValueError:
-                pass
 
             mock_session.rollback.assert_awaited_once()
 
@@ -475,17 +466,7 @@ class TestGetUOW:
     """Test get_uow dependency for Unit of Work."""
 
     async def test_get_uow_success(self):
-        """Test successful UOW with commit."""
-        from checklists_service.api.deps import get_uow
-
-        mock_uow = MagicMock()
-        mock_uow.commit = AsyncMock()
-        mock_uow.rollback = AsyncMock()
-
-        # Create a mock session factory that returns our mock uow
-        mock_session_factory = MagicMock()
-        mock_session_factory.return_value = MagicMock()
-
+        """Test successful UOW - commit handled by __aexit__, not get_uow."""
         with patch("checklists_service.api.deps.SqlAlchemyUnitOfWork") as mock_uow_cls:
             mock_uow_instance = MagicMock()
             mock_uow_instance.commit = AsyncMock()
@@ -498,24 +479,22 @@ class TestGetUOW:
             uow = await gen.__anext__()
             assert uow is mock_uow_instance
 
-            # Complete normally (should commit)
-            try:
+            # Complete normally - get_uow no longer calls commit directly
+            # Commit is handled by SqlAlchemyUnitOfWork.__aexit__
+            with suppress(StopAsyncIteration):
                 await gen.__anext__()
-            except StopAsyncIteration:
-                pass
 
-            # Commit should be called when exiting without exception
-            mock_uow_instance.commit.assert_awaited_once()
+            # get_uow no longer calls commit - it's handled by __aexit__
+            mock_uow_instance.commit.assert_not_awaited()
 
-    async def test_get_uow_rollback_on_error(self):
-        """Test UOW rolls back on exception (lines 160-162)."""
-        from checklists_service.api.deps import get_uow
-
+    async def test_get_uow_exception_propagates_to_aexit(self):
+        """Test exception propagates to __aexit__ for rollback handling."""
         with patch("checklists_service.api.deps.SqlAlchemyUnitOfWork") as mock_uow_cls:
             mock_uow_instance = MagicMock()
             mock_uow_instance.commit = AsyncMock()
             mock_uow_instance.rollback = AsyncMock()
             mock_uow_instance.__aenter__ = AsyncMock(return_value=mock_uow_instance)
+            # __aexit__ handles rollback when exc_type is not None
             mock_uow_instance.__aexit__ = AsyncMock(return_value=None)
             mock_uow_cls.return_value = mock_uow_instance
 
@@ -523,13 +502,14 @@ class TestGetUOW:
             await gen.__anext__()
 
             # Simulate an exception during request
-            try:
+            # The exception propagates to __aexit__ which handles rollback
+            with suppress(ValueError):
                 await gen.athrow(ValueError("Test error"))
-            except ValueError:
-                pass
 
-            # Rollback should be called on exception
-            mock_uow_instance.rollback.assert_awaited_once()
+            # get_uow no longer calls rollback - it's handled by __aexit__
+            mock_uow_instance.rollback.assert_not_awaited()
+            # __aexit__ should be called with the exception
+            mock_uow_instance.__aexit__.assert_awaited_once()
 
 
 

@@ -23,7 +23,7 @@ export function StatsCards({ statsData }: StatsCardsProps) {
       {statsData.map((stat) => (
         <Card key={stat.title}>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-muted-foreground text-sm font-medium">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
               {stat.title}
             </CardTitle>
             <div className={`rounded-lg p-2 ${stat.color}`}>
@@ -33,7 +33,7 @@ export function StatsCards({ statsData }: StatsCardsProps) {
           <CardContent>
             <div className="text-2xl font-bold">{stat.value}</div>
             {stat.change && (
-              <p className="text-muted-foreground mt-1 text-xs">
+              <p className="mt-1 text-xs text-muted-foreground">
                 <span
                   className={stat.changeType === "positive" ? "text-green-600" : "text-red-600"}
                 >

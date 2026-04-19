@@ -4,12 +4,14 @@ from collections.abc import Sequence
 from datetime import UTC, datetime
 from typing import cast
 
-from sqlalchemy import func, or_, select
+from sqlalchemy import Column, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from auth_service.core import UserRole
+from auth_service.core.exceptions import NotFoundException, ValidationException
 from auth_service.models import User
+from auth_service.models.user_mentor import UserMentor
 from auth_service.repositories.implementations.base import SqlAlchemyBaseRepository
 from auth_service.repositories.interfaces.user import IUserRepository
 
@@ -29,8 +31,6 @@ class UserRepository(SqlAlchemyBaseRepository[User, int], IUserRepository):
 
     async def get_by_id(self, entity_id: int) -> User | None:
         """Get user by ID with department and mentor relationships."""
-        from auth_service.models.user_mentor import UserMentor
-
         stmt = (
             select(User)
             .where(User.id == entity_id)
@@ -73,8 +73,6 @@ class UserRepository(SqlAlchemyBaseRepository[User, int], IUserRepository):
         sort_order: str = "desc",
     ) -> tuple[Sequence[User], int]:
         """Find users with filtering and return results with total count."""
-        from auth_service.models.user_mentor import UserMentor
-
         # Count query
         count_stmt = select(func.count(User.id))
 
@@ -113,10 +111,7 @@ class UserRepository(SqlAlchemyBaseRepository[User, int], IUserRepository):
 
         # Apply sorting
         sort_column = self._get_sort_column(sort_by)
-        if sort_order.lower() == "asc":
-            stmt = stmt.order_by(sort_column.asc())
-        else:
-            stmt = stmt.order_by(sort_column.desc())
+        stmt = stmt.order_by(sort_column.asc() if sort_order.lower() == "asc" else sort_column.desc())
 
         # Get paginated results
         stmt = stmt.offset(skip).limit(limit)
@@ -125,10 +120,8 @@ class UserRepository(SqlAlchemyBaseRepository[User, int], IUserRepository):
 
         return users, total
 
-    def _get_sort_column(self, sort_by: str | None) -> " sqlalchemy.Column":
+    def _get_sort_column(self, sort_by: str | None) -> Column:
         """Get SQLAlchemy column for sorting."""
-        from sqlalchemy import desc, asc, case, nullslast
-
         # Map frontend field names to database columns
         column_map = {
             "name": User.first_name,
@@ -142,6 +135,9 @@ class UserRepository(SqlAlchemyBaseRepository[User, int], IUserRepository):
             "first_name": User.first_name,
             "last_name": User.last_name,
         }
+
+        if sort_by is not None and sort_by not in column_map:
+            raise ValidationException(f"Invalid sort column: {sort_by}")
 
         return column_map.get(sort_by, User.created_at)
 
@@ -161,8 +157,8 @@ class UserRepository(SqlAlchemyBaseRepository[User, int], IUserRepository):
         """Update user's role."""
         user = await self.get_by_id(user_id)
         if not user:
-            msg = f"User with ID {user_id} not found"
-            raise ValueError(msg)
+            not_found_msg = "User"
+            raise NotFoundException(not_found_msg)
 
         user.role = role
         user.updated_at = datetime.now(UTC)
@@ -173,8 +169,8 @@ class UserRepository(SqlAlchemyBaseRepository[User, int], IUserRepository):
         """Deactivate user account."""
         user = await self.get_by_id(user_id)
         if not user:
-            msg = f"User with ID {user_id} not found"
-            raise ValueError(msg)
+            not_found_msg = "User"
+            raise NotFoundException(not_found_msg)
 
         user.is_active = False
         user.updated_at = datetime.now(UTC)

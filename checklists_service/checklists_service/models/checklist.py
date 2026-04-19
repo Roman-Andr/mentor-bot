@@ -8,7 +8,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
-from checklists_service.core import ChecklistStatus, TaskStatus
+from checklists_service.core import ChecklistStatus, TaskCategory, TaskStatus
 from checklists_service.database import Base
 
 if TYPE_CHECKING:
@@ -74,7 +74,7 @@ class Task(Base):
     # Task details
     title: Mapped[str] = mapped_column(String(200), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
-    category: Mapped[str] = mapped_column(String(50), nullable=False)
+    category: Mapped[TaskCategory] = mapped_column(Enum(TaskCategory, native=False), nullable=False)
 
     # Status and tracking
     status: Mapped[TaskStatus] = mapped_column(Enum(TaskStatus), default=TaskStatus.PENDING, nullable=False)

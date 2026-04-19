@@ -319,7 +319,7 @@ class TestUserCache:
         assert 456 in result
 
     def _async_iterator(self, items):
-        """Helper to create async iterator."""
+        """Create async iterator helper."""
         async def gen():
             for item in items:
                 yield item

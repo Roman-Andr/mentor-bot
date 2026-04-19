@@ -1,9 +1,10 @@
 """Tests for database module."""
 
-from types import TracebackType  # noqa: TC003
+from contextlib import suppress
+from types import TracebackType
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import async_sessionmaker
 
 from checklists_service.database import base as database_base
 from checklists_service.database.base import AsyncSessionLocal, engine, get_db, init_db
@@ -48,6 +49,7 @@ class TestEngineConfiguration:
 
             # Import fresh to get engine with mocked settings
             import importlib  # noqa: PLC0415
+
             from checklists_service.database import base  # noqa: PLC0415
             importlib.reload(base)
 
@@ -127,10 +129,8 @@ class TestGetDB:
             assert session == mock_session
 
             # Complete the generator (simulate end of request)
-            try:
+            with suppress(StopAsyncIteration):
                 await gen.__anext__()
-            except StopAsyncIteration:
-                pass
 
             mock_session.commit.assert_awaited_once()
             mock_session.close.assert_awaited_once()
@@ -153,10 +153,8 @@ class TestGetDB:
             await gen.__anext__()
 
             # Simulate an exception during request
-            try:
+            with suppress(ValueError):
                 await gen.athrow(ValueError("Test error"))
-            except ValueError:
-                pass
 
             mock_session.rollback.assert_awaited_once()
             mock_session.close.assert_awaited_once()

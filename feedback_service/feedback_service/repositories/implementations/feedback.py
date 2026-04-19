@@ -39,11 +39,17 @@ class PulseSurveyRepository(DateFilterMixin, SqlAlchemyBaseRepository[PulseSurve
         result = await self._session.execute(stmt)
         return result.scalars().all()
 
+    @staticmethod
+    def _escape_ilike_pattern(pattern: str) -> str:
+        """Escape special characters for PostgreSQL ILIKE to prevent SQL injection."""
+        return pattern.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
     async def get_by_user(
         self,
         user_id: int | None = None,
         from_date: datetime | None = None,
         to_date: datetime | None = None,
+        search: str | None = None,
         skip: int = 0,
         limit: int = 50,
     ) -> tuple[Sequence[PulseSurvey], int]:
@@ -52,6 +58,9 @@ class PulseSurveyRepository(DateFilterMixin, SqlAlchemyBaseRepository[PulseSurve
 
         if user_id is not None:
             query = query.where(PulseSurvey.user_id == user_id)
+        if search:
+            escaped_search = self._escape_ilike_pattern(search)
+            query = query.where(PulseSurvey.position_level.ilike(f"%{escaped_search}%", escape="\\"))
 
         query = self._apply_date_filters(query, PulseSurvey, from_date, to_date)
 

@@ -500,7 +500,8 @@ class TestStorageServiceInitOtherErrors:
     """Test StorageService initialization with non-404 errors - covers lines 106-107."""
 
     def test_init_raises_on_non_404_bucket_error(self):
-        """Test that StorageError is raised for non-404 bucket errors - covers lines 106-107.
+        """
+        Test that StorageError is raised for non-404 bucket errors - covers lines 106-107.
 
         When head_bucket raises a ClientError with code other than 404,
         the error should be re-raised as StorageError.
@@ -552,10 +553,9 @@ class TestGetStorageDependency:
     @pytest.mark.asyncio
     async def test_get_storage_returns_storage_service(self):
         """Test that get_storage returns a StorageService instance - covers line 333."""
-        from knowledge_service.utils.storage import get_storage
-
         # Clear any existing instance
         import knowledge_service.utils.storage as storage_module
+        from knowledge_service.utils.storage import get_storage
 
         storage_module._storage_instance = None
 
@@ -564,7 +564,7 @@ class TestGetStorageDependency:
             mock_boto.return_value = mock_client
             mock_client.head_bucket.return_value = None
 
-            with patch("knowledge_service.config.settings") as mock_settings:
+            with patch("knowledge_service.utils.storage.settings") as mock_settings:
                 mock_settings.S3_ENDPOINT = "http://minio:9000"
                 mock_settings.S3_ACCESS_KEY = "test-key"
                 mock_settings.S3_SECRET_KEY = "test-secret"
@@ -593,7 +593,7 @@ class TestGetStorageService:
             mock_boto.return_value = mock_client
             mock_client.head_bucket.return_value = None
 
-            with patch("knowledge_service.config.settings") as mock_settings:
+            with patch("knowledge_service.utils.storage.settings") as mock_settings:
                 mock_settings.S3_ENDPOINT = "http://minio:9000"
                 mock_settings.S3_ACCESS_KEY = "test-key"
                 mock_settings.S3_SECRET_KEY = "test-secret"
@@ -617,7 +617,7 @@ class TestGetStorageService:
             mock_boto.return_value = mock_client
             mock_client.head_bucket.return_value = None
 
-            with patch("knowledge_service.config.settings") as mock_settings:
+            with patch("knowledge_service.utils.storage.settings") as mock_settings:
                 mock_settings.S3_ENDPOINT = "http://minio:9000"
                 mock_settings.S3_ACCESS_KEY = "test-key"
                 mock_settings.S3_SECRET_KEY = "test-secret"

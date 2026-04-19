@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from aiogram import Bot, Dispatcher
-from aiogram.types import ErrorEvent, Message, Update
+from aiogram.types import ErrorEvent, Message
 
 from telegram_bot.bot import global_error_handler, setup_bot
 from telegram_bot.config import settings
@@ -134,7 +134,7 @@ class TestSetupBot:
                 result = setup_bot(mock_dispatcher, mock_bot)
 
         assert result == mock_dispatcher
-        mock_logger.info.assert_any_call("Throttling middleware enabled")
+        mock_logger.info.assert_any_call("Throttling middleware enabled (Redis-based)")
 
     def test_setup_bot_with_throttling_disabled(self, mock_dispatcher, mock_bot):
         """Test setup with throttling disabled."""

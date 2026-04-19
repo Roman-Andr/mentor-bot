@@ -1,12 +1,13 @@
 """Unit tests for User repository implementation."""
 
 from datetime import UTC, datetime
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth_service.core.enums import UserRole
+from auth_service.core.exceptions import NotFoundException
 from auth_service.models import User
 from auth_service.repositories.implementations.user import UserRepository
 
@@ -180,7 +181,7 @@ class TestUserRepository:
 
         repo = UserRepository(mock_session)
 
-        with pytest.raises(ValueError, match="User with ID 999 not found"):
+        with pytest.raises(NotFoundException):
             await repo.update_role(999, UserRole.MENTOR)
 
     async def test_deactivate_user_success(self, mock_session, mock_result, sample_user):
@@ -202,7 +203,7 @@ class TestUserRepository:
 
         repo = UserRepository(mock_session)
 
-        with pytest.raises(ValueError, match="User with ID 999 not found"):
+        with pytest.raises(NotFoundException):
             await repo.deactivate_user(999)
 
     async def test_find_users_without_filters(self, mock_session, mock_result, sample_user):
@@ -354,3 +355,15 @@ class TestUserRepository:
         result = await repo.get_by_id(1)
 
         assert result == sample_user
+
+    async def test_find_users_with_invalid_sort_column(self, mock_session, mock_result):
+        """Test finding users with invalid sort column raises ValidationException (covers line 140)."""
+        from auth_service.core.exceptions import ValidationException
+
+        repo = UserRepository(mock_session)
+
+        with pytest.raises(ValidationException) as exc_info:
+            await repo.find_users(skip=0, limit=100, sort_by="invalid_column")
+
+        assert "Invalid sort column" in str(exc_info.value.detail)
+        assert "invalid_column" in str(exc_info.value.detail)

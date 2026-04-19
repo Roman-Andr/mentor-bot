@@ -9,6 +9,7 @@ import {
   PDFDownloadLink,
 } from "@react-pdf/renderer";
 import type { ChecklistStats } from "@/types";
+import "@/lib/pdf/fonts";
 
 interface ReportDocumentProps {
   data: {
@@ -47,7 +48,7 @@ interface ReportDocumentProps {
 const styles = StyleSheet.create({
   page: {
     padding: 30,
-    fontFamily: "Helvetica",
+    fontFamily: "Roboto",
     fontSize: 11,
   },
   header: {

@@ -388,6 +388,8 @@ class TestNotificationServiceProcessScheduled:
                 body="Meeting in 10 min",
                 scheduled_time=now - timedelta(minutes=5),
                 processed=False,
+                retry_count=0,
+                max_retries=3,
             ),
             ScheduledNotification(
                 id=2,
@@ -397,6 +399,8 @@ class TestNotificationServiceProcessScheduled:
                 body="Task due",
                 scheduled_time=now - timedelta(minutes=10),
                 processed=False,
+                retry_count=0,
+                max_retries=3,
             ),
         ]
 
@@ -404,6 +408,7 @@ class TestNotificationServiceProcessScheduled:
         mock_uow.notifications.create = AsyncMock(return_value=MagicMock())
         mock_uow.notifications.update = AsyncMock(return_value=MagicMock())
         mock_uow.scheduled_notifications.mark_processed = AsyncMock()
+        mock_uow.scheduled_notifications.increment_retry = AsyncMock()
 
         with patch.object(service, "_send_to_channel", return_value=(True, None)):
             await service.process_scheduled()
@@ -423,11 +428,14 @@ class TestNotificationServiceProcessScheduled:
             body="Test",
             scheduled_time=now - timedelta(minutes=5),
             processed=False,
+            retry_count=0,
+            max_retries=3,
         )
 
         mock_uow.scheduled_notifications.find_pending_before.return_value = [scheduled]
         mock_uow.notifications.create = AsyncMock(return_value=Notification(id=1))
         mock_uow.notifications.update = AsyncMock(return_value=Notification(id=1))
+        mock_uow.scheduled_notifications.increment_retry = AsyncMock()
 
         with patch.object(service, "_send_to_channel", return_value=(True, None)):
             await service.process_scheduled()
@@ -447,11 +455,14 @@ class TestNotificationServiceProcessScheduled:
             body="Test",
             scheduled_time=now - timedelta(minutes=5),
             processed=False,
+            retry_count=0,
+            max_retries=3,
         )
 
         mock_uow.scheduled_notifications.find_pending_before.return_value = [scheduled]
         mock_uow.notifications.create = AsyncMock(return_value=Notification(id=1))
         mock_uow.notifications.update = AsyncMock(return_value=Notification(id=1))
+        mock_uow.scheduled_notifications.increment_retry = AsyncMock()
 
         with patch.object(service, "_send_to_channel", return_value=(True, None)):
             await service.process_scheduled()
@@ -471,6 +482,8 @@ class TestNotificationServiceProcessScheduled:
             body="Test",
             scheduled_time=now - timedelta(minutes=5),
             processed=False,
+            retry_count=0,
+            max_retries=3,
         )
 
         sent_notification = Notification(
@@ -483,6 +496,7 @@ class TestNotificationServiceProcessScheduled:
         mock_uow.scheduled_notifications.find_pending_before.return_value = [scheduled]
         mock_uow.notifications.create = AsyncMock(return_value=Notification(id=100))
         mock_uow.notifications.update = AsyncMock(return_value=sent_notification)
+        mock_uow.scheduled_notifications.increment_retry = AsyncMock()
 
         with patch.object(service, "_send_to_channel", return_value=(True, None)):
             result = await service.process_scheduled()
@@ -491,7 +505,7 @@ class TestNotificationServiceProcessScheduled:
         assert result[0].id == 100
 
     async def test_handles_send_failure_during_processing(self, mock_uow: MagicMock) -> None:
-        """Continues processing even if some sends fail."""
+        """Retries failed sends with exponential backoff."""
         service = NotificationService(mock_uow)
 
         now = datetime.now(UTC)
@@ -504,6 +518,8 @@ class TestNotificationServiceProcessScheduled:
                 body="First",
                 scheduled_time=now - timedelta(minutes=5),
                 processed=False,
+                retry_count=0,
+                max_retries=3,
             ),
             ScheduledNotification(
                 id=2,
@@ -513,6 +529,8 @@ class TestNotificationServiceProcessScheduled:
                 body="Second",
                 scheduled_time=now - timedelta(minutes=10),
                 processed=False,
+                retry_count=0,
+                max_retries=3,
             ),
         ]
 
@@ -525,6 +543,7 @@ class TestNotificationServiceProcessScheduled:
             Notification(id=1, status=NotificationStatus.FAILED, error_message="Error"),
             Notification(id=2, status=NotificationStatus.SENT, sent_at=now),
         ])
+        mock_uow.scheduled_notifications.increment_retry = AsyncMock()
 
         # First send fails, second succeeds
         send_results = [(False, "Error"), (True, None)]
@@ -532,8 +551,77 @@ class TestNotificationServiceProcessScheduled:
             result = await service.process_scheduled()
 
         assert len(result) == 2
-        # Both should still be marked as processed
-        assert mock_uow.scheduled_notifications.mark_processed.await_count == 2
+        # First should increment retry (not yet processed), second should be marked as processed
+        mock_uow.scheduled_notifications.increment_retry.assert_awaited_once()
+        call_args = mock_uow.scheduled_notifications.increment_retry.await_args
+        assert call_args[0][0] == 1  # First notification ID
+        # Scheduled time should be ~1 minute in the future (2^0 = 1 min backoff)
+        assert call_args[0][1] > now
+        assert call_args[0][1] <= now + timedelta(minutes=2)
+        mock_uow.scheduled_notifications.mark_processed.assert_awaited_once_with(2)
+
+    async def test_skips_when_max_retries_exceeded(self, mock_uow: MagicMock, caplog: LogCaptureFixture) -> None:
+        """Test lines 116-117: Skips processing when retry_count >= max_retries."""
+        caplog.set_level("WARNING")
+        service = NotificationService(mock_uow)
+
+        now = datetime.now(UTC)
+        scheduled = ScheduledNotification(
+            id=1,
+            user_id=42,
+            type=NotificationType.GENERAL,
+            channel=NotificationChannel.EMAIL,
+            body="Test",
+            scheduled_time=now - timedelta(minutes=5),
+            processed=False,
+            retry_count=3,  # Already at max_retries
+            max_retries=3,
+        )
+
+        mock_uow.scheduled_notifications.find_pending_before.return_value = [scheduled]
+        mock_uow.scheduled_notifications.mark_processed = AsyncMock()
+
+        # Should skip without sending
+        with patch.object(service, "_send_to_channel") as mock_send:
+            result = await service.process_scheduled()
+
+        # Should mark as processed immediately without sending
+        mock_send.assert_not_called()
+        mock_uow.notifications.create.assert_not_called()
+        mock_uow.scheduled_notifications.mark_processed.assert_awaited_once_with(1)
+        assert result == []  # No notifications sent
+
+    async def test_marks_processed_when_max_retries_reached_on_failure(self, mock_uow: MagicMock, caplog: LogCaptureFixture) -> None:
+        """Test lines 147-148: Marks as processed when max retries reached on failure."""
+        caplog.set_level("WARNING")
+        service = NotificationService(mock_uow)
+
+        now = datetime.now(UTC)
+        scheduled = ScheduledNotification(
+            id=1,
+            user_id=42,
+            type=NotificationType.GENERAL,
+            channel=NotificationChannel.EMAIL,
+            body="Test",
+            scheduled_time=now - timedelta(minutes=5),
+            processed=False,
+            retry_count=2,  # One away from max
+            max_retries=3,
+        )
+
+        mock_uow.scheduled_notifications.find_pending_before.return_value = [scheduled]
+        mock_uow.notifications.create = AsyncMock(return_value=Notification(id=1))
+        mock_uow.notifications.update = AsyncMock(return_value=Notification(id=1, status=NotificationStatus.FAILED))
+        mock_uow.scheduled_notifications.mark_processed = AsyncMock()
+
+        # Send fails, and retry_count + 1 >= max_retries
+        with patch.object(service, "_send_to_channel", return_value=(False, "SMTP error")):
+            result = await service.process_scheduled()
+
+        # Should mark as processed since max retries reached
+        mock_uow.scheduled_notifications.mark_processed.assert_awaited_once_with(1)
+        assert len(result) == 1
+        assert "failed after 3 retries" in caplog.text
 
 
 class TestNotificationServiceSendToChannel:

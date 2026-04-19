@@ -3,8 +3,7 @@
 from collections.abc import Sequence
 from typing import cast
 
-import sqlalchemy
-from sqlalchemy import func, or_, select
+from sqlalchemy import Column, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -46,7 +45,7 @@ class CategoryRepository(SqlAlchemyBaseRepository[Category, int], ICategoryRepos
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none() is not None
 
-    def _get_sort_column(self, sort_by: str | None) -> "sqlalchemy.Column":
+    def _get_sort_column(self, sort_by: str | None) -> Column:
         """Get SQLAlchemy column for sorting."""
         column_map = {
             "name": Category.name,
@@ -97,10 +96,7 @@ class CategoryRepository(SqlAlchemyBaseRepository[Category, int], ICategoryRepos
 
         # Apply sorting
         sort_column = self._get_sort_column(sort_by)
-        if sort_order.lower() == "asc":
-            stmt = stmt.order_by(sort_column.asc())
-        else:
-            stmt = stmt.order_by(sort_column.desc())
+        stmt = stmt.order_by(sort_column.asc() if sort_order.lower() == "asc" else sort_column.desc())
 
         stmt = stmt.offset(skip).limit(limit)
         result = await self._session.execute(stmt)

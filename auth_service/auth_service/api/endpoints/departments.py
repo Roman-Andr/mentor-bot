@@ -121,3 +121,8 @@ async def delete_department(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e.detail),
         ) from e
+    except ConflictException as e:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(e.detail),
+        ) from e

@@ -105,6 +105,7 @@ class TestCreateInvitation:
         assert invitation.email == "new@example.com"
         assert invitation.token == "new-token-123"
         mock_uow.invitations.create.assert_called_once()
+        mock_uow.commit.assert_awaited_once()  # Verify transaction committed
 
     async def test_create_invitation_pending_exists_raises(self, mock_uow):
         """Test creating invitation when pending exists raises ConflictException."""
@@ -156,6 +157,28 @@ class TestCreateInvitation:
             await service.create_invitation(invitation_data)
 
         assert "employee id already in use" in str(exc_info.value.detail).lower()
+
+    async def test_create_invitation_with_invalid_mentor_raises(self, mock_uow):
+        """Test creating invitation with non-existent mentor raises NotFoundException."""
+        mock_uow.invitations.exists_pending_for_email.return_value = False
+        mock_uow.users.get_by_email.return_value = None
+        mock_uow.users.get_by_employee_id.return_value = None
+        mock_uow.users.get_by_id.return_value = None  # Mentor not found
+        service = InvitationService(mock_uow)
+
+        invitation_data = InvitationCreate(
+            email="new@example.com",
+            employee_id="EMP004",
+            first_name="New",
+            mentor_id=999,  # Non-existent mentor
+        )
+
+        with pytest.raises(NotFoundException) as exc_info:
+            await service.create_invitation(invitation_data)
+
+        assert "mentor not found" in str(exc_info.value.detail).lower()
+        mock_uow.invitations.create.assert_not_called()
+        mock_uow.commit.assert_not_awaited()
 
 
 class TestGetInvitationById:

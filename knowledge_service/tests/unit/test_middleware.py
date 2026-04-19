@@ -1,4 +1,5 @@
-"""Tests for middleware components.
+"""
+Tests for middleware components.
 
 Covers:
 - middleware/__init__.py lines 3-5 (AuthTokenMiddleware import)
@@ -19,12 +20,11 @@ class TestMiddlewareInit:
     """Test middleware __init__.py - covers lines 3-5."""
 
     def test_auth_token_middleware_import(self):
-        """Test AuthTokenMiddleware can be imported from middleware package.
+        """
+        Test AuthTokenMiddleware can be imported from middleware package.
 
         This covers line 3-5 in middleware/__init__.py
         """
-        from knowledge_service.middleware import AuthTokenMiddleware
-
         assert AuthTokenMiddleware is not None
         assert issubclass(AuthTokenMiddleware, BaseHTTPMiddleware)
 

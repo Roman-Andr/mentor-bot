@@ -1,6 +1,7 @@
 """Attachment management endpoints."""
 
 import logging
+from contextlib import suppress
 from typing import Annotated
 
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
@@ -11,7 +12,13 @@ from knowledge_service.config import settings
 from knowledge_service.core import NotFoundException, PermissionDenied, ValidationException
 from knowledge_service.core.enums import ArticleStatus, AttachmentType
 from knowledge_service.core.security import validate_file_size, validate_file_type, validate_filename
-from knowledge_service.schemas import AttachmentListResponse, AttachmentResponse, MessageResponse
+from knowledge_service.schemas import (
+    AttachmentListResponse,
+    AttachmentResponse,
+    BatchUploadResponse,
+    FileUploadError,
+    MessageResponse,
+)
 from knowledge_service.utils import StorageError, get_storage_service
 
 logger = logging.getLogger(__name__)
@@ -57,14 +64,11 @@ async def list_article_attachments(
     for attachment in attachments:
         if attachment.type == AttachmentType.FILE:
             object_name = _get_object_name(attachment.article_id, attachment.name)
-            try:
+            with suppress(StorageError):
                 attachment.url = storage.get_presigned_url(
                     object_name,
                     expires=settings.S3_PRESIGNED_URL_EXPIRY,
                 )
-            except StorageError:
-                # Keep original URL if presigned URL generation fails
-                pass
 
     return AttachmentListResponse(
         total=len(attachments),
@@ -144,23 +148,43 @@ async def batch_upload_attachments(
     current_user: CurrentUser,
     article_id: Annotated[int, Form()],
     files: Annotated[list[UploadFile], File()],
-) -> AttachmentListResponse:
-    """Upload multiple files as attachments to an article."""
+) -> BatchUploadResponse:
+    """
+    Upload multiple files as attachments to an article.
+
+    Returns detailed information about successful uploads and failures.
+    """
     article = await article_service.get_article_by_id(article_id)
     if article.author_id != current_user.id and current_user.role not in ["HR", "ADMIN"]:
         msg = "Cannot attach files to other users' articles"
         raise PermissionDenied(msg)
 
     created_attachments = []
+    upload_errors = []
     storage = get_storage_service()
 
     for file in files:
+        filename = file.filename or "unknown"
+
         if not validate_file_size(file.size or 0):
-            continue
-        if not validate_file_type(file.filename or ""):
+            upload_errors.append(
+                FileUploadError(
+                    filename=filename,
+                    error=f"File exceeds maximum size of {settings.MAX_FILE_SIZE_MB} MB",
+                )
+            )
             continue
 
-        safe_filename = validate_filename(file.filename or "unknown")
+        if not validate_file_type(filename):
+            upload_errors.append(
+                FileUploadError(
+                    filename=filename,
+                    error="File type not allowed",
+                )
+            )
+            continue
+
+        safe_filename = validate_filename(filename)
         file_content = await file.read()
 
         object_name = _get_object_name(article_id, safe_filename)
@@ -172,11 +196,17 @@ async def batch_upload_attachments(
                 metadata={
                     "article_id": str(article_id),
                     "uploaded_by": str(current_user.id),
-                    "original_filename": file.filename or "unknown",
+                    "original_filename": filename,
                 },
             )
             file_url = storage.get_presigned_url(object_name, expires=settings.S3_PRESIGNED_URL_EXPIRY)
-        except StorageError:
+        except StorageError as e:
+            upload_errors.append(
+                FileUploadError(
+                    filename=filename,
+                    error=f"Storage upload failed: {e!s}",
+                )
+            )
             continue
 
         attachment = await attachment_service.create_attachment(
@@ -192,9 +222,11 @@ async def batch_upload_attachments(
         )
         created_attachments.append(AttachmentResponse.model_validate(attachment))
 
-    return AttachmentListResponse(
-        total=len(created_attachments),
+    return BatchUploadResponse(
+        total_uploaded=len(created_attachments),
+        total_failed=len(upload_errors),
         attachments=created_attachments,
+        errors=upload_errors,
     )
 
 

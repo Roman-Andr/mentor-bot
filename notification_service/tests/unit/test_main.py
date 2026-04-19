@@ -73,9 +73,9 @@ class TestRootEndpoint:
     @pytest.mark.asyncio
     async def test_root_endpoint(self):
         """Test root endpoint returns service status."""
+        from notification_service.config import settings
         from notification_service.main import root
         from notification_service.schemas import ServiceStatus
-        from notification_service.config import settings
 
         result = await root()
 
@@ -195,13 +195,13 @@ class TestAppConfiguration:
         assert response.status_code != 404
 
 
+
+
 class TestMiddleware:
     """Tests for middleware functionality."""
 
     def test_auth_token_middleware_extracts_token(self, client):
         """Test that auth token middleware is active."""
-        from notification_service.config import settings
-
         # Make request with auth header
         headers = {"Authorization": "Bearer test_token_123"}
         response = client.get("/health", headers=headers)

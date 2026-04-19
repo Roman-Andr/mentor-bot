@@ -157,6 +157,30 @@ class TestGetUserMentors:
 class TestCreateUserMentor:
     """Tests for POST /api/v1/user-mentors/ endpoint."""
 
+    def test_create_relation_user_is_own_mentor(self, hr_user, mock_uow, newbie_user):
+        """Test creating relation where user is their own mentor returns 422 (covers line 51)."""
+        async def mock_require_hr() -> User:
+            return hr_user
+
+        app.dependency_overrides[_hr_user_dependency] = mock_require_hr
+
+        with patch("auth_service.api.endpoints.user_mentors.UOWDep", return_value=mock_uow):
+            with TestClient(app) as client:
+                response = client.post(
+                    "/api/v1/user-mentors/",
+                    headers=create_auth_headers(hr_user.id, hr_user.role),
+                    json={
+                        "user_id": newbie_user.id,
+                        "mentor_id": newbie_user.id,  # Same as user_id
+                        "notes": "Self assignment",
+                    },
+                )
+
+        del app.dependency_overrides[_hr_user_dependency]
+
+        assert response.status_code == 422
+        assert "own mentor" in response.json()["detail"].lower()
+
     def test_create_relation_success(self, hr_user, mock_uow, sample_relation, newbie_user, mentor_user):
         """Test creating a new user-mentor relationship."""
         mock_uow.user_mentors.get_by_user_and_mentor = AsyncMock(return_value=None)

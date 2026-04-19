@@ -40,7 +40,8 @@ async def login(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     auth_service: AuthServiceDep,
 ) -> Token:
-    """Login with email and password using repository pattern.
+    """
+    Login with email and password using repository pattern.
 
     Sets httpOnly cookies for token storage (secure against XSS).
     """
@@ -82,7 +83,8 @@ async def refresh_token(
     refresh_data: RefreshTokenRequest,
     auth_service: AuthServiceDep,
 ) -> Token:
-    """Refresh access token using refresh token.
+    """
+    Refresh access token using refresh token.
 
     Updates httpOnly cookies with new tokens.
     """

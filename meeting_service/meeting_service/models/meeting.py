@@ -38,6 +38,7 @@ class Meeting(Base):
     is_mandatory: Mapped[bool] = mapped_column(default=True, nullable=False)
     order: Mapped[int] = mapped_column(default=0, nullable=False)  # Display order
     deadline_days: Mapped[int] = mapped_column(default=7, nullable=False)  # Days from start of onboarding
+    duration_minutes: Mapped[int] = mapped_column(default=60, nullable=False)  # Meeting duration
 
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)

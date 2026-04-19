@@ -23,6 +23,20 @@ RECOVERY_TIMEOUT_60 = 60
 RECOVERY_TIMEOUT_30 = 30
 
 
+@pytest.fixture(autouse=True)
+def reset_circuit_breaker_singleton() -> None:
+    """Reset auth_service_circuit_breaker singleton state before each test.
+
+    This prevents test pollution since the singleton maintains state across tests.
+    """
+    # Import here to avoid circular imports at module level
+    from checklists_service.services.circuit_breaker import auth_service_circuit_breaker
+
+    auth_service_circuit_breaker.state = CircuitState.CLOSED
+    auth_service_circuit_breaker.failure_count = 0
+    auth_service_circuit_breaker.last_failure_time = 0
+
+
 class TestCircuitBreakerClosedToOpen:
     """Test CLOSED -> OPEN transition after N failures."""
 
@@ -310,11 +324,29 @@ class TestCircuitBreakerIntegration:
         # Import at top of function to avoid PLC0415 - function-level import needed for test isolation
         from checklists_service.services.circuit_breaker import auth_service_circuit_breaker  # noqa: PLC0415
 
-        assert auth_service_circuit_breaker.expected_exceptions == (httpx.RequestError,)
+        assert auth_service_circuit_breaker.expected_exceptions == (httpx.RequestError, httpx.HTTPStatusError)
 
         mock_func = AsyncMock(side_effect=httpx.RequestError("connection error"))
 
         with pytest.raises(httpx.RequestError, match="connection error"):
+            await auth_service_circuit_breaker.call(mock_func)
+
+        assert auth_service_circuit_breaker.failure_count == FAILURE_COUNT_1
+
+    async def test_httpx_http_status_error_trips_breaker(self) -> None:
+        """Verify that httpx.HTTPStatusError (5xx errors) trips the circuit breaker."""
+        # Import at top of function to avoid PLC0415 - function-level import needed for test isolation
+        from checklists_service.services.circuit_breaker import auth_service_circuit_breaker  # noqa: PLC0415
+
+        # Create a mock response for HTTPStatusError
+        mock_response = httpx.Response(500, text="Internal Server Error")
+        mock_func = AsyncMock(
+            side_effect=httpx.HTTPStatusError(
+                "Server error", request=httpx.Request("GET", "/"), response=mock_response
+            )
+        )
+
+        with pytest.raises(httpx.HTTPStatusError, match="Server error"):
             await auth_service_circuit_breaker.call(mock_func)
 
         assert auth_service_circuit_breaker.failure_count == FAILURE_COUNT_1

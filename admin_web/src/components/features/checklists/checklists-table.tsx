@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { SearchInput } from "@/components/ui/search-input";
 import { Select } from "@/components/ui/select";
 import { DataTable } from "@/components/ui/data-table";
+import { DataTableSkeleton } from "@/components/ui/table-skeleton";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { SortableTableHead } from "@/components/ui/sortable-table-head";
 import {
@@ -98,6 +99,7 @@ export function ChecklistsTable({
       onPageChange={onPageChange}
       onPageSizeChange={onPageSizeChange}
       showPageSizeSelector={!!onPageSizeChange}
+      skeleton={<DataTableSkeleton columns={7} rows={5} showHeader={false} />}
       header={
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -204,7 +206,7 @@ export function ChecklistsTable({
               </TableCell>
               <TableCell onClick={(e) => e.stopPropagation()}>
                 <div className="flex gap-1">
-                   <Button variant="ghost" size="icon" onClick={() => onEdit(checklist)}>
+                   <Button variant="ghost" size="icon" onClick={() => onEdit(checklist)} aria-label={t("common.edit")}>
                      <SquarePen className="size-4" />
                    </Button>
                   {checklist.status !== "COMPLETED" && (
@@ -214,6 +216,7 @@ export function ChecklistsTable({
                       className="text-green-500"
                       onClick={() => onComplete(checklist.id)}
                       title={t("checklists.markComplete")}
+                      aria-label={t("checklists.markComplete")}
                     >
                       <CheckCircle className="size-4" />
                     </Button>
@@ -223,6 +226,7 @@ export function ChecklistsTable({
                     size="icon"
                     className="text-red-500"
                     onClick={() => onDelete(checklist.id)}
+                    aria-label={t("common.delete")}
                   >
                     <Trash2 className="size-4" />
                   </Button>

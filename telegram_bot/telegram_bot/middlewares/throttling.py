@@ -1,24 +1,98 @@
-"""Throttling middleware to limit user requests."""
+"""Throttling middleware to limit user requests using Redis."""
 
+import json
 from collections.abc import Awaitable, Callable
-from datetime import UTC, datetime, timedelta
-from typing import TYPE_CHECKING, Any
+from datetime import UTC, datetime
+from typing import Any
 
 from aiogram import BaseMiddleware
 from aiogram.dispatcher.flags import get_flag
 from aiogram.types import TelegramObject
+from redis.asyncio import Redis
+from redis.exceptions import RedisError
 
-if TYPE_CHECKING:
-    from aiogram.types import User as TgUser
+from telegram_bot.config import settings
 
 
 class ThrottlingMiddleware(BaseMiddleware):
-    """Middleware to throttle user requests."""
+    """Middleware to throttle user requests using Redis for distributed rate limiting."""
 
-    def __init__(self) -> None:
-        """Initialize throttling middleware."""
+    def __init__(self, redis_client: Redis | None = None) -> None:
+        """Initialize throttling middleware with Redis connection."""
         super().__init__()
-        self.user_limiters = {}
+        self.redis = redis_client
+        self._default_calls = 5
+        self._default_period = 60
+        self._key_prefix = "throttle"
+
+    def _make_key(self, user_id: int) -> str:
+        """Generate Redis key for rate limit tracking."""
+        return f"{self._key_prefix}:{user_id}"
+
+    async def _get_rate_limit_data(self, user_id: int) -> dict[str, Any] | None:
+        """Get rate limit data from Redis."""
+        if not self.redis:
+            return None
+        try:
+            data = await self.redis.get(self._make_key(user_id))
+            if data:
+                return json.loads(data)
+        except (RedisError, json.JSONDecodeError):
+            return None
+        return None
+
+    async def _set_rate_limit_data(
+        self, user_id: int, data: dict[str, Any], ttl: int
+    ) -> bool:
+        """Set rate limit data in Redis with TTL."""
+        if not self.redis:
+            return False
+        try:
+            await self.redis.set(
+                self._make_key(user_id), json.dumps(data), ex=max(ttl, 1)
+            )
+            return True
+        except RedisError:
+            return False
+
+    async def _is_rate_limited(
+        self, user_id: int, calls: int, period: int
+    ) -> tuple[bool, int]:
+        """Check if user is rate limited. Returns (is_limited, remaining_calls)."""
+        if not self.redis:
+            return False, calls
+
+        now = datetime.now(UTC).timestamp()
+
+        data = await self._get_rate_limit_data(user_id)
+
+        if data is None:
+            # First call in this window
+            await self._set_rate_limit_data(
+                user_id, {"start_time": now, "count": 1}, period
+            )
+            return False, calls - 1
+
+        start_time = data.get("start_time", now)
+        count = data.get("count", 0)
+
+        # Check if window has expired
+        if now - start_time >= period:
+            # Reset window
+            await self._set_rate_limit_data(
+                user_id, {"start_time": now, "count": 1}, period
+            )
+            return False, calls - 1
+
+        # Within window, check count
+        if count >= calls:
+            return True, 0
+
+        # Increment count
+        await self._set_rate_limit_data(
+            user_id, {"start_time": start_time, "count": count + 1}, period
+        )
+        return False, calls - count - 1
 
     async def __call__(
         self,
@@ -29,51 +103,53 @@ class ThrottlingMiddleware(BaseMiddleware):
         """Process update with throttling."""
         rate_limit = get_flag(data, "rate_limit")
         if rate_limit is None:
-            rate_limit = {"calls": 5, "period": 60}
+            rate_limit = {"calls": self._default_calls, "period": self._default_period}
 
-        tg_user: TgUser = None
+        tg_user = None
         if event.message:
             tg_user = event.message.from_user
         elif event.callback_query:
             tg_user = event.callback_query.from_user
 
-        if tg_user:
+        if tg_user and self.redis:
             user_id = tg_user.id
+            calls = rate_limit.get("calls", self._default_calls)
+            period = rate_limit.get("period", self._default_period)
 
-            if user_id in self.user_limiters:
-                last_call, calls = self.user_limiters[user_id]
-                if (
-                    datetime.now(UTC) - last_call
-                    < timedelta(seconds=rate_limit["period"])
-                    and calls >= rate_limit["calls"]
-                ):
-                    if hasattr(event, "answer"):
-                        await event.answer(
-                            "Too many requests. Please wait a moment.", show_alert=True
-                        )
-                    return None
+            is_limited, _ = await self._is_rate_limited(user_id, calls, period)
 
-            if user_id not in self.user_limiters:
-                self.user_limiters[user_id] = [datetime.now(UTC), 1]
-            else:
-                last_call, calls = self.user_limiters[user_id]
-                if datetime.now(UTC) - last_call < timedelta(
-                    seconds=rate_limit["period"]
-                ):
-                    self.user_limiters[user_id] = [last_call, calls + 1]
-                else:
-                    self.user_limiters[user_id] = [datetime.now(UTC), 1]
+            if is_limited:
+                if hasattr(event, "answer"):
+                    await event.answer(
+                        "Too many requests. Please wait a moment.", show_alert=True
+                    )
+                return None
 
         return await handler(event, data)
 
-    def cleanup_old_limiters(self) -> None:
-        """Clean up old user limiters."""
-        now = datetime.now(UTC)
-        to_remove = []
 
-        for user_id, (last_call, _) in self.user_limiters.items():
-            if now - last_call > timedelta(minutes=5):
-                to_remove.append(user_id)
+class ThrottlingService:
+    """Service to manage throttling with shared Redis connection."""
 
-        for user_id in to_remove:
-            del self.user_limiters[user_id]
+    def __init__(self) -> None:
+        """Initialize throttling service."""
+        self.redis: Redis | None = None
+
+    async def connect(self) -> None:
+        """Connect to Redis."""
+        if not self.redis:
+            self.redis = Redis.from_url(str(settings.REDIS_URL))
+
+    async def disconnect(self) -> None:
+        """Disconnect from Redis."""
+        if self.redis:
+            await self.redis.aclose()
+            self.redis = None
+
+    def create_middleware(self) -> ThrottlingMiddleware:
+        """Create throttling middleware with shared Redis connection."""
+        return ThrottlingMiddleware(redis_client=self.redis)
+
+
+# Global throttling service instance
+throttling_service = ThrottlingService()

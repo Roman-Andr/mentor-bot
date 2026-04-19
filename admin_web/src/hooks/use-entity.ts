@@ -67,10 +67,8 @@ export interface UseEntityOptions<TItem, TForm, TCreatePayload, TUpdatePayload> 
   listDataKey?: string;
 
   // CRUD operations
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  createFn?: (data: any) => Promise<ApiResponse<unknown>>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  updateFn?: (id: number, data: any) => Promise<ApiResponse<unknown>>;
+  createFn?: (data: TCreatePayload) => Promise<ApiResponse<unknown>>;
+  updateFn?: (id: number, data: TUpdatePayload) => Promise<ApiResponse<unknown>>;
   deleteFn?: (id: number) => Promise<ApiResponse<unknown>>;
 
   // Form configuration
@@ -114,7 +112,7 @@ export interface UseEntityContext<TItem, TForm> {
   invalidate: () => void;
 }
 
-export interface UseEntityResult<TItem, TForm> {
+export interface UseEntityResult<TItem, TForm, TCreatePayload = unknown, TUpdatePayload = unknown> {
   // Data
   items: TItem[];
   loading: boolean;
@@ -170,10 +168,8 @@ export interface UseEntityResult<TItem, TForm> {
   openEditDialog: (item: TItem) => void;
 
   // Direct mutation functions (for custom handling)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  createFn?: (data: any) => Promise<ApiResponse<unknown>>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  updateFn?: (id: number, data: any) => Promise<ApiResponse<unknown>>;
+  createFn?: (data: TCreatePayload) => Promise<ApiResponse<unknown>>;
+  updateFn?: (id: number, data: TUpdatePayload) => Promise<ApiResponse<unknown>>;
   deleteFn?: (id: number) => Promise<ApiResponse<unknown>>;
 
   // Loading states
@@ -205,7 +201,7 @@ function getListQueryKey(prefix: keyof typeof queryKeys, params: ListParams) {
 
 export function useEntity<TItem, TForm, TCreatePayload = unknown, TUpdatePayload = unknown>(
   options: UseEntityOptions<TItem, TForm, TCreatePayload, TUpdatePayload>,
-): UseEntityResult<TItem, TForm> {
+): UseEntityResult<TItem, TForm, TCreatePayload, TUpdatePayload> {
   const {
     entityName,
     translationNamespace,

@@ -4,8 +4,7 @@ from collections.abc import Sequence
 from datetime import UTC, datetime
 from typing import Any, cast
 
-import sqlalchemy
-from sqlalchemy import and_, func, select
+from sqlalchemy import Column, and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from checklists_service.core.enums import ChecklistStatus, TaskStatus
@@ -21,7 +20,7 @@ class ChecklistRepository(SqlAlchemyBaseRepository[Checklist, int], IChecklistRe
         """Initialize ChecklistRepository with database session."""
         super().__init__(session, Checklist)
 
-    def _get_sort_column(self, sort_by: str | None) -> "sqlalchemy.Column":
+    def _get_sort_column(self, sort_by: str | None) -> Column:
         """Get SQLAlchemy column for sorting."""
         column_map = {
             "employeeId": Checklist.employee_id,
@@ -82,10 +81,7 @@ class ChecklistRepository(SqlAlchemyBaseRepository[Checklist, int], IChecklistRe
 
         # Apply sorting
         sort_column = self._get_sort_column(sort_by)
-        if sort_order.lower() == "asc":
-            stmt = stmt.order_by(sort_column.asc())
-        else:
-            stmt = stmt.order_by(sort_column.desc())
+        stmt = stmt.order_by(sort_column.asc() if sort_order.lower() == "asc" else sort_column.desc())
 
         stmt = stmt.offset(skip).limit(limit)
         result = await self._session.execute(stmt)

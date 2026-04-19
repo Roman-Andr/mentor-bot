@@ -28,12 +28,23 @@ async def search_articles(
         "level": current_user.level,
     }
 
+    # Authorization check: only HR/ADMIN can search other departments
+    if search_query.department_id is not None and not current_user.has_role(["HR", "ADMIN"]):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to search other departments",
+        )
+
     results, total, suggestions = await search_service.search_articles(
         query=search_query.query,
         filters={
             "category_id": search_query.category_id,
             "tag_ids": search_query.tag_ids,
-            "department_id": search_query.department_id or current_user.department_id,
+            "department_id": (
+                search_query.department_id
+                if current_user.has_role(["HR", "ADMIN"])
+                else current_user.department_id
+            ),
             "position": search_query.position,
             "level": search_query.level,
             "only_published": search_query.only_published,

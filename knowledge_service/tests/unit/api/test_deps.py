@@ -1,11 +1,10 @@
 """Tests for API dependencies (api/deps.py)."""
 
-from typing import TYPE_CHECKING
+from contextlib import suppress
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
-import httpx
 import pytest
-from fastapi import Depends, HTTPException, Request, status
+from fastapi import HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials
 
 from knowledge_service.api.deps import (
@@ -49,11 +48,6 @@ from knowledge_service.services import (
     SearchService,
     TagService,
 )
-
-if TYPE_CHECKING:
-    from unittest.mock import AsyncMock as AsyncMockType
-
-    from knowledge_service.models import Article
 
 
 class TestUserInfo:
@@ -393,7 +387,7 @@ class TestGetAuthToken:
 class TestVerifyServiceApiKey:
     """Test verify_service_api_key dependency."""
 
-    @patch("knowledge_service.config.settings")
+    @patch("knowledge_service.api.deps.settings")
     async def test_verify_service_api_key_success(self, mock_settings: Mock) -> None:
         """Test successful service API key verification."""
         mock_settings.SERVICE_API_KEY = "valid_service_key"
@@ -402,16 +396,18 @@ class TestVerifyServiceApiKey:
 
         assert result is True
 
-    @patch("knowledge_service.config.settings")
+    @patch("knowledge_service.api.deps.settings")
     async def test_verify_service_api_key_no_key_configured(self, mock_settings: Mock) -> None:
-        """Test when SERVICE_API_KEY is not configured."""
+        """Test when SERVICE_API_KEY is not configured raises HTTPException."""
         mock_settings.SERVICE_API_KEY = ""
 
-        result = await verify_service_api_key("any_key")
+        with pytest.raises(HTTPException) as exc_info:
+            await verify_service_api_key("any_key")
 
-        assert result is False
+        assert exc_info.value.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert "Service API key not configured" in str(exc_info.value.detail)
 
-    @patch("knowledge_service.config.settings")
+    @patch("knowledge_service.api.deps.settings")
     async def test_verify_service_api_key_invalid_key(self, mock_settings: Mock) -> None:
         """Test with invalid service API key."""
         mock_settings.SERVICE_API_KEY = "valid_service_key"
@@ -422,7 +418,7 @@ class TestVerifyServiceApiKey:
         assert exc_info.value.status_code == status.HTTP_401_UNAUTHORIZED
         assert "Invalid service API key" in exc_info.value.detail
 
-    @patch("knowledge_service.config.settings")
+    @patch("knowledge_service.api.deps.settings")
     async def test_verify_service_api_key_no_header(self, mock_settings: Mock) -> None:
         """Test with missing API key header."""
         mock_settings.SERVICE_API_KEY = "valid_service_key"
@@ -513,11 +509,11 @@ class TestGetUow:
     """Test get_uow async generator dependency."""
 
     @patch("knowledge_service.api.deps.SqlAlchemyUnitOfWork")
-    async def test_get_uow_yields_uow_on_success(
+    async def test_get_uow_yields_uow(
         self,
         mock_uow_class: Mock,
     ) -> None:
-        """Test get_uow yields UnitOfWork and commits on success."""
+        """Test get_uow yields UnitOfWork."""
         mock_uow = AsyncMock(spec=SqlAlchemyUnitOfWork)
         mock_uow_class.return_value = mock_uow
         mock_uow.__aenter__ = AsyncMock(return_value=mock_uow)
@@ -526,33 +522,26 @@ class TestGetUow:
         async for uow in get_uow():
             assert uow == mock_uow
 
-        mock_uow.commit.assert_awaited_once()
+        # Commit/rollback are handled by UOW context manager, not the dependency
+        mock_uow.commit.assert_not_awaited()
+        mock_uow.rollback.assert_not_awaited()
 
     @patch("knowledge_service.api.deps.SqlAlchemyUnitOfWork")
-    async def test_get_uow_rollback_on_exception(
+    async def test_get_uow_context_manager_exit(
         self,
         mock_uow_class: Mock,
     ) -> None:
-        """Test get_uow rolls back on exception raised after yield."""
+        """Test get_uow properly exits context manager."""
         mock_uow = AsyncMock(spec=SqlAlchemyUnitOfWork)
         mock_uow_class.return_value = mock_uow
         mock_uow.__aenter__ = AsyncMock(return_value=mock_uow)
         mock_uow.__aexit__ = AsyncMock(return_value=None)
 
-        # Simulate an exception that propagates back into the generator
-        gen = get_uow()
-        uow = await gen.__anext__()
-        assert uow == mock_uow
+        async for uow in get_uow():
+            assert uow == mock_uow
 
-        # Simulate an exception being thrown into the generator
-        # This is what happens when an exception occurs in a route using the dependency
-        try:
-            await gen.athrow(ValueError("Test exception"))
-        except ValueError:
-            pass
-
-        mock_uow.rollback.assert_awaited_once()
-        mock_uow.commit.assert_not_awaited()
+        # Verify __aexit__ is called when exiting the async context
+        mock_uow.__aexit__.assert_awaited_once()
 
 
 class TestServiceDependencies:

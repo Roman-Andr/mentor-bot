@@ -15,6 +15,7 @@ export const feedbackApi = {
     user_id?: number;
     from_date?: string;
     to_date?: string;
+    search?: string;
     skip?: number;
     limit?: number;
   }) =>

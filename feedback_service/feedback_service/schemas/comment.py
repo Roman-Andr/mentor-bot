@@ -2,16 +2,16 @@
 
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, EmailStr, Field
 
 
 class CommentCreate(BaseModel):
     """Schema for creating a comment entry."""
 
-    comment: str = Field(..., description="Comment text", min_length=10)
+    comment: str = Field(..., description="Comment text", min_length=10, max_length=5000)
     is_anonymous: bool = Field(default=False, description="Submit anonymously")
     allow_contact: bool = Field(default=False, description="Allow HR to contact for follow-up")
-    contact_email: str | None = Field(default=None, description="Contact email for follow-up")
+    contact_email: EmailStr | None = Field(default=None, description="Contact email for follow-up")
 
 
 class CommentReplyCreate(BaseModel):
@@ -29,7 +29,7 @@ class CommentResponse(BaseModel):
     comment: str
     submitted_at: datetime
     allow_contact: bool
-    contact_email: str | None = None
+    contact_email: EmailStr | None = None
     reply: str | None = None
     replied_at: datetime | None = None
     replied_by: int | None = None

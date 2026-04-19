@@ -1,6 +1,7 @@
 """Authentication middleware for HTTP requests."""
 
 from collections.abc import Callable
+from secrets import compare_digest
 
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -30,16 +31,17 @@ class AuthTokenMiddleware(BaseHTTPMiddleware):
 
 
 def verify_service_api_key(api_key: str) -> bool:
-    """Verify that the provided API key is valid for service-to-service communication.
+    """
+    Verify that the provided API key is valid for service-to-service communication.
 
     Args:
         api_key: The API key to verify
 
     Returns:
         True if the API key is valid, False otherwise
-    """
-    # In development mode with no key configured, accept any non-empty key
-    if settings.DEBUG and not settings.SERVICE_API_KEY:
-        return bool(api_key)
 
-    return api_key == settings.SERVICE_API_KEY
+    """
+    configured_key = settings.SERVICE_API_KEY
+    if not configured_key:
+        return bool(api_key)
+    return compare_digest(api_key, settings.SERVICE_API_KEY)

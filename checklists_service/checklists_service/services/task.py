@@ -3,6 +3,8 @@
 from datetime import UTC, datetime
 from typing import Any
 
+from sqlalchemy.orm.attributes import flag_modified
+
 from checklists_service.core import NotFoundException, TaskStatus, ValidationException
 from checklists_service.models import Task
 from checklists_service.repositories.unit_of_work import IUnitOfWork
@@ -213,8 +215,6 @@ class TaskService:
         uploaded_by: int,
     ) -> dict:
         """Add an attachment to a task."""
-        from sqlalchemy.orm.attributes import flag_modified
-
         task = await self.get_task(task_id)
 
         attachment = {

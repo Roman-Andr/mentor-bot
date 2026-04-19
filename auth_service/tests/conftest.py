@@ -144,7 +144,8 @@ def override_uow_dependency(mock_uow):
 
 @pytest.fixture(autouse=True)
 def fast_bcrypt(monkeypatch):
-    """Speed up bcrypt by using minimum rounds for all tests.
+    """
+    Speed up bcrypt by using minimum rounds for all tests.
 
     Bcrypt default is 12 rounds which is slow. Using 4 rounds (minimum)
     makes tests ~10x faster while still testing real bcrypt functionality.
@@ -160,7 +161,6 @@ def fast_bcrypt(monkeypatch):
 
     # Patch bcrypt module directly
     monkeypatch.setattr(bcrypt, "gensalt", _fast_gensalt)
-    yield
 
 
 @pytest.fixture

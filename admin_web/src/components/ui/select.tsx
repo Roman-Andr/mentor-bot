@@ -55,24 +55,24 @@ export function Select({
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
           "flex h-9 w-full cursor-pointer items-center justify-between rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors",
-          "focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none",
+          "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
           "disabled:cursor-not-allowed disabled:opacity-50",
           !selectedOption && "text-muted-foreground",
         )}
       >
         <span className="truncate">{selectedOption ? selectedOption.label : placeholderText}</span>
-        <ChevronDown className="size-4 opacity-50" />
+        <ChevronDown className="h-4 w-4 opacity-50" />
       </button>
 
       {isOpen && (
-        <div className="bg-popover text-popover-foreground absolute z-50 mt-1 w-auto min-w-full rounded-md border shadow-md">
+        <div className="absolute z-50 mt-1 w-auto min-w-full rounded-md border bg-popover text-popover-foreground shadow-md">
           <div className="max-h-60 overflow-y-auto p-1">
             {options.map((option) => (
               <button
                 key={option.value}
                 type="button"
                 className={cn(
-                  "flex w-full cursor-pointer items-center justify-between gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground",
+                  "flex w-full cursor-pointer items-center justify-between gap-2 rounded-sm px-2 py-1.5 text-sm transition-colors hover:bg-accent hover:text-accent-foreground",
                   option.value === value && "bg-accent text-accent-foreground",
                 )}
                 onClick={() => {
@@ -81,7 +81,7 @@ export function Select({
                 }}
               >
                 <span className="truncate">{option.label}</span>
-                {option.value === value && <Check className="size-4 shrink-0" />}
+                {option.value === value && <Check className="h-4 w-4 shrink-0" />}
               </button>
             ))}
           </div>

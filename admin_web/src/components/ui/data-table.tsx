@@ -53,11 +53,11 @@ export function DataTable({
       <CardContent className="p-0">
         {header}
         {loading ? (
-          <div className="text-muted-foreground flex items-center justify-center py-12">
+          <div className="flex items-center justify-center py-12 text-muted-foreground">
             {loadingMessage ?? t("common.loading")}
           </div>
         ) : empty ? (
-          <div className="text-muted-foreground flex items-center justify-center py-12">
+          <div className="flex items-center justify-center py-12 text-muted-foreground">
             {emptyMessage ?? t("common.noData")}
           </div>
         ) : (

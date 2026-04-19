@@ -64,29 +64,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       formData.append("username", email);
       formData.append("password", password);
 
+      console.log("[Auth] Sending login request...");
       const response = await fetch("/api/v1/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
         },
-        credentials: "include",  // Receive httpOnly cookies
+        credentials: "include",
         body: formData.toString(),
       });
 
+      console.log("[Auth] Login response status:", response.status);
+      console.log("[Auth] Login response cookies (Set-Cookie):", response.headers.get("Set-Cookie") || "none");
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error("Login failed:", response.status, errorData);
+        console.error("[Auth] Login failed:", response.status, errorData);
         return false;
       }
 
       const data = await response.json();
+      console.log("[Auth] Login success, token received:", !!data.access_token);
 
+      console.log("[Auth] Fetching /me with cookies...");
       const userResponse = await fetch("/api/v1/auth/me", {
-        credentials: "include",  // Send httpOnly cookies
+        credentials: "include",
       });
 
+      console.log("[Auth] /me response status:", userResponse.status);
+
       if (!userResponse.ok) {
-        console.error("Failed to fetch user:", userResponse.status);
+        console.error("[Auth] Failed to fetch user:", userResponse.status);
         return false;
       }
 

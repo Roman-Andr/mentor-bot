@@ -1,5 +1,6 @@
 """Escalation management service with repository pattern."""
 
+from contextlib import suppress
 from datetime import UTC, datetime
 
 from escalation_service.clients.notification_client import NotificationClient
@@ -8,7 +9,6 @@ from escalation_service.core.exceptions import NotFoundException, ValidationExce
 from escalation_service.models import EscalationRequest
 from escalation_service.repositories.unit_of_work import IUnitOfWork
 from escalation_service.schemas import EscalationRequestCreate, EscalationRequestUpdate
-
 
 # Valid state transitions for the escalation workflow
 # Key: current_status -> list of allowed next statuses
@@ -44,7 +44,8 @@ def _validate_status_transition(
     current_status: EscalationStatus,
     new_status: EscalationStatus,
 ) -> None:
-    """Validate that a status transition is allowed.
+    """
+    Validate that a status transition is allowed.
 
     Args:
         current_status: The current status of the escalation
@@ -52,6 +53,7 @@ def _validate_status_transition(
 
     Raises:
         ValidationException: If the transition is not valid
+
     """
     if current_status == new_status:
         return  # Same status is always valid (no-op)
@@ -91,7 +93,7 @@ class EscalationService:
         await self._uow.commit()
 
         # Send notifications (non-blocking)
-        try:
+        with suppress(Exception):
             await self._notification.notify_escalation_created(
                 escalation_id=created.id,
                 user_id=data.user_id,
@@ -99,9 +101,6 @@ class EscalationService:
                 reason=data.reason or "",
                 priority=data.context.get("priority", "normal") if data.context else "normal",
             )
-        except Exception:
-            # Log but don't fail the creation
-            pass
 
         return created
 
@@ -200,7 +199,7 @@ class EscalationService:
         await self._uow.commit()
 
         # Notify (non-blocking)
-        try:
+        with suppress(Exception):
             await self._notification.notify_escalation_assigned(
                 escalation_id=escalation_id,
                 new_assignee_id=assignee_id,
@@ -208,8 +207,6 @@ class EscalationService:
                 assigned_by_id=assigned_by_id,
                 reason=request.reason or "",
             )
-        except Exception:
-            pass
 
         return updated
 
@@ -233,7 +230,7 @@ class EscalationService:
         await self._uow.commit()
 
         # Notify requester of resolution (non-blocking)
-        try:
+        with suppress(Exception):
             await self._notification.notify_status_change(
                 escalation_id=escalation_id,
                 user_id=request.user_id,
@@ -242,7 +239,5 @@ class EscalationService:
                 changed_by_id=resolved_by_id,
                 comment=comment,
             )
-        except Exception:
-            pass
 
         return updated

@@ -39,8 +39,9 @@ def get_env_without_virtual_env() -> dict:
     return {k: v for k, v in os.environ.items() if k != "VIRTUAL_ENV"}
 
 
-def update_service(service_dir: Path) -> int:
-    pyproject = service_dir / "pyproject.toml"
+def update_project(project_dir: Path) -> int:
+    """Update dependencies for a project (root or service) using uv, return count updated."""
+    pyproject = project_dir / "pyproject.toml"
     if not pyproject.exists():
         return 0
 
@@ -50,32 +51,33 @@ def update_service(service_dir: Path) -> int:
     # Remove in reverse order
     for dep in reversed(dev_deps):
         pkg = extract_pkg_name(dep)
-        subprocess.run(["uv", "remove", pkg, "--directory", str(service_dir)], capture_output=True, text=True, env=env)
+        subprocess.run(["uv", "remove", pkg, "--directory", str(project_dir)], capture_output=True, text=True, env=env)
     for dep in reversed(deps):
         pkg = extract_pkg_name(dep)
-        subprocess.run(["uv", "remove", pkg, "--directory", str(service_dir)], capture_output=True, text=True, env=env)
+        subprocess.run(["uv", "remove", pkg, "--directory", str(project_dir)], capture_output=True, text=True, env=env)
 
     # Add back in original order
     for dep in deps:
         pkg = extract_pkg_name(dep)
-        subprocess.run(["uv", "add", pkg, "--directory", str(service_dir)], capture_output=True, text=True, env=env)
+        subprocess.run(["uv", "add", pkg, "--directory", str(project_dir)], capture_output=True, text=True, env=env)
     for dep in dev_deps:
         pkg = extract_pkg_name(dep)
-        subprocess.run(["uv", "add", pkg, "--directory", str(service_dir), "--dev"], capture_output=True, text=True, env=env)
+        subprocess.run(["uv", "add", pkg, "--directory", str(project_dir), "--dev"], capture_output=True, text=True, env=env)
 
     return len(deps) + len(dev_deps)
 
 
 def main() -> None:
+    """Update dependencies for root and all services."""
     total = 0
+
+    # Update root pyproject.toml first
+    total += update_project(Path("."))
 
     for service in SERVICES:
         service_dir = Path(service)
-        if not service_dir.is_dir():
-            continue
-
-        total += update_service(service_dir)
-
+        if service_dir.is_dir():
+            total += update_project(service_dir)
 
 
 if __name__ == "__main__":

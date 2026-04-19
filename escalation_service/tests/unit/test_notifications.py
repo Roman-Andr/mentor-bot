@@ -22,7 +22,7 @@ class TestNotificationClient:
     async def test_notify_escalation_created_with_assignee(self, notification_client: NotificationClient) -> None:
         """Creating escalation should notify both requester and assignee."""
         # Arrange
-        with patch.object(notification_client, '_send_notification', new=AsyncMock()) as mock_send:
+        with patch.object(notification_client, "_send_notification", new=AsyncMock()) as mock_send:
             # Act
             result = await notification_client.notify_escalation_created(
                 escalation_id=1,
@@ -53,7 +53,7 @@ class TestNotificationClient:
     async def test_notify_escalation_created_without_assignee(self, notification_client: NotificationClient) -> None:
         """Creating escalation without assignee should only notify requester."""
         # Arrange
-        with patch.object(notification_client, '_send_notification', new=AsyncMock()) as mock_send:
+        with patch.object(notification_client, "_send_notification", new=AsyncMock()) as mock_send:
             # Act
             result = await notification_client.notify_escalation_created(
                 escalation_id=1,
@@ -77,7 +77,7 @@ class TestNotificationClient:
         # Arrange
         long_reason = "A" * 150
 
-        with patch.object(notification_client, '_send_notification', new=AsyncMock()) as mock_send:
+        with patch.object(notification_client, "_send_notification", new=AsyncMock()) as mock_send:
             # Act
             await notification_client.notify_escalation_created(
                 escalation_id=1,
@@ -96,7 +96,7 @@ class TestNotificationClient:
     async def test_notify_escalation_assigned(self, notification_client: NotificationClient) -> None:
         """Assigning escalation should notify new assignee."""
         # Arrange
-        with patch.object(notification_client, '_send_notification', new=AsyncMock()) as mock_send:
+        with patch.object(notification_client, "_send_notification", new=AsyncMock()) as mock_send:
             # Act
             result = await notification_client.notify_escalation_assigned(
                 escalation_id=1,
@@ -117,7 +117,7 @@ class TestNotificationClient:
     async def test_notify_escalation_reassigned(self, notification_client: NotificationClient) -> None:
         """Reassigning escalation should notify both old and new assignees."""
         # Arrange
-        with patch.object(notification_client, '_send_notification', new=AsyncMock()) as mock_send:
+        with patch.object(notification_client, "_send_notification", new=AsyncMock()) as mock_send:
             # Act
             result = await notification_client.notify_escalation_assigned(
                 escalation_id=1,
@@ -144,7 +144,7 @@ class TestNotificationClient:
     async def test_notify_escalation_reassigned_same_assignee(self, notification_client: NotificationClient) -> None:
         """Reassigning to same assignee should not notify twice."""
         # Arrange
-        with patch.object(notification_client, '_send_notification', new=AsyncMock()) as mock_send:
+        with patch.object(notification_client, "_send_notification", new=AsyncMock()) as mock_send:
             # Act - same user is both old and new assignee
             result = await notification_client.notify_escalation_assigned(
                 escalation_id=1,
@@ -161,7 +161,7 @@ class TestNotificationClient:
     async def test_notify_status_change_resolved(self, notification_client: NotificationClient) -> None:
         """Status change to RESOLVED should use correct template."""
         # Arrange
-        with patch.object(notification_client, '_send_notification', new=AsyncMock()) as mock_send:
+        with patch.object(notification_client, "_send_notification", new=AsyncMock()) as mock_send:
             # Act
             result = await notification_client.notify_status_change(
                 escalation_id=1,
@@ -183,7 +183,7 @@ class TestNotificationClient:
     async def test_notify_status_change_in_progress(self, notification_client: NotificationClient) -> None:
         """Status change to IN_PROGRESS should use correct template."""
         # Arrange
-        with patch.object(notification_client, '_send_notification', new=AsyncMock()) as mock_send:
+        with patch.object(notification_client, "_send_notification", new=AsyncMock()) as mock_send:
             # Act
             result = await notification_client.notify_status_change(
                 escalation_id=1,
@@ -201,7 +201,7 @@ class TestNotificationClient:
     async def test_notify_status_change_rejected(self, notification_client: NotificationClient) -> None:
         """Status change to REJECTED should use correct template."""
         # Arrange
-        with patch.object(notification_client, '_send_notification', new=AsyncMock()) as mock_send:
+        with patch.object(notification_client, "_send_notification", new=AsyncMock()) as mock_send:
             # Act
             result = await notification_client.notify_status_change(
                 escalation_id=1,
@@ -220,7 +220,7 @@ class TestNotificationClient:
     async def test_notify_status_change_closed(self, notification_client: NotificationClient) -> None:
         """Status change to CLOSED should use correct template."""
         # Arrange
-        with patch.object(notification_client, '_send_notification', new=AsyncMock()) as mock_send:
+        with patch.object(notification_client, "_send_notification", new=AsyncMock()) as mock_send:
             # Act
             result = await notification_client.notify_status_change(
                 escalation_id=1,
@@ -238,7 +238,7 @@ class TestNotificationClient:
     async def test_notify_status_change_default_template(self, notification_client: NotificationClient) -> None:
         """Unknown status change should use default template."""
         # Arrange
-        with patch.object(notification_client, '_send_notification', new=AsyncMock()) as mock_send:
+        with patch.object(notification_client, "_send_notification", new=AsyncMock()) as mock_send:
             # Act
             result = await notification_client.notify_status_change(
                 escalation_id=1,
@@ -256,7 +256,7 @@ class TestNotificationClient:
     async def test_notify_status_change_default_comment(self, notification_client: NotificationClient) -> None:
         """Status change without comment should use default message."""
         # Arrange
-        with patch.object(notification_client, '_send_notification', new=AsyncMock()) as mock_send:
+        with patch.object(notification_client, "_send_notification", new=AsyncMock()) as mock_send:
             # Act
             await notification_client.notify_status_change(
                 escalation_id=1,
@@ -291,7 +291,7 @@ class TestEscalationServiceNotifications:
         mock_created.id = 1
         mock_uow.escalations.create.return_value = mock_created
 
-        with patch.object(service._notification, 'notify_escalation_created', new=AsyncMock()) as mock_notify:
+        with patch.object(service._notification, "notify_escalation_created", new=AsyncMock()) as mock_notify:
             # Act
             await service.create_escalation(create_data)
 
@@ -319,7 +319,7 @@ class TestEscalationServiceNotifications:
         mock_created.id = 1
         mock_uow.escalations.create.return_value = mock_created
 
-        with patch.object(service._notification, 'notify_escalation_created', new=AsyncMock()) as mock_notify:
+        with patch.object(service._notification, "notify_escalation_created", new=AsyncMock()) as mock_notify:
             mock_notify.side_effect = Exception("Notification service down")
 
             # Act - should not raise
@@ -346,7 +346,7 @@ class TestEscalationServiceNotifications:
         mock_uow.escalations.get_by_id.return_value = request
         mock_uow.escalations.update.return_value = request
 
-        with patch.object(service._notification, 'notify_escalation_assigned', new=AsyncMock()) as mock_notify:
+        with patch.object(service._notification, "notify_escalation_assigned", new=AsyncMock()) as mock_notify:
             # Act
             await service.assign_escalation(1, assignee_id=200, assigned_by_id=100)
 
@@ -374,7 +374,7 @@ class TestEscalationServiceNotifications:
         mock_uow.escalations.get_by_id.return_value = request
         mock_uow.escalations.update.return_value = request
 
-        with patch.object(service._notification, 'notify_escalation_assigned', new=AsyncMock()) as mock_notify:
+        with patch.object(service._notification, "notify_escalation_assigned", new=AsyncMock()) as mock_notify:
             mock_notify.side_effect = Exception("Notification service down")
 
             # Act - should not raise
@@ -406,7 +406,7 @@ class TestEscalationServiceNotifications:
             resolution_note="All done",
         )
 
-        with patch.object(service._notification, 'notify_status_change', new=AsyncMock()) as mock_notify:
+        with patch.object(service._notification, "notify_status_change", new=AsyncMock()) as mock_notify:
             # Act
             await service.update_escalation(1, update_data, changed_by_id=200)
 
@@ -439,7 +439,7 @@ class TestEscalationServiceNotifications:
         # Only updating assignee, not status
         update_data = EscalationRequestUpdate(assigned_to=300)
 
-        with patch.object(service._notification, 'notify_status_change', new=AsyncMock()) as mock_notify:
+        with patch.object(service._notification, "notify_status_change", new=AsyncMock()) as mock_notify:
             # Act
             await service.update_escalation(1, update_data)
 
@@ -464,7 +464,7 @@ class TestEscalationServiceNotifications:
 
         update_data = EscalationRequestUpdate(status=EscalationStatus.RESOLVED)
 
-        with patch.object(service._notification, 'notify_status_change', new=AsyncMock()) as mock_notify:
+        with patch.object(service._notification, "notify_status_change", new=AsyncMock()) as mock_notify:
             mock_notify.side_effect = Exception("Notification service down")
 
             # Act - should not raise
@@ -490,7 +490,7 @@ class TestEscalationServiceNotifications:
         mock_uow.escalations.get_by_id.return_value = request
         mock_uow.escalations.update.return_value = request
 
-        with patch.object(service._notification, 'notify_status_change', new=AsyncMock()) as mock_notify:
+        with patch.object(service._notification, "notify_status_change", new=AsyncMock()) as mock_notify:
             # Act
             await service.resolve_escalation(1, resolved_by_id=200, comment="Resolved!")
 
@@ -520,7 +520,7 @@ class TestEscalationServiceNotifications:
         mock_uow.escalations.get_by_id.return_value = request
         mock_uow.escalations.update.return_value = request
 
-        with patch.object(service._notification, 'notify_status_change', new=AsyncMock()):
+        with patch.object(service._notification, "notify_status_change", new=AsyncMock()):
             # Act
             result = await service.resolve_escalation(1, resolved_by_id=200, comment="Fixed it!")
 
@@ -543,7 +543,7 @@ class TestEscalationServiceNotifications:
         mock_uow.escalations.get_by_id.return_value = request
         mock_uow.escalations.update.return_value = request
 
-        with patch.object(service._notification, 'notify_status_change', new=AsyncMock()) as mock_notify:
+        with patch.object(service._notification, "notify_status_change", new=AsyncMock()) as mock_notify:
             mock_notify.side_effect = Exception("Notification service down")
 
             # Act - should not raise
@@ -565,7 +565,7 @@ class TestNotificationClientSendNotification:
         mock_response = MagicMock()
         mock_response.raise_for_status.return_value = None
 
-        with patch('escalation_service.clients.notification_client.httpx.AsyncClient') as mock_http:
+        with patch("escalation_service.clients.notification_client.httpx.AsyncClient") as mock_http:
             mock_http.return_value.__aenter__ = AsyncMock(return_value=MagicMock(
                 post=AsyncMock(return_value=mock_response)
             ))
@@ -587,7 +587,7 @@ class TestNotificationClientSendNotification:
         # Arrange
         client = NotificationClient()
 
-        with patch('escalation_service.clients.notification_client.httpx.AsyncClient') as mock_http:
+        with patch("escalation_service.clients.notification_client.httpx.AsyncClient") as mock_http:
             mock_http.return_value.__aenter__ = AsyncMock(return_value=MagicMock(
                 post=AsyncMock(side_effect=Exception("Connection error"))
             ))
@@ -614,7 +614,7 @@ class TestNotificationClientSendNotification:
         mock_response = MagicMock()
         mock_response.raise_for_status.return_value = None
 
-        with patch('escalation_service.clients.notification_client.httpx.AsyncClient') as mock_http:
+        with patch("escalation_service.clients.notification_client.httpx.AsyncClient") as mock_http:
             mock_post = AsyncMock(return_value=mock_response)
             mock_http.return_value.__aenter__ = AsyncMock(return_value=MagicMock(post=mock_post))
             mock_http.return_value.__aexit__ = AsyncMock(return_value=None)

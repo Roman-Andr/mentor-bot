@@ -127,3 +127,17 @@ class TestSqlAlchemyUnitOfWork:
 
         with pytest.raises(RuntimeError, match="Session not initialized"):
             await uow.rollback()
+
+    @pytest.mark.asyncio
+    async def test_uow_aexit_with_none_session(self):
+        """Test that __aexit__ handles None session gracefully (covers line 54->exit branch)."""
+        mock_session_factory = MagicMock()
+        uow = SqlAlchemyUnitOfWork(mock_session_factory)
+        # Ensure _session is None (not initialized or explicitly set to None)
+        uow._session = None
+
+        # Should not raise any error and should not try to close a None session
+        await uow.__aexit__(None, None, None)
+
+        # Verify session is still None (no session was created or closed)
+        assert uow._session is None

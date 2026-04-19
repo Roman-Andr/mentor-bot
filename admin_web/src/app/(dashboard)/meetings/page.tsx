@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "@/hooks/use-translations";
 import { Dialog } from "@/components/ui/dialog";
 import { PageContent } from "@/components/layout/page-content";
-import { Calendar, UserPlus, Users } from "lucide-react";
+import { Calendar, Clock, UserPlus, Users } from "lucide-react";
 import { MEETING_TYPES } from "@/lib/constants";
 import { formatDate } from "@/lib/utils";
 import { useMeetings } from "@/hooks/use-meetings";
@@ -246,6 +246,18 @@ export default function MeetingsPage() {
               </div>
             ),
             sortable: true,
+          },
+          {
+            key: "durationMinutes",
+            header: t("meetings.durationMinutes"),
+            cell: (item) => (
+              <div className="flex items-center gap-1">
+                <Clock className="text-muted-foreground size-4" />
+                {item.durationMinutes} {t("common.minutes")}
+              </div>
+            ),
+            sortable: true,
+            width: "w-32",
           },
           {
             key: "isMandatory",

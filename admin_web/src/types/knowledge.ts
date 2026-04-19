@@ -79,3 +79,15 @@ export interface AttachmentListResponse {
   total: number;
   attachments: Attachment[];
 }
+
+export interface FileUploadError {
+  filename: string | null;
+  error: string;
+}
+
+export interface BatchUploadResponse {
+  total_uploaded: number;
+  total_failed: number;
+  attachments: Attachment[];
+  errors: FileUploadError[];
+}

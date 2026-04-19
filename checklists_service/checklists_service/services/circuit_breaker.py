@@ -75,5 +75,5 @@ class CircuitBreaker:
 auth_service_circuit_breaker = CircuitBreaker(
     failure_threshold=settings.CIRCUIT_BREAKER_FAILURE_THRESHOLD,
     recovery_timeout=settings.CIRCUIT_BREAKER_RECOVERY_TIMEOUT,
-    expected_exceptions=(httpx.RequestError,),
+    expected_exceptions=(httpx.RequestError, httpx.HTTPStatusError),
 )

@@ -3,8 +3,7 @@
 from collections.abc import Sequence
 from typing import cast
 
-import sqlalchemy
-from sqlalchemy import and_, func, or_, select
+from sqlalchemy import Column, and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -87,7 +86,7 @@ class DialogueScenarioRepository(SqlAlchemyBaseRepository[DialogueScenario, int]
         result = await self._session.execute(stmt)
         return result.scalars().all(), total
 
-    def _get_sort_column(self, sort_by: str | None) -> "sqlalchemy.Column":
+    def _get_sort_column(self, sort_by: str | None) -> Column:
         """Get SQLAlchemy column for sorting."""
         column_map = {
             "title": DialogueScenario.title,
@@ -134,10 +133,7 @@ class DialogueScenarioRepository(SqlAlchemyBaseRepository[DialogueScenario, int]
 
         # Apply sorting
         sort_column = self._get_sort_column(sort_by)
-        if sort_order.lower() == "asc":
-            stmt = stmt.order_by(sort_column.asc())
-        else:
-            stmt = stmt.order_by(sort_column.desc())
+        stmt = stmt.order_by(sort_column.asc() if sort_order.lower() == "asc" else sort_column.desc())
 
         stmt = stmt.offset(skip).limit(limit)
         result = await self._session.execute(stmt)

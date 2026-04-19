@@ -98,8 +98,8 @@ class TestChecklistModel:
         )
 
         # Relationships should be defined
-        assert hasattr(checklist, 'template')
-        assert hasattr(checklist, 'tasks')
+        assert hasattr(checklist, "template")
+        assert hasattr(checklist, "tasks")
 
 
 class TestTaskModel:
@@ -250,4 +250,4 @@ class TestTaskModel:
         )
 
         # Relationship should be defined
-        assert hasattr(task, 'checklist')
+        assert hasattr(task, "checklist")

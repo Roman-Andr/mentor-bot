@@ -1,16 +1,10 @@
 """Tests for model properties and methods."""
 
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING
 from unittest.mock import Mock, patch
 
-import pytest
-
-from knowledge_service.core import ArticleStatus, AttachmentType, EmployeeLevel
+from knowledge_service.core import ArticleStatus, AttachmentType
 from knowledge_service.models import Article, Attachment
-
-if TYPE_CHECKING:
-    pass
 
 
 class TestArticleProperties:

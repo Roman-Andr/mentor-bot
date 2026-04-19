@@ -379,3 +379,28 @@ class TestDeleteDepartment:
         finally:
             app.dependency_overrides.pop(deps.get_current_user, None)
             app.dependency_overrides.pop(deps.get_department_service, None)
+
+    def test_delete_department_with_users_conflict(self, admin_user, mock_department_service):
+        """Test deleting department with users returns 409."""
+        mock_department_service.delete_department = AsyncMock(
+            side_effect=ConflictException("Cannot delete department with assigned users")
+        )
+
+        async def mock_get_current_user() -> User:
+            return admin_user
+
+        app.dependency_overrides[deps.get_current_user] = mock_get_current_user
+        app.dependency_overrides[deps.get_department_service] = lambda: mock_department_service
+
+        try:
+            client = get_test_client()
+            response = client.delete(
+                "/api/v1/departments/1",
+                headers=create_auth_headers(admin_user.id, admin_user.role),
+            )
+
+            assert response.status_code == 409
+            assert "users" in response.json()["detail"].lower()
+        finally:
+            app.dependency_overrides.pop(deps.get_current_user, None)
+            app.dependency_overrides.pop(deps.get_department_service, None)

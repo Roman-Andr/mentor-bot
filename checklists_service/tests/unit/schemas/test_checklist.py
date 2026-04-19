@@ -2,8 +2,6 @@
 
 from datetime import UTC, datetime, timedelta
 
-import pytest
-
 from checklists_service.schemas import ChecklistCreate
 
 
@@ -61,7 +59,5 @@ class TestChecklistCreate:
 
     def test_field_validator_exists(self):
         """Test that the field_validator for due_date exists and has correct name."""
-        from pydantic import field_validator
-
         # Verify the validator is properly defined on the class
         assert hasattr(ChecklistCreate, "set_due_date")

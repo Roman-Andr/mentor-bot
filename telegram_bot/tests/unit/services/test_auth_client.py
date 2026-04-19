@@ -12,7 +12,7 @@ class TestAuthServiceClient:
 
     @pytest.fixture(autouse=True)
     def setup(self):
-        """Setup test client."""
+        """Set up test client."""
         self.client = AuthServiceClient(base_url="http://test-auth:8001")
         self.auth_token = "test_token_123"
         self.telegram_id = 123456
@@ -231,7 +231,7 @@ class TestAuthServiceClientEdgeCases:
 
     @pytest.fixture(autouse=True)
     def setup(self):
-        """Setup test client."""
+        """Set up test client."""
         self.client = AuthServiceClient(base_url="http://test-auth:8001")
         self.auth_token = "test_token_123"
         self.telegram_id = 123456

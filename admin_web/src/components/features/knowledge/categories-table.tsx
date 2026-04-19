@@ -14,6 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { DataTable } from "@/components/ui/data-table";
+import { DataTableSkeleton } from "@/components/ui/table-skeleton";
 import { CardHeader, CardTitle } from "@/components/ui/card";
 import { Trash2, SquarePen } from "lucide-react";
 import type { CategoryRow } from "@/hooks/use-categories";
@@ -76,6 +77,7 @@ export function CategoriesTable({
       onPageChange={onPageChange}
       onPageSizeChange={onPageSizeChange}
       showPageSizeSelector={!!onPageSizeChange}
+      skeleton={<DataTableSkeleton columns={7} rows={5} showHeader={false} />}
       header={
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -139,7 +141,7 @@ export function CategoriesTable({
               <TableCell>{new Date(category.createdAt).toLocaleDateString()}</TableCell>
               <TableCell onClick={(e) => e.stopPropagation()}>
                 <div className="flex gap-1">
-                   <Button variant="ghost" size="icon" onClick={() => onEdit(category)}>
+                   <Button variant="ghost" size="icon" onClick={() => onEdit(category)} aria-label={t("common.edit")}>
                      <SquarePen className="size-4" />
                    </Button>
                   <Button
@@ -147,6 +149,7 @@ export function CategoriesTable({
                     size="icon"
                     className="text-red-500"
                     onClick={() => onDelete(category.id)}
+                    aria-label={t("common.delete")}
                   >
                     <Trash2 className="size-4" />
                   </Button>

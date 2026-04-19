@@ -1,9 +1,9 @@
 """Enum definitions for the Notification Service."""
 
-from enum import Enum
+from enum import StrEnum
 
 
-class NotificationType(str, Enum):
+class NotificationType(StrEnum):
     """Type of notification."""
 
     TASK_REMINDER = "TASK_REMINDER"
@@ -13,7 +13,7 @@ class NotificationType(str, Enum):
     ESCALATION = "ESCALATION"
 
 
-class NotificationChannel(str, Enum):
+class NotificationChannel(StrEnum):
     """Channel through which notification is sent."""
 
     TELEGRAM = "TELEGRAM"
@@ -21,7 +21,7 @@ class NotificationChannel(str, Enum):
     BOTH = "BOTH"  # For notifications that should go through both channels
 
 
-class NotificationStatus(str, Enum):
+class NotificationStatus(StrEnum):
     """Status of a notification."""
 
     PENDING = "PENDING"

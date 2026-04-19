@@ -21,7 +21,7 @@ class TestLanguageMiddlewareCall:
 
     @pytest.fixture(autouse=True)
     def setup(self):
-        """Setup test fixtures."""
+        """Set up test fixtures."""
         self.middleware = LanguageMiddleware()
         self.mock_handler = AsyncMock(return_value="handler_result")
 

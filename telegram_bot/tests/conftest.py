@@ -1,8 +1,6 @@
 """Pytest configuration for telegram_bot tests."""
 
 import os
-from pathlib import Path
-from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import i18n
@@ -91,7 +89,6 @@ _ensure_test_translations()
 def _setup_i18n():
     """Ensure i18n test translations are always present before each test."""
     _ensure_test_translations()
-    yield
 
 
 @pytest.fixture

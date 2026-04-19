@@ -13,6 +13,8 @@ from knowledge_service.schemas.attachment import (
     AttachmentCreate,
     AttachmentListResponse,
     AttachmentResponse,
+    BatchUploadResponse,
+    FileUploadError,
 )
 from knowledge_service.schemas.category import (
     CategoryBase,
@@ -56,6 +58,7 @@ __all__ = [
     "AttachmentCreate",
     "AttachmentListResponse",
     "AttachmentResponse",
+    "BatchUploadResponse",
     "CategoryBase",
     "CategoryCreate",
     "CategoryListResponse",
@@ -70,6 +73,7 @@ __all__ = [
     "DialogueStepReorderRequest",
     "DialogueStepResponse",
     "DialogueStepUpdate",
+    "FileUploadError",
     "HealthCheck",
     "MessageResponse",
     "SearchHistoryResponse",

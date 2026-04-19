@@ -2,10 +2,13 @@
 
 import logging
 from pathlib import Path
+from typing import Annotated
 
 from fastapi import APIRouter, Header, HTTPException, status
+from jinja2 import BaseLoader, Environment, select_autoescape
 from pydantic import BaseModel, EmailStr
 
+from notification_service.middleware.auth import verify_service_api_key
 from notification_service.services.email import EmailService
 
 logger = logging.getLogger(__name__)
@@ -47,12 +50,13 @@ def load_template(template_name: str) -> str:
 
 
 def render_template(template_content: str, variables: dict) -> str:
-    """Simple template rendering with variable substitution."""
-    result = template_content
-    for key, value in variables.items():
-        placeholder = f"{{{{ {key} }}}}"
-        result = result.replace(placeholder, str(value))
-    return result
+    """Render template with Jinja2 and HTML autoescaping for XSS protection."""
+    env = Environment(
+        loader=BaseLoader(),
+        autoescape=select_autoescape(["html", "xml"]),
+    )
+    template = env.from_string(template_content)
+    return template.render(**variables)
 
 
 def _get_default_password_reset_template() -> str:
@@ -96,16 +100,14 @@ def _get_default_subject(template_name: str) -> str:
 @router.post("/send")
 async def send_email(
     request: EmailSendRequest,
-    x_service_api_key: str | None = Header(None, alias="X-Service-Api-Key"),
+    x_service_api_key: Annotated[str | None, Header(alias="X-Service-Api-Key")] = None,
 ) -> EmailSendResponse:
-    """Send a templated email (service-to-service endpoint).
+    """
+    Send a templated email (service-to-service endpoint).
 
     This endpoint is intended for inter-service communication only
     and requires a valid service API key.
     """
-    from notification_service.config import settings
-    from notification_service.middleware.auth import verify_service_api_key
-
     # Verify service API key
     if not x_service_api_key or not verify_service_api_key(x_service_api_key):
         raise HTTPException(

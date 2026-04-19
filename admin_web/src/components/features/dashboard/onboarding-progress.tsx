@@ -22,9 +22,9 @@ export function OnboardingProgress({ progress }: OnboardingProgressProps) {
                 <div className="min-w-0 flex-1">
                   <div className="mb-1 flex items-center justify-between">
                     <p className="truncate text-sm font-medium">{item.user_name}</p>
-                    <p className="text-muted-foreground text-xs">{item.completion_percentage}%</p>
+                    <p className="text-xs text-muted-foreground">{item.completion_percentage}%</p>
                   </div>
-                  <div className="bg-muted h-2 w-full rounded-full">
+                  <div className="h-2 w-full rounded-full bg-muted">
                     <div
                       className={`h-2 rounded-full ${
                         item.completion_percentage >= 80
@@ -37,7 +37,7 @@ export function OnboardingProgress({ progress }: OnboardingProgressProps) {
                     />
                   </div>
                 </div>
-                <span className="text-muted-foreground text-xs whitespace-nowrap">
+                <span className="whitespace-nowrap text-xs text-muted-foreground">
                   {item.status === "COMPLETED"
                     ? t("common.completed")
                     : item.days_remaining > 0
@@ -47,7 +47,7 @@ export function OnboardingProgress({ progress }: OnboardingProgressProps) {
               </div>
             ))
           ) : (
-            <p className="text-muted-foreground py-4 text-center text-sm">{t("common.noData")}</p>
+            <p className="py-4 text-center text-sm text-muted-foreground">{t("common.noData")}</p>
           )}
         </div>
       </CardContent>

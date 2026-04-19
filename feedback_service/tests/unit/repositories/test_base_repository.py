@@ -1,9 +1,16 @@
 """Unit tests for SqlAlchemyBaseRepository."""
 
+from datetime import UTC, datetime
 from unittest.mock import MagicMock
 
+import pytest
+from sqlalchemy import select
+
 from feedback_service.models import PulseSurvey
-from feedback_service.repositories.implementations.base import SqlAlchemyBaseRepository
+from feedback_service.repositories.implementations.base import (
+    SqlAlchemyBaseRepository,
+    apply_date_filters,
+)
 
 
 class TestGetById:
@@ -156,3 +163,122 @@ class TestDelete:
         # Assert
         assert result is False
         mock_db.delete.assert_not_called()
+
+
+class TestApplyDateFilters:
+    """Tests for apply_date_filters function."""
+
+    def test_apply_date_filters_with_valid_range(self) -> None:
+        """Test apply_date_filters applies filters correctly with valid date range."""
+        # Arrange
+        query = select(PulseSurvey)
+        from_date = datetime(2024, 1, 1, tzinfo=UTC)
+        to_date = datetime(2024, 12, 31, tzinfo=UTC)
+
+        # Act
+        result = apply_date_filters(query, PulseSurvey, from_date, to_date)
+
+        # Assert - query should be modified (can't easily verify without executing)
+        assert result is not None
+
+    def test_apply_date_filters_raises_on_invalid_range(self) -> None:
+        """Test apply_date_filters raises ValueError when from_date > to_date."""
+        # Arrange
+        query = select(PulseSurvey)
+        from_date = datetime(2024, 12, 31, tzinfo=UTC)
+        to_date = datetime(2024, 1, 1, tzinfo=UTC)
+
+        # Act & Assert
+        with pytest.raises(ValueError, match="from_date must be before or equal to to_date"):
+            apply_date_filters(query, PulseSurvey, from_date, to_date)
+
+    def test_apply_date_filters_with_from_date_only(self) -> None:
+        """Test apply_date_filters with only from_date."""
+        # Arrange
+        query = select(PulseSurvey)
+        from_date = datetime(2024, 1, 1, tzinfo=UTC)
+
+        # Act
+        result = apply_date_filters(query, PulseSurvey, from_date, None)
+
+        # Assert
+        assert result is not None
+
+    def test_apply_date_filters_with_to_date_only(self) -> None:
+        """Test apply_date_filters with only to_date."""
+        # Arrange
+        query = select(PulseSurvey)
+        to_date = datetime(2024, 12, 31, tzinfo=UTC)
+
+        # Act
+        result = apply_date_filters(query, PulseSurvey, None, to_date)
+
+        # Assert
+        assert result is not None
+
+    def test_apply_date_filters_with_no_dates(self) -> None:
+        """Test apply_date_filters returns unchanged query when no dates."""
+        # Arrange
+        query = select(PulseSurvey)
+
+        # Act
+        result = apply_date_filters(query, PulseSurvey, None, None)
+
+        # Assert
+        assert result is not None
+
+    def test_apply_date_filters_with_same_dates(self) -> None:
+        """Test apply_date_filters with from_date == to_date."""
+        # Arrange
+        query = select(PulseSurvey)
+        date = datetime(2024, 6, 15, tzinfo=UTC)
+
+        # Act
+        result = apply_date_filters(query, PulseSurvey, date, date)
+
+        # Assert
+        assert result is not None
+
+    def test_apply_date_filters_with_custom_column(self) -> None:
+        """Test apply_date_filters with custom date column."""
+        # Arrange
+        query = select(PulseSurvey)
+        from_date = datetime(2024, 1, 1, tzinfo=UTC)
+
+        # Act - use a different column name (won't affect PulseSurvey but tests the code path)
+        with pytest.raises(AttributeError):
+            apply_date_filters(query, PulseSurvey, from_date, None, date_column="created_at")
+
+
+class TestDateFilterMixin:
+    """Tests for DateFilterMixin class using concrete repository that includes it."""
+
+    async def test_mixin_applies_date_filters(self, mock_db: MagicMock) -> None:
+        """Test DateFilterMixin._apply_date_filters works through repository."""
+        # Arrange - use PulseSurveyRepository which includes DateFilterMixin
+        from feedback_service.repositories import PulseSurveyRepository
+
+        repo = PulseSurveyRepository(mock_db)
+        query = select(PulseSurvey)
+        from_date = datetime(2024, 1, 1, tzinfo=UTC)
+        to_date = datetime(2024, 12, 31, tzinfo=UTC)
+
+        # Act
+        result = repo._apply_date_filters(query, PulseSurvey, from_date, to_date)
+
+        # Assert
+        assert result is not None
+
+    async def test_mixin_raises_on_invalid_range(self, mock_db: MagicMock) -> None:
+        """Test DateFilterMixin._apply_date_filters raises ValueError on invalid range."""
+        # Arrange - use PulseSurveyRepository which includes DateFilterMixin
+        from feedback_service.repositories import PulseSurveyRepository
+
+        repo = PulseSurveyRepository(mock_db)
+        query = select(PulseSurvey)
+        from_date = datetime(2024, 12, 31, tzinfo=UTC)
+        to_date = datetime(2024, 1, 1, tzinfo=UTC)
+
+        # Act & Assert
+        with pytest.raises(ValueError, match="from_date must be before or equal to to_date"):
+            repo._apply_date_filters(query, PulseSurvey, from_date, to_date)

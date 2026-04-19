@@ -1,6 +1,6 @@
 """Tests for template models."""
 
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 
 from checklists_service.core.enums import EmployeeLevel, TaskCategory, TemplateStatus
 from checklists_service.models import TaskTemplate, Template
@@ -133,9 +133,9 @@ class TestTemplateModel:
         )
 
         # Relationships should be defined
-        assert hasattr(template, 'department')
-        assert hasattr(template, 'checklists')
-        assert hasattr(template, 'tasks')
+        assert hasattr(template, "department")
+        assert hasattr(template, "checklists")
+        assert hasattr(template, "tasks")
 
 
 class TestTaskTemplateModel:
@@ -228,7 +228,7 @@ class TestTaskTemplateModel:
         )
 
         # Relationship should be defined
-        assert hasattr(task_template, 'template')
+        assert hasattr(task_template, "template")
 
     def test_task_template_due_days_variations(self):
         """Test TaskTemplate with different due days."""

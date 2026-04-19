@@ -154,6 +154,7 @@ export function useArticles() {
     if (entity.extendedState.attachments === undefined) {
       entity.setExtendedState(() => ({ attachments: [], pendingFiles: [] }));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Handle attachments on create/update with custom wrapper

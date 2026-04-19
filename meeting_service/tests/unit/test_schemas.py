@@ -72,13 +72,14 @@ class TestUserMeetingCompleteRatingValidation:
         assert UserMeetingComplete(rating=5).rating == 5
 
     def test_custom_validator_rating_error_message(self):
-        """Test custom validator error message for out-of-range rating.
+        """
+        Test custom validator error message for out-of-range rating.
 
         This directly tests the @field_validator code path at lines 44-45.
         Field constraints usually catch these first, but we test the validator
         directly to ensure coverage of the error handling code.
         """
-        from meeting_service.schemas.user_meeting import MIN_RATING, MAX_RATING
+        from meeting_service.schemas.user_meeting import MAX_RATING, MIN_RATING
 
         # Directly call the validator to trigger lines 44-45
         # Note: In Pydantic v2, field validators receive (cls, value)

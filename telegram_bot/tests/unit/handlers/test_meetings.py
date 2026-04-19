@@ -224,9 +224,13 @@ class TestMeetingsHandlers:
 
     async def test_process_meeting_datetime_valid(self, mock_message, mock_state):
         """Test processing valid meeting datetime."""
-        mock_message.text = "2024-12-25 14:30"
+        mock_message.text = "2025-12-25 14:30"
 
-        await process_meeting_datetime(mock_message, mock_state, locale="en")
+        with patch("telegram_bot.handlers.meetings.datetime") as mock_datetime:
+            mock_datetime.now.return_value = datetime(2025, 12, 1, tzinfo=UTC)
+            mock_datetime.strptime = datetime.strptime
+
+            await process_meeting_datetime(mock_message, mock_state, locale="en")
 
         mock_state.update_data.assert_called_once()
         mock_state.set_state.assert_called_once_with(MeetingStates.waiting_for_duration)
@@ -238,6 +242,18 @@ class TestMeetingsHandlers:
 
         await process_meeting_datetime(mock_message, mock_state, locale="en")
 
+        mock_message.answer.assert_called_once()
+        mock_state.update_data.assert_not_called()
+        mock_state.set_state.assert_not_called()
+
+    async def test_process_meeting_datetime_past_date(self, mock_message, mock_state):
+        """Test processing meeting datetime in the past - lines 155-156."""
+        # Use a date far in the past to ensure it's always before "now"
+        mock_message.text = "2000-01-01 12:00"
+
+        await process_meeting_datetime(mock_message, mock_state, locale="en")
+
+        # Should warn about past datetime and return early without setting state
         mock_message.answer.assert_called_once()
         mock_state.update_data.assert_not_called()
         mock_state.set_state.assert_not_called()

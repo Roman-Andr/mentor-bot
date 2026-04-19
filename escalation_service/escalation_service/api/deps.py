@@ -104,12 +104,7 @@ async def require_hr(
 async def get_uow() -> AsyncGenerator[SqlAlchemyUnitOfWork]:
     """Get Unit of Work instance for current request."""
     async with SqlAlchemyUnitOfWork(AsyncSessionLocal) as uow:
-        try:
-            yield uow
-            await uow.commit()
-        except Exception:
-            await uow.rollback()
-            raise
+        yield uow
 
 
 async def require_any_assignee_or_hr(

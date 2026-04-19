@@ -1,12 +1,10 @@
 """Unit tests for API dependencies."""
 
-from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
 import pytest
-from fastapi import FastAPI, status
-from fastapi.testclient import TestClient
+from fastapi import HTTPException, status
 
 from meeting_service.api import deps
 from meeting_service.config import settings
@@ -270,12 +268,18 @@ class TestGetUow:
 
         # Mock the async context manager protocol
         mock_uow.__aenter__ = AsyncMock(return_value=mock_uow)
-        mock_uow.__aexit__ = AsyncMock(return_value=None)
+
+        # __aexit__ should call rollback when an exception is passed
+        async def mock_aexit(self, exc_type, exc_val, exc_tb):
+            if exc_type:
+                await mock_uow.rollback()
+            return None
+
+        mock_uow.__aexit__ = mock_aexit
 
         # Create a mock UOW class
         mock_uow_class = MagicMock()
-        mock_uow_class.return_value.__aenter__ = AsyncMock(return_value=mock_uow)
-        mock_uow_class.return_value.__aexit__ = AsyncMock(return_value=None)
+        mock_uow_class.return_value = mock_uow
 
         # Patch the SqlAlchemyUnitOfWork class
         with patch("meeting_service.api.deps.SqlAlchemyUnitOfWork", mock_uow_class):
@@ -291,7 +295,7 @@ class TestGetUow:
             with pytest.raises(ValueError, match="Test error"):
                 await gen.athrow(ValueError("Test error"))
 
-            # Verify rollback was called
+            # Verify rollback was called (in __aexit__)
             mock_uow.rollback.assert_awaited_once()
 
 
@@ -312,13 +316,15 @@ class TestVerifyServiceApiKey:
 
     @pytest.mark.asyncio
     async def test_verify_service_api_key_not_set(self):
-        """Test returns False when SERVICE_API_KEY not configured."""
+        """Test raises HTTPException when SERVICE_API_KEY not configured."""
         original_api_key = settings.SERVICE_API_KEY
         settings.SERVICE_API_KEY = ""
 
         try:
-            result = await deps.verify_service_api_key(None)
-            assert result is False
+            with pytest.raises(HTTPException) as exc_info:
+                await deps.verify_service_api_key(None)
+            assert exc_info.value.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+            assert "Service API key not configured" in str(exc_info.value.detail)
         finally:
             settings.SERVICE_API_KEY = original_api_key
 

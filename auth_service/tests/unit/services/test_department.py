@@ -120,6 +120,7 @@ class TestCreateDepartment:
         assert department.name == "Engineering"
         assert department.description == "Software Engineering Department"
         mock_uow.departments.create.assert_called_once()
+        mock_uow.commit.assert_awaited_once()  # Verify transaction committed
 
     async def test_create_department_duplicate_name_raises(self, mock_uow, sample_department):
         """Test creating department with duplicate name raises ConflictException."""
@@ -260,21 +261,52 @@ class TestUpdateDepartment:
 class TestDeleteDepartment:
     """Tests for DepartmentService.delete_department method."""
 
-    async def test_delete_department_success(self, mock_uow):
+    async def test_delete_department_success(self, mock_uow, sample_department):
         """Test deleting a department."""
+        mock_uow.departments.get_by_id.return_value = sample_department
+        mock_uow.departments.has_users = AsyncMock(return_value=False)
         mock_uow.departments.delete.return_value = True
         service = DepartmentService(mock_uow)
 
-        await service.delete_department(1)
+        with patch(
+            "auth_service.services.department.department_sync_client.sync_department_delete",
+            new_callable=AsyncMock,
+        ):
+            await service.delete_department(1)
 
         mock_uow.departments.delete.assert_called_once_with(1)
 
     async def test_delete_department_not_found_raises(self, mock_uow):
         """Test deleting non-existent department raises NotFoundException."""
-        mock_uow.departments.delete.return_value = False
+        mock_uow.departments.get_by_id.return_value = None
         service = DepartmentService(mock_uow)
 
         with pytest.raises(NotFoundException) as exc_info:
             await service.delete_department(999)
 
         assert "not found" in str(exc_info.value.detail).lower()
+
+    async def test_delete_department_with_users_raises(self, mock_uow, sample_department):
+        """Test deleting department with assigned users raises ConflictException."""
+        mock_uow.departments.get_by_id.return_value = sample_department
+        mock_uow.departments.has_users = AsyncMock(return_value=True)
+        service = DepartmentService(mock_uow)
+
+        with pytest.raises(ConflictException) as exc_info:
+            await service.delete_department(1)
+
+        assert "cannot delete department with assigned users" in str(exc_info.value.detail).lower()
+        mock_uow.departments.delete.assert_not_called()
+
+    async def test_delete_department_returns_false_raises_not_found(self, mock_uow, sample_department):
+        """Test delete returning False raises NotFoundException (covers lines 109-110)."""
+        mock_uow.departments.get_by_id.return_value = sample_department
+        mock_uow.departments.has_users = AsyncMock(return_value=False)
+        mock_uow.departments.delete.return_value = False  # Delete returns False
+        service = DepartmentService(mock_uow)
+
+        with pytest.raises(NotFoundException) as exc_info:
+            await service.delete_department(1)
+
+        assert "not found" in str(exc_info.value.detail).lower()
+        mock_uow.departments.delete.assert_called_once_with(1)

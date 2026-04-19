@@ -1,9 +1,9 @@
 """Enum definitions for the Knowledge Service."""
 
-from enum import Enum
+from enum import StrEnum
 
 
-class ArticleStatus(str, Enum):
+class ArticleStatus(StrEnum):
     """Article status enumeration."""
 
     DRAFT = "DRAFT"
@@ -11,7 +11,7 @@ class ArticleStatus(str, Enum):
     ARCHIVED = "ARCHIVED"
 
 
-class AttachmentType(str, Enum):
+class AttachmentType(StrEnum):
     """Attachment type enumeration."""
 
     FILE = "FILE"
@@ -19,7 +19,7 @@ class AttachmentType(str, Enum):
     EMBED = "EMBED"
 
 
-class EmployeeLevel(str, Enum):
+class EmployeeLevel(StrEnum):
     """Employee level enumeration."""
 
     JUNIOR = "JUNIOR"
@@ -28,7 +28,7 @@ class EmployeeLevel(str, Enum):
     LEAD = "LEAD"
 
 
-class SearchSortBy(str, Enum):
+class SearchSortBy(StrEnum):
     """Search result sorting options."""
 
     RELEVANCE = "RELEVANCE"
@@ -38,7 +38,7 @@ class SearchSortBy(str, Enum):
     TITLE = "TITLE"
 
 
-class DialogueCategory(str, Enum):
+class DialogueCategory(StrEnum):
     """Dialogue scenario category."""
 
     VACATION = "VACATION"
@@ -48,7 +48,7 @@ class DialogueCategory(str, Enum):
     WORKTIME = "WORKTIME"
 
 
-class DialogueAnswerType(str, Enum):
+class DialogueAnswerType(StrEnum):
     """Dialogue step answer type."""
 
     TEXT = "TEXT"

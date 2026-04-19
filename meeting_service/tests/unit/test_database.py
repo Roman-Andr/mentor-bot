@@ -1,5 +1,6 @@
 """Unit tests for database module."""
 
+from contextlib import suppress
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -17,8 +18,8 @@ class TestGetEngine:
 
     def test_engine_configuration(self):
         """Test engine has correct pool settings from config."""
-        from meeting_service.database import engine
         from meeting_service.config import settings
+        from meeting_service.database import engine
 
         # Check that engine uses settings values
         assert engine.pool.size() == settings.DATABASE_POOL_SIZE
@@ -51,10 +52,8 @@ class TestGetDB:
             assert session == mock_session
 
             # Clean up the generator
-            try:
+            with suppress(StopAsyncIteration):
                 await async_gen.__anext__()
-            except StopAsyncIteration:
-                pass
 
     @pytest.mark.asyncio
     async def test_get_db_commits_on_success(self):
@@ -75,10 +74,8 @@ class TestGetDB:
             await async_gen.__anext__()
 
             # Simulate successful completion
-            try:
+            with suppress(StopAsyncIteration):
                 await async_gen.__anext__()
-            except StopAsyncIteration:
-                pass
 
             mock_session.commit.assert_called_once()
             mock_session.close.assert_called_once()

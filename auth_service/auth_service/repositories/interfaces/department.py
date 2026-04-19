@@ -24,3 +24,7 @@ class IDepartmentRepository(BaseRepository["Department", int]):
         sort_order: str = "asc",
     ) -> tuple[list[Department], int]:
         """Find departments with filtering and return results with total count."""
+
+    @abstractmethod
+    async def has_users(self, department_id: int) -> bool:
+        """Check if department has any associated users."""

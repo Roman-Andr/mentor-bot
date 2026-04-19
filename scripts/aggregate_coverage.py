@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-"""
-Aggregate coverage reports from all services into a united summary.
-"""
+"""Aggregate coverage reports from all services into a united summary."""
 
 import os
 import sys
@@ -48,7 +46,8 @@ def parse_coverage_xml(xml_path: str) -> tuple[int, int] | None:
     return None
 
 
-def main():
+def main() -> int:
+    """Aggregate coverage from all services and print summary."""
     total_lines = 0
     total_covered = 0
 

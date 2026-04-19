@@ -17,6 +17,7 @@ from checklists_service.utils.storage import (
     StorageService,
     get_storage,
     get_storage_service,
+    shutdown_storage,
 )
 
 __all__ = [
@@ -36,5 +37,6 @@ __all__ = [
     "is_expired",
     "now",
     "parse_datetime",
+    "shutdown_storage",
     "to_timestamp",
 ]

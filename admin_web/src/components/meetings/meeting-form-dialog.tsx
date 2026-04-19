@@ -21,6 +21,7 @@ interface MeetingFormData {
   position: string;
   level: string;
   deadline_days: number;
+  duration_minutes: number;
   is_mandatory: boolean;
   order: number;
 }
@@ -124,6 +125,19 @@ export function MeetingFormDialog({
             value={formData.deadline_days}
             onChange={(e) =>
               onFormDataChange((prev) => ({ ...prev, deadline_days: parseInt(e.target.value) || 0 }))
+            }
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-sm font-medium">{t("meetings.durationMinutes")}</label>
+          <input
+            type="number"
+            min={1}
+            max={480}
+            className="w-full rounded-md border px-3 py-2 text-sm"
+            value={formData.duration_minutes}
+            onChange={(e) =>
+              onFormDataChange((prev) => ({ ...prev, duration_minutes: parseInt(e.target.value) || 60 }))
             }
           />
         </div>

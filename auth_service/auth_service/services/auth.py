@@ -2,6 +2,8 @@
 
 from datetime import UTC, datetime, timedelta
 
+from fastapi import HTTPException
+
 from auth_service.config import settings
 from auth_service.core import (
     AuthException,
@@ -60,15 +62,10 @@ class AuthService:
     async def refresh_access_token(self, refresh_data: RefreshTokenRequest) -> Token:
         """Refresh access token using refresh token."""
         try:
-            payload = decode_token(refresh_data.refresh_token)
-        except Exception as e:
-            msg = "Invalid refresh token"
+            payload = decode_token(refresh_data.refresh_token, expected_type="refresh")
+        except HTTPException as e:
+            msg = e.detail if e.detail else "Invalid refresh token"
             raise AuthException(msg) from e
-
-        # Verify token type
-        if payload.get("type") != "refresh":
-            msg = "Invalid token type"
-            raise AuthException(msg)
 
         # Get user
         user = await self._uow.users.get_by_id(payload["user_id"])
@@ -186,7 +183,7 @@ class AuthService:
 
     async def get_current_user(self, token: str) -> User:
         """Get current user from JWT token."""
-        payload = decode_token(token)
+        payload = decode_token(token, expected_type="access")
 
         user = await self._uow.users.get_by_id(payload["user_id"])
         if not user:

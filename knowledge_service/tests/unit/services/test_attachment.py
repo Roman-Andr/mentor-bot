@@ -27,7 +27,7 @@ def sample_attachment():
         article_id=1,
         name="test_file.pdf",
         type=AttachmentType.FILE,
-        url="/api/v1/attachments/file/1/test_file.pdf",
+        url="http://localhost/api/v1/attachments/file/1/test_file.pdf",
         file_size=1024,
         mime_type="application/pdf",
         description="Test file description",
@@ -69,7 +69,7 @@ class TestCreateAttachment:
             article_id=1,
             name="test_file.pdf",
             attachment_type=AttachmentType.FILE,
-            url="/api/v1/attachments/file/1/test_file.pdf",
+            url="http://localhost/api/v1/attachments/file/1/test_file.pdf",
             file_size=1024,
             mime_type="application/pdf",
             description="Test file description",
@@ -111,7 +111,7 @@ class TestCreateAttachment:
             article_id=1,
             name="test_file.pdf",
             attachment_type=AttachmentType.FILE,
-            url="/api/v1/attachments/file/1/test_file.pdf",
+            url="http://localhost/api/v1/attachments/file/1/test_file.pdf",
         )
 
         assert result == sample_attachment

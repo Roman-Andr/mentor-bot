@@ -53,15 +53,14 @@ def get_dialogue_step_keyboard(
                     style=ButtonStyle.PRIMARY,
                 )
             )
-    elif answer_type == "LINK":
-        if step.get("answer_content"):
-            builder.add(
-                create_inline_button(
-                    f"\U0001f517 {t('knowledge.btn_read_more', locale=locale)}",
-                    url=step["answer_content"],
-                    style=ButtonStyle.PRIMARY,
-                )
+    elif answer_type == "LINK" and step.get("answer_content"):
+        builder.add(
+            create_inline_button(
+                f"\U0001f517 {t('knowledge.btn_read_more', locale=locale)}",
+                url=step["answer_content"],
+                style=ButtonStyle.PRIMARY,
             )
+        )
 
     if not is_final:
         builder.add(

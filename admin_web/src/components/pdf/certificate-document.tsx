@@ -3,6 +3,7 @@
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 import type { User } from "@/types";
 import type { Checklist } from "@/types";
+import "@/lib/pdf/fonts";
 
 interface CertificateDocumentProps {
   user: User;
@@ -25,7 +26,7 @@ interface CertificateDocumentProps {
 const styles = StyleSheet.create({
   page: {
     padding: 40,
-    fontFamily: "Helvetica",
+    fontFamily: "Roboto",
     backgroundColor: "#fafafa",
   },
   border: {

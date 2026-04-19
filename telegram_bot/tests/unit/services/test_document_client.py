@@ -12,7 +12,7 @@ class TestDocumentServiceClient:
 
     @pytest.fixture(autouse=True)
     def setup(self):
-        """Setup test client."""
+        """Set up test client."""
         self.client = DocumentServiceClient(base_url="http://test-knowledge:8003")
         self.auth_token = "test_token_123"
 

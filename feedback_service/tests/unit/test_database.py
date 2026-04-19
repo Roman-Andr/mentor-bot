@@ -1,6 +1,7 @@
 """Tests for database.py - connection handling and session management."""
 
 from collections.abc import AsyncGenerator
+from contextlib import suppress
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -35,10 +36,8 @@ class TestGetDb:
             assert session == mock_session
 
             # Complete the generator (simulating normal exit)
-            try:
+            with suppress(StopAsyncIteration):
                 await gen.__anext__()
-            except StopAsyncIteration:
-                pass
 
     @pytest.mark.asyncio
     async def test_get_db_rolls_back_on_exception(self) -> None:
@@ -86,10 +85,8 @@ class TestGetDb:
             await gen.__anext__()
 
             # Complete the generator (normal exit)
-            try:
+            with suppress(StopAsyncIteration):
                 await gen.__anext__()
-            except StopAsyncIteration:
-                pass
 
             # Assert - close is called via __aexit__ of AsyncSessionLocal
             # which triggers session.close() in the finally block

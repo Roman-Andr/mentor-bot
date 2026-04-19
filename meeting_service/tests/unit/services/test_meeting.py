@@ -23,6 +23,7 @@ from meeting_service.services.meeting import MeetingService
 class TestMeetingTemplateCRUD:
     """Tests for meeting template CRUD operations."""
 
+    @pytest.mark.asyncio
     async def test_create_meeting(self, mock_uow):
         """Test creating a meeting template."""
         # Arrange
@@ -50,10 +51,12 @@ class TestMeetingTemplateCRUD:
         # Assert
         assert result == expected_meeting
         mock_uow.meetings.create.assert_called_once()
+        mock_uow.commit.assert_awaited_once()  # Verify transaction committed
         call_args = mock_uow.meetings.create.call_args[0][0]
         assert call_args.title == "Test Meeting"
         assert call_args.type == MeetingType.HR
 
+    @pytest.mark.asyncio
     async def test_get_meeting_exists(self, mock_uow):
         """Test getting an existing meeting."""
         # Arrange
@@ -72,6 +75,7 @@ class TestMeetingTemplateCRUD:
         assert result == expected_meeting
         mock_uow.meetings.get_by_id.assert_called_once_with(1)
 
+    @pytest.mark.asyncio
     async def test_get_meeting_not_found(self, mock_uow):
         """Test getting a non-existent meeting raises NotFoundException."""
         # Arrange
@@ -84,6 +88,7 @@ class TestMeetingTemplateCRUD:
         assert "Meeting" in str(exc_info.value.detail)
         mock_uow.meetings.get_by_id.assert_called_once_with(999)
 
+    @pytest.mark.asyncio
     async def test_update_meeting(self, mock_uow):
         """Test updating a meeting template."""
         # Arrange
@@ -113,6 +118,7 @@ class TestMeetingTemplateCRUD:
         assert result.is_mandatory is False
         mock_uow.meetings.update.assert_called_once()
 
+    @pytest.mark.asyncio
     async def test_delete_meeting(self, mock_uow):
         """Test deleting a meeting template."""
         # Arrange
@@ -130,13 +136,14 @@ class TestMeetingTemplateCRUD:
         # Assert
         mock_uow.meetings.delete.assert_called_once_with(1)
 
+    @pytest.mark.asyncio
     async def test_get_meetings_with_filters(self, mock_uow):
         """Test getting meetings with filters."""
         # Arrange
         service = MeetingService(mock_uow)
         meetings = [
-            Meeting(id=1, title="HR Meeting", type=MeetingType.HR),
-            Meeting(id=2, title="Security Meeting", type=MeetingType.SECURITY),
+            Meeting(id=1, title="HR Meeting", type=MeetingType.HR, duration_minutes=60),
+            Meeting(id=2, title="Security Meeting", type=MeetingType.SECURITY, duration_minutes=60),
         ]
         mock_uow.meetings.find_meetings.return_value = (meetings, 2)
 
@@ -168,11 +175,12 @@ class TestMeetingTemplateCRUD:
 class TestMaterialCRUD:
     """Tests for meeting material CRUD operations."""
 
+    @pytest.mark.asyncio
     async def test_add_material(self, mock_uow):
         """Test adding a material to a meeting."""
         # Arrange
         service = MeetingService(mock_uow)
-        meeting = Meeting(id=1, title="Test Meeting", type=MeetingType.HR)
+        meeting = Meeting(id=1, title="Test Meeting", type=MeetingType.HR, duration_minutes=60)
         mock_uow.meetings.get_by_id.return_value = meeting
 
         material_data = MaterialCreate(
@@ -198,6 +206,7 @@ class TestMaterialCRUD:
         mock_uow.meetings.get_by_id.assert_called_once_with(1)
         mock_uow.materials.create.assert_called_once()
 
+    @pytest.mark.asyncio
     async def test_add_material_meeting_not_found(self, mock_uow):
         """Test adding material to non-existent meeting raises NotFoundException."""
         # Arrange
@@ -210,6 +219,7 @@ class TestMaterialCRUD:
         with pytest.raises(NotFoundException):
             await service.add_material(999, material_data)
 
+    @pytest.mark.asyncio
     async def test_get_materials(self, mock_uow):
         """Test getting all materials for a meeting."""
         # Arrange
@@ -227,6 +237,7 @@ class TestMaterialCRUD:
         assert len(result) == 2
         mock_uow.materials.get_by_meeting.assert_called_once_with(1)
 
+    @pytest.mark.asyncio
     async def test_delete_material(self, mock_uow):
         """Test deleting a material."""
         # Arrange
@@ -240,6 +251,7 @@ class TestMaterialCRUD:
         # Assert
         mock_uow.materials.delete.assert_called_once_with(1)
 
+    @pytest.mark.asyncio
     async def test_delete_material_not_found(self, mock_uow):
         """Test deleting non-existent material raises NotFoundException."""
         # Arrange
@@ -255,11 +267,99 @@ class TestMaterialCRUD:
 class TestAssignMeeting:
     """Tests for meeting assignment to users."""
 
+    @pytest.mark.asyncio
+    async def test_assign_meeting_scheduled_at_in_past_raises_validation_exception(self, mock_uow):
+        """Test that assigning a meeting with scheduled_at in the past raises ValidationException."""
+        # Arrange
+        service = MeetingService(mock_uow)
+        meeting = Meeting(id=1, title="Test Meeting", description="Test Desc", type=MeetingType.HR, duration_minutes=60)
+        mock_uow.meetings.get_by_id.return_value = meeting
+
+        # scheduled_at in the past (with timezone)
+        past_time = datetime.now(UTC) - timedelta(days=1)
+        assignment_data = UserMeetingCreate(
+            user_id=100,
+            meeting_id=1,
+            scheduled_at=past_time,
+        )
+
+        # Act & Assert
+        with pytest.raises(ValidationException) as exc_info:
+            await service.assign_meeting(assignment_data)
+        assert "must be in the future" in str(exc_info.value.detail)
+        # Should not proceed to check if already assigned or create anything
+        mock_uow.user_meetings.get_user_meeting.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_assign_meeting_naive_datetime_converted_to_utc(self, mock_uow):
+        """Test that naive datetime is treated as UTC and validated correctly."""
+        # Arrange
+        service = MeetingService(mock_uow)
+        meeting = Meeting(id=1, title="Test Meeting", description="Test Desc", type=MeetingType.HR, duration_minutes=60)
+        mock_uow.meetings.get_by_id.return_value = meeting
+        mock_uow.user_meetings.get_user_meeting.return_value = None
+
+        # Future naive datetime (should be treated as UTC and pass)
+        future_naive = datetime.now() + timedelta(days=1)  # Naive datetime (no tzinfo)
+        assignment_data = UserMeetingCreate(
+            user_id=100,
+            meeting_id=1,
+            scheduled_at=future_naive,
+        )
+
+        created_assignment = UserMeeting(
+            id=1,
+            user_id=100,
+            meeting_id=1,
+            scheduled_at=future_naive.replace(tzinfo=UTC),
+            status=MeetingStatus.SCHEDULED,
+        )
+        mock_uow.user_meetings.create.return_value = created_assignment
+
+        # Mock GoogleCalendarService to avoid real API calls
+        with patch(
+            "meeting_service.services.meeting.GoogleCalendarService"
+        ) as mock_gc_class:
+            mock_gc_instance = MagicMock()
+            mock_gc_instance.create_event = AsyncMock(return_value={"id": "event-123"})
+            mock_gc_class.return_value = mock_gc_instance
+
+            # Act
+            result = await service.assign_meeting(assignment_data)
+
+            # Assert - should succeed with naive datetime converted to UTC
+            assert result.user_id == 100
+            mock_uow.user_meetings.create.assert_called_once()
+            mock_uow.commit.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_assign_meeting_naive_datetime_in_past_raises(self, mock_uow):
+        """Test that naive datetime in the past is correctly rejected."""
+        # Arrange
+        service = MeetingService(mock_uow)
+        meeting = Meeting(id=1, title="Test Meeting", description="Test Desc", type=MeetingType.HR, duration_minutes=60)
+        mock_uow.meetings.get_by_id.return_value = meeting
+
+        # Past naive datetime (should be treated as UTC and rejected)
+        past_naive = datetime.now() - timedelta(days=1)  # Naive datetime in the past
+        assignment_data = UserMeetingCreate(
+            user_id=100,
+            meeting_id=1,
+            scheduled_at=past_naive,
+        )
+
+        # Act & Assert
+        with pytest.raises(ValidationException) as exc_info:
+            await service.assign_meeting(assignment_data)
+        assert "must be in the future" in str(exc_info.value.detail)
+        mock_uow.user_meetings.create.assert_not_called()
+
+    @pytest.mark.asyncio
     async def test_assign_meeting_happy_path(self, mock_uow):
         """Test happy-path meeting assignment with calendar integration."""
         # Arrange
         service = MeetingService(mock_uow)
-        meeting = Meeting(id=1, title="Test Meeting", description="Test Desc", type=MeetingType.HR)
+        meeting = Meeting(id=1, title="Test Meeting", description="Test Desc", type=MeetingType.HR, duration_minutes=60)
         mock_uow.meetings.get_by_id.return_value = meeting
         mock_uow.user_meetings.get_user_meeting.return_value = None  # Not already assigned
 
@@ -296,15 +396,17 @@ class TestAssignMeeting:
             assert result.user_id == 100
             assert result.meeting_id == 1
             mock_uow.user_meetings.create.assert_called()
+            mock_uow.commit.assert_awaited_once()  # Verify transaction committed
             mock_gc_instance.create_event.assert_called_once()
             # Verify the calendar event ID was saved
             assert mock_uow.user_meetings.update.called
 
+    @pytest.mark.asyncio
     async def test_assign_meeting_without_scheduled_at(self, mock_uow):
         """Test assigning meeting without scheduled time (no calendar sync)."""
         # Arrange
         service = MeetingService(mock_uow)
-        meeting = Meeting(id=1, title="Test Meeting", description="Test Desc", type=MeetingType.HR)
+        meeting = Meeting(id=1, title="Test Meeting", description="Test Desc", type=MeetingType.HR, duration_minutes=60)
         mock_uow.meetings.get_by_id.return_value = meeting
         mock_uow.user_meetings.get_user_meeting.return_value = None
 
@@ -331,11 +433,12 @@ class TestAssignMeeting:
         assert result.scheduled_at is None
         # GoogleCalendarService should not be instantiated when scheduled_at is None
 
+    @pytest.mark.asyncio
     async def test_assign_meeting_already_assigned(self, mock_uow):
         """Test assigning already-assigned meeting raises ConflictException."""
         # Arrange
         service = MeetingService(mock_uow)
-        meeting = Meeting(id=1, title="Test Meeting", type=MeetingType.HR)
+        meeting = Meeting(id=1, title="Test Meeting", type=MeetingType.HR, duration_minutes=60)
         mock_uow.meetings.get_by_id.return_value = meeting
 
         existing_assignment = UserMeeting(
@@ -357,11 +460,12 @@ class TestAssignMeeting:
             await service.assign_meeting(assignment_data)
         assert "already assigned" in str(exc_info.value.detail)
 
+    @pytest.mark.asyncio
     async def test_assign_meeting_integrity_error_race_condition(self, mock_uow):
         """Test IntegrityError handling when race condition occurs (lines 133-136 coverage)."""
         # Arrange
         service = MeetingService(mock_uow)
-        meeting = Meeting(id=1, title="Test Meeting", description="Test Desc", type=MeetingType.HR)
+        meeting = Meeting(id=1, title="Test Meeting", description="Test Desc", type=MeetingType.HR, duration_minutes=60)
         mock_uow.meetings.get_by_id.return_value = meeting
         mock_uow.user_meetings.get_user_meeting.return_value = None  # Passes early check
 
@@ -379,11 +483,12 @@ class TestAssignMeeting:
             await service.assign_meeting(assignment_data)
         assert "already assigned" in str(exc_info.value.detail)
 
+    @pytest.mark.asyncio
     async def test_assign_meeting_calendar_raises_persists_assignment(self, mock_uow):
         """When calendar raises, assignment should still be persisted."""
         # Arrange
         service = MeetingService(mock_uow)
-        meeting = Meeting(id=1, title="Test Meeting", description="Test Desc", type=MeetingType.HR)
+        meeting = Meeting(id=1, title="Test Meeting", description="Test Desc", type=MeetingType.HR, duration_minutes=60)
         mock_uow.meetings.get_by_id.return_value = meeting
         mock_uow.user_meetings.get_user_meeting.return_value = None
 
@@ -426,6 +531,34 @@ class TestAssignMeeting:
 class TestUpdateAssignment:
     """Tests for updating meeting assignments."""
 
+    @pytest.mark.asyncio
+    async def test_update_assignment_scheduled_at_in_past_raises_validation_exception(self, mock_uow):
+        """Test that updating assignment with scheduled_at in the past raises ValidationException (lines 222-223)."""
+        # Arrange
+        service = MeetingService(mock_uow)
+        old_time = datetime.now(UTC) + timedelta(days=1)
+        past_time = datetime.now(UTC) - timedelta(hours=1)
+
+        assignment = UserMeeting(
+            id=1,
+            user_id=100,
+            meeting_id=1,
+            scheduled_at=old_time,
+            status=MeetingStatus.SCHEDULED,
+            google_calendar_event_id="event-123",
+        )
+        mock_uow.user_meetings.get_by_id.return_value = assignment
+
+        update_data = UserMeetingUpdate(scheduled_at=past_time)
+
+        # Act & Assert
+        with pytest.raises(ValidationException) as exc_info:
+            await service.update_assignment(1, update_data)
+        assert "must be in the future" in str(exc_info.value.detail)
+        # Should not proceed to update or call calendar service
+        mock_uow.user_meetings.update.assert_not_called()
+
+    @pytest.mark.asyncio
     async def test_update_assignment_scheduled_at_change(self, mock_uow):
         """Test updating assignment scheduled_at triggers calendar update."""
         # Arrange
@@ -443,7 +576,7 @@ class TestUpdateAssignment:
         )
         mock_uow.user_meetings.get_by_id.return_value = assignment
 
-        meeting = Meeting(id=1, title="Test Meeting", description="Test Desc", type=MeetingType.HR)
+        meeting = Meeting(id=1, title="Test Meeting", description="Test Desc", type=MeetingType.HR, duration_minutes=60)
         mock_uow.meetings.get_by_id.return_value = meeting
 
         update_data = UserMeetingUpdate(scheduled_at=new_time)
@@ -470,6 +603,7 @@ class TestUpdateAssignment:
                 },
             )
 
+    @pytest.mark.asyncio
     async def test_update_assignment_remove_scheduled_at(self, mock_uow):
         """Test removing scheduled_at deletes calendar event."""
         # Arrange
@@ -505,6 +639,7 @@ class TestUpdateAssignment:
 class TestCompleteMeeting:
     """Tests for completing meetings."""
 
+    @pytest.mark.asyncio
     async def test_complete_meeting(self, mock_uow):
         """Test marking a meeting as completed."""
         # Arrange
@@ -541,6 +676,7 @@ class TestCompleteMeeting:
         assert result.completed_at is not None
         mock_uow.user_meetings.update.assert_called_once()
 
+    @pytest.mark.asyncio
     async def test_complete_already_completed_meeting(self, mock_uow):
         """Test completing an already-completed meeting raises ValidationException."""
         # Arrange
@@ -564,6 +700,7 @@ class TestCompleteMeeting:
 class TestDeleteAssignment:
     """Tests for deleting meeting assignments."""
 
+    @pytest.mark.asyncio
     async def test_delete_assignment_with_calendar_event(self, mock_uow):
         """Test deleting assignment also deletes calendar event."""
         # Arrange
@@ -590,6 +727,7 @@ class TestDeleteAssignment:
             mock_gc_instance.delete_event.assert_called_once_with(100, "event-123")
             mock_uow.user_meetings.delete.assert_called_once_with(1)
 
+    @pytest.mark.asyncio
     async def test_delete_assignment_without_calendar_event(self, mock_uow):
         """Test deleting assignment without calendar event."""
         # Arrange
@@ -612,14 +750,15 @@ class TestDeleteAssignment:
 class TestAutoAssignment:
     """Tests for automatic meeting assignment."""
 
+    @pytest.mark.asyncio
     async def test_assign_meetings_for_user(self, mock_uow):
         """Test auto-assigning mandatory meetings to a new user."""
         # Arrange
         service = MeetingService(mock_uow)
 
         meetings = [
-            Meeting(id=1, title="HR Onboarding", type=MeetingType.HR, is_mandatory=True, department_id=1),
-            Meeting(id=2, title="Security Training", type=MeetingType.SECURITY, is_mandatory=True, department_id=1),
+            Meeting(id=1, title="HR Onboarding", type=MeetingType.HR, is_mandatory=True, department_id=1, duration_minutes=60),
+            Meeting(id=2, title="Security Training", type=MeetingType.SECURITY, is_mandatory=True, department_id=1, duration_minutes=60),
         ]
         mock_uow.meetings.find_meetings.return_value = (meetings, 2)
         mock_uow.user_meetings.get_user_meeting.return_value = None  # No existing assignments
@@ -643,13 +782,14 @@ class TestAutoAssignment:
         assert mock_uow.meetings.find_meetings.called
         assert mock_uow.user_meetings.create.call_count == 2
 
+    @pytest.mark.asyncio
     async def test_assign_meetings_skips_existing(self, mock_uow):
         """Test auto-assignment skips meetings already assigned."""
         # Arrange
         service = MeetingService(mock_uow)
 
         meetings = [
-            Meeting(id=1, title="HR Onboarding", type=MeetingType.HR, is_mandatory=True),
+            Meeting(id=1, title="HR Onboarding", type=MeetingType.HR, is_mandatory=True, duration_minutes=60),
         ]
         mock_uow.meetings.find_meetings.return_value = (meetings, 1)
 
@@ -668,11 +808,12 @@ class TestAutoAssignment:
 class TestGoogleCalendarIntegration:
     """Tests for Google Calendar integration scenarios."""
 
+    @pytest.mark.asyncio
     async def test_assign_meeting_creates_calendar_event_with_event_id(self, mock_uow):
         """Test that calendar event ID is saved when event is created."""
         # Arrange
         service = MeetingService(mock_uow)
-        meeting = Meeting(id=1, title="Test Meeting", description="Test Desc", type=MeetingType.HR)
+        meeting = Meeting(id=1, title="Test Meeting", description="Test Desc", type=MeetingType.HR, duration_minutes=60)
         mock_uow.meetings.get_by_id.return_value = meeting
         mock_uow.user_meetings.get_user_meeting.return_value = None
 
@@ -715,6 +856,7 @@ class TestGoogleCalendarIntegration:
                 updated_assignment = update_call[0][0]
                 assert updated_assignment.google_calendar_event_id == "google-event-456"
 
+    @pytest.mark.asyncio
     async def test_update_assignment_add_scheduled_at_creates_event(self, mock_uow):
         """Test adding scheduled_at to existing assignment creates calendar event."""
         # Arrange
@@ -732,7 +874,7 @@ class TestGoogleCalendarIntegration:
         )
         mock_uow.user_meetings.get_by_id.return_value = assignment
 
-        meeting = Meeting(id=1, title="Test Meeting", description="Test Desc", type=MeetingType.HR)
+        meeting = Meeting(id=1, title="Test Meeting", description="Test Desc", type=MeetingType.HR, duration_minutes=60)
         mock_uow.meetings.get_by_id.return_value = meeting
 
         update_data = UserMeetingUpdate(scheduled_at=new_time)
@@ -751,6 +893,7 @@ class TestGoogleCalendarIntegration:
             mock_gc_instance.create_event.assert_called_once()
             mock_gc_instance.update_event.assert_not_called()
 
+    @pytest.mark.asyncio
     async def test_update_assignment_create_event_failure_continues(self, mock_uow):
         """Test that update continues even if creating new calendar event fails (lines 251-252)."""
         # Arrange
@@ -768,7 +911,7 @@ class TestGoogleCalendarIntegration:
         )
         mock_uow.user_meetings.get_by_id.return_value = assignment
 
-        meeting = Meeting(id=1, title="Test Meeting", description="Test Desc", type=MeetingType.HR)
+        meeting = Meeting(id=1, title="Test Meeting", description="Test Desc", type=MeetingType.HR, duration_minutes=60)
         mock_uow.meetings.get_by_id.return_value = meeting
 
         # Set up the update return value
@@ -803,6 +946,7 @@ class TestGoogleCalendarIntegration:
             # Verify create_event was attempted
             mock_gc_instance.create_event.assert_called_once()
 
+    @pytest.mark.asyncio
     async def test_update_assignment_same_scheduled_at_no_calendar_call(self, mock_uow):
         """Test that calendar is not called when scheduled_at doesn't change."""
         # Arrange
@@ -836,6 +980,7 @@ class TestGoogleCalendarIntegration:
             mock_gc_instance.update_event.assert_not_called()
             mock_gc_instance.delete_event.assert_not_called()
 
+    @pytest.mark.asyncio
     async def test_reschedule_meeting_updates_existing_event(self, mock_uow):
         """Test that rescheduling updates existing calendar event."""
         # Arrange
@@ -853,7 +998,7 @@ class TestGoogleCalendarIntegration:
         )
         mock_uow.user_meetings.get_by_id.return_value = assignment
 
-        meeting = Meeting(id=1, title="Test Meeting", description="Test Desc", type=MeetingType.HR)
+        meeting = Meeting(id=1, title="Test Meeting", description="Test Desc", type=MeetingType.HR, duration_minutes=60)
         mock_uow.meetings.get_by_id.return_value = meeting
 
         update_data = UserMeetingUpdate(scheduled_at=new_time)
@@ -874,6 +1019,7 @@ class TestGoogleCalendarIntegration:
             assert call_args[0][0] == 100  # user_id
             assert call_args[0][1] == "existing-event-123"  # event_id
 
+    @pytest.mark.asyncio
     async def test_complete_meeting_does_not_affect_calendar(self, mock_uow):
         """Test that completing a meeting doesn't modify calendar event."""
         # Arrange
@@ -917,6 +1063,7 @@ class TestGoogleCalendarIntegration:
 class TestMeetingServiceEdgeCases:
     """Tests for edge cases and error handling."""
 
+    @pytest.mark.asyncio
     async def test_get_meeting_assignments_not_found(self, mock_uow):
         """Test getting assignments for non-existent meeting raises NotFoundException."""
         # Arrange
@@ -927,6 +1074,7 @@ class TestMeetingServiceEdgeCases:
         with pytest.raises(NotFoundException):
             await service.get_meeting_assignments(meeting_id=999)
 
+    @pytest.mark.asyncio
     async def test_get_assignment_not_found(self, mock_uow):
         """Test getting non-existent assignment raises NotFoundException."""
         # Arrange
@@ -938,6 +1086,7 @@ class TestMeetingServiceEdgeCases:
             await service.get_assignment(999)
         assert "User meeting assignment" in str(exc_info.value.detail)
 
+    @pytest.mark.asyncio
     async def test_delete_assignment_not_found(self, mock_uow):
         """Test deleting non-existent assignment raises NotFoundException."""
         # Arrange
@@ -948,6 +1097,7 @@ class TestMeetingServiceEdgeCases:
         with pytest.raises(NotFoundException):
             await service.delete_assignment(999)
 
+    @pytest.mark.asyncio
     async def test_update_meeting_not_found(self, mock_uow):
         """Test updating non-existent meeting raises NotFoundException."""
         # Arrange
@@ -960,6 +1110,7 @@ class TestMeetingServiceEdgeCases:
         with pytest.raises(NotFoundException):
             await service.update_meeting(999, update_data)
 
+    @pytest.mark.asyncio
     async def test_delete_meeting_not_found(self, mock_uow):
         """Test deleting non-existent meeting raises NotFoundException."""
         # Arrange
@@ -970,6 +1121,7 @@ class TestMeetingServiceEdgeCases:
         with pytest.raises(NotFoundException):
             await service.delete_meeting(999)
 
+    @pytest.mark.asyncio
     async def test_update_assignment_not_found(self, mock_uow):
         """Test updating non-existent assignment raises NotFoundException."""
         # Arrange
@@ -982,6 +1134,7 @@ class TestMeetingServiceEdgeCases:
         with pytest.raises(NotFoundException):
             await service.update_assignment(999, update_data)
 
+    @pytest.mark.asyncio
     async def test_complete_meeting_not_found(self, mock_uow):
         """Test completing non-existent meeting raises NotFoundException."""
         # Arrange
@@ -994,6 +1147,7 @@ class TestMeetingServiceEdgeCases:
         with pytest.raises(NotFoundException):
             await service.complete_meeting(999, completion)
 
+    @pytest.mark.asyncio
     async def test_get_materials_meeting_not_exists_still_returns_materials(self, mock_uow):
         """Test get_materials works even if meeting existence check bypassed."""
         # Arrange - this tests the direct service method which doesn't check meeting existence
@@ -1014,6 +1168,7 @@ class TestMeetingServiceEdgeCases:
 class TestCalendarFailureScenarios:
     """Tests for calendar service failure handling."""
 
+    @pytest.mark.asyncio
     async def test_update_assignment_calendar_update_fails_continues(self, mock_uow):
         """Test that update continues even if calendar update fails."""
         # Arrange
@@ -1031,7 +1186,7 @@ class TestCalendarFailureScenarios:
         )
         mock_uow.user_meetings.get_by_id.return_value = assignment
 
-        meeting = Meeting(id=1, title="Test Meeting", type=MeetingType.HR)
+        meeting = Meeting(id=1, title="Test Meeting", type=MeetingType.HR, duration_minutes=60)
         mock_uow.meetings.get_by_id.return_value = meeting
 
         # Set up the update return value to have the new scheduled_at
@@ -1064,6 +1219,7 @@ class TestCalendarFailureScenarios:
             assert result.scheduled_at == new_time
             mock_uow.user_meetings.update.assert_called_once()
 
+    @pytest.mark.asyncio
     async def test_update_assignment_calendar_delete_fails_continues(self, mock_uow):
         """Test that unscheduling continues even if calendar delete fails."""
         # Arrange
@@ -1110,6 +1266,7 @@ class TestCalendarFailureScenarios:
             assert result.scheduled_at is None
             mock_uow.user_meetings.update.assert_called_once()
 
+    @pytest.mark.asyncio
     async def test_delete_assignment_calendar_delete_fails_continues(self, mock_uow):
         """Test that deleting assignment continues even if calendar delete fails."""
         # Arrange

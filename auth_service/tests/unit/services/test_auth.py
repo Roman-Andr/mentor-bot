@@ -1,7 +1,7 @@
 """Unit tests for auth_service/services/auth.py."""
 
 from datetime import UTC, datetime, timedelta
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -83,6 +83,7 @@ class TestAuthenticateUser:
                 await service.authenticate_user(login_data)
 
         assert "invalid email or password" in str(exc_info.value.detail).lower()
+        mock_uow.users.update_last_login.assert_not_called()
 
     async def test_login_inactive_user_raises(self, mock_uow):
         """Test login with inactive user raises AuthException."""
@@ -242,7 +243,7 @@ class TestRefreshAccessToken:
         with pytest.raises(AuthException) as exc_info:
             await service.refresh_access_token(refresh_data)
 
-        assert "invalid refresh token" in str(exc_info.value.detail).lower()
+        assert "token expired" in str(exc_info.value.detail).lower()
 
 
 class TestCreateTokenForUser:
@@ -345,6 +346,7 @@ class TestGetCurrentUser:
             await service.get_current_user(valid_access_token)
 
         assert "disabled" in str(exc_info.value.detail).lower()
+        mock_uow.users.get_by_id.assert_awaited_once_with(1)
 
 
 class TestAuthenticateWithTelegram:
@@ -434,7 +436,6 @@ class TestAuthenticateWithTelegram:
         """Test that Telegram auth updates user profile data."""
         # Arrange
         mock_uow.users.get_by_telegram_id.return_value = telegram_user
-        mock_uow.users.update = AsyncMock()
         service = AuthService(mock_uow)
         telegram_data = TelegramAuthRequest(
             telegram_id=123456789,
@@ -450,6 +451,7 @@ class TestAuthenticateWithTelegram:
         assert telegram_user.username == "@newusername"
         assert telegram_user.first_name == "NewFirst"
         assert telegram_user.last_name == "NewLast"
+        mock_uow.users.update.assert_awaited_once()
 
 
 class TestRegisterWithInvitationAndTelegram:

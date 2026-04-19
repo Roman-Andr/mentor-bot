@@ -88,7 +88,7 @@ class TestSqlAlchemyUnitOfWork:
             await uow.rollback()
 
     async def test_context_manager_exception_rolls_back(self, mock_session_factory):
-        """Test exception in context properly closes session."""
+        """Test exception in context properly rolls back and closes session."""
         mock_session = mock_session_factory.return_value
 
         uow = SqlAlchemyUnitOfWork(mock_session_factory)
@@ -97,6 +97,8 @@ class TestSqlAlchemyUnitOfWork:
             async with uow:
                 raise ValueError("Test error")  # noqa: TRY003, EM101
 
+        # Rollback should be called on exception
+        mock_session.rollback.assert_awaited_once()
         # Session should still be closed even on exception
         mock_session.close.assert_awaited_once()
 
@@ -129,7 +131,6 @@ class TestIUnitOfWorkProtocol:
         assert hasattr(IUnitOfWork, "__protocol_attrs__")
 
         # Check that abstract methods exist with ellipsis (...) body
-        import inspect
 
         # commit method should be abstract (line 28)
         assert hasattr(IUnitOfWork, "commit")
@@ -159,7 +160,6 @@ class TestIUnitOfWorkProtocol:
     async def test_protocol_runtime_checkable(self):
         """Test that IUnitOfWork is runtime checkable."""
         from checklists_service.repositories.unit_of_work import IUnitOfWork
-        import typing
 
         # Verify the protocol is decorated with @runtime_checkable
         # In Python 3.14, Protocol classes have _is_runtime_checkable attribute
@@ -182,7 +182,6 @@ class TestIUnitOfWorkProtocol:
 
         # Verify they are abstract methods with ... (ellipsis) body
         # When imported, these methods are just abstract definitions
-        import inspect
         commit_method = getattr(IUnitOfWork, "commit", None)
         assert commit_method is not None
 
@@ -192,8 +191,9 @@ class TestIUnitOfWorkInterface:
 
     async def test_iunit_of_work_commit_is_abstract(self):
         """Test IUnitOfWork.commit is defined with ... (line 28)."""
-        from checklists_service.repositories.unit_of_work import IUnitOfWork
         import inspect
+
+        from checklists_service.repositories.unit_of_work import IUnitOfWork
 
         # Get the source of the class
         source = inspect.getsource(IUnitOfWork)
@@ -204,24 +204,27 @@ class TestIUnitOfWorkInterface:
 
     async def test_iunit_of_work_rollback_is_abstract(self):
         """Test IUnitOfWork.rollback is defined with ... (line 32)."""
-        from checklists_service.repositories.unit_of_work import IUnitOfWork
         import inspect
+
+        from checklists_service.repositories.unit_of_work import IUnitOfWork
 
         source = inspect.getsource(IUnitOfWork)
         assert "def rollback" in source
 
     async def test_iunit_of_work_aenter_is_abstract(self):
         """Test IUnitOfWork.__aenter__ is defined with ... (line 36)."""
-        from checklists_service.repositories.unit_of_work import IUnitOfWork
         import inspect
+
+        from checklists_service.repositories.unit_of_work import IUnitOfWork
 
         source = inspect.getsource(IUnitOfWork)
         assert "def __aenter__" in source
 
     async def test_iunit_of_work_aexit_is_abstract(self):
         """Test IUnitOfWork.__aexit__ is defined with ... (line 40)."""
-        from checklists_service.repositories.unit_of_work import IUnitOfWork
         import inspect
+
+        from checklists_service.repositories.unit_of_work import IUnitOfWork
 
         source = inspect.getsource(IUnitOfWork)
         assert "def __aexit__" in source
@@ -239,7 +242,6 @@ class TestIUnitOfWorkInterface:
     async def test_sqlalchemy_uow_concrete_implements_all_protocol_methods(self):
         """Test that SqlAlchemyUnitOfWork implements all IUnitOfWork protocol methods."""
         from checklists_service.repositories.unit_of_work import IUnitOfWork, SqlAlchemyUnitOfWork
-        import inspect
 
         # Get all methods from the protocol
         protocol_methods = {name for name in dir(IUnitOfWork) if not name.startswith("_") or name in ("__aenter__", "__aexit__")}

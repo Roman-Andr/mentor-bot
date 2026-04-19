@@ -86,8 +86,10 @@ class SqlAlchemyUnitOfWork(IUnitOfWork):
         self.tags = TagRepository(self._session)
         return self
 
-    async def __aexit__(self, *args: object) -> None:
+    async def __aexit__(self, exc_type: type[BaseException] | None, *args: object) -> None:
         """Close session on context exit."""
+        if exc_type and self._session:
+            await self._session.rollback()
         if self._session:
             await self._session.close()
             self._session = None

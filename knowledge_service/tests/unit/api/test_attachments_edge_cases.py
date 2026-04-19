@@ -1,4 +1,5 @@
-"""Tests for attachment endpoint edge cases.
+"""
+Tests for attachment endpoint edge cases.
 
 Covers:
 - Lines 149-150: batch_upload permission denied
@@ -71,7 +72,8 @@ class TestBatchUploadSkipOversizedFile:
         mock_storage_service: AsyncMock,
         mock_article: Article,
     ) -> None:
-        """Test batch upload skips oversized files - covers line 158.
+        """
+        Test batch upload skips oversized files - covers line 158.
 
         When a file exceeds MAX_FILE_SIZE_MB, it should be skipped via 'continue'.
         """
@@ -102,7 +104,7 @@ class TestBatchUploadSkipOversizedFile:
             )
 
         # Only the valid file should be processed
-        assert result.total == 1
+        assert result.total_uploaded == 1
         mock_attachment_service.create_attachment.assert_called_once()
         # Storage upload should only be called once for the valid file
         mock_storage_service.upload_file.assert_called_once()
@@ -147,7 +149,7 @@ class TestBatchUploadSkipInvalidFileType:
             )
 
         # Only the valid file should be processed
-        assert result.total == 1
+        assert result.total_uploaded == 1
         mock_attachment_service.create_attachment.assert_called_once()
         # Storage upload should only be called once for the valid file
         mock_storage_service.upload_file.assert_called_once()
@@ -164,7 +166,8 @@ class TestBatchUploadS3Error:
         mock_storage_service: AsyncMock,
         mock_article: Article,
     ) -> None:
-        """Test batch upload skips files that fail S3 upload - covers line 179.
+        """
+        Test batch upload skips files that fail S3 upload - covers line 179.
 
         When an S3 upload raises an exception, it should be skipped via 'continue'.
         """
@@ -205,7 +208,7 @@ class TestBatchUploadS3Error:
             )
 
         # Only the valid file should be processed (error file skipped via continue)
-        assert result.total == 1
+        assert result.total_uploaded == 1
         mock_attachment_service.create_attachment.assert_called_once()
 
 
@@ -219,7 +222,8 @@ class TestGetAttachmentFileDraftPermissionDenied:
         mock_storage_service: AsyncMock,
         mock_article: Article,
     ) -> None:
-        """Test getting attachment file for draft article denied for non-author - covers lines 210-220.
+        """
+        Test getting attachment file for draft article denied for non-author - covers lines 210-220.
 
         This covers the specific case where:
         - Article status is DRAFT

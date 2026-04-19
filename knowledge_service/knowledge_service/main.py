@@ -12,6 +12,7 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
+from sqlalchemy import text
 
 from knowledge_service.api import articles, attachments, categories, departments, dialogues, search, tags
 from knowledge_service.config import settings
@@ -60,7 +61,7 @@ app = FastAPI(
 
 # Rate-limit (disabled in debug mode)
 if not settings.DEBUG:
-    limiter = Limiter(key_func=get_remote_address, default_limits=["100/minute"])
+    limiter = Limiter(key_func=get_remote_address, default_limits=["100/second"])
     app.state.limiter = limiter
     app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
     app.add_middleware(SlowAPIMiddleware)
@@ -99,8 +100,6 @@ async def root() -> ServiceStatus:
 @app.get("/health")
 async def health_check() -> HealthCheck:
     """Health check endpoint for load balancers and monitoring."""
-    from sqlalchemy import text
-
     # Check database connectivity
     try:
         async with engine.connect() as conn:

@@ -1,9 +1,9 @@
 """Enum definitions for the Escalation Service."""
 
-from enum import Enum
+from enum import StrEnum
 
 
-class EscalationType(str, Enum):
+class EscalationType(StrEnum):
     """Type of escalation request."""
 
     HR = "HR"
@@ -12,7 +12,7 @@ class EscalationType(str, Enum):
     GENERAL = "GENERAL"  # fallback if no specific assignee
 
 
-class EscalationStatus(str, Enum):
+class EscalationStatus(StrEnum):
     """Status of an escalation request."""
 
     PENDING = "PENDING"  # not yet assigned
@@ -23,7 +23,7 @@ class EscalationStatus(str, Enum):
     CLOSED = "CLOSED"
 
 
-class EscalationSource(str, Enum):
+class EscalationSource(StrEnum):
     """How the escalation was triggered."""
 
     MANUAL = "MANUAL"  # user explicitly asked for help

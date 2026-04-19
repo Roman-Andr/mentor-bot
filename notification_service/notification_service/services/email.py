@@ -1,10 +1,10 @@
 """Email integration service using SMTP."""
 
 import logging
-import re
 from email.message import EmailMessage
 
 import aiosmtplib
+from email_validator import EmailNotValidError, validate_email
 
 from notification_service.config import settings
 
@@ -12,7 +12,8 @@ logger = logging.getLogger(__name__)
 
 
 def _sanitize_email_header(value: str) -> str:
-    """Sanitize email header to prevent header injection attacks.
+    """
+    Sanitize email header to prevent header injection attacks.
 
     Removes newlines and null bytes that could be used for header injection.
     """
@@ -23,15 +24,30 @@ def _sanitize_email_header(value: str) -> str:
 
 
 def _validate_email_address(email: str) -> bool:
-    """Basic email validation to prevent header injection.
+    """
+    Validate email address format using email-validator library.
 
-    Checks that email doesn't contain characters that could be used for header injection.
+    Performs syntactic validation according to RFC standards and
+    checks for dangerous characters that could enable header injection.
+
+    Returns True only for valid, normalized email addresses.
     """
     if not email:
         return False
-    # Check for dangerous characters in email
+
+    # Check for dangerous characters that could enable header injection
     dangerous_chars = ["\r", "\n", "\0", "<", ">"]
-    return not any(char in email for char in dangerous_chars)
+    if any(char in email for char in dangerous_chars):
+        return False
+
+    try:
+        # Validate email format using email-validator library
+        # This checks RFC compliance, domain validity, and normalizes
+        validate_email(email, check_deliverability=False)
+    except EmailNotValidError:
+        return False
+    else:
+        return True
 
 
 class EmailService:
@@ -52,17 +68,10 @@ class EmailService:
         subject: str,
         body: str,
         from_email: str | None = None,
+        *,
         html: bool = True,
     ) -> None:
-        """Send an email using SMTP.
-
-        Args:
-            to_email: Recipient email address
-            subject: Email subject
-            body: Email body content
-            from_email: Sender email address (defaults to DEFAULT_FROM_EMAIL)
-            html: Whether body is HTML (default True)
-        """
+        """Send an email using SMTP."""
         # Check if in dry-run mode (log only, don't send)
         is_dry_run = settings.EMAIL_DRY_RUN or settings.DEBUG
         if is_dry_run:

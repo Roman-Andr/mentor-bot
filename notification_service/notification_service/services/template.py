@@ -26,6 +26,7 @@ class TemplateNotFoundError(Exception):
     """Raised when a template is not found."""
 
     def __init__(self, template_name: str, channel: str, language: str) -> None:
+        """Initialize with template lookup details."""
         self.template_name = template_name
         self.channel = channel
         self.language = language
@@ -36,6 +37,7 @@ class MissingTemplateVariablesError(Exception):
     """Raised when required template variables are missing."""
 
     def __init__(self, missing_variables: set[str]) -> None:
+        """Initialize with set of missing variable names."""
         self.missing_variables = missing_variables
         super().__init__(f"Missing required template variables: {', '.join(missing_variables)}")
 
@@ -44,6 +46,7 @@ class TemplateRenderError(Exception):
     """Raised when template rendering fails."""
 
     def __init__(self, message: str) -> None:
+        """Initialize with error message."""
         super().__init__(f"Template rendering failed: {message}")
 
 
@@ -218,7 +221,8 @@ See you there!""",
     async def get_template(
         self, name: str, channel: str, language: str = "en"
     ) -> NotificationTemplate | None:
-        """Get template by name, channel, and language.
+        """
+        Get template by name, channel, and language.
 
         First tries to get from database, falls back to defaults if not found.
         """
@@ -267,7 +271,8 @@ See you there!""",
         )
 
     def validate_variables(self, template: NotificationTemplate, variables: dict[str, Any]) -> set[str]:
-        """Validate that all required template variables are provided.
+        """
+        Validate that all required template variables are provided.
 
         Returns set of missing variable names.
         """
@@ -283,7 +288,8 @@ See you there!""",
         variables: dict[str, Any],
         validate: bool = True,
     ) -> RenderedNotification:
-        """Render a template with the given variables.
+        """
+        Render a template with the given variables.
 
         Args:
             template_name: Name of the template to render
@@ -299,6 +305,7 @@ See you there!""",
             TemplateNotFoundError: If template is not found
             MissingTemplateVariablesError: If required variables are missing
             TemplateRenderError: If rendering fails
+
         """
         # Get template
         template = await self.get_template(template_name, channel, language)
@@ -349,7 +356,8 @@ See you there!""",
         variables: dict[str, Any],
         channel: str | None = None,
     ) -> RenderedNotification:
-        """Render a template for a specific user, using their preferences.
+        """
+        Render a template for a specific user, using their preferences.
 
         Automatically adds user variables and uses user's preferred language.
         """

@@ -1,12 +1,13 @@
 """Unit tests for notification_service/repositories/implementations/notification.py."""
 
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime, timedelta, timezone
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from notification_service.core.enums import NotificationChannel, NotificationStatus, NotificationType
+from notification_service.core.exceptions import NotFoundException
 from notification_service.models import Notification, ScheduledNotification
 from notification_service.repositories.implementations.notification import (
     NotificationRepository,
@@ -330,19 +331,21 @@ class TestScheduledNotificationRepositoryMarkProcessed:
     async def test_raises_error_when_notification_not_found(
         self, scheduled_repo: ScheduledNotificationRepository, mock_session: MagicMock
     ) -> None:
-        """Raises ValueError when notification not found."""
+        """Raises NotFoundException when notification not found."""
         mock_result = MagicMock()
         mock_result.scalar_one_or_none.return_value = None
         mock_session.execute.return_value = mock_result
 
-        with pytest.raises(ValueError, match="ScheduledNotification with ID 999 not found"):
+        with pytest.raises(NotFoundException):
             await scheduled_repo.mark_processed(999)
 
     async def test_preserves_timezone_in_processed_at(
         self, scheduled_repo: ScheduledNotificationRepository, mock_session: MagicMock
     ) -> None:
         """Preserves timezone when setting processed_at."""
-        tz = timezone(timedelta(hours=3))  # UTC+3
+        from datetime import timezone as tz_module
+
+        tz = tz_module(timedelta(hours=3))  # UTC+3
         notification = ScheduledNotification(
             id=1,
             user_id=42,
@@ -365,5 +368,81 @@ class TestScheduledNotificationRepositoryMarkProcessed:
         assert result.processed_at is not None
         assert result.processed_at.tzinfo is not None
 
+    async def test_flush_and_refresh_called_in_mark_processed(
+        self, scheduled_repo: ScheduledNotificationRepository, mock_session: MagicMock
+    ) -> None:
+        """Test lines 122-126: verify flush and refresh are called in mark_processed."""
+        from datetime import timezone, timedelta
 
-from datetime import timezone  # noqa: E402, I001
+        notification = ScheduledNotification(
+            id=1,
+            user_id=42,
+            type=NotificationType.GENERAL,
+            channel=NotificationChannel.EMAIL,
+            body="Test",
+            scheduled_time=datetime.now(UTC) + timedelta(hours=1),
+            processed=False,
+        )
+
+        mock_result = MagicMock()
+        mock_result.scalar_one_or_none.return_value = notification
+        mock_session.execute.return_value = mock_result
+        mock_session.flush = AsyncMock()
+        mock_session.refresh = AsyncMock()
+
+        result = await scheduled_repo.mark_processed(1)
+
+        # Verify lines 124-125 are covered
+        mock_session.flush.assert_awaited_once()
+        mock_session.refresh.assert_awaited_once_with(notification)
+        assert result.processed is True
+        assert result.processed_at is not None
+
+
+class TestScheduledNotificationRepositoryIncrementRetry:
+    """Tests for ScheduledNotificationRepository.increment_retry."""
+
+    async def test_increments_retry_count_and_updates_time(
+        self, scheduled_repo: ScheduledNotificationRepository, mock_session: MagicMock
+    ) -> None:
+        """Increments retry count, sets failed_at, and updates scheduled_time (lines 132-142)."""
+        from datetime import timedelta
+
+        # Create a scheduled notification with retry_count=0
+        notification = ScheduledNotification(
+            id=1,
+            user_id=42,
+            type=NotificationType.GENERAL,
+            channel=NotificationChannel.EMAIL,
+            body="Test",
+            scheduled_time=datetime.now(UTC) + timedelta(hours=1),
+            processed=False,
+            retry_count=0,  # Start with 0
+            max_retries=3,
+        )
+
+        mock_result = MagicMock()
+        mock_result.scalar_one_or_none.return_value = notification
+        mock_session.execute.return_value = mock_result
+        mock_session.flush = AsyncMock()
+        mock_session.refresh = AsyncMock()
+
+        next_scheduled = datetime.now(UTC) + timedelta(minutes=5)
+        result = await scheduled_repo.increment_retry(1, next_scheduled)
+
+        assert result.retry_count == 1  # Incremented from 0
+        assert result.failed_at is not None
+        assert result.scheduled_time == next_scheduled
+        mock_session.flush.assert_awaited_once()
+        mock_session.refresh.assert_awaited_once_with(notification)
+
+    async def test_raises_error_when_notification_not_found_for_retry(
+        self, scheduled_repo: ScheduledNotificationRepository, mock_session: MagicMock
+    ) -> None:
+        """Raises NotFoundException when notification not found for increment_retry."""
+        mock_result = MagicMock()
+        mock_result.scalar_one_or_none.return_value = None
+        mock_session.execute.return_value = mock_result
+
+        with pytest.raises(NotFoundException):
+            await scheduled_repo.increment_retry(999, datetime.now(UTC))

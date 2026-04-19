@@ -35,7 +35,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="bg-muted flex min-h-screen items-center justify-center">
+    <div className="flex min-h-screen items-center justify-center bg-muted">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-center text-2xl font-bold">{t("auth.loginTitle")}</CardTitle>
