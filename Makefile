@@ -67,6 +67,9 @@ help:
 	@echo ""
 	@echo "Testing:"
 	@echo "  make test              - Run all unit tests across all Python services"
+	@echo "  make test-admin        - Run admin_web unit tests (Vitest)"
+	@echo "  make test-admin-coverage - Run admin_web tests with coverage"
+	@echo "  make test-admin-watch  - Run admin_web tests in watch mode"
 	@echo "  make coverage          - Run tests, generate reports, and serve unified dashboard"
 	@echo "  make coverage-serve    - Serve existing coverage reports (skip test run)"
 	@echo "  make coverage-html     - Show coverage report URL"
@@ -105,6 +108,15 @@ coverage-html:
 coverage-clean:
 	rm -rf .coverage-reports
 	@echo "Coverage reports cleaned"
+
+test-admin:
+	cd admin_web && bunx vitest run
+
+test-admin-coverage:
+	cd admin_web && bun run test:coverage
+
+test-admin-watch:
+	cd admin_web && bun run test:watch
 
 start:
 	docker compose up -d --build
