@@ -59,10 +59,10 @@ async def meetings_menu(
     keyboard = get_meetings_menu_keyboard(locale=locale)
     if isinstance(update, CallbackQuery):
         await msg.edit_text(
-            text, reply_markup=keyboard.as_markup(), parse_mode="Markdown"
+            text, reply_markup=keyboard, parse_mode="Markdown"
         )
     else:
-        await msg.answer(text, reply_markup=keyboard.as_markup(), parse_mode="Markdown")
+        await msg.answer(text, reply_markup=keyboard, parse_mode="Markdown")
 
 
 @router.callback_query(F.data == "my_meetings")
@@ -85,7 +85,7 @@ async def my_meetings(
     if callback.message:
         await callback.message.edit_text(
             text,
-            reply_markup=get_my_meetings_keyboard(locale=locale).as_markup(),
+            reply_markup=get_my_meetings_keyboard(locale=locale),
             parse_mode="Markdown",
         )
     await callback.answer()
@@ -261,7 +261,7 @@ async def meeting_details(
             text,
             reply_markup=get_meeting_details_keyboard(
                 meeting_id, locale=locale
-            ).as_markup(),
+            ),
             parse_mode="Markdown",
         )
     await callback.answer()

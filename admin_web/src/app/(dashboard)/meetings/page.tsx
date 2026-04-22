@@ -195,7 +195,7 @@ export default function MeetingsPage() {
         onPageChange={m.setCurrentPage}
         createButtonLabel={t("meetings.scheduleMeeting")}
         emptyStateMessage={t("meetings.noMeetings")}
-        searchPlaceholder={t("common.search")}
+        searchPlaceholder={t("common.searchPlaceholder")}
         getItemKey={(item) => item.id}
         sortField={m.sortField}
         sortDirection={m.sortDirection}

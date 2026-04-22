@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const serviceUrls: Record<string, string> = {
-  auth: "http://auth_service:8001/openapi.json",
-  checklists: "http://checklists_service:8002/openapi.json",
-  knowledge: "http://knowledge_service:8003/openapi.json",
-  notification: "http://notification_service:8004/openapi.json",
-  escalation: "http://escalation_service:8005/openapi.json",
-  meeting: "http://meeting_service:8006/openapi.json",
-  feedback: "http://feedback_service:8007/openapi.json",
+  auth: "http://auth_service:8000/api/v1/openapi.json",
+  checklists: "http://checklists_service:8000/api/v1/openapi.json",
+  knowledge: "http://knowledge_service:8000/api/v1/openapi.json",
+  notification: "http://notification_service:8000/api/v1/openapi.json",
+  escalation: "http://escalation_service:8000/api/v1/openapi.json",
+  meeting: "http://meeting_service:8000/api/v1/openapi.json",
+  feedback: "http://feedback_service:8000/api/v1/openapi.json",
 };
 
 export async function GET(

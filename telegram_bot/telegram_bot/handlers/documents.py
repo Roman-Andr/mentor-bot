@@ -90,10 +90,10 @@ async def documents_menu(
     keyboard = get_documents_menu_keyboard(locale=locale)
     if isinstance(update, CallbackQuery) and isinstance(msg, Message):
         await msg.edit_text(
-            text, reply_markup=keyboard.as_markup(), parse_mode="Markdown"
+            text, reply_markup=keyboard, parse_mode="Markdown"
         )
     else:
-        await msg.answer(text, reply_markup=keyboard.as_markup(), parse_mode="Markdown")
+        await msg.answer(text, reply_markup=keyboard, parse_mode="Markdown")
 
 
 @router.callback_query(F.data == "dept_docs")
@@ -128,7 +128,7 @@ async def department_docs(
         text,
         reply_markup=get_article_list_keyboard(
             docs, "documents_menu", locale=locale
-        ).as_markup(),
+        ),
         parse_mode="Markdown",
     )
     await callback.answer()
@@ -161,7 +161,7 @@ async def company_policies(
         text,
         reply_markup=get_article_list_keyboard(
             policies, "documents_menu", locale=locale
-        ).as_markup(),
+        ),
         parse_mode="Markdown",
     )
     await callback.answer()
@@ -194,7 +194,7 @@ async def training_materials(
         text,
         reply_markup=get_article_list_keyboard(
             materials, "documents_menu", locale=locale
-        ).as_markup(),
+        ),
         parse_mode="Markdown",
     )
     await callback.answer()
@@ -255,7 +255,7 @@ async def view_article_detail(
         text,
         reply_markup=get_article_detail_keyboard(
             attachments, article_id, locale=locale
-        ).as_markup(),
+        ),
         parse_mode="Markdown",
     )
     await callback.answer()

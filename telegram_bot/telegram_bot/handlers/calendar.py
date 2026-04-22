@@ -75,13 +75,13 @@ async def calendar_menu(
     if is_callback and msg:
         await msg.edit_text(
             text,
-            reply_markup=keyboard.as_markup(),
+            reply_markup=keyboard,
             parse_mode="Markdown",
         )
     else:
         await msg.answer(
             text,
-            reply_markup=keyboard.as_markup(),
+            reply_markup=keyboard,
             parse_mode="Markdown",
         )
 
@@ -110,7 +110,7 @@ async def connect_calendar(
                 text,
                 reply_markup=get_calendar_connect_keyboard(
                     connect_url, locale=locale
-                ).as_markup(),
+                ),
                 parse_mode="Markdown",
             )
         await callback.answer()

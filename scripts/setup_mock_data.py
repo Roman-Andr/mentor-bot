@@ -458,7 +458,7 @@ async def create_checklist_templates(
                         )
                     log_success(f"    Added {len(template.get('tasks', []))} tasks to '{tpl_name}'")
                 else:
-                    log_warning(f"  Failed to create template '{tpl_name}': {response.status_code}")
+                     log_warning(f"  Failed to create template '{tpl_name}': {response.status_code} - {response.text}")
             except Exception as e:
                 log_warning(f"  Error creating template '{tpl_name}': {e}")
 
@@ -547,15 +547,21 @@ async def create_checklist_instances(
                 checklist_id = checklist["id"]
                 log_success(f"  Checklist {checklist_id} created for user {user_id} (status: {status}, template: {template_index})")
 
-                if status == "COMPLETED" or completed_task_count > 0:
+                if completed_task_count > 0:
                     await update_checklist_tasks(client, headers, checklist_id, completed_task_count, status)
 
                 if status == "COMPLETED":
-                    # Use the complete endpoint to mark checklist as done
-                    await client.post(
-                        f"{CHECKLISTS_SERVICE_URL}/api/v1/checklists/{checklist_id}/complete",
+                    # Use PUT endpoint to update status to COMPLETED
+                    # The update_checklist service automatically marks all pending tasks as COMPLETED
+                    complete_resp = await client.put(
+                        f"{CHECKLISTS_SERVICE_URL}/api/v1/checklists/{checklist_id}",
                         headers=headers,
+                        json={"status": "COMPLETED"},
                     )
+                    if complete_resp.status_code in (200, 201):
+                        log_success(f"  Checklist {checklist_id} marked as completed")
+                    else:
+                        log_warning(f"  Failed to complete checklist {checklist_id}: {complete_resp.status_code} - {complete_resp.text}")
 
                 return checklist_id
 
@@ -574,31 +580,35 @@ async def update_checklist_tasks(
 ) -> None:
     """Update tasks within a checklist to show progress."""
     try:
-        # Correct endpoint for getting tasks by checklist
+        # Fetch tasks for this checklist
         response = await client.get(
             f"{CHECKLISTS_SERVICE_URL}/api/v1/tasks/checklist/{checklist_id}",
             headers=headers,
         )
 
-        if response.status_code == 200:
-            tasks = response.json() if isinstance(response.json(), list) else response.json().get("tasks", [])
+        if response.status_code != 200:
+            log_warning(f"  Failed to fetch tasks for checklist {checklist_id}: {response.status_code}")
+            return
+
+        tasks = response.json()
+        if not isinstance(tasks, list):
+            tasks = tasks.get("tasks", [])
+
+        if not tasks:
+            log_warning(f"  No tasks found for checklist {checklist_id}")
+            return
+
+        # For in-progress, complete specified count of tasks
+        if completed_count > 0:
             for i, task in enumerate(tasks):
-                task_id = task["id"]
                 if i < completed_count:
-                    # Use complete endpoint for completed tasks, progress for in-progress
-                    if status == "COMPLETED":
-                        await client.post(
-                            f"{CHECKLISTS_SERVICE_URL}/api/v1/tasks/{task_id}/complete",
-                            headers=headers,
-                        )
-                    else:
-                        await client.post(
-                            f"{CHECKLISTS_SERVICE_URL}/api/v1/tasks/{task_id}/progress",
-                            headers=headers,
-                            json={"progress_percentage": min(100, (i + 1) * 100 // len(tasks))},
-                        )
+                    task_id = task["id"]
+                    await client.post(
+                        f"{CHECKLISTS_SERVICE_URL}/api/v1/tasks/{task_id}/complete",
+                        headers=headers,
+                    )
     except Exception as e:
-        log_warning(f"  Error updating tasks: {e}")
+        log_warning(f"  Error updating tasks for checklist {checklist_id}: {e}")
 
 
 async def create_knowledge_categories(
@@ -642,7 +652,7 @@ async def create_knowledge_categories(
                     cat_ids[slug] = cat_id
                     log_success(f"  Category '{cat['name']}' created (ID: {cat_id})")
                 else:
-                    log_warning(f"  Failed to create category '{cat['name']}': {response.status_code}")
+                     log_warning(f"  Failed to create category '{cat['name']}': {response.status_code} - {response.text}")
             except Exception as e:
                 log_warning(f"  Error creating category '{cat['name']}': {e}")
 
@@ -673,7 +683,7 @@ async def create_knowledge_tags(
                     tag_ids[slug] = tag_id
                     log_success(f"  Tag '{tag['name']}' created (ID: {tag_id})")
                 else:
-                    log_warning(f"  Failed to create tag '{tag['name']}': {response.status_code}")
+                     log_warning(f"  Failed to create tag '{tag['name']}': {response.status_code} - {response.text}")
             except Exception as e:
                 log_warning(f"  Error creating tag '{tag['name']}': {e}")
 
@@ -731,7 +741,7 @@ async def create_knowledge_articles(
                         f"  Article '{article['title']}' created (ID: {art_id}, status: {article.get('status')})"
                     )
                 else:
-                    log_warning(f"  Failed to create article '{article['title']}': {response.status_code}")
+                     log_warning(f"  Failed to create article '{article['title']}': {response.status_code} - {response.text}")
             except Exception as e:
                 log_warning(f"  Error creating article '{article['title']}': {e}")
 
@@ -867,7 +877,7 @@ async def create_mock_article_attachments(
                         success_count += 1
                         log_success(f"  Uploaded {filename} to article {article_id}")
                     else:
-                        log_warning(f"  Failed to upload {filename}: {response.status_code}")
+                         log_warning(f"  Failed to upload {filename}: {response.status_code} - {response.text}")
                     total_uploads += 1
                 except Exception as e:
                     log_warning(f"  Error uploading {filename}: {e}")
@@ -1017,7 +1027,7 @@ async def create_mock_task_attachments(
                         success_count += 1
                         log_success(f"  Uploaded {filename} to task {task_id}")
                     else:
-                        log_warning(f"  Failed to upload {filename} to task {task_id}: {response.status_code}")
+                        log_warning(f"  Failed to upload {filename} to task {task_id}: {response.status_code} - {response.text}")
                     total_uploads += 1
                 except Exception as e:
                     log_warning(f"  Error uploading {filename} to task {task_id}: {e}")
@@ -1043,7 +1053,7 @@ async def create_mock_task_attachments(
                             success_count += 1
                             log_success(f"  Uploaded {filename2} to task {task_id}")
                         else:
-                            log_warning(f"  Failed to upload {filename2}: {response.status_code}")
+                             log_warning(f"  Failed to upload {filename2}: {response.status_code} - {response.text}")
                         total_uploads += 1
                     except Exception as e:
                         log_warning(f"  Error uploading {filename2}: {e}")
@@ -1119,7 +1129,7 @@ async def create_meeting_templates(
                     meeting_ids.append(meet_id)
                     log_success(f"  Meeting '{meeting['title']}' created (ID: {meet_id})")
                 else:
-                    log_warning(f"  Failed to create meeting '{meeting['title']}': {response.status_code}")
+                     log_warning(f"  Failed to create meeting '{meeting['title']}': {response.status_code} - {response.text}")
             except Exception as e:
                 log_warning(f"  Error creating meeting '{meeting['title']}': {e}")
 
@@ -1207,7 +1217,7 @@ async def create_user_meetings(
                     # Meeting already assigned - skip silently
                     pass
                 else:
-                    log_warning(f"  Failed to create user meeting: {response.status_code} {response.text[:200]}")
+                     log_warning(f"  Failed to create user meeting: {response.status_code} - {response.text[:200]}")
 
             except Exception as e:
                 log_warning(f"  Error creating user meeting: {e}")
@@ -1302,7 +1312,7 @@ async def create_escalations_async(
 
                     log_success(f"  Escalation {esc_id} created (status: {status})")
                 else:
-                    log_warning(f"  Failed to create escalation: {response.status_code} {response.text[:200]}")
+                     log_warning(f"  Failed to create escalation: {response.status_code} - {response.text[:200]}")
             except Exception as e:
                 log_warning(f"  Error creating escalation: {e}")
 
@@ -1418,7 +1428,7 @@ async def create_pending_invitations_async(
                         f"  Pending invitation created: {inv['email']} (token: {inv_data.get('token', 'N/A')[:20]}...)"
                     )
                 else:
-                    log_warning(f"  Failed to create pending invitation: {response.status_code}")
+                     log_warning(f"  Failed to create pending invitation: {response.status_code} - {response.text}")
             except Exception as e:
                 log_warning(f"  Error creating pending invitation: {e}")
 
@@ -1463,7 +1473,7 @@ async def create_user_mentors_async(
                 if response.status_code in (200, 201):
                     log_success(f"  Mentor assigned: {user_key} -> {mentor_key}")
                 else:
-                    log_warning(f"  Failed to assign mentor {mentor_key} to {user_key}: {response.status_code}")
+                     log_warning(f"  Failed to assign mentor {mentor_key} to {user_key}: {response.status_code} - {response.text}")
             except Exception as e:
                 log_warning(f"  Error assigning mentor {mentor_key} to {user_key}: {e}")
 

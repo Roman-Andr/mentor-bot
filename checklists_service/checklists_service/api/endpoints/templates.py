@@ -63,6 +63,7 @@ async def create_template(
 
     try:
         template = await template_service.create_template(template_data)
+        await uow.commit()
         return TemplateResponse.model_validate(template)
     except ConflictException as e:
         raise HTTPException(
@@ -103,6 +104,7 @@ async def update_template(
 
     try:
         template = await template_service.update_template(template_id, template_data)
+        await uow.commit()
         return TemplateResponse.model_validate(template)
     except NotFoundException as e:
         raise HTTPException(
@@ -122,6 +124,7 @@ async def delete_template(
 
     try:
         await template_service.delete_template(template_id)
+        await uow.commit()
         return MessageResponse(message="Template deleted successfully")
     except NotFoundException as e:
         raise HTTPException(
@@ -141,6 +144,7 @@ async def clone_template(
 
     try:
         template = await template_service.clone_template(template_id)
+        await uow.commit()
         return TemplateResponse.model_validate(template)
     except NotFoundException as e:
         raise HTTPException(
@@ -161,6 +165,7 @@ async def add_task_to_template(
 
     try:
         task = await template_service.add_task_to_template(template_id, task_data)
+        await uow.commit()
         return TaskTemplateResponse.model_validate(task)
     except NotFoundException as e:
         raise HTTPException(
@@ -180,6 +185,7 @@ async def publish_template(
 
     try:
         template = await template_service.publish_template(template_id)
+        await uow.commit()
         return TemplateResponse.model_validate(template)
     except NotFoundException as e:
         raise HTTPException(

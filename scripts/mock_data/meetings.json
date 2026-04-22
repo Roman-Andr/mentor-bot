@@ -8,7 +8,8 @@
     "department": "Engineering",
     "is_mandatory": true,
     "deadline_days": 3,
-    "order": 1
+    "order": 1,
+    "duration_minutes": 60
   },
   {
     "title": "Security Training",
@@ -19,7 +20,8 @@
     "department": "Engineering",
     "is_mandatory": true,
     "deadline_days": 7,
-    "order": 2
+    "order": 2,
+    "duration_minutes": 120
   },
   {
     "title": "Team Introduction",
@@ -30,7 +32,8 @@
     "department": "Engineering",
     "is_mandatory": true,
     "deadline_days": 5,
-    "order": 3
+    "order": 3,
+    "duration_minutes": 45
   },
   {
     "title": "Manager 1:1",
@@ -41,7 +44,8 @@
     "department": "Engineering",
     "is_mandatory": true,
     "deadline_days": 7,
-    "order": 4
+    "order": 4,
+    "duration_minutes": 30
   },
   {
     "title": "Product Demo",
@@ -52,7 +56,8 @@
     "department": "Engineering",
     "is_mandatory": false,
     "deadline_days": 14,
-    "order": 5
+    "order": 5,
+    "duration_minutes": 90
   },
   {
     "title": "Tech Review",
@@ -63,7 +68,8 @@
     "department": "Engineering",
     "is_mandatory": true,
     "deadline_days": 21,
-    "order": 6
+    "order": 6,
+    "duration_minutes": 150
   },
   {
     "title": "Sales Kickoff",
@@ -74,7 +80,8 @@
     "department": "Sales",
     "is_mandatory": true,
     "deadline_days": 7,
-    "order": 7
+    "order": 7,
+    "duration_minutes": 120
   },
   {
     "title": "Marketing Planning",
@@ -85,7 +92,8 @@
     "department": "Marketing",
     "is_mandatory": true,
     "deadline_days": 14,
-    "order": 8
+    "order": 8,
+    "duration_minutes": 75
   },
   {
     "title": "Compliance Training",
@@ -96,7 +104,8 @@
     "department": "Engineering",
     "is_mandatory": true,
     "deadline_days": 30,
-    "order": 9
+    "order": 9,
+    "duration_minutes": 180
   },
   {
     "title": "All Hands",
@@ -107,7 +116,8 @@
     "department": "Engineering",
     "is_mandatory": true,
     "deadline_days": 30,
-    "order": 10
+    "order": 10,
+    "duration_minutes": 90
   },
   {
     "title": "Mentor Introduction",
@@ -118,7 +128,8 @@
     "department": "Engineering",
     "is_mandatory": true,
     "deadline_days": 2,
-    "order": 11
+    "order": 11,
+    "duration_minutes": 45
   },
   {
     "title": "IT Systems Overview",
@@ -129,7 +140,8 @@
     "department": "Engineering",
     "is_mandatory": true,
     "deadline_days": 1,
-    "order": 12
+    "order": 12,
+    "duration_minutes": 60
   },
   {
     "title": "Benefits Enrollment",
@@ -140,7 +152,8 @@
     "department": "Operations",
     "is_mandatory": true,
     "deadline_days": 14,
-    "order": 13
+    "order": 13,
+    "duration_minutes": 15
   },
   {
     "title": "Career Development Talk",
@@ -151,6 +164,7 @@
     "department": "Engineering",
     "is_mandatory": false,
     "deadline_days": 30,
-    "order": 14
+    "order": 14,
+    "duration_minutes": 240
   }
 ]

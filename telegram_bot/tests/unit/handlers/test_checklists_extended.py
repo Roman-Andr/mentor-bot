@@ -49,7 +49,10 @@ class TestShowChecklists:
 
     async def test_show_checklists_no_auth(self):
         """Test show checklists without auth."""
-        with patch("telegram_bot.handlers.checklists._respond_with_auth_error", new=AsyncMock()) as mock_error:
+        with patch(
+            "telegram_bot.handlers.checklists._respond_with_auth_error",
+            new_callable=AsyncMock,
+        ) as mock_error:
             await show_checklists(self.mock_message, None, None, locale="en")
             mock_error.assert_called_once()
 

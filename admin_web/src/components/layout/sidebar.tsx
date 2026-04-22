@@ -58,7 +58,6 @@ export function Sidebar() {
     { name: t("nav.invitations"), href: "/invitations", icon: "Mail" },
     { name: t("nav.escalations"), href: "/escalations", icon: "AlertTriangle" },
     { name: t("nav.meetings"), href: "/meetings", icon: "CalendarCheck" },
-    { name: t("nav.apiDocs"), href: "/api-docs", icon: "Code" },
     { name: t("nav.analytics"), href: "/analytics", icon: "BarChart3" },
     { name: t("nav.settings"), href: "/settings", icon: "Settings" },
   ];

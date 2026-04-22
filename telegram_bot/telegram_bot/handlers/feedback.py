@@ -50,13 +50,13 @@ async def feedback_menu(
     if isinstance(update, CallbackQuery):
         await msg.edit_text(
             text,
-            reply_markup=get_feedback_menu_keyboard(locale=locale).as_markup(),
+            reply_markup=get_feedback_menu_keyboard(locale=locale),
             parse_mode="Markdown",
         )
     else:
         await msg.answer(
             text,
-            reply_markup=get_feedback_menu_keyboard(locale=locale).as_markup(),
+            reply_markup=get_feedback_menu_keyboard(locale=locale),
             parse_mode="Markdown",
         )
 
@@ -69,7 +69,7 @@ async def start_pulse_survey(
     if callback.message:
         await callback.message.edit_text(
             f"*\U0001f4ca {t('feedback.pulse_title', locale=locale)}*\n\n{t('feedback.anonymity_prompt', locale=locale)}",
-            reply_markup=get_anonymity_choice_keyboard(locale=locale, survey_type="pulse").as_markup(),
+            reply_markup=get_anonymity_choice_keyboard(locale=locale, survey_type="pulse"),
             parse_mode="Markdown",
         )
     await state.set_state(FeedbackStates.waiting_for_anonymity_choice)
@@ -101,7 +101,7 @@ async def process_pulse_anonymity_choice(
     if callback.message:
         await callback.message.edit_text(
             f"*\U0001f4ca {t('feedback.pulse_title', locale=locale)}*{anon_text}\n\n{t('feedback.pulse_prompt', locale=locale)}",
-            reply_markup=get_pulse_rating_keyboard(locale=locale, is_anonymous=is_anonymous).as_markup(),
+            reply_markup=get_pulse_rating_keyboard(locale=locale, is_anonymous=is_anonymous),
             parse_mode="Markdown",
         )
     await state.set_state(FeedbackStates.waiting_for_pulse_rating)
@@ -152,7 +152,7 @@ async def process_pulse_rating(
     if callback.message:
         await callback.message.edit_text(
             t(thanks_key, locale=locale, rating=rating),
-            reply_markup=get_feedback_menu_keyboard(locale=locale).as_markup(),
+            reply_markup=get_feedback_menu_keyboard(locale=locale),
         )
     await state.clear()
     await callback.answer()
@@ -166,7 +166,7 @@ async def start_experience_rating(
     if callback.message:
         await callback.message.edit_text(
             f"*\u2b50 {t('feedback.experience_title', locale=locale)}*\n\n{t('feedback.anonymity_prompt', locale=locale)}",
-            reply_markup=get_anonymity_choice_keyboard(locale=locale, survey_type="experience").as_markup(),
+            reply_markup=get_anonymity_choice_keyboard(locale=locale, survey_type="experience"),
             parse_mode="Markdown",
         )
     await state.set_state(FeedbackStates.waiting_for_anonymity_choice)
@@ -200,7 +200,7 @@ async def process_experience_anonymity_choice(
         prompt = t("feedback.experience_prompt", locale=locale)
         await callback.message.edit_text(
             f"{title}\n\n{prompt}",
-            reply_markup=get_experience_rating_keyboard(locale=locale, is_anonymous=is_anonymous).as_markup(),
+            reply_markup=get_experience_rating_keyboard(locale=locale, is_anonymous=is_anonymous),
             parse_mode="Markdown",
         )
     await state.set_state(FeedbackStates.waiting_for_experience_rating)
@@ -240,7 +240,7 @@ async def process_experience_rating(
     if callback.message:
         await callback.message.edit_text(
             t(thanks_key, locale=locale, rating=rating),
-            reply_markup=get_feedback_menu_keyboard(locale=locale).as_markup(),
+            reply_markup=get_feedback_menu_keyboard(locale=locale),
         )
     await state.clear()
     await callback.answer()
@@ -254,7 +254,7 @@ async def start_comments(
     if callback.message:
         await callback.message.edit_text(
             f"*\U0001f4ac {t('feedback.comments_title', locale=locale)}*\n\n{t('feedback.anonymity_prompt', locale=locale)}",
-            reply_markup=get_anonymity_choice_keyboard(locale=locale, survey_type="comment").as_markup(),
+            reply_markup=get_anonymity_choice_keyboard(locale=locale, survey_type="comment"),
             parse_mode="Markdown",
         )
     await state.set_state(FeedbackStates.waiting_for_comment_anonymity)
@@ -328,6 +328,6 @@ async def process_comments(
     thanks_key = "feedback.comments_thanks_anon" if is_anonymous else "feedback.comments_thanks"
     await message.answer(
         t(thanks_key, locale=locale),
-        reply_markup=get_feedback_menu_keyboard(locale=locale).as_markup(),
+        reply_markup=get_feedback_menu_keyboard(locale=locale),
     )
     await state.clear()

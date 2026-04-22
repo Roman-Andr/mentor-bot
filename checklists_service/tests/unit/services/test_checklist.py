@@ -26,7 +26,7 @@ class TestChecklistServiceCreate:
         """Test successful checklist creation."""
         # Setup
         mock_uow.templates.get_by_id.return_value = sample_template
-        mock_uow.checklists.get_active_by_user.return_value = None
+        mock_uow.checklists.get_by_user_and_template.return_value = None
         mock_uow.checklists.create.return_value = Checklist(
             id=1,
             user_id=1,
@@ -151,7 +151,7 @@ class TestChecklistServiceCreate:
     ) -> None:
         """Test checklist creation fails when user already has active checklist."""
         mock_uow.templates.get_by_id.return_value = sample_template
-        mock_uow.checklists.get_active_by_user.return_value = sample_checklist
+        mock_uow.checklists.get_by_user_and_template.return_value = sample_checklist
 
         checklist_data = ChecklistCreate(
             user_id=1,
@@ -165,7 +165,7 @@ class TestChecklistServiceCreate:
 
             service = ChecklistService(mock_uow, "mock-token")
 
-            with pytest.raises(ValidationException, match="User already has an active checklist"):
+            with pytest.raises(ValidationException, match="User already has a checklist for this template"):
                 await service.create_checklist(checklist_data, "mock-token")
 
     async def test_create_checklist_with_mentor_validation(
@@ -179,7 +179,7 @@ class TestChecklistServiceCreate:
     ) -> None:
         """Test checklist creation with mentor validation."""
         mock_uow.templates.get_by_id.return_value = sample_template
-        mock_uow.checklists.get_active_by_user.return_value = None
+        mock_uow.checklists.get_by_user_and_template.return_value = None
 
         created_checklist = Checklist(
             id=1,
@@ -224,7 +224,7 @@ class TestChecklistServiceCreate:
     ) -> None:
         """Test checklist creation fails when mentor not found."""
         mock_uow.templates.get_by_id.return_value = sample_template
-        mock_uow.checklists.get_active_by_user.return_value = None
+        mock_uow.checklists.get_by_user_and_template.return_value = None
 
         checklist_data = ChecklistCreate(
             user_id=1,
@@ -250,7 +250,7 @@ class TestChecklistServiceCreate:
     ) -> None:
         """Test checklist creation fails when mentor doesn't have valid role."""
         mock_uow.templates.get_by_id.return_value = sample_template
-        mock_uow.checklists.get_active_by_user.return_value = None
+        mock_uow.checklists.get_by_user_and_template.return_value = None
 
         mock_user_employee["role"] = "EMPLOYEE"  # Invalid role for mentor
 
@@ -281,7 +281,7 @@ class TestChecklistServiceCreate:
     ) -> None:
         """Test checklist creation with HR validation."""
         mock_uow.templates.get_by_id.return_value = sample_template
-        mock_uow.checklists.get_active_by_user.return_value = None
+        mock_uow.checklists.get_by_user_and_template.return_value = None
 
         created_checklist = Checklist(
             id=1,
@@ -323,7 +323,7 @@ class TestChecklistServiceCreate:
     ) -> None:
         """Test checklist creation fails when HR not found."""
         mock_uow.templates.get_by_id.return_value = sample_template
-        mock_uow.checklists.get_active_by_user.return_value = None
+        mock_uow.checklists.get_by_user_and_template.return_value = None
 
         checklist_data = ChecklistCreate(
             user_id=1,
@@ -349,7 +349,7 @@ class TestChecklistServiceCreate:
     ) -> None:
         """Test checklist creation fails when HR doesn't have valid role."""
         mock_uow.templates.get_by_id.return_value = sample_template
-        mock_uow.checklists.get_active_by_user.return_value = None
+        mock_uow.checklists.get_by_user_and_template.return_value = None
 
         # Employee role is invalid for HR
         mock_user_employee["role"] = "EMPLOYEE"
@@ -380,7 +380,7 @@ class TestChecklistServiceCreate:
     ) -> None:
         """Test checklist creation auto-sets due date from template duration."""
         mock_uow.templates.get_by_id.return_value = sample_template
-        mock_uow.checklists.get_active_by_user.return_value = None
+        mock_uow.checklists.get_by_user_and_template.return_value = None
         mock_uow.checklists.create.return_value = Checklist(
             id=1,
             user_id=1,
@@ -424,7 +424,7 @@ class TestChecklistServiceCreate:
         from checklists_service.models import TaskTemplate
 
         mock_uow.templates.get_by_id.return_value = sample_template
-        mock_uow.checklists.get_active_by_user.return_value = None
+        mock_uow.checklists.get_by_user_and_template.return_value = None
 
         created_checklist = Checklist(
             id=1,
@@ -989,7 +989,7 @@ class TestChecklistServiceHRAssignee:
         sample_template.duration_days = 30
 
         mock_uow.templates.get_by_id.return_value = sample_template
-        mock_uow.checklists.get_active_by_user.return_value = None
+        mock_uow.checklists.get_by_user_and_template.return_value = None
 
         created_checklist = Checklist(
             id=1,

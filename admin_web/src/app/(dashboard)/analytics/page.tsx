@@ -13,6 +13,7 @@ import { MonthlyChart } from "@/components/features/analytics/monthly-chart";
 import { DepartmentChart } from "@/components/features/analytics/department-chart";
 import { CompletionTimeChart } from "@/components/features/analytics/completion-time-chart";
 import { ChecklistStatus } from "@/components/features/analytics/checklist-status";
+import { departmentsApi } from "@/lib/api/departments";
 
 export default function AnalyticsPage() {
   const t = useTranslations();
@@ -21,15 +22,17 @@ export default function AnalyticsPage() {
   const [userCount, setUserCount] = useState(0);
   const [monthlyData, setMonthlyData] = useState<Array<{ month: string; newUsers: number; completed: number }>>([]);
   const [completionTimeData, setCompletionTimeData] = useState<Array<{ range: string; count: number }>>([]);
+  const [departmentMap, setDepartmentMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
     async function loadData() {
       try {
-        const [statsResult, usersResult, monthlyResult, completionResult] = await Promise.all([
+        const [statsResult, usersResult, monthlyResult, completionResult, deptResult] = await Promise.all([
           api.analytics.checklistStats(),
           api.users.list({ limit: 1 }),
           api.analytics.monthlyStats(),
           api.analytics.completionTimeStats(),
+          departmentsApi.list({ limit: 1000 }),
         ]);
 
         if (statsResult.data) {
@@ -48,6 +51,13 @@ export default function AnalyticsPage() {
         if (completionResult.data) {
           setCompletionTimeData(completionResult.data);
         }
+        if (deptResult.data?.departments) {
+          const map: Record<string, string> = {};
+          deptResult.data.departments.forEach((dept) => {
+            map[String(dept.id)] = dept.name;
+          });
+          setDepartmentMap(map);
+        }
       } catch (err) {
         console.error("Failed to load analytics:", err);
       } finally {
@@ -59,13 +69,14 @@ export default function AnalyticsPage() {
 
   const departmentData = useMemo(() =>
     stats?.by_department
-      ? Object.entries(stats.by_department).map(([name, value]) => ({
-          name,
-          value,
-          color: "", // Color is assigned in the chart component
-        }))
+      ? Object.entries(stats.by_department)
+          .filter(([id]) => id !== "None" && id !== "null")
+          .map(([id, value]) => ({
+            name: departmentMap[id] || `Department ${id}`,
+            value,
+          }))
       : [],
-    [stats?.by_department]
+    [stats?.by_department, departmentMap]
   );
 
   const handleExport = () => {

@@ -1,6 +1,6 @@
 x-common-env: &common-env
   DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
-  DEBUG: "true"
+  # DEBUG: "true"
   LOG_LEVEL: INFO
   SERVICE_API_KEY: ${SERVICE_API_KEY}
   TZ: ${TZ:-UTC}

@@ -228,6 +228,7 @@ class TestCreateTemplate:
             instance = MagicMock()
             mock_cls.return_value = instance
             instance.create_template = AsyncMock(return_value=template_response)
+            uow.commit = AsyncMock()
 
             result = await templates.create_template(
                 template_data=template_data,
@@ -237,6 +238,7 @@ class TestCreateTemplate:
 
             assert result.name == "New Template"
             assert result.status == TemplateStatus.DRAFT
+            uow.commit.assert_awaited_once()
 
     async def test_create_template_conflict(self, sample_admin_user) -> None:
         """Test template creation fails with duplicate name."""
@@ -463,6 +465,7 @@ class TestUpdateTemplate:
             instance = MagicMock()
             mock_cls.return_value = instance
             instance.update_template = AsyncMock(return_value=template_response)
+            uow.commit = AsyncMock()
 
             result = await templates.update_template(
                 template_id=1,
@@ -472,6 +475,7 @@ class TestUpdateTemplate:
             )
 
             assert result.name == "Updated Name"
+            uow.commit.assert_awaited_once()
 
 
 class TestDeleteTemplate:
@@ -480,6 +484,7 @@ class TestDeleteTemplate:
     async def test_delete_template_success(self, sample_admin_user) -> None:
         """Test successful template deletion."""
         uow = MagicMock()
+        uow.commit = AsyncMock()
 
         with patch("checklists_service.api.endpoints.templates.TemplateService") as mock_cls:
             instance = MagicMock()
@@ -493,6 +498,7 @@ class TestDeleteTemplate:
             )
 
             assert "deleted" in result.message.lower()
+            uow.commit.assert_awaited_once()
 
 
 class TestCloneTemplate:
@@ -526,6 +532,7 @@ class TestCloneTemplate:
             instance = MagicMock()
             mock_cls.return_value = instance
             instance.clone_template = AsyncMock(return_value=template_response)
+            uow.commit = AsyncMock()
 
             result = await templates.clone_template(
                 template_id=1,
@@ -535,6 +542,7 @@ class TestCloneTemplate:
 
             assert result.name == "Onboarding Template (Copy)"
             assert result.version == 2
+            uow.commit.assert_awaited_once()
 
 
 class TestAddTaskToTemplate:
@@ -558,6 +566,7 @@ class TestAddTaskToTemplate:
             instance = MagicMock()
             mock_cls.return_value = instance
             instance.add_task_to_template = AsyncMock(return_value=sample_task_template)
+            uow.commit = AsyncMock()
 
             result = await templates.add_task_to_template(
                 template_id=1,
@@ -567,6 +576,7 @@ class TestAddTaskToTemplate:
             )
 
             assert result.template_id == 1
+            uow.commit.assert_awaited_once()
 
 
 class TestPublishTemplate:
@@ -600,6 +610,7 @@ class TestPublishTemplate:
             instance = MagicMock()
             mock_cls.return_value = instance
             instance.publish_template = AsyncMock(return_value=template_response)
+            uow.commit = AsyncMock()
 
             result = await templates.publish_template(
                 template_id=1,
@@ -608,3 +619,4 @@ class TestPublishTemplate:
             )
 
             assert result.status == TemplateStatus.ACTIVE
+            uow.commit.assert_awaited_once()

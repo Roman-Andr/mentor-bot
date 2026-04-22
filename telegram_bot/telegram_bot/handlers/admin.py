@@ -230,7 +230,7 @@ async def list_templates(
             text,
             reply_markup=get_back_to_admin_checklists_keyboard(
                 locale=locale
-            ).as_markup(),
+            ),
             parse_mode="Markdown",
         )
     await callback.answer()
@@ -259,7 +259,7 @@ async def checklist_progress(
             text,
             reply_markup=get_back_to_admin_checklists_keyboard(
                 locale=locale
-            ).as_markup(),
+            ),
             parse_mode="Markdown",
         )
     await callback.answer()
@@ -290,7 +290,7 @@ async def overdue_tasks(
             text,
             reply_markup=get_back_to_admin_checklists_keyboard(
                 locale=locale
-            ).as_markup(),
+            ),
             parse_mode="Markdown",
         )
     await callback.answer()

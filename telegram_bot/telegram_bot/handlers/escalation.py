@@ -56,10 +56,10 @@ async def escalation_menu(
     keyboard = get_escalation_menu_keyboard(locale=locale)
     if isinstance(update, CallbackQuery):
         await msg.edit_text(
-            text, reply_markup=keyboard.as_markup(), parse_mode="Markdown"
+            text, reply_markup=keyboard, parse_mode="Markdown"
         )
     else:
-        await msg.answer(text, reply_markup=keyboard.as_markup(), parse_mode="Markdown")
+        await msg.answer(text, reply_markup=keyboard, parse_mode="Markdown")
 
 
 @router.callback_query(F.data == "new_escalation")
@@ -70,7 +70,7 @@ async def new_escalation(
     if callback.message:
         await callback.message.edit_text(
             f"*\U0001f4de {t('escalation.new_title', locale=locale)}*\n\n{t('escalation.select_type', locale=locale)}",
-            reply_markup=get_new_escalation_keyboard(locale=locale).as_markup(),
+            reply_markup=get_new_escalation_keyboard(locale=locale),
             parse_mode="Markdown",
         )
     await callback.answer()
@@ -199,7 +199,7 @@ async def my_escalations(
     if callback.message:
         await callback.message.edit_text(
             text,
-            reply_markup=get_my_escalations_keyboard(locale=locale).as_markup(),
+            reply_markup=get_my_escalations_keyboard(locale=locale),
             parse_mode="Markdown",
         )
     await callback.answer()
@@ -261,7 +261,7 @@ async def escalation_details(
     if callback.message:
         await callback.message.edit_text(
             text,
-            reply_markup=get_escalation_details_keyboard(locale=locale).as_markup(),
+            reply_markup=get_escalation_details_keyboard(locale=locale),
             parse_mode="Markdown",
         )
     await callback.answer()

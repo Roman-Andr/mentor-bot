@@ -109,6 +109,7 @@ class TestSubmitPulseSurvey:
         assert data["user_id"] == 1
         assert data["rating"] == 7
         assert data["is_anonymous"] is False
+        mock_uow.commit.assert_called_once()
 
     def test_submit_pulse_survey_anonymous(self) -> None:
         """Test successful anonymous pulse survey submission returns 201."""
@@ -138,6 +139,7 @@ class TestSubmitPulseSurvey:
         assert data["user_id"] is None
         assert data["is_anonymous"] is True
         assert data["rating"] == 8
+        mock_uow.commit.assert_called_once()
 
     def test_submit_pulse_survey_invalid_rating_high(self) -> None:
         """Test pulse survey with rating > 10 returns 422."""
@@ -203,6 +205,7 @@ class TestSubmitExperienceRating:
         assert data["user_id"] == 1
         assert data["rating"] == 4
         assert data["is_anonymous"] is False
+        mock_uow.commit.assert_called_once()
 
     def test_submit_experience_rating_anonymous(self) -> None:
         """Test successful anonymous experience rating submission returns 201."""
@@ -231,6 +234,7 @@ class TestSubmitExperienceRating:
         assert data["user_id"] is None
         assert data["is_anonymous"] is True
         assert data["rating"] == 5
+        mock_uow.commit.assert_called_once()
 
     def test_submit_experience_rating_invalid_high(self) -> None:
         """Test experience rating with rating > 5 returns 422."""
@@ -303,6 +307,7 @@ class TestSubmitComment:
         assert data["user_id"] == 1
         assert data["is_anonymous"] is False
         assert "detailed feedback" in data["comment"]
+        mock_uow.commit.assert_called_once()
 
     def test_submit_comment_anonymous_with_contact(self) -> None:
         """Test successful anonymous comment with contact info returns 201."""
@@ -344,6 +349,7 @@ class TestSubmitComment:
         assert data["is_anonymous"] is True
         assert data["allow_contact"] is True
         assert data["contact_email"] == "user@example.com"
+        mock_uow.commit.assert_called_once()
 
     def test_submit_comment_too_short(self) -> None:
         """Test comment with less than 10 characters returns 422."""
@@ -905,6 +911,7 @@ class TestReplyToComment:
         data = response.json()
         assert data["reply"] == "Thank you for your feedback!"
         assert data["replied_by"] == 2
+        mock_uow.commit.assert_called_once()
 
     def test_reply_to_anonymous_comment_with_contact(self) -> None:
         """Test replying to anonymous comment with contact info returns 200."""
@@ -936,6 +943,7 @@ class TestReplyToComment:
 
         # Assert
         assert response.status_code == status.HTTP_200_OK
+        mock_uow.commit.assert_called_once()
 
     def test_reply_to_anonymous_comment_without_contact_fails(self) -> None:
         """Test replying to anonymous comment without contact info returns 403."""

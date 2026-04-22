@@ -199,6 +199,7 @@ class TestCreateChecklist:
             instance = MagicMock()
             mock_cls.return_value = instance
             instance.create_checklist = AsyncMock(return_value=checklist_mock)
+            uow.commit = AsyncMock()
 
             result = await checklists.create_checklist(
                 checklist_data=checklist_data,
@@ -209,6 +210,7 @@ class TestCreateChecklist:
 
             assert result.id == 1
             assert result.user_id == 1
+            uow.commit.assert_awaited_once()
 
 
 class TestGetChecklist:
@@ -303,6 +305,7 @@ class TestUpdateChecklist:
             mock_cls.return_value = instance
             instance.get_checklist = AsyncMock(return_value=checklist_mock)
             instance.update_checklist = AsyncMock(return_value=checklist_mock)
+            uow.commit = AsyncMock()
 
             result = await checklists.update_checklist(
                 checklist_id=1,
@@ -313,6 +316,7 @@ class TestUpdateChecklist:
 
             assert result.id == 1
             assert result.notes == "Updated notes"
+            uow.commit.assert_awaited_once()
 
     async def test_update_checklist_not_found(self, sample_user) -> None:
         """Test update_checklist for non-existent checklist raises 404 (line 174)."""
@@ -342,6 +346,7 @@ class TestDeleteChecklist:
     async def test_delete_checklist_success(self, sample_hr_user) -> None:
         """Test successful checklist deletion."""
         uow = MagicMock()
+        uow.commit = AsyncMock()
 
         with patch("checklists_service.api.endpoints.checklists.ChecklistService") as mock_cls:
             instance = MagicMock()
@@ -355,6 +360,7 @@ class TestDeleteChecklist:
             )
 
             assert "deleted" in result.message.lower() or "success" in result.message.lower()
+            uow.commit.assert_awaited_once()
 
 
 class TestCompleteChecklist:
@@ -388,6 +394,7 @@ class TestCompleteChecklist:
             mock_cls.return_value = instance
             instance.get_checklist = AsyncMock(return_value=checklist_mock)
             instance.complete_checklist = AsyncMock(return_value=checklist_mock)
+            uow.commit = AsyncMock()
 
             result = await checklists.complete_checklist(
                 checklist_id=1,
@@ -397,6 +404,7 @@ class TestCompleteChecklist:
 
             assert result.status == ChecklistStatus.COMPLETED
             assert result.progress_percentage == 100
+            uow.commit.assert_awaited_once()
 
 
 class TestGetChecklistProgress:
@@ -503,6 +511,7 @@ class TestAutoCreateChecklists:
             instance = MagicMock()
             mock_cls.return_value = instance
             instance.auto_create_checklists = AsyncMock(return_value=[checklist_mock])
+            uow.commit = AsyncMock()
 
             result = await checklists.auto_create_checklists(
                 request=request_data,
@@ -512,6 +521,7 @@ class TestAutoCreateChecklists:
 
             assert len(result) == 1
             assert result[0].user_id == 1
+            uow.commit.assert_awaited_once()
 
 
 class TestMonthlyStats:

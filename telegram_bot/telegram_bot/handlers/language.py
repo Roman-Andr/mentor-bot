@@ -52,5 +52,5 @@ async def set_language(callback: CallbackQuery, tg_user: object) -> None:
     if callback.message:
         await callback.message.edit_text(
             t("start.language_set", locale=lang),
-            reply_markup=get_language_keyboard(locale=lang).as_markup(),
+            reply_markup=get_language_keyboard(locale=lang),
         )

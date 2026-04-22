@@ -47,9 +47,11 @@ class ChecklistService:
             msg = "Template not found or not active"
             raise ValidationException(msg)
 
-        existing_checklist = await self._uow.checklists.get_active_by_user(checklist_data.user_id)
+        existing_checklist = await self._uow.checklists.get_by_user_and_template(
+            checklist_data.user_id, checklist_data.template_id
+        )
         if existing_checklist:
-            msg = "User already has an active checklist"
+            msg = "User already has a checklist for this template"
             raise ValidationException(msg)
 
         if checklist_data.mentor_id:

@@ -24,11 +24,11 @@ help:
 	@echo "  make status            - Show status of all containers"
 	@echo ""
 	@echo "Database management:"
-	@echo "  make reset-db          - Full database reset (remove volume)"
+	@echo "  make reset-db          - Full database reset (remove volumes + build cache)"
 	@echo "  make clean             - Clean project (containers, volumes, images)"
 	@echo "  make reset-locks       - Delete all uv.lock files and regenerate with uv sync"
 	@echo "  make update-deps       - Check PyPI and update outdated deps (uv remove/add)"
-	@echo "  make prune             - Remove dangling Docker images and volumes (free disk space)"
+	@echo "  make prune             - Remove dangling Docker images, containers, volumes, and build cache"
 
 	@echo ""
 	@echo "Service access:"
@@ -123,8 +123,10 @@ start:
 
 prune:
 	docker image prune -f
+	docker container prune -f
 	docker volume prune -f
-	@echo "Dangling images and volumes removed"
+	docker builder prune -f
+	@echo "Dangling images, containers, volumes, and build cache removed"
 
 full-reboot: reset-db start mock-data
 
@@ -259,7 +261,7 @@ shell-pgadmin:
 
 reset-db:
 	docker compose down
-	@echo "Removing volumes..."
+	@echo "Removing volumes and build cache..."
 	@if docker volume ls | grep -q "${PROJECT_NAME}_postgres_data"; then \
 		docker volume rm ${PROJECT_NAME}_postgres_data; \
 		echo "Removed postgres_data volume"; \
@@ -268,6 +270,8 @@ reset-db:
 		docker volume rm ${PROJECT_NAME}_redis_data; \
 		echo "Removed redis_data volume"; \
 	fi
+	docker builder prune -f
+	@echo "Removed Docker build cache"
 # 	@if docker volume ls | grep -q "${PROJECT_NAME}_pgadmin-data"; then \
 # 		docker volume rm ${PROJECT_NAME}_pgadmin-data; \
 # 		echo "Removed pgadmin-data volume"; \

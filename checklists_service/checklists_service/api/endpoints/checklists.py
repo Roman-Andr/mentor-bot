@@ -102,6 +102,7 @@ async def create_checklist(
 
     try:
         checklist = await checklist_service.create_checklist(checklist_data, auth_token)
+        await uow.commit()
         return ChecklistResponse(
             **checklist.__dict__,
             is_overdue=False,
@@ -164,6 +165,7 @@ async def update_checklist(
             raise PermissionDenied(msg)
 
         updated_checklist = await checklist_service.update_checklist(checklist_id, checklist_data)
+        await uow.commit()
         return ChecklistResponse(
             **updated_checklist.__dict__,
             is_overdue=updated_checklist.due_date < datetime.now(UTC)
@@ -192,6 +194,7 @@ async def delete_checklist(
 
     try:
         await checklist_service.delete_checklist(checklist_id)
+        await uow.commit()
         return MessageResponse(message="Checklist deleted successfully")
     except NotFoundException as e:
         raise HTTPException(
@@ -217,6 +220,7 @@ async def complete_checklist(
             raise PermissionDenied(msg)
 
         updated_checklist = await checklist_service.complete_checklist(checklist_id)
+        await uow.commit()
         return ChecklistResponse(
             **updated_checklist.__dict__,
             is_overdue=False,
@@ -288,6 +292,7 @@ async def auto_create_checklists(
         mentor_id=request.mentor_id,
     )
 
+    await uow.commit()
     return [
         ChecklistResponse(
             **checklist.__dict__,

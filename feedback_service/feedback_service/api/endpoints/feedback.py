@@ -59,6 +59,7 @@ async def submit_pulse_survey(
             )
 
         result = await uow.pulse_surveys.create(pulse_survey)
+        await uow.commit()
         return PulseSurveyResponse.model_validate(result)
     except Exception:
         logger.exception("Failed to submit pulse survey")
@@ -204,6 +205,7 @@ async def submit_experience_rating(
             )
 
         result = await uow.experience_ratings.create(rating)
+        await uow.commit()
         return ExperienceRatingResponse.model_validate(result)
     except Exception:
         logger.exception("Failed to submit experience rating")
@@ -331,6 +333,7 @@ async def submit_comment(
             )
 
         result = await uow.comments.create(comment)
+        await uow.commit()
         return CommentResponse.model_validate(result)
     except Exception:
         logger.exception("Failed to submit comment")
@@ -414,6 +417,7 @@ async def reply_to_comment(
             replied_by=current_user.id,
         )
 
+        await uow.commit()
         return CommentResponse.model_validate(comment)
     except HTTPException:
         raise

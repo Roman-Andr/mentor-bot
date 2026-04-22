@@ -24,12 +24,20 @@ class ChecklistRepository(SqlAlchemyBaseRepository[Checklist, int], IChecklistRe
         """Get SQLAlchemy column for sorting."""
         column_map = {
             "employeeId": Checklist.employee_id,
+            "employee_id": Checklist.employee_id,
+            "employee": Checklist.employee_id,
             "status": Checklist.status,
             "progress": Checklist.progress_percentage,
+            "progress_percentage": Checklist.progress_percentage,
             "startDate": Checklist.start_date,
+            "start_date": Checklist.start_date,
             "dueDate": Checklist.due_date,
+            "due_date": Checklist.due_date,
             "completedAt": Checklist.completed_at,
+            "completed_at": Checklist.completed_at,
             "createdAt": Checklist.created_at,
+            "created_at": Checklist.created_at,
+            "tasks": Checklist.total_tasks,
         }
         return column_map.get(sort_by, Checklist.created_at)
 

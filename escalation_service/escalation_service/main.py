@@ -51,7 +51,7 @@ app = FastAPI(
 
 # Rate limiting (disabled in debug mode)
 if not settings.DEBUG:
-    limiter = Limiter(key_func=get_remote_address, default_limits=["100/minute"])
+    limiter = Limiter(key_func=get_remote_address, default_limits=["100/second"])
     app.state.limiter = limiter
     app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
     app.add_middleware(SlowAPIMiddleware)
