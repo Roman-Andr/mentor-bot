@@ -618,7 +618,7 @@ async def kb_category_articles(
         # Handle page parameter if present: kb_cat_{id}_page_{page}
         page = int(parts[4]) if len(parts) >= 5 and parts[3] == "page" else 1
     except (ValueError, IndexError) as e:
-        logger.error(f"Failed to parse callback data: {e}, parts: {parts}")
+        logger.exception(f"Failed to parse callback data: {e}, parts: {parts}")
         await callback.answer(t("common.error_generic", locale=locale))
         return
 
@@ -867,7 +867,7 @@ async def view_faq_scenario(
         return
 
     title = scenario.get("title", "Untitled")
-    description = scenario.get("description", "")
+    scenario.get("description", "")
     steps = scenario.get("steps", [])
 
     if not steps:

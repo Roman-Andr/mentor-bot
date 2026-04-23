@@ -24,7 +24,7 @@ class StorageError(Exception):
 
 
 
-class FileNotFoundError(StorageError):
+class StorageFileNotFoundError(StorageError):
     """Raised when a file is not found in storage."""
 
 
@@ -47,6 +47,7 @@ class StorageService:
         secret_key: str,
         bucket_name: str,
         region: str = "us-east-1",
+        *,
         use_ssl: bool = False,
         secure_mode: bool = True,
     ) -> None:
@@ -146,7 +147,7 @@ class StorageService:
             if content_type:
                 extra_args["ContentType"] = content_type
             if metadata:
-                extra_args["Metadata"] = {k: str(v) for k, v in metadata.items()}
+                extra_args["Metadata"] = {k: str(v) for k, v in metadata.items()}  # type: ignore[dict-item]
 
             loop = asyncio.get_running_loop()
             await loop.run_in_executor(
@@ -191,7 +192,7 @@ class StorageService:
         except ClientError as e:
             error_code = e.response.get("Error", {}).get("Code", "Unknown")
             if error_code in ("404", "NoSuchKey"):
-                raise FileNotFoundError(f"File not found: {object_name}") from e
+                raise StorageFileNotFoundError(f"File not found: {object_name}") from e
             logger.error("Failed to download file %s: %s", object_name, e)
             raise StorageError(f"Download failed: {e}") from e
 

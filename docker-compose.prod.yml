@@ -1,0 +1,292 @@
+# Production compose file — self-contained, uses prebuilt images from the registry.
+# Do NOT combine with docker-compose.yml (which auto-loads docker-compose.override.yml for dev).
+#
+# Usage on the VPS:
+#   IMAGE_TAG=<git-sha> docker compose -f docker-compose.prod.yml pull
+#   IMAGE_TAG=<git-sha> docker compose -f docker-compose.prod.yml up -d
+#
+# Required env (in .env on the VPS):
+#   DOCKER_USERNAME   - registry namespace (e.g. Docker Hub username)
+#   IMAGE_TAG         - image tag to deploy (git sha or "latest")
+# Optional:
+#   REGISTRY          - defaults to docker.io
+#   IMAGE_PREFIX      - defaults to mentor-bot
+
+x-common-env: &common-env
+  DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+  LOG_LEVEL: ${LOG_LEVEL:-INFO}
+  SERVICE_API_KEY: ${SERVICE_API_KEY}
+  TZ: ${TZ:-UTC}
+  CORS_ORIGINS: ${CORS_ORIGINS:-'["*"]'}
+  ALLOWED_HOSTS: ${ALLOWED_HOSTS:-'["*"]'}
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+x-python-defaults: &python-defaults
+  restart: unless-stopped
+  networks:
+    - mentor_network
+  depends_on:
+    postgres:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+  logging: *default-logging
+  mem_limit: 220m
+  mem_reservation: 120m
+
+services:
+  telegram_bot:
+    <<: *python-defaults
+    image: ${REGISTRY:-docker.io}/${DOCKER_USERNAME}/${IMAGE_PREFIX:-mentor-bot}-telegram_bot:${IMAGE_TAG:-latest}
+    container_name: telegram_bot
+    environment:
+      <<: *common-env
+      REDIS_URL: ${REDIS_URL}/3
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      TELEGRAM_API_KEY: ${TELEGRAM_API_KEY}
+      ENABLE_NOTIFICATIONS: "true"
+      NOTIFICATION_HOUR: "9"
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI}\
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f 'telegram_bot\\.main' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  admin_web:
+    image: ${REGISTRY:-docker.io}/${DOCKER_USERNAME}/${IMAGE_PREFIX:-mentor-bot}-admin_web:${IMAGE_TAG:-latest}
+    container_name: admin_web
+    restart: unless-stopped
+    networks:
+      - mentor_network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      <<: *common-env
+      DEBUG: "false"
+      AUTH_SERVICE_URL: http://auth_service:8000
+      CHECKLISTS_SERVICE_URL: http://checklists_service:8000
+      KNOWLEDGE_SERVICE_URL: http://knowledge_service:8000
+      NOTIFICATION_SERVICE_URL: http://notification_service:8000
+      ESCALATION_SERVICE_URL: http://escalation_service:8000
+      FEEDBACK_SERVICE_URL: http://feedback_service:8000
+      MEETING_SERVICE_URL: http://meeting_service:8000
+    logging: *default-logging
+    mem_limit: 350m
+    mem_reservation: 200m
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  auth_service:
+    <<: *python-defaults
+    image: ${REGISTRY:-docker.io}/${DOCKER_USERNAME}/${IMAGE_PREFIX:-mentor-bot}-auth_service:${IMAGE_TAG:-latest}
+    container_name: auth_service
+    environment:
+      <<: *common-env
+      REDIS_URL: ${REDIS_URL}/0
+      TELEGRAM_API_KEY: ${TELEGRAM_API_KEY}
+      SECRET_KEY: ${SECRET_KEY}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      CHECKLISTS_SERVICE_URL: http://checklists_service:8000
+      KNOWLEDGE_SERVICE_URL: http://knowledge_service:8000
+      MEETING_SERVICE_URL: http://meeting_service:8000
+      NOTIFICATION_SERVICE_URL: http://notification_service:8000
+
+  checklists_service:
+    <<: *python-defaults
+    image: ${REGISTRY:-docker.io}/${DOCKER_USERNAME}/${IMAGE_PREFIX:-mentor-bot}-checklists_service:${IMAGE_TAG:-latest}
+    container_name: checklists_service
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    environment:
+      <<: *common-env
+      REDIS_URL: ${REDIS_URL}/1
+      S3_ENDPOINT: ${S3_ENDPOINT:-http://minio:9000}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY}
+      S3_SECRET_KEY: ${S3_SECRET_KEY}
+      S3_REGION: ${S3_REGION:-us-east-1}
+      S3_USE_SSL: ${S3_USE_SSL:-false}
+      CHECKLISTS_S3_BUCKET: ${CHECKLISTS_S3_BUCKET:-checklists-files}
+      S3_PRESIGNED_URL_EXPIRY: ${S3_PRESIGNED_URL_EXPIRY:-3600}
+
+  knowledge_service:
+    <<: *python-defaults
+    image: ${REGISTRY:-docker.io}/${DOCKER_USERNAME}/${IMAGE_PREFIX:-mentor-bot}-knowledge_service:${IMAGE_TAG:-latest}
+    container_name: knowledge_service
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    environment:
+      <<: *common-env
+      REDIS_URL: ${REDIS_URL}/2
+      S3_ENDPOINT: ${S3_ENDPOINT:-http://minio:9000}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY}
+      S3_SECRET_KEY: ${S3_SECRET_KEY}
+      S3_REGION: ${S3_REGION:-us-east-1}
+      S3_USE_SSL: ${S3_USE_SSL:-false}
+      KNOWLEDGE_S3_BUCKET: ${KNOWLEDGE_S3_BUCKET:-knowledge-files}
+      S3_PRESIGNED_URL_EXPIRY: ${S3_PRESIGNED_URL_EXPIRY:-3600}
+
+  notification_service:
+    <<: *python-defaults
+    image: ${REGISTRY:-docker.io}/${DOCKER_USERNAME}/${IMAGE_PREFIX:-mentor-bot}-notification_service:${IMAGE_TAG:-latest}
+    container_name: notification_service
+    environment:
+      <<: *common-env
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      SMTP_USE_TLS: ${SMTP_USE_TLS}
+      DEFAULT_FROM_EMAIL: ${DEFAULT_FROM_EMAIL}
+
+  feedback_service:
+    <<: *python-defaults
+    image: ${REGISTRY:-docker.io}/${DOCKER_USERNAME}/${IMAGE_PREFIX:-mentor-bot}-feedback_service:${IMAGE_TAG:-latest}
+    container_name: feedback_service
+    environment:
+      <<: *common-env
+      API_V1_PREFIX: /api/v1
+      DATABASE_SCHEMA: feedback
+
+  escalation_service:
+    <<: *python-defaults
+    image: ${REGISTRY:-docker.io}/${DOCKER_USERNAME}/${IMAGE_PREFIX:-mentor-bot}-escalation_service:${IMAGE_TAG:-latest}
+    container_name: escalation_service
+    environment:
+      <<: *common-env
+      API_V1_PREFIX: /api/v1
+      DATABASE_SCHEMA: escalation
+
+  meeting_service:
+    <<: *python-defaults
+    image: ${REGISTRY:-docker.io}/${DOCKER_USERNAME}/${IMAGE_PREFIX:-mentor-bot}-meeting_service:${IMAGE_TAG:-latest}
+    container_name: meeting_service
+    environment:
+      <<: *common-env
+      REDIS_URL: ${REDIS_URL}/4
+      DATABASE_SCHEMA: meeting
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI}
+
+  postgres:
+    image: postgres:18.3-alpine3.23
+    container_name: postgres_container
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    command:
+      - "postgres"
+      - "-c"
+      - "shared_buffers=256MB"
+      - "-c"
+      - "effective_cache_size=768MB"
+      - "-c"
+      - "maintenance_work_mem=64MB"
+      - "-c"
+      - "work_mem=8MB"
+      - "-c"
+      - "max_connections=60"
+    ports:
+      - "127.0.0.1:5432:5432"
+    networks:
+      - mentor_network
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    logging: *default-logging
+    mem_limit: 700m
+    mem_reservation: 400m
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  redis:
+    image: redis:8.6.2-alpine
+    container_name: redis_container
+    restart: unless-stopped
+    command: ["redis-server", "--maxmemory", "64mb", "--maxmemory-policy", "allkeys-lru"]
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - mentor_network
+    logging: *default-logging
+    mem_limit: 100m
+    mem_reservation: 64m
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+  minio:
+    image: minio/minio:RELEASE.2025-09-07T16-13-09Z-cpuv1
+    container_name: minio_container
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:9000:9000"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    volumes:
+      - minio_data:/data
+    networks:
+      - mentor_network
+    command: server /data
+    ulimits:
+      nofile:
+        soft: 4096
+        hard: 4096
+    logging: *default-logging
+    mem_limit: 256m
+    mem_reservation: 128m
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 15s
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+
+networks:
+  mentor_network:
+    driver: bridge

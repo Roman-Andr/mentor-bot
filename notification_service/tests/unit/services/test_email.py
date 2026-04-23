@@ -1,9 +1,11 @@
 """Unit tests for notification_service/services/email.py."""
 
-from typing import TYPE_CHECKING, Any
+from email.message import EmailMessage
+from typing import Any
 from unittest.mock import AsyncMock, patch
 
 import pytest
+from _pytest.logging import LogCaptureFixture
 
 from notification_service.config import settings
 from notification_service.services.email import (
@@ -13,11 +15,6 @@ from notification_service.services.email import (
     _sanitize_email_header,
     _validate_email_address,
 )
-
-if TYPE_CHECKING:
-    from email.message import EmailMessage
-
-    from _pytest.logging import LogCaptureFixture
 
 
 class TestHelperFunctions:

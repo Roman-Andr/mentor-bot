@@ -2,8 +2,9 @@
 
 from typing import cast
 
-from sqlalchemy import Column, func, or_, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import InstrumentedAttribute
 
 from auth_service.models import Department, User
 from auth_service.repositories.implementations.base import SqlAlchemyBaseRepository
@@ -23,15 +24,17 @@ class DepartmentRepository(SqlAlchemyBaseRepository[Department, int], IDepartmen
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none()
 
-    def _get_sort_column(self, sort_by: str | None) -> Column:
+    def _get_sort_column(self, sort_by: str | None) -> InstrumentedAttribute:
         """Get SQLAlchemy column for sorting."""
-        column_map = {
+        column_map: dict[str, InstrumentedAttribute] = {
             "name": Department.name,
             "description": Department.description,
             "createdAt": Department.created_at,
             "updatedAt": Department.updated_at,
         }
-        return column_map.get(sort_by, Department.name)
+        if sort_by is None or sort_by not in column_map:
+            return Department.name
+        return column_map[sort_by]
 
     async def find_departments(
         self,

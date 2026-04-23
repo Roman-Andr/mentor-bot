@@ -1,5 +1,7 @@
 """Unit tests for telegram_bot FeedbackServiceClient."""
 
+from typing import Never
+
 import pytest
 from fastapi import status
 from httpx import RequestError, Response
@@ -41,8 +43,9 @@ class TestSubmitPulseSurvey:
     async def test_submit_pulse_survey_request_error(self, feedback_client, monkeypatch):
         """Test pulse survey submission with request error."""
 
-        async def mock_post(*args, **kwargs):
-            raise RequestError("Connection failed")
+        async def mock_post(*args, **kwargs) -> Never:
+            msg = "Connection failed"
+            raise RequestError(msg)
 
         monkeypatch.setattr(feedback_client.client, "post", mock_post)
 
@@ -78,8 +81,9 @@ class TestSubmitExperienceRating:
     async def test_submit_experience_rating_request_error(self, feedback_client, monkeypatch):
         """Test experience rating submission with request error."""
 
-        async def mock_post(*args, **kwargs):
-            raise RequestError("Connection failed")
+        async def mock_post(*args, **kwargs) -> Never:
+            msg = "Connection failed"
+            raise RequestError(msg)
 
         monkeypatch.setattr(feedback_client.client, "post", mock_post)
 
@@ -98,7 +102,7 @@ class TestSubmitComment:
 
         monkeypatch.setattr(feedback_client.client, "post", mock_post)
 
-        result = await feedback_client.submit_comment(1, "Great service!", "test-token")
+        result = await feedback_client.submit_comment(1, "Great service!", "test-token", is_anonymous=False)
         assert result is True
 
     async def test_submit_comment_failure(self, feedback_client, monkeypatch):
@@ -109,7 +113,7 @@ class TestSubmitComment:
 
         monkeypatch.setattr(feedback_client.client, "post", mock_post)
 
-        result = await feedback_client.submit_comment(1, "Great service!", "test-token")
+        result = await feedback_client.submit_comment(1, "Great service!", "test-token", is_anonymous=False)
         assert result is False
 
     async def test_submit_comment_empty_comment(self, feedback_client, monkeypatch):
@@ -120,18 +124,19 @@ class TestSubmitComment:
 
         monkeypatch.setattr(feedback_client.client, "post", mock_post)
 
-        result = await feedback_client.submit_comment(1, "", "test-token")
+        result = await feedback_client.submit_comment(1, "", "test-token", is_anonymous=False)
         assert result is True
 
     async def test_submit_comment_request_error(self, feedback_client, monkeypatch):
         """Test comment submission with request error."""
 
-        async def mock_post(*args, **kwargs):
-            raise RequestError("Connection failed")
+        async def mock_post(*args, **kwargs) -> Never:
+            msg = "Connection failed"
+            raise RequestError(msg)
 
         monkeypatch.setattr(feedback_client.client, "post", mock_post)
 
-        result = await feedback_client.submit_comment(1, "Test comment", "test-token")
+        result = await feedback_client.submit_comment("Test comment", "test-token", is_anonymous=False)
         assert result is False
 
     async def test_submit_comment_with_contact_email_anonymous(self, feedback_client, monkeypatch):

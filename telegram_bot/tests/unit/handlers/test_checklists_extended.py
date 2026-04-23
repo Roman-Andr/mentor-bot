@@ -1057,7 +1057,7 @@ class TestDownloadTaskFile:
         self.mock_callback.answer = AsyncMock()
         self.mock_callback.from_user = MagicMock()
         self.mock_callback.from_user.id = 123456
-        self.mock_callback.data = "download_task_file_1_1_1"
+        self.mock_callback.data = "download_task_file_1_1"
         self.mock_callback.message = MagicMock()
         self.mock_callback.message.answer_document = AsyncMock()
 

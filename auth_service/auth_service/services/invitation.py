@@ -2,6 +2,8 @@
 
 from datetime import UTC, datetime, timedelta
 
+from pydantic import HttpUrl
+
 from auth_service.config import settings
 from auth_service.core import (
     ConflictException,
@@ -153,6 +155,6 @@ class InvitationService:
             raise NotFoundException(msg)
         return await self._uow.invitations.delete(invitation_id)
 
-    def generate_invitation_url(self, token: str) -> str:
+    def generate_invitation_url(self, token: str) -> HttpUrl:
         """Generate invitation URL for Telegram bot."""
-        return f"https://t.me/{settings.TELEGRAM_BOT_USERNAME}?start={token}"
+        return HttpUrl(f"https://t.me/{settings.TELEGRAM_BOT_USERNAME}?start={token}")

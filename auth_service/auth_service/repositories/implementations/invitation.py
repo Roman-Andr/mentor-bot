@@ -4,9 +4,9 @@ from collections.abc import Sequence
 from datetime import UTC, datetime, timedelta
 from typing import cast
 
-from sqlalchemy import Column, and_, func, select
+from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import InstrumentedAttribute, selectinload
 
 from auth_service.core import InvitationStatus, UserRole
 from auth_service.core.exceptions import NotFoundException, ValidationException
@@ -57,9 +57,9 @@ class InvitationRepository(SqlAlchemyBaseRepository[Invitation, int], IInvitatio
         result = await self._session.execute(stmt)
         return result.scalars().all()
 
-    def _get_sort_column(self, sort_by: str | None) -> Column:
+    def _get_sort_column(self, sort_by: str | None) -> InstrumentedAttribute:
         """Get SQLAlchemy column for sorting."""
-        column_map = {
+        column_map: dict[str, InstrumentedAttribute] = {
             "email": Invitation.email,
             "firstName": Invitation.first_name,
             "lastName": Invitation.last_name,
@@ -70,7 +70,9 @@ class InvitationRepository(SqlAlchemyBaseRepository[Invitation, int], IInvitatio
             "createdAt": Invitation.created_at,
             "expiresAt": Invitation.expires_at,
         }
-        return column_map.get(sort_by, Invitation.created_at)
+        if sort_by is None or sort_by not in column_map:
+            return Invitation.created_at
+        return column_map[sort_by]
 
     async def find_invitations(
         self,
@@ -174,7 +176,7 @@ class InvitationRepository(SqlAlchemyBaseRepository[Invitation, int], IInvitatio
 
         status_stmt = select(Invitation.status, func.count(Invitation.id)).group_by(Invitation.status)
         status_result = await self._session.execute(status_stmt)
-        status_counts = dict(status_result.all())
+        status_counts: dict[InvitationStatus, int] = {row[0]: row[1] for row in status_result.all()}
 
         for status in InvitationStatus:
             status_counts.setdefault(status, 0)

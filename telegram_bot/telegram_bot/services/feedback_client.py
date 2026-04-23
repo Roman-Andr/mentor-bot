@@ -55,10 +55,11 @@ class FeedbackServiceClient:
     async def submit_comment(
         self,
         comment: str,
-        is_anonymous: bool,
         auth_token: str,
-        allow_contact: bool = False,
         contact_email: str | None = None,
+        *,
+        is_anonymous: bool,
+        allow_contact: bool = False,
     ) -> bool:
         """Submit comment or suggestion. Can be anonymous."""
         try:

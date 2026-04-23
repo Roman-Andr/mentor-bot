@@ -37,13 +37,13 @@ export function OnboardingProgress({ progress }: OnboardingProgressProps) {
                     />
                   </div>
                 </div>
-                <span className="whitespace-nowrap text-xs text-muted-foreground">
-                  {item.status === "COMPLETED"
-                    ? t("common.completed")
-                    : item.days_remaining > 0
-                      ? `${item.days_remaining} ${t("dashboard.daysRemaining")}`
-                      : `${Math.abs(item.days_remaining)} ${t("dashboard.daysOverdue")}`}
-                </span>
+                 <span className="inline-block whitespace-nowrap text-xs text-muted-foreground w-[90px] overflow-hidden text-ellipsis">
+                   {item.status === "COMPLETED"
+                     ? t("common.completed")
+                     : item.days_remaining > 0
+                       ? `${item.days_remaining} ${t("dashboard.daysRemaining")}`
+                       : `${Math.abs(item.days_remaining)} ${t("dashboard.daysOverdue")}`}
+                 </span>
               </div>
             ))
           ) : (

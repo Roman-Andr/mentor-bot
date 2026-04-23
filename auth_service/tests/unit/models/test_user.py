@@ -2,8 +2,6 @@
 
 from datetime import UTC, datetime
 
-import pytest
-
 from auth_service.core.enums import UserRole
 from auth_service.models import User
 

@@ -1,5 +1,7 @@
 """Unit tests for telegram_bot EscalationServiceClient."""
 
+from typing import Never
+
 import pytest
 from fastapi import status
 from httpx import RequestError, Response
@@ -154,8 +156,9 @@ class TestCreateEscalation:
     async def test_create_escalation_request_error(self, escalation_client, monkeypatch):
         """Test escalation creation with request error."""
 
-        async def mock_post(*args, **kwargs):
-            raise RequestError("Connection failed")
+        async def mock_post(*args, **kwargs) -> Never:
+            msg = "Connection failed"
+            raise RequestError(msg)
 
         monkeypatch.setattr(escalation_client.client, "post", mock_post)
 
@@ -226,8 +229,9 @@ class TestGetUserEscalations:
     async def test_get_user_escalations_request_error(self, escalation_client, monkeypatch):
         """Test user escalations retrieval with request error."""
 
-        async def mock_get(*args, **kwargs):
-            raise RequestError("Connection failed")
+        async def mock_get(*args, **kwargs) -> Never:
+            msg = "Connection failed"
+            raise RequestError(msg)
 
         monkeypatch.setattr(escalation_client.client, "get", mock_get)
 
@@ -279,8 +283,9 @@ class TestGetEscalationStatus:
     async def test_get_escalation_status_request_error(self, escalation_client, monkeypatch):
         """Test escalation status retrieval with request error."""
 
-        async def mock_get(*args, **kwargs):
-            raise RequestError("Connection failed")
+        async def mock_get(*args, **kwargs) -> Never:
+            msg = "Connection failed"
+            raise RequestError(msg)
 
         monkeypatch.setattr(escalation_client.client, "get", mock_get)
 
@@ -338,8 +343,9 @@ class TestUpdateEscalationStatus:
     async def test_update_escalation_status_request_error(self, escalation_client, monkeypatch):
         """Test escalation status update with request error."""
 
-        async def mock_patch(*args, **kwargs):
-            raise RequestError("Connection failed")
+        async def mock_patch(*args, **kwargs) -> Never:
+            msg = "Connection failed"
+            raise RequestError(msg)
 
         monkeypatch.setattr(escalation_client.client, "patch", mock_patch)
 

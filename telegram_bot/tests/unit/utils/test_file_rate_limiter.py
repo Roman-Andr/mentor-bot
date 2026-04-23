@@ -3,7 +3,6 @@
 from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
-import pytest
 from aiogram.types import Message, User
 
 from telegram_bot.utils.file_rate_limiter import (

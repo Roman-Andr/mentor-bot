@@ -10,6 +10,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      target: ${BUILD_TARGET:-dev}
       args:
         SERVICE_NAME: telegram_bot
     container_name: telegram_bot
@@ -32,7 +33,7 @@ services:
       - mentor_network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pgrep -f 'uvicorn.*telegram_bot.main' || exit 1"]
+      test: ["CMD-SHELL", "pgrep -f 'telegram_bot\\.main' || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -67,16 +68,17 @@ services:
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/"]
-      interval: 300s
-      timeout: 1s
+      interval: 30s
+      timeout: 5s
       retries: 10
-      start_period: 30s
+      start_period: 60s
       start_interval: 3s
 
   auth_service:
     build:
       context: .
       dockerfile: Dockerfile
+      target: ${BUILD_TARGET:-dev}
       args:
         SERVICE_NAME: auth_service
     container_name: auth_service
@@ -97,8 +99,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    volumes:
-      - ./auth_service/auth_service:/app/auth_service
     networks:
       - mentor_network
 
@@ -106,6 +106,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      target: ${BUILD_TARGET:-dev}
       args:
         SERVICE_NAME: checklists_service
     container_name: checklists_service
@@ -128,8 +129,6 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
-    volumes:
-      - ./checklists_service/checklists_service:/app/checklists_service
     networks:
       - mentor_network
 
@@ -137,6 +136,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      target: ${BUILD_TARGET:-dev}
       args:
         SERVICE_NAME: knowledge_service
     container_name: knowledge_service
@@ -159,8 +159,6 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
-    volumes:
-      - ./knowledge_service/knowledge_service:/app/knowledge_service
     networks:
       - mentor_network
 
@@ -168,6 +166,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      target: ${BUILD_TARGET:-dev}
       args:
         SERVICE_NAME: notification_service
     container_name: notification_service
@@ -187,8 +186,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    volumes:
-      - ./notification_service/notification_service:/app/notification_service
     networks:
       - mentor_network
 
@@ -196,6 +193,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      target: ${BUILD_TARGET:-dev}
       args:
         SERVICE_NAME: feedback_service
     container_name: feedback_service
@@ -212,8 +210,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    volumes:
-      - ./feedback_service/feedback_service:/app/feedback_service
     networks:
       - mentor_network
 
@@ -221,6 +217,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      target: ${BUILD_TARGET:-dev}
       args:
         SERVICE_NAME: escalation_service
     container_name: escalation_service
@@ -237,8 +234,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    volumes:
-      - ./escalation_service/escalation_service:/app/escalation_service
     networks:
       - mentor_network
 
@@ -246,6 +241,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      target: ${BUILD_TARGET:-dev}
       args:
         SERVICE_NAME: meeting_service
     container_name: meeting_service
@@ -265,8 +261,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    volumes:
-      - ./meeting_service/meeting_service:/app/meeting_service
     networks:
       - mentor_network
 
@@ -286,9 +280,9 @@ services:
       - postgres_data:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-      interval: 300s
-      timeout: 1s
-      retries: 50
+      interval: 10s
+      timeout: 5s
+      retries: 10
       start_period: 30s
       start_interval: 1s
 
@@ -304,8 +298,8 @@ services:
       - mentor_network
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
-      interval: 300s
-      timeout: 1s
+      interval: 10s
+      timeout: 5s
       retries: 10
       start_period: 5s
       start_interval: 1s

@@ -5,7 +5,7 @@ import logging
 from collections.abc import Callable
 from functools import wraps
 from json import JSONDecodeError
-from typing import TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 import redis.asyncio as redis
 from redis import RedisError
@@ -14,13 +14,16 @@ from checklists_service.config import settings
 
 logger = logging.getLogger(__name__)
 
+if TYPE_CHECKING:
+    from redis import Redis
+
 
 class CacheManager:
     """Redis cache manager."""
 
     def __init__(self) -> None:
         """Initialize cache manager without immediate connection."""
-        self.redis_client = None
+        self.redis_client: Redis | None = None
         self.is_connected = False
 
     async def connect(self) -> None:
@@ -31,7 +34,7 @@ class CacheManager:
                 encoding="utf-8",
                 decode_responses=True,
             )
-            await self.redis_client.ping()
+            await self.redis_client.ping()  # type: ignore[union-attr]
             self.is_connected = True
             logger.info("Redis cache connected")
         except RedisError as e:
@@ -46,7 +49,7 @@ class CacheManager:
 
     async def get(self, key: str) -> object | None:
         """Get value from cache."""
-        if not self.is_connected:
+        if not self.is_connected or not self.redis_client:
             return None
 
         try:
@@ -59,7 +62,7 @@ class CacheManager:
 
     async def set(self, key: str, value: object, ttl: int = 3600) -> None:
         """Set value in cache with TTL."""
-        if not self.is_connected:
+        if not self.is_connected or not self.redis_client:
             return
 
         try:
@@ -73,7 +76,7 @@ class CacheManager:
 
     async def delete(self, key: str) -> None:
         """Delete value from cache."""
-        if not self.is_connected:
+        if not self.is_connected or not self.redis_client:
             return
 
         try:
@@ -83,7 +86,7 @@ class CacheManager:
 
     async def delete_pattern(self, pattern: str) -> None:
         """Delete all keys matching pattern."""
-        if not self.is_connected:
+        if not self.is_connected or not self.redis_client:
             return
 
         try:
@@ -96,7 +99,7 @@ class CacheManager:
 
 # Global cache instance
 cache = CacheManager()
-T = TypeVar("T", bound=Callable[..., object])
+T = TypeVar("T", bound=Callable[..., Any])
 
 
 def cached(ttl: int = 300, key_prefix: str = "cache") -> Callable[[T], T]:
@@ -104,7 +107,7 @@ def cached(ttl: int = 300, key_prefix: str = "cache") -> Callable[[T], T]:
 
     def decorator(func: T) -> T:
         @wraps(func)
-        async def wrapper(*args: object, **kwargs: object) -> object:
+        async def wrapper(*args: Any, **kwargs: Any) -> Any:
             # Generate cache key
             cache_key = f"{key_prefix}:{func.__name__}:{args!s}:{kwargs!s}"
 
@@ -121,6 +124,6 @@ def cached(ttl: int = 300, key_prefix: str = "cache") -> Callable[[T], T]:
 
             return result
 
-        return wrapper
+        return wrapper  # type: ignore[return-value]
 
     return decorator

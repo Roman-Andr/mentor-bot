@@ -1,47 +1,63 @@
 # docker-compose.override.yml — loaded automatically by Docker Compose.
-# This file is for LOCAL DEVELOPMENT ONLY and should NOT be used in production.
+# LOCAL DEVELOPMENT ONLY. Production uses docker-compose.prod.yml.
 #
 # Features enabled here:
 # - Debug ports (5670-5678) for attaching debuggers to Python services
-# - Bind mounts for admin_web dev/hot-reload mode
+# - Bind mounts so the `dev` image (which doesn't bake service code) runs
+#   against the host source, with live hot-reload for admin_web
 #
-# To run in production mode instead, set in .env:
-#   BUILD_TARGET=runner
-#   DEBUG=false
-# And ensure this file is NOT present (use -f docker-compose.yml explicitly)
+# To build prod images from this compose file (rarely needed — prefer
+# docker-compose.prod.yml), skip this override explicitly and set the target:
+#   BUILD_TARGET=prod docker compose -f docker-compose.yml up
 
 services:
   telegram_bot:
     ports:
       - "5670:5671"
+    volumes:
+      - ./telegram_bot/telegram_bot:/app/telegram_bot
 
   auth_service:
     ports:
       - "5672:5671"
+    volumes:
+      - ./auth_service/auth_service:/app/auth_service
 
   checklists_service:
     ports:
       - "5673:5671"
+    volumes:
+      - ./checklists_service/checklists_service:/app/checklists_service
 
   knowledge_service:
     ports:
       - "5674:5671"
+    volumes:
+      - ./knowledge_service/knowledge_service:/app/knowledge_service
 
   notification_service:
     ports:
       - "5675:5671"
+    volumes:
+      - ./notification_service/notification_service:/app/notification_service
 
   feedback_service:
     ports:
       - "5676:5671"
+    volumes:
+      - ./feedback_service/feedback_service:/app/feedback_service
 
   escalation_service:
     ports:
       - "5677:5671"
+    volumes:
+      - ./escalation_service/escalation_service:/app/escalation_service
 
   meeting_service:
     ports:
       - "5678:5671"
+    volumes:
+      - ./meeting_service/meeting_service:/app/meeting_service
 
   admin_web:
     volumes:

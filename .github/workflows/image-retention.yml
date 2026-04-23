@@ -1,0 +1,70 @@
+name: Clean up old Docker Hub images
+
+on:
+  # schedule:
+  #   - cron: '0 3 * * 0'  # every Sunday at 03:00 UTC
+  workflow_dispatch:
+    inputs:
+      keep:
+        description: "Number of sha-tagged images to keep per service"
+        required: false
+        default: "5"
+
+permissions:
+  contents: read
+
+env:
+  IMAGE_PREFIX: mentor-bot
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - auth_service
+          - checklists_service
+          - knowledge_service
+          - notification_service
+          - escalation_service
+          - feedback_service
+          - meeting_service
+          - telegram_bot
+          - admin_web
+    steps:
+      - name: Delete old tags via Docker Hub API
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+          KEEP: ${{ github.event.inputs.keep || '5' }}
+          REPO: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_PREFIX }}-${{ matrix.service }}
+        run: |
+          # Authenticate
+          TOKEN=$(curl -s -X POST "https://hub.docker.com/v2/users/login" \
+            -H "Content-Type: application/json" \
+            -d "{\"username\":\"${DOCKERHUB_USERNAME}\",\"password\":\"${DOCKERHUB_TOKEN}\"}" \
+            | jq -r .token)
+
+          # Fetch all tags, sorted by last_updated descending
+          TAGS=$(curl -s "https://hub.docker.com/v2/repositories/${REPO}/tags?page_size=100&ordering=-last_updated" \
+            -H "Authorization: Bearer ${TOKEN}" \
+            | jq -r '.results[].name')
+
+          # Keep: latest, version tags (v*), and the N most recent sha tags (sha-*)
+          SHA_KEPT=0
+          for TAG in $TAGS; do
+            if [ "$TAG" = "latest" ] || echo "$TAG" | grep -qE '^v[0-9]'; then
+              continue  # always keep
+            fi
+            if echo "$TAG" | grep -qE '^sha-|^[0-9a-f]{7}$'; then
+              SHA_KEPT=$((SHA_KEPT + 1))
+              if [ "$SHA_KEPT" -le "$KEEP" ]; then
+                continue  # keep the N newest sha tags
+              fi
+            fi
+            echo "Deleting ${REPO}:${TAG}"
+            curl -s -X DELETE "https://hub.docker.com/v2/repositories/${REPO}/tags/${TAG}/" \
+              -H "Authorization: Bearer ${TOKEN}"
+          done
+          echo "Done."

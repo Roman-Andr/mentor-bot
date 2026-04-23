@@ -50,16 +50,7 @@ def create_refresh_token(data: dict[str, Any], expires_delta: timedelta | None =
 
 
 def decode_token(token: str, expected_type: str | None = None) -> dict[str, Any]:
-    """Decode and validate JWT token.
-
-    Args:
-        token: The JWT token to decode.
-        expected_type: Expected token type ("access" or "refresh"). If provided, validates
-                      the token's "type" claim matches.
-
-    Raises:
-        HTTPException: If token is expired, invalid, or type doesn't match expected_type.
-    """
+    """Decode and validate JWT token."""
     try:
         payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
     except jwt.ExpiredSignatureError as e:

@@ -56,7 +56,7 @@ class CircuitBreaker:
         except self.expected_exceptions:
             async with self._lock:
                 self.failure_count += 1
-                self.last_failure_time = time.time()
+                self.last_failure_time = int(time.time())
 
                 if self.state == CircuitState.HALF_OPEN or self.failure_count >= self.failure_threshold:
                     self.state = CircuitState.OPEN

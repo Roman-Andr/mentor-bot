@@ -37,7 +37,7 @@ class IUnitOfWork(Protocol):
         """Enter async context manager."""
         ...
 
-    async def __aexit__(self, *args: object) -> None:
+    async def __aexit__(self, exc_type: type[BaseException] | None, exc_val: BaseException | None, exc_tb: object) -> None:
         """Exit async context manager."""
         ...
 

@@ -22,7 +22,7 @@ class SqlAlchemyBaseRepository[T, V: int | str](BaseRepository[T, V]):
 
     async def get_by_id(self, entity_id: V) -> T | None:
         """Get entity by its primary key."""
-        stmt = select(self._model_class).where(self._model_class.id == entity_id)
+        stmt = select(self._model_class).where(self._model_class.id == entity_id)  # type: ignore[attr-defined]
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none()
 

@@ -7,7 +7,7 @@ import pytest
 from botocore.exceptions import ClientError
 
 from checklists_service.utils.storage import (
-    FileNotFoundError,
+    StorageFileNotFoundError,
     StorageError,
     StorageService,
     get_storage_service,
@@ -236,7 +236,7 @@ class TestStorageServiceDownload:
         with patch("asyncio.get_running_loop") as mock_loop:
             mock_loop.return_value.run_in_executor = mock_run_in_executor
 
-            with pytest.raises(FileNotFoundError, match="File not found"):
+            with pytest.raises(StorageFileNotFoundError, match="File not found"):
                 await mock_service.download_file("test/file.txt")
 
     async def test_download_file_not_found_nosuchkey(self, mock_service: StorageService) -> None:
@@ -250,7 +250,7 @@ class TestStorageServiceDownload:
         with patch("asyncio.get_running_loop") as mock_loop:
             mock_loop.return_value.run_in_executor = mock_run_in_executor
 
-            with pytest.raises(FileNotFoundError, match="File not found"):
+            with pytest.raises(StorageFileNotFoundError, match="File not found"):
                 await mock_service.download_file("test/file.txt")
 
     async def test_download_file_storage_error(self, mock_service: StorageService) -> None:
@@ -614,7 +614,7 @@ class TestStorageExceptions:
 
     def test_file_not_found_error_inheritance(self) -> None:
         """Test FileNotFoundError is a StorageError."""
-        error = FileNotFoundError("file not found")
+        error = StorageFileNotFoundError("file not found")
         assert isinstance(error, StorageError)
         assert str(error) == "file not found"
 

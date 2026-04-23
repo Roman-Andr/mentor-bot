@@ -39,11 +39,7 @@ class PasswordResetService:
 
     @staticmethod
     def _hash_token(token: str) -> str:
-        """Hash a token for secure storage using bcrypt with SHA256 pre-hash.
-
-        Uses SHA256 to reduce token to fixed length (bcrypt has 72-byte limit),
-        then bcrypt for computationally expensive hashing.
-        """
+        """Hash a token for secure storage using bcrypt with SHA256 pre-hash."""
         # Pre-hash with SHA256 to handle tokens of any length
         pre_hash = hashlib.sha256(token.encode("utf-8")).digest()
         salt = bcrypt.gensalt(rounds=12)

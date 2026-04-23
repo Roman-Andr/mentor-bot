@@ -41,7 +41,7 @@ class TestAuthMiddleware:
         }
         mock_cache.get_user = AsyncMock(return_value=user_data)
 
-        result = await self.middleware.__call__(
+        await self.middleware.__call__(
             self.mock_handler, self.mock_event_message, self.data
         )
 
@@ -55,7 +55,7 @@ class TestAuthMiddleware:
         """Test middleware when user not in cache."""
         mock_cache.get_user = AsyncMock(return_value=None)
 
-        result = await self.middleware.__call__(
+        await self.middleware.__call__(
             self.mock_handler, self.mock_event_message, self.data
         )
 
@@ -69,7 +69,7 @@ class TestAuthMiddleware:
         mock_event_no_user.callback_query = None
         mock_event_no_user.inline_query = None
 
-        result = await self.middleware.__call__(
+        await self.middleware.__call__(
             self.mock_handler, mock_event_no_user, self.data
         )
 

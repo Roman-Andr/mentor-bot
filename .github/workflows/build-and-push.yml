@@ -1,0 +1,178 @@
+name: Build and push images
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Extra tag to apply (optional)"
+        required: false
+
+permissions:
+  contents: read
+
+env:
+  REGISTRY: docker.io
+  # Image names: docker.io/<DOCKERHUB_USERNAME>/mentor-bot-<service>
+  # Must match docker-compose.prod.yml IMAGE_PREFIX default (mentor-bot)
+  IMAGE_PREFIX: mentor-bot
+  PLATFORMS: linux/amd64
+
+jobs:
+  # ── Test gate: must pass before any image is built ─────────────────────────
+  test-python:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - auth_service
+          - checklists_service
+          - knowledge_service
+          - notification_service
+          - escalation_service
+          - feedback_service
+          - meeting_service
+          - telegram_bot
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          cache-dependency-glob: "${{ matrix.service }}/uv.lock"
+
+      - name: Install dependencies
+        working-directory: ${{ matrix.service }}
+        run: uv sync --frozen
+
+      - name: Lint (ruff)
+        working-directory: ${{ matrix.service }}
+        run: uv run ruff check .
+
+      - name: Type check (mypy)
+        working-directory: ${{ matrix.service }}
+        run: uv run mypy . || true  # non-blocking until mypy is clean across all services
+
+      - name: Run tests
+        working-directory: ${{ matrix.service }}
+        run: uv run pytest --tb=short -q
+
+  test-admin-web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        working-directory: admin_web
+        run: bun install --frozen-lockfile
+
+      - name: Lint
+        working-directory: admin_web
+        run: bun lint
+
+      - name: Run tests
+        working-directory: admin_web
+        run: bun run test
+
+  # ── Build + push Python services ────────────────────────────────────────────
+  python-services:
+    needs: [test-python, test-admin-web]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - auth_service
+          - checklists_service
+          - knowledge_service
+          - notification_service
+          - escalation_service
+          - feedback_service
+          - meeting_service
+          - telegram_bot
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ env.REGISTRY }}/${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_PREFIX }}-${{ matrix.service }}
+          tags: |
+            type=sha,format=short
+            type=ref,event=branch
+            type=ref,event=tag
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=raw,value=${{ github.event.inputs.tag }},enable=${{ github.event.inputs.tag != '' }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ./Dockerfile
+          target: prod
+          platforms: ${{ env.PLATFORMS }}
+          build-args: |
+            SERVICE_NAME=${{ matrix.service }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          push: true
+          cache-from: type=gha,scope=${{ matrix.service }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.service }}
+
+  # ── Build + push admin web ───────────────────────────────────────────────────
+  admin-web:
+    needs: [test-python, test-admin-web]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ env.REGISTRY }}/${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_PREFIX }}-admin_web
+          tags: |
+            type=sha,format=short
+            type=ref,event=branch
+            type=ref,event=tag
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=raw,value=${{ github.event.inputs.tag }},enable=${{ github.event.inputs.tag != '' }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v7
+        with:
+          context: ./admin_web
+          file: ./admin_web/Dockerfile
+          target: runner
+          platforms: ${{ env.PLATFORMS }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          push: true
+          cache-from: type=gha,scope=admin_web
+          cache-to: type=gha,mode=max,scope=admin_web

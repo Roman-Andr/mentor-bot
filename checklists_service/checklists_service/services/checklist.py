@@ -1,7 +1,7 @@
 """Checklist management service with repository pattern."""
 
 from datetime import UTC, datetime, timedelta
-from typing import Any
+from typing import Any, cast
 
 from checklists_service.core import NotFoundException, ValidationException
 from checklists_service.core.enums import ChecklistStatus, TaskStatus, TemplateStatus
@@ -105,8 +105,8 @@ class ChecklistService:
                     assignee_id = checklist.hr_id
 
             task = Task(
-                checklist_id=checklist.id,
-                template_task_id=task_template.id,
+                checklist_id=cast("int", checklist.id),
+                template_task_id=cast("int", task_template.id),
                 title=task_template.title,
                 description=task_template.description,
                 category=task_template.category,
@@ -123,7 +123,7 @@ class ChecklistService:
         for task in tasks:
             if task.depends_on:
                 for dep_id in task.depends_on:
-                    if dep_id in task_map:
+                    if dep_id in task_map and task.template_task_id:
                         task_map[dep_id].blocks.append(task.template_task_id)
 
         for task in tasks:
@@ -309,8 +309,8 @@ class ChecklistService:
                         assignee_id = checklist.hr_id
 
                 task = Task(
-                    checklist_id=checklist.id,
-                    template_task_id=task_template.id,
+                    checklist_id=cast("int", checklist.id),
+                    template_task_id=cast("int", task_template.id),
                     title=task_template.title,
                     description=task_template.description,
                     category=task_template.category,
@@ -328,7 +328,8 @@ class ChecklistService:
                 if task.depends_on:
                     for dep_id in task.depends_on:
                         if dep_id in task_map:
-                            task_map[dep_id].blocks.append(task.template_task_id)
+                            if task.template_task_id:
+                                task_map[dep_id].blocks.append(task.template_task_id)
 
             for task in tasks:
                 await self._uow.tasks.create(task)

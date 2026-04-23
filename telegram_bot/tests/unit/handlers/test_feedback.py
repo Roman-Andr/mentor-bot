@@ -430,7 +430,8 @@ class TestFeedbackHandlers:
         class RaisingList(list):
             def __getitem__(self, index):
                 if index == -1:
-                    raise IndexError("Simulated IndexError")
+                    msg = "Simulated IndexError"
+                    raise IndexError(msg)
                 return super().__getitem__(index)
 
         mock_callback.data = RaisingString()
@@ -449,7 +450,8 @@ class TestFeedbackHandlers:
 
         class RaisingComparison:
             def __eq__(self, other):
-                raise ValueError("Simulated ValueError")
+                msg = "Simulated ValueError"
+                raise ValueError(msg)
 
         mock_callback.data = RaisingString()
 
@@ -467,7 +469,8 @@ class TestFeedbackHandlers:
         class RaisingList(list):
             def __getitem__(self, index):
                 if index == -1:
-                    raise IndexError("Simulated IndexError")
+                    msg = "Simulated IndexError"
+                    raise IndexError(msg)
                 return super().__getitem__(index)
 
         mock_callback.data = RaisingString()
@@ -485,7 +488,8 @@ class TestFeedbackHandlers:
 
         class RaisingComparison:
             def __eq__(self, other):
-                raise ValueError("Simulated ValueError")
+                msg = "Simulated ValueError"
+                raise ValueError(msg)
 
         mock_callback.data = RaisingString()
 
@@ -503,7 +507,8 @@ class TestFeedbackHandlers:
         class RaisingList(list):
             def __getitem__(self, index):
                 if index == -1:
-                    raise IndexError("Simulated IndexError")
+                    msg = "Simulated IndexError"
+                    raise IndexError(msg)
                 return super().__getitem__(index)
 
         mock_callback.data = RaisingString()
@@ -521,7 +526,8 @@ class TestFeedbackHandlers:
 
         class RaisingComparison:
             def __eq__(self, other):
-                raise ValueError("Simulated ValueError")
+                msg = "Simulated ValueError"
+                raise ValueError(msg)
 
         mock_callback.data = RaisingString()
 

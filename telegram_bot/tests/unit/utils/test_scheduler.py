@@ -4,8 +4,8 @@ from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from apscheduler.triggers.cron import CronTrigger
+from apscheduler.schedulers.asyncio import AsyncIOScheduler  # type: ignore[import-untyped]
+from apscheduler.triggers.cron import CronTrigger  # type: ignore[import-untyped]
 
 from telegram_bot.utils.scheduler import Scheduler, scheduler
 
@@ -259,6 +259,8 @@ class TestSendDailyNotifications:
 
     async def test_send_daily_notifications_client_error(self, scheduler_with_bot):
         """Test send_daily_notifications handles client errors gracefully."""
+        from unittest.mock import AsyncMock
+
         users = {"123": {"id": 1, "access_token": "valid_token"}}
 
         with patch(
@@ -267,6 +269,7 @@ class TestSendDailyNotifications:
         ):
             with patch(
                 "telegram_bot.services.checklists_client.checklists_client.get_assigned_tasks",
+                new_callable=AsyncMock,
                 side_effect=Exception("Client error"),
             ):
                 # Should not raise
@@ -296,8 +299,11 @@ class TestSendDailyNotifications:
 
     async def test_send_daily_notifications_get_users_error(self, scheduler_with_bot):
         """Test send_daily_notifications handles get_all_users errors."""
+        from unittest.mock import AsyncMock
+
         with patch(
             "telegram_bot.utils.scheduler.user_cache.get_all_users",
+            new_callable=AsyncMock,
             side_effect=Exception("Cache error"),
         ):
             # Should not raise
@@ -394,6 +400,8 @@ class TestSendWeeklySummary:
 
     async def test_send_weekly_summary_client_error(self, scheduler_with_bot):
         """Test send_weekly_summary handles client errors gracefully."""
+        from unittest.mock import AsyncMock
+
         users = {"123": {"id": 1, "access_token": "valid_token"}}
 
         with patch(
@@ -402,6 +410,7 @@ class TestSendWeeklySummary:
         ):
             with patch(
                 "telegram_bot.services.checklists_client.checklists_client.get_user_checklists",
+                new_callable=AsyncMock,
                 side_effect=Exception("Client error"),
             ):
                 # Should not raise
@@ -443,8 +452,11 @@ class TestSendWeeklySummary:
 
     async def test_send_weekly_summary_get_users_error(self, scheduler_with_bot):
         """Test send_weekly_summary handles get_all_users errors."""
+        from unittest.mock import AsyncMock
+
         with patch(
             "telegram_bot.utils.scheduler.user_cache.get_all_users",
+            new_callable=AsyncMock,
             side_effect=Exception("Cache error"),
         ):
             # Should not raise

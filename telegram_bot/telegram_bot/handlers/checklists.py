@@ -652,7 +652,6 @@ async def download_task_file(
     parts = callback.data.split("_")
     task_id = int(parts[3])
     attachment_id = int(parts[4])
-    checklist_id = int(parts[5]) if len(parts) > 5 and parts[5] != "0" else None
 
     # Get attachments list to find filename
     attachments = await checklists_client.get_task_attachments(task_id, auth_token)

@@ -1,18 +1,15 @@
 """Unit tests for notification_service/services/notification.py."""
 
 from datetime import UTC, datetime, timedelta
-from typing import TYPE_CHECKING
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from _pytest.logging import LogCaptureFixture
 
 from notification_service.core.enums import NotificationChannel, NotificationStatus, NotificationType
 from notification_service.models import Notification, ScheduledNotification
 from notification_service.schemas import NotificationCreate, ScheduledNotificationCreate
 from notification_service.services import NotificationService
-
-if TYPE_CHECKING:
-    from _pytest.logging import LogCaptureFixture
 
 
 class TestNotificationServiceGetUserNotifications:

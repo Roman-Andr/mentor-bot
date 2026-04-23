@@ -97,7 +97,7 @@ class TestFindMeetings:
         mock_session.execute.side_effect = [mock_count_result, mock_result]
 
         # Act
-        result, total = await repository.find_meetings(skip=0, limit=10, department_id=5)
+        result, _total = await repository.find_meetings(skip=0, limit=10, department_id=5)
 
         # Assert
         assert len(result) == 1
@@ -119,7 +119,7 @@ class TestFindMeetings:
         mock_session.execute.side_effect = [mock_count_result, mock_result]
 
         # Act
-        result, total = await repository.find_meetings(skip=0, limit=10, position="Developer")
+        result, _total = await repository.find_meetings(skip=0, limit=10, position="Developer")
 
         # Assert
         assert len(result) == 1
@@ -141,7 +141,7 @@ class TestFindMeetings:
         mock_session.execute.side_effect = [mock_count_result, mock_result]
 
         # Act
-        result, total = await repository.find_meetings(skip=0, limit=10, level=EmployeeLevel.JUNIOR)
+        result, _total = await repository.find_meetings(skip=0, limit=10, level=EmployeeLevel.JUNIOR)
 
         # Assert
         assert len(result) == 1
@@ -165,7 +165,7 @@ class TestFindMeetings:
         mock_session.execute.side_effect = [mock_count_result, mock_result]
 
         # Act
-        result, total = await repository.find_meetings(skip=0, limit=10, is_mandatory=True)
+        result, _total = await repository.find_meetings(skip=0, limit=10, is_mandatory=True)
 
         # Assert
         assert len(result) == 1
@@ -219,7 +219,7 @@ class TestFindMeetings:
         mock_session.execute.side_effect = [mock_count_result, mock_result]
 
         # Act
-        result, total = await repository.find_meetings(
+        result, _total = await repository.find_meetings(
             skip=0,
             limit=10,
             meeting_type=MeetingType.HR,

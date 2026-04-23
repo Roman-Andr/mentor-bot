@@ -50,7 +50,7 @@ class TestKnowledgeBaseKeyboards:
         """Test search results keyboard with basic results."""
         # Create mock result objects with title attribute
         class MockResult:
-            def __init__(self, title):
+            def __init__(self, title) -> None:
                 self.title = title
 
         results = [MockResult("Result 1"), MockResult("Result 2")]
@@ -63,7 +63,7 @@ class TestKnowledgeBaseKeyboards:
     def test_get_search_results_keyboard_with_pagination(self):
         """Test search results keyboard with pagination."""
         class MockResult:
-            def __init__(self, title):
+            def __init__(self, title) -> None:
                 self.title = title
 
         results = [MockResult(f"Result {i}") for i in range(5)]
@@ -78,7 +78,7 @@ class TestKnowledgeBaseKeyboards:
     def test_get_search_results_keyboard_first_page(self):
         """Test search results keyboard on first page."""
         class MockResult:
-            def __init__(self, title):
+            def __init__(self, title) -> None:
                 self.title = title
 
         results = [MockResult("Result 1")]
@@ -93,7 +93,7 @@ class TestKnowledgeBaseKeyboards:
     def test_get_search_results_keyboard_last_page(self):
         """Test search results keyboard on last page."""
         class MockResult:
-            def __init__(self, title):
+            def __init__(self, title) -> None:
                 self.title = title
 
         results = [MockResult("Result 1")]

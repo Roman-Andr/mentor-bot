@@ -1,15 +1,12 @@
 """Unit tests for notification_service/services/telegram.py."""
 
-from typing import TYPE_CHECKING
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
+from _pytest.logging import LogCaptureFixture
 
 from notification_service.config import settings
 from notification_service.services.telegram import TelegramService
-
-if TYPE_CHECKING:
-    from _pytest.logging import LogCaptureFixture
 
 
 class TestTelegramServiceInit:

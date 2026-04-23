@@ -192,7 +192,7 @@ class TestThrottlingMiddlewareIsRateLimited:
         mock_redis.set = AsyncMock(return_value=True)
 
         middleware = ThrottlingMiddleware(redis_client=mock_redis)
-        is_limited, remaining = await middleware._is_rate_limited(123456, 5, 60)
+        is_limited, _remaining = await middleware._is_rate_limited(123456, 5, 60)
 
         assert is_limited is False
 
@@ -366,7 +366,7 @@ class TestThrottlingMiddlewareCall:
         with patch("telegram_bot.middlewares.throttling.get_flag") as mock_get_flag:
             mock_get_flag.return_value = {"calls": 10, "period": 120}
 
-            result = await middleware.__call__(self.mock_handler, mock_event, data)
+            await middleware.__call__(self.mock_handler, mock_event, data)
 
             # Handler should be called because 3 < 10
             self.mock_handler.assert_called_once()
@@ -423,7 +423,7 @@ class TestThrottlingMiddlewareCall:
         with patch("telegram_bot.middlewares.throttling.get_flag") as mock_get_flag:
             mock_get_flag.return_value = {"calls": 5, "period": 60}
 
-            result = await middleware.__call__(self.mock_handler, mock_event, data)
+            await middleware.__call__(self.mock_handler, mock_event, data)
 
             # User should be extracted from callback_query and throttled
             self.mock_handler.assert_not_called()

@@ -15,10 +15,10 @@ class TestLifespan:
         mock_app = MagicMock()
 
         # Create a real coroutine that does nothing
-        async def mock_run():
+        async def mock_run() -> None:
             pass
 
-        async def mock_stop():
+        async def mock_stop() -> None:
             pass
 
         with (
@@ -44,10 +44,10 @@ class TestLifespan:
         """Test lifespan shutdown stops scheduler."""
         mock_app = MagicMock()
 
-        async def mock_run():
+        async def mock_run() -> None:
             pass
 
-        async def mock_stop():
+        async def mock_stop() -> None:
             pass
 
         with (

@@ -20,9 +20,9 @@ class ChecklistRepository(SqlAlchemyBaseRepository[Checklist, int], IChecklistRe
         """Initialize ChecklistRepository with database session."""
         super().__init__(session, Checklist)
 
-    def _get_sort_column(self, sort_by: str | None) -> Column:
+    def _get_sort_column(self, sort_by: str | None) -> Column[Any]:  # type: ignore[type-arg]
         """Get SQLAlchemy column for sorting."""
-        column_map = {
+        column_map: dict[str, Column[Any]] = {  # type: ignore[type-arg]
             "employeeId": Checklist.employee_id,
             "employee_id": Checklist.employee_id,
             "employee": Checklist.employee_id,
@@ -39,7 +39,7 @@ class ChecklistRepository(SqlAlchemyBaseRepository[Checklist, int], IChecklistRe
             "created_at": Checklist.created_at,
             "tasks": Checklist.total_tasks,
         }
-        return column_map.get(sort_by, Checklist.created_at)
+        return column_map.get(sort_by, Checklist.created_at)  # type: ignore[return-value]
 
     async def find_checklists(
         self,
@@ -116,13 +116,13 @@ class ChecklistRepository(SqlAlchemyBaseRepository[Checklist, int], IChecklistRe
             select(Task.status, func.count(Task.id)).where(Task.checklist_id == checklist_id).group_by(Task.status)
         )
         result = await self._session.execute(status_stmt)
-        status_counts = dict(result.all())
+        status_counts: dict[str, int] = {str(k): v for k, v in result.all()}
 
         category_stmt = (
             select(Task.category, func.count(Task.id)).where(Task.checklist_id == checklist_id).group_by(Task.category)
         )
         result = await self._session.execute(category_stmt)
-        category_counts = dict(result.all())
+        category_counts: dict[str, int] = {str(k): v for k, v in result.all()}
 
         now = datetime.now(UTC)
         overdue_stmt = select(func.count(Task.id)).where(

@@ -17,7 +17,7 @@ class Token(BaseModel):
     user_id: int
     role: UserRole
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def expires_in(self) -> int:
         """Return seconds until token expires."""

@@ -115,7 +115,7 @@ class UserService:
     async def delete_user(self, user_id: int) -> None:
         """Permanently delete user account."""
         # Verify user exists before deleting
-        user = await self.get_user_by_id(user_id)
+        await self.get_user_by_id(user_id)
         await self._uow.users.delete(user_id)
 
     async def get_users(

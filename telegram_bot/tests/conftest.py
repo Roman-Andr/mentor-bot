@@ -3,7 +3,7 @@
 import os
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import i18n
+import i18n  # type: ignore[import-untyped]
 import pytest
 
 # Set environment variables BEFORE any imports
@@ -75,7 +75,7 @@ _test_translations_flat = [
     ("common.back_button", "Назад [common.back_button]", "ru"),
 ]
 
-def _ensure_test_translations():
+def _ensure_test_translations() -> None:
     """Ensure test translations are in the i18n container."""
     for key, value, locale in _test_translations_flat:
         i18n.add_translation(key, value, locale)
@@ -86,7 +86,7 @@ _ensure_test_translations()
 
 
 @pytest.fixture(autouse=True)
-def _setup_i18n():
+def _setup_i18n() -> None:
     """Ensure i18n test translations are always present before each test."""
     _ensure_test_translations()
 

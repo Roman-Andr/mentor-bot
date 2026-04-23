@@ -1,4 +1,4 @@
-.PHONY: help start stop restart logs clean reset-db create-invitation shell-auth shell-checklist shell-knowledge shell-postgres shell-redis status full-reboot logs-notification logs-escalation logs-meeting shell-notification shell-escalation shell-meeting restart-notification restart-escalation restart-meeting reboot-notification reboot-escalation reboot-meeting logs-admin restart-admin restart-admin-dev reboot-admin shell-admin logs-telegram restart-telegram reboot-telegram shell-telegram dev-admin dev-meeting reset-locks update-deps mock-data prune test coverage coverage-html coverage-clean
+.PHONY: help start stop restart logs clean reset-db create-invitation shell-auth shell-checklist shell-knowledge shell-postgres shell-redis status full-reboot logs-notification logs-escalation logs-meeting shell-notification shell-escalation shell-meeting restart-notification restart-escalation restart-meeting reboot-notification reboot-escalation reboot-meeting logs-admin restart-admin restart-admin-dev reboot-admin shell-admin logs-telegram restart-telegram reboot-telegram shell-telegram dev-admin dev-meeting reset-locks update-deps mock-data prune test coverage coverage-html coverage-clean build-push docker-login prod-pull prod-up prod-down prod-logs prod-deploy
 
 # Docker compose project name
 PROJECT_NAME = mentor-bot
@@ -74,6 +74,13 @@ help:
 	@echo "  make coverage-serve    - Serve existing coverage reports (skip test run)"
 	@echo "  make coverage-html     - Show coverage report URL"
 	@echo "  make coverage-clean    - Remove all coverage reports"
+	@echo ""
+	@echo "Production deploy:"
+	@echo "  DOCKER_USERNAME=user make build-push [TAG=sha]  - Build & push all images"
+	@echo "  make docker-login DOCKER_USERNAME=user          - Login to Docker Hub"
+	@echo "  make prod-pull                                  - Pull prod images on VPS"
+	@echo "  make prod-up / prod-down / prod-logs            - Manage prod stack"
+	@echo "  make prod-deploy TAG=sha                        - Pull + up in one step"
 	@echo ""
 
 test:
@@ -345,3 +352,86 @@ restore-db:
 		docker compose exec -T postgres psql -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-mentor_bot} < $(FILE); \
 		echo "Database restored from $(FILE)"; \
 	fi
+
+# ─── Production: build/push images and deploy ────────────────────────────────
+# Usage:
+#   DOCKER_USERNAME=youruser make build-push              # tag = git short SHA
+#   DOCKER_USERNAME=youruser TAG=v1.2.3 make build-push
+#
+# On the VPS (.env must define DOCKER_USERNAME and IMAGE_TAG):
+#   make prod-pull && make prod-up
+#   make prod-deploy TAG=<sha>     # pull + up in one step
+
+PROD_COMPOSE = docker compose -f docker-compose.prod.yml
+
+docker-login:
+	@if [ -z "$(DOCKER_USERNAME)" ]; then echo "DOCKER_USERNAME is required"; exit 1; fi
+	docker login -u $(DOCKER_USERNAME)
+
+build-push:
+	@if [ -z "$(DOCKER_USERNAME)" ]; then echo "DOCKER_USERNAME is required"; exit 1; fi
+	DOCKER_USERNAME=$(DOCKER_USERNAME) ./scripts/build-and-push.sh $(TAG)
+
+prod-pull:
+	$(PROD_COMPOSE) pull
+
+prod-up:
+	$(PROD_COMPOSE) up -d
+
+prod-down:
+	$(PROD_COMPOSE) down
+
+prod-logs:
+	$(PROD_COMPOSE) logs -f
+
+prod-deploy:
+	@if [ -z "$(TAG)" ]; then echo "TAG is required (e.g. make prod-deploy TAG=abc1234)"; exit 1; fi
+	IMAGE_TAG=$(TAG) $(PROD_COMPOSE) pull
+	IMAGE_TAG=$(TAG) $(PROD_COMPOSE) up -d
+	$(PROD_COMPOSE) ps
+
+# ─── Alembic migrations ───────────────────────────────────────────────────────
+# SERVICE: one of auth_service checklists_service knowledge_service
+#          notification_service escalation_service feedback_service meeting_service
+# MSG:     migration message (required for migrate-revision)
+#
+# Examples:
+#   make migrate-revision SERVICE=auth_service MSG="add user avatar column"
+#   make migrate-upgrade SERVICE=auth_service
+#   make migrate-current SERVICE=auth_service
+#   make migrate-history SERVICE=auth_service
+#   make migrate-all        # upgrade head on every DB service
+
+DB_SERVICES = auth_service checklists_service knowledge_service \
+              notification_service escalation_service feedback_service meeting_service
+
+_check-service:
+	@if [ -z "$(SERVICE)" ]; then echo "SERVICE is required (e.g. SERVICE=auth_service)"; exit 1; fi
+
+migrate-revision: _check-service
+	@if [ -z "$(MSG)" ]; then echo "MSG is required (e.g. MSG=\"add column\")"; exit 1; fi
+	cd $(SERVICE) && uv run alembic revision --autogenerate -m "$(MSG)"
+
+migrate-upgrade: _check-service
+	cd $(SERVICE) && uv run alembic upgrade head
+
+migrate-downgrade: _check-service
+	@if [ -z "$(REV)" ]; then echo "REV is required (e.g. REV=-1 or REV=abc123)"; exit 1; fi
+	cd $(SERVICE) && uv run alembic downgrade $(REV)
+
+migrate-current: _check-service
+	cd $(SERVICE) && uv run alembic current
+
+migrate-history: _check-service
+	cd $(SERVICE) && uv run alembic history --verbose
+
+migrate-stamp: _check-service
+	@if [ -z "$(REV)" ]; then REV=head; fi
+	cd $(SERVICE) && uv run alembic stamp $${REV:-head}
+
+migrate-all:
+	@for svc in $(DB_SERVICES); do \
+		echo ">>> Upgrading $$svc"; \
+		(cd $$svc && uv run alembic upgrade head) || exit 1; \
+	done
+	@echo "All migrations applied."

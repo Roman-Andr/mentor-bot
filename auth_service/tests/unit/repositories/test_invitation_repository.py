@@ -207,7 +207,7 @@ class TestInvitationRepository:
         mock_session.execute.side_effect = [count_result, mock_result]
 
         repo = InvitationRepository(mock_session)
-        invitations, total = await repo.find_invitations(skip=0, limit=100, role=UserRole.NEWBIE)
+        _invitations, total = await repo.find_invitations(skip=0, limit=100, role=UserRole.NEWBIE)
 
         assert total == 1
 
@@ -223,7 +223,7 @@ class TestInvitationRepository:
         mock_session.execute.side_effect = [count_result, mock_result]
 
         repo = InvitationRepository(mock_session)
-        invitations, total = await repo.find_invitations(skip=0, limit=100, status=InvitationStatus.PENDING)
+        _invitations, total = await repo.find_invitations(skip=0, limit=100, status=InvitationStatus.PENDING)
 
         assert total == 1
 
@@ -239,7 +239,7 @@ class TestInvitationRepository:
         mock_session.execute.side_effect = [count_result, mock_result]
 
         repo = InvitationRepository(mock_session)
-        invitations, total = await repo.find_invitations(skip=0, limit=100, department_id=1)
+        _invitations, total = await repo.find_invitations(skip=0, limit=100, department_id=1)
 
         assert total == 1
 
@@ -255,7 +255,7 @@ class TestInvitationRepository:
         mock_session.execute.side_effect = [count_result, mock_result]
 
         repo = InvitationRepository(mock_session)
-        invitations, total = await repo.find_invitations(skip=0, limit=100, expired_only=True)
+        _invitations, total = await repo.find_invitations(skip=0, limit=100, expired_only=True)
 
         assert total == 1
 

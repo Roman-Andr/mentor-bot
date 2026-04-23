@@ -188,7 +188,7 @@ def get_task_attachments_keyboard(
         builder.add(
             create_inline_button(
                 f"{emoji} {filename[:30]}{'...' if len(filename) > 30 else ''}",
-                callback_data=f"download_task_file_{task_id}_{att.get('id')}_{checklist_id or 0}",
+                callback_data=f"download_task_file_{task_id}_{att.get('id')}",
             )
         )
 

@@ -26,9 +26,9 @@ class TemplateRepository(SqlAlchemyBaseRepository[Template, int], ITemplateRepos
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none()
 
-    def _get_sort_column(self, sort_by: str | None) -> Column:
+    def _get_sort_column(self, sort_by: str | None) -> Column:  # type: ignore[type-arg]
         """Get SQLAlchemy column for sorting."""
-        column_map = {
+        column_map: dict[str, Column] = {  # type: ignore[type-arg]
             "name": Template.name,
             "department": Template.department_id,
             "position": Template.position,
@@ -39,7 +39,7 @@ class TemplateRepository(SqlAlchemyBaseRepository[Template, int], ITemplateRepos
             "createdAt": Template.created_at,
             "updatedAt": Template.updated_at,
         }
-        return column_map.get(sort_by, Template.created_at)
+        return column_map.get(sort_by, Template.created_at)  # type: ignore[return-value]
 
     async def find_templates(
         self,
@@ -133,7 +133,7 @@ class TemplateRepository(SqlAlchemyBaseRepository[Template, int], ITemplateRepos
             stmt = stmt.where(Checklist.user_id == user_id)
 
         result = await self._session.execute(stmt)
-        return dict(result.all())
+        return {str(k): v for k, v in result.all()}
 
     async def find_matching(
         self,

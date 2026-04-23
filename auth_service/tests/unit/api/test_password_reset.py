@@ -299,8 +299,7 @@ class TestPasswordResetServiceUnit:
     @pytest.fixture
     def mock_session(self):
         """Create a mock database session."""
-        session = AsyncMock()
-        return session
+        return AsyncMock()
 
     @pytest.fixture
     def mock_uow(self):
@@ -392,8 +391,8 @@ class TestPasswordResetServiceUnit:
     @pytest.mark.asyncio
     async def test_validate_token_valid(self, mock_uow, mock_session, active_user):
         """Test validate_token with valid token."""
-        from auth_service.services.password_reset import PasswordResetService
         from auth_service.models import PasswordResetToken
+        from auth_service.services.password_reset import PasswordResetService
 
         token = "valid-token"
 
@@ -449,8 +448,8 @@ class TestPasswordResetServiceUnit:
     @pytest.mark.asyncio
     async def test_confirm_reset_success(self, mock_uow, mock_session, active_user):
         """Test confirm_reset successfully updates password."""
-        from auth_service.services.password_reset import PasswordResetService
         from auth_service.models import PasswordResetToken
+        from auth_service.services.password_reset import PasswordResetService
 
         token = "valid-token"
         new_password = "newSecurePass123"

@@ -360,6 +360,10 @@ class TestUserRepository:
         """Test finding users with invalid sort column raises ValidationException (covers line 140)."""
         from auth_service.core.exceptions import ValidationException
 
+        count_result = MagicMock()
+        count_result.scalar_one.return_value = 0
+        mock_session.execute.return_value = count_result
+
         repo = UserRepository(mock_session)
 
         with pytest.raises(ValidationException) as exc_info:

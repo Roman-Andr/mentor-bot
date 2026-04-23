@@ -140,7 +140,7 @@ class TaskRepository(SqlAlchemyBaseRepository[Task, int], ITaskRepository):
         """Count tasks by status for a checklist."""
         stmt = select(Task.status, func.count(Task.id)).where(Task.checklist_id == checklist_id).group_by(Task.status)
         result = await self._session.execute(stmt)
-        return dict(result.all())
+        return {str(k): v for k, v in result.all()}
 
     async def count_by_category(self, checklist_id: int) -> dict[str, int]:
         """Count tasks by category for a checklist."""
@@ -148,7 +148,7 @@ class TaskRepository(SqlAlchemyBaseRepository[Task, int], ITaskRepository):
             select(Task.category, func.count(Task.id)).where(Task.checklist_id == checklist_id).group_by(Task.category)
         )
         result = await self._session.execute(stmt)
-        return dict(result.all())
+        return {str(k): v for k, v in result.all()}
 
     async def count_overdue(self, checklist_id: int) -> int:
         """Count overdue tasks for a checklist."""

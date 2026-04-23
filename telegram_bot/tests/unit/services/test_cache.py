@@ -395,7 +395,8 @@ class TestUserCache:
 
         async def mock_get(key):
             if key == b"user:123":
-                raise RedisError("Connection lost")
+                msg = "Connection lost"
+                raise RedisError(msg)
             return pickle.dumps(user2)
 
         mock_redis.get = mock_get

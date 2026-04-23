@@ -1,5 +1,7 @@
 """Unit tests for telegram_bot MeetingServiceClient."""
 
+from typing import Never
+
 import pytest
 from fastapi import status
 from httpx import RequestError, Response
@@ -102,8 +104,9 @@ class TestCreateMeeting:
     async def test_create_meeting_request_error(self, meeting_client, monkeypatch):
         """Test meeting creation with request error."""
 
-        async def mock_post(*args, **kwargs):
-            raise RequestError("Connection failed")
+        async def mock_post(*args, **kwargs) -> Never:
+            msg = "Connection failed"
+            raise RequestError(msg)
 
         monkeypatch.setattr(meeting_client.client, "post", mock_post)
 
@@ -159,8 +162,9 @@ class TestGetUserMeetings:
     async def test_get_user_meetings_request_error(self, meeting_client, monkeypatch):
         """Test user meetings retrieval with request error."""
 
-        async def mock_get(*args, **kwargs):
-            raise RequestError("Connection failed")
+        async def mock_get(*args, **kwargs) -> Never:
+            msg = "Connection failed"
+            raise RequestError(msg)
 
         monkeypatch.setattr(meeting_client.client, "get", mock_get)
 
@@ -210,8 +214,9 @@ class TestGetUpcomingMeetings:
     async def test_get_upcoming_meetings_request_error(self, meeting_client, monkeypatch):
         """Test upcoming meetings retrieval with request error."""
 
-        async def mock_get(*args, **kwargs):
-            raise RequestError("Connection failed")
+        async def mock_get(*args, **kwargs) -> Never:
+            msg = "Connection failed"
+            raise RequestError(msg)
 
         monkeypatch.setattr(meeting_client.client, "get", mock_get)
 
@@ -249,8 +254,9 @@ class TestConfirmMeeting:
     async def test_confirm_meeting_request_error(self, meeting_client, monkeypatch):
         """Test meeting confirmation with request error."""
 
-        async def mock_post(*args, **kwargs):
-            raise RequestError("Connection failed")
+        async def mock_post(*args, **kwargs) -> Never:
+            msg = "Connection failed"
+            raise RequestError(msg)
 
         monkeypatch.setattr(meeting_client.client, "post", mock_post)
 
@@ -302,8 +308,9 @@ class TestCancelMeeting:
     async def test_cancel_meeting_request_error(self, meeting_client, monkeypatch):
         """Test meeting cancellation with request error."""
 
-        async def mock_post(*args, **kwargs):
-            raise RequestError("Connection failed")
+        async def mock_post(*args, **kwargs) -> Never:
+            msg = "Connection failed"
+            raise RequestError(msg)
 
         monkeypatch.setattr(meeting_client.client, "post", mock_post)
 

@@ -6,56 +6,59 @@ COPY package.json bun.lock ./
 RUN bun install --frozen-lockfile
 
 # ── Development stage ─────────────────────────────────────────────────────────
+# Source copied directly here — not from builder — so frequent code changes
+# don't invalidate the deps layer. In practice the whole dir is bind-mounted.
 FROM oven/bun:alpine AS dev
 
 WORKDIR /app
 
-ENV NEXT_TELEMETRY_DISABLED=1
-ENV PORT=3000
-ENV HOSTNAME="0.0.0.0"
+ENV NEXT_TELEMETRY_DISABLED=1 \
+  PORT=3000 \
+  HOSTNAME="0.0.0.0"
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-COPY docker-entrypoint.sh ./docker-entrypoint.sh
 RUN chmod +x ./docker-entrypoint.sh
 
-EXPOSE 3000
-EXPOSE 9229
+EXPOSE 3000 9229
 
 ENTRYPOINT ["./docker-entrypoint.sh"]
 
 # ── Production build ──────────────────────────────────────────────────────────
+# Build output + entrypoint staged under /build/runner so the runner stage
+# needs only a single COPY --from=builder.
 FROM oven/bun:alpine AS builder
 
 WORKDIR /app
 
+ENV NEXT_TELEMETRY_DISABLED=1
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-ENV NEXT_TELEMETRY_DISABLED=1
+RUN bun run build && \
+  mkdir -p /build/runner/.next && \
+  cp -r .next/standalone/. /build/runner/ && \
+  cp -r .next/static        /build/runner/.next/static && \
+  cp -r public              /build/runner/public && \
+  cp docker-entrypoint.sh   /build/runner/docker-entrypoint.sh && \
+  chmod +x /build/runner/docker-entrypoint.sh
 
-RUN bun run build
-
-# ── Production runner (standalone output only) ────────────────────────────────
-FROM oven/bun:alpine AS runner
+# ── Production runner ─────────────────────────────────────────────────────────
+FROM node:22-alpine AS runner
 
 WORKDIR /app
 
-ENV NEXT_TELEMETRY_DISABLED=1
-ENV NODE_ENV=production
-ENV PORT=3000
-ENV HOSTNAME="0.0.0.0"
+ENV NEXT_TELEMETRY_DISABLED=1 \
+  NODE_ENV=production \
+  PORT=3000 \
+  HOSTNAME="0.0.0.0"
 
 RUN addgroup --system --gid 1001 nodejs && \
   adduser --system --uid 1001 nextjs
 
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-COPY --from=builder --chown=nextjs:nodejs /app/public ./public
-
-COPY --chown=nextjs:nodejs docker-entrypoint.sh ./docker-entrypoint.sh
-RUN chmod +x ./docker-entrypoint.sh
+COPY --from=builder --chown=nextjs:nodejs /build/runner/ ./
 
 USER nextjs
 

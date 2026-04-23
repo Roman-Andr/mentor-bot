@@ -244,7 +244,8 @@ def format_meeting_list(meetings: list[dict[str, Any]], *, locale: str = "en") -
 
         try:
             if not scheduled_at:
-                raise ValueError("scheduled_at is None or empty")
+                msg = "scheduled_at is None or empty"
+                raise ValueError(msg)
             dt = datetime.fromisoformat(scheduled_at)
             # Compact format: DD.MM.YYYY HH:MM
             formatted_date = dt.strftime("%d.%m.%Y %H:%M")

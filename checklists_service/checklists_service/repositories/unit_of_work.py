@@ -57,12 +57,10 @@ class SqlAlchemyUnitOfWork(IUnitOfWork):
         self.task_templates = TaskTemplateRepository(self._session)
         return self
 
-    async def __aexit__(
-        self, exc_type: type[BaseException] | None, exc_val: BaseException | None, exc_tb: object
-    ) -> None:
+    async def __aexit__(self, *args: object) -> None:
         """Exit async context manager and clean up session."""
         if self._session:
-            if exc_type:
+            if args and args[0]:
                 await self._session.rollback()
             await self._session.close()
             self._session = None

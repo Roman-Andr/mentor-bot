@@ -12,8 +12,8 @@ from checklists_service.utils.datetime import (
 )
 from checklists_service.utils.integrations import AuthServiceClient, auth_service_client
 from checklists_service.utils.storage import (
-    FileNotFoundError,
     StorageError,
+    StorageFileNotFoundError,
     StorageService,
     get_storage,
     get_storage_service,
@@ -23,8 +23,8 @@ from checklists_service.utils.storage import (
 __all__ = [
     "AuthServiceClient",
     "CacheManager",
-    "FileNotFoundError",
     "StorageError",
+    "StorageFileNotFoundError",
     "StorageService",
     "auth_service_client",
     "cache",

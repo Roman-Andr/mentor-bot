@@ -1,5 +1,6 @@
 """Unit tests for telegram_bot/middlewares/language.py."""
 
+from typing import Never
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -55,7 +56,7 @@ class TestLanguageMiddlewareCall:
         data = {"tg_user": MagicMock()}
         data["tg_user"].id = 123456
 
-        result = await self.middleware.__call__(self.mock_handler, mock_event, data)
+        await self.middleware.__call__(self.mock_handler, mock_event, data)
 
         # Should default to "en"
         assert data["locale"] == "en"
@@ -70,7 +71,7 @@ class TestLanguageMiddlewareCall:
         data = {"tg_user": MagicMock()}
         data["tg_user"].id = 123456
 
-        result = await self.middleware.__call__(self.mock_handler, mock_event, data)
+        await self.middleware.__call__(self.mock_handler, mock_event, data)
 
         # Should default to "en"
         assert data["locale"] == "en"
@@ -82,7 +83,7 @@ class TestLanguageMiddlewareCall:
         mock_event = MagicMock()
         data = {}  # No tg_user
 
-        result = await self.middleware.__call__(self.mock_handler, mock_event, data)
+        await self.middleware.__call__(self.mock_handler, mock_event, data)
 
         # Should default to "en"
         assert data["locale"] == "en"
@@ -98,7 +99,7 @@ class TestLanguageMiddlewareCall:
         mock_event = MagicMock()
         data = {"tg_user": None}
 
-        result = await self.middleware.__call__(self.mock_handler, mock_event, data)
+        await self.middleware.__call__(self.mock_handler, mock_event, data)
 
         assert data["locale"] == "en"
         mock_user_cache.get_user.assert_not_called()
@@ -131,7 +132,7 @@ class TestLanguageMiddlewareCall:
         # Capture what handler receives
         received_data = {}
 
-        async def capture_handler(event, data):
+        async def capture_handler(event, data) -> str:
             received_data.update(data)
             return "result"
 
@@ -148,8 +149,9 @@ class TestLanguageMiddlewareCall:
         data = {"tg_user": MagicMock()}
         data["tg_user"].id = 123456
 
-        async def failing_handler(event, data):
-            raise ValueError("Handler error")
+        async def failing_handler(event, data) -> Never:
+            msg = "Handler error"
+            raise ValueError(msg)
 
         with pytest.raises(ValueError, match="Handler error"):
             await self.middleware.__call__(failing_handler, mock_event, data)
@@ -163,7 +165,7 @@ class TestLanguageMiddlewareCall:
         mock_event = MagicMock()
         data = {"tg_user": MagicMock()}
 
-        result = await self.middleware.__call__(self.mock_handler, mock_event, data)
+        await self.middleware.__call__(self.mock_handler, mock_event, data)
 
         assert data["locale"] == "en"
 
@@ -217,7 +219,7 @@ class TestLanguageMiddlewareIntegration:
 
         results = {}
 
-        async def capture_handler(event, data):
+        async def capture_handler(event, data) -> str:
             results[data["tg_user"].id] = data["locale"]
             return "result"
 

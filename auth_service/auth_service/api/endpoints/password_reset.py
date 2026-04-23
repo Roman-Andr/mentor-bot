@@ -40,7 +40,7 @@ async def request_password_reset(
 
             ip_address = request.client.host if request.client else None
 
-            success, raw_token, user = await service.request_reset(
+            _success, raw_token, user = await service.request_reset(
                 email=data.email,
                 ip_address=ip_address,
             )

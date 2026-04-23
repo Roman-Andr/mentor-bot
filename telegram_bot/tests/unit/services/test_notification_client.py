@@ -1,5 +1,7 @@
 """Unit tests for telegram_bot NotificationServiceClient."""
 
+from typing import Never
+
 import pytest
 from fastapi import status
 from httpx import RequestError, Response
@@ -73,8 +75,9 @@ class TestSendTelegramNotification:
     async def test_send_telegram_notification_request_error(self, notification_client, monkeypatch):
         """Test Telegram notification with request error."""
 
-        async def mock_post(*args, **kwargs):
-            raise RequestError("Connection failed")
+        async def mock_post(*args, **kwargs) -> Never:
+            msg = "Connection failed"
+            raise RequestError(msg)
 
         monkeypatch.setattr(notification_client.client, "post", mock_post)
 
@@ -126,8 +129,9 @@ class TestSendEmailNotification:
     async def test_send_email_notification_request_error(self, notification_client, monkeypatch):
         """Test email notification with request error."""
 
-        async def mock_post(*args, **kwargs):
-            raise RequestError("Connection failed")
+        async def mock_post(*args, **kwargs) -> Never:
+            msg = "Connection failed"
+            raise RequestError(msg)
 
         monkeypatch.setattr(notification_client.client, "post", mock_post)
 
@@ -200,8 +204,9 @@ class TestScheduleNotification:
     async def test_schedule_notification_request_error(self, notification_client, monkeypatch):
         """Test notification scheduling with request error."""
 
-        async def mock_post(*args, **kwargs):
-            raise RequestError("Connection failed")
+        async def mock_post(*args, **kwargs) -> Never:
+            msg = "Connection failed"
+            raise RequestError(msg)
 
         monkeypatch.setattr(notification_client.client, "post", mock_post)
 
@@ -254,8 +259,9 @@ class TestGetUserNotifications:
     async def test_get_user_notifications_request_error(self, notification_client, monkeypatch):
         """Test user notifications retrieval with request error."""
 
-        async def mock_get(*args, **kwargs):
-            raise RequestError("Connection failed")
+        async def mock_get(*args, **kwargs) -> Never:
+            msg = "Connection failed"
+            raise RequestError(msg)
 
         monkeypatch.setattr(notification_client.client, "get", mock_get)
 
@@ -382,8 +388,9 @@ class TestGetActiveReminders:
     async def test_get_active_reminders_request_error(self, notification_client, monkeypatch):
         """Test active reminders retrieval with request error."""
 
-        async def mock_get(*args, **kwargs):
-            raise RequestError("Connection failed")
+        async def mock_get(*args, **kwargs) -> Never:
+            msg = "Connection failed"
+            raise RequestError(msg)
 
         monkeypatch.setattr(notification_client.client, "get", mock_get)
 

@@ -4,9 +4,9 @@ from collections.abc import Sequence
 from datetime import UTC, datetime
 from typing import cast
 
-from sqlalchemy import Column, func, or_, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import InstrumentedAttribute, selectinload
 
 from auth_service.core import UserRole
 from auth_service.core.exceptions import NotFoundException, ValidationException
@@ -120,10 +120,9 @@ class UserRepository(SqlAlchemyBaseRepository[User, int], IUserRepository):
 
         return users, total
 
-    def _get_sort_column(self, sort_by: str | None) -> Column:
+    def _get_sort_column(self, sort_by: str | None) -> InstrumentedAttribute:
         """Get SQLAlchemy column for sorting."""
-        # Map frontend field names to database columns
-        column_map = {
+        column_map: dict[str, InstrumentedAttribute] = {
             "name": User.first_name,
             "employee_id": User.employee_id,
             "department": User.department_id,  # Sort by department ID
@@ -137,9 +136,12 @@ class UserRepository(SqlAlchemyBaseRepository[User, int], IUserRepository):
         }
 
         if sort_by is not None and sort_by not in column_map:
-            raise ValidationException(f"Invalid sort column: {sort_by}")
+            msg = f"Invalid sort column: {sort_by}"
+            raise ValidationException(msg)
 
-        return column_map.get(sort_by, User.created_at)
+        if sort_by is None:
+            return User.created_at
+        return column_map[sort_by]
 
     async def update(self, entity: User) -> User:
         """Update user and reload with department relationship."""

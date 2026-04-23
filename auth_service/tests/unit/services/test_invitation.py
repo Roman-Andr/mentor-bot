@@ -381,5 +381,5 @@ class TestGenerateInvitationUrl:
 
         url = service.generate_invitation_url("test-token-123")
 
-        assert "t.me/" in url
-        assert "test-token-123" in url
+        assert "t.me/" in str(url)
+        assert "test-token-123" in str(url)

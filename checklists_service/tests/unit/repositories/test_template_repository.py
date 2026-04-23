@@ -218,8 +218,8 @@ class TestTemplateRepository:
 
         result = await repository.get_department_stats()
 
-        assert result[1] == 10
-        assert result[2] == 5
+        assert result["1"] == 10
+        assert result["2"] == 5
 
     async def test_get_department_stats_with_user_filter(self, repository, mock_session):
         """Test getting department stats with user filter."""
@@ -229,7 +229,7 @@ class TestTemplateRepository:
 
         result = await repository.get_department_stats(user_id=1)
 
-        assert result[1] == 3
+        assert result["1"] == 3
 
     async def test_find_matching_with_department_and_position(self, repository, mock_session, sample_template):
         """Test finding matching templates with department and position."""

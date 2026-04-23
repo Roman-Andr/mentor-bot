@@ -35,9 +35,10 @@ class AuthServiceClient:
     async def validate_token(self, token: str) -> dict[str, Any] | None:
         """Validate JWT token with auth service (cached) with circuit breaker protection."""
         try:
-            return await auth_service_circuit_breaker.call(
+            result = await auth_service_circuit_breaker.call(
                 self._make_validate_token_request, token
             )
+            return result if isinstance(result, dict) else None
         except httpx.RequestError:
             logger.exception("Auth service request failed")
         except Exception:
@@ -51,16 +52,17 @@ class AuthServiceClient:
             headers={"Authorization": f"Bearer {auth_token}"},
         )
         if response.status_code == status.HTTP_200_OK:
-            return response.json()
+            return response.json()  # type: ignore[no-any-return]
         return None
 
     @cached(ttl=600, key_prefix="auth_user")
     async def get_user(self, user_id: int, auth_token: str) -> dict[str, Any] | None:
         """Get user details from auth service (cached) with circuit breaker protection."""
         try:
-            return await auth_service_circuit_breaker.call(
+            result = await auth_service_circuit_breaker.call(
                 self._make_get_user_request, user_id, auth_token
             )
+            return result if isinstance(result, dict) else None
         except httpx.RequestError:
             logger.exception("Auth service request failed")
         except Exception:

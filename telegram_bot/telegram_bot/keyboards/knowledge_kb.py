@@ -217,7 +217,7 @@ def get_kb_category_articles_keyboard(
     """Build keyboard for articles within a category."""
     builder = InlineKeyboardBuilder()
 
-    for idx, article in enumerate(articles):
+    for _idx, article in enumerate(articles):
         art_id = article.get("id", 0)
         art_title = article.get("title", "Untitled")
         builder.add(

@@ -33,7 +33,7 @@ def repository(mock_session):
 @pytest.fixture
 def sample_account():
     """Create a sample Google Calendar account for testing."""
-    account = GoogleCalendarAccount(
+    return GoogleCalendarAccount(
         id=1,
         user_id=100,
         access_token="test_access_token",
@@ -42,7 +42,6 @@ def sample_account():
         calendar_id="primary",
         sync_enabled=True,
     )
-    return account
 
 
 class TestGetByUserId:

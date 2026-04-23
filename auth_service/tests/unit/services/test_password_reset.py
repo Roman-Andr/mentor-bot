@@ -64,8 +64,8 @@ class TestPasswordResetService:
             role=UserRole.NEWBIE,
         )
 
-    def _create_token_record(self, token: str, user_id: int, expired: bool = False, used: bool = False):
-        """Helper to create a PasswordResetToken with proper bcrypt hash."""
+    def _create_token_record(self, token: str, user_id: int, *, expired: bool = False, used: bool = False):
+        """Help to create a PasswordResetToken with proper bcrypt hash."""
         from auth_service.models import PasswordResetToken
 
         expires_at = datetime.now(UTC) - timedelta(hours=1) if expired else datetime.now(UTC) + timedelta(hours=1)
