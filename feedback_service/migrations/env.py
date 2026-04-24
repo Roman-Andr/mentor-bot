@@ -5,7 +5,7 @@ import os
 from logging.config import fileConfig
 
 from alembic import context
-from sqlalchemy import pool
+from sqlalchemy import pool, text
 from sqlalchemy.ext.asyncio import create_async_engine
 
 config = context.config
@@ -59,6 +59,8 @@ def do_run_migrations(connection):  # type: ignore[no-untyped-def]
 
 async def run_async_migrations() -> None:
     engine = create_async_engine(get_url(), poolclass=pool.NullPool)
+    async with engine.begin() as conn:
+        await conn.execute(text(f"CREATE SCHEMA IF NOT EXISTS {_schema}"))
     async with engine.connect() as connection:
         await connection.run_sync(do_run_migrations)
     await engine.dispose()

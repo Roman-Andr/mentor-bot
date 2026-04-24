@@ -7,15 +7,16 @@ dependencies = [
     "aiofiles>=25.1.0",
     "alembic>=1.18.4",
     "asyncpg>=0.31.0",
-    "email-validator>=2.0.0",
-    "fastapi>=0.136.0",
+    "email-validator>=2.3.0",
+    "fastapi>=0.136.1",
     "httpx>=0.28.1",
-    "pydantic>=2.13.2",
-    "pydantic-settings>=2.13.1",
+    "loguru>=0.7.3",
+    "pydantic>=2.13.3",
+    "pydantic-settings>=2.14.0",
     "python-dotenv>=1.2.2",
     "slowapi>=0.1.9",
     "sqlalchemy[asyncio,mypy]>=2.0.49",
-    "uvicorn[standard]>=0.44.0",
+    "uvicorn[standard]>=0.46.0",
 ]
 
 [dependency-groups]

@@ -1,7 +1,6 @@
 """Main entry point for Telegram Bot application."""
 
 import asyncio
-import logging
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager, suppress
 
@@ -9,6 +8,7 @@ from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.fsm.storage.redis import RedisStorage
 from aiogram.types import BotCommand
+from loguru import logger
 from redis.asyncio import Redis
 
 from telegram_bot.bot import setup_bot
@@ -22,13 +22,9 @@ from telegram_bot.utils.file_rate_limiter import (
     connect_rate_limiter,
     disconnect_rate_limiter,
 )
+from telegram_bot.utils.logging import configure_logging
 
-# Configure logging
-logging.basicConfig(
-    level=getattr(logging, settings.LOG_LEVEL),
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-)
-logger = logging.getLogger(__name__)
+configure_logging(service_name="telegram_bot", log_level=settings.LOG_LEVEL)
 
 
 @asynccontextmanager

@@ -1,0 +1,87 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "id": 1,
+      "gridPos": {"h": 14, "w": 24, "x": 0, "y": 0},
+      "type": "logs",
+      "title": "All Service Logs",
+      "targets": [
+        {
+          "expr": "{service_name=~\"auth_service|checklists_service|knowledge_service|notification_service|escalation_service|meeting_service|feedback_service|telegram_bot|admin_web\"}",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "showLabels": false,
+        "showTime": true,
+        "wrapLogMessage": true,
+        "enableLogDetails": true,
+        "prettifyLogMessage": true
+      },
+      "datasource": {"type": "loki", "uid": "loki"}
+    },
+    {
+      "id": 2,
+      "gridPos": {"h": 8, "w": 8, "x": 0, "y": 14},
+      "type": "logs",
+      "title": "Auth Service",
+      "targets": [{"expr": "{service_name=\"auth_service\"}", "refId": "A"}],
+      "options": {"showLabels": true, "showTime": true, "wrapLogMessage": true},
+      "datasource": {"type": "loki", "uid": "loki"}
+    },
+    {
+      "id": 3,
+      "gridPos": {"h": 8, "w": 8, "x": 8, "y": 14},
+      "type": "logs",
+      "title": "Checklists",
+      "targets": [{"expr": "{service_name=\"checklists_service\"}", "refId": "A"}],
+      "options": {"showLabels": true, "showTime": true, "wrapLogMessage": true},
+      "datasource": {"type": "loki", "uid": "loki"}
+    },
+    {
+      "id": 4,
+      "gridPos": {"h": 8, "w": 8, "x": 16, "y": 14},
+      "type": "logs",
+      "title": "Knowledge",
+      "targets": [{"expr": "{service_name=\"knowledge_service\"}", "refId": "A"}],
+      "options": {"showLabels": true, "showTime": true, "wrapLogMessage": true},
+      "datasource": {"type": "loki", "uid": "loki"}
+    },
+    {
+      "id": 5,
+      "gridPos": {"h": 8, "w": 8, "x": 0, "y": 22},
+      "type": "logs",
+      "title": "Notifications",
+      "targets": [{"expr": "{service_name=\"notification_service\"}", "refId": "A"}],
+      "options": {"showLabels": true, "showTime": true, "wrapLogMessage": true},
+      "datasource": {"type": "loki", "uid": "loki"}
+    },
+    {
+      "id": 6,
+      "gridPos": {"h": 8, "w": 8, "x": 8, "y": 22},
+      "type": "logs",
+      "title": "Meetings",
+      "targets": [{"expr": "{service_name=\"meeting_service\"}", "refId": "A"}],
+      "options": {"showLabels": true, "showTime": true, "wrapLogMessage": true},
+      "datasource": {"type": "loki", "uid": "loki"}
+    },
+    {
+      "id": 7,
+      "gridPos": {"h": 8, "w": 8, "x": 16, "y": 22},
+      "type": "logs",
+      "title": "Telegram Bot",
+      "targets": [{"expr": "{service_name=\"telegram_bot\"}", "refId": "A"}],
+      "options": {"showLabels": true, "showTime": true, "wrapLogMessage": true},
+      "datasource": {"type": "loki", "uid": "loki"}
+    }
+  ]
+}

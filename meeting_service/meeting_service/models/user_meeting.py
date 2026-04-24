@@ -20,16 +20,16 @@ class UserMeeting(Base):
     __tablename__ = "user_meetings"
 
     # Prevent duplicate assignments - database-level race condition protection
-    __table_args__ = (
-        UniqueConstraint("user_id", "meeting_id", name="uq_user_meeting_assignment"),
-    )
+    __table_args__ = (UniqueConstraint("user_id", "meeting_id", name="uq_user_meeting_assignment"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
 
     user_id: Mapped[int] = mapped_column(Integer, nullable=False, index=True)  # from auth service
     meeting_id: Mapped[int] = mapped_column(ForeignKey("meetings.id"), nullable=False)
 
-    status: Mapped[MeetingStatus] = mapped_column(Enum(MeetingStatus), default=MeetingStatus.SCHEDULED, nullable=False)
+    status: Mapped[MeetingStatus] = mapped_column(
+        Enum(MeetingStatus, schema="meeting", name="meetingstatus"), default=MeetingStatus.SCHEDULED, nullable=False
+    )
 
     scheduled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

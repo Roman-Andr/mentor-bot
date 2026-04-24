@@ -24,6 +24,7 @@ from telegram_bot.handlers import (
     settings as settings_handler,
 )
 from telegram_bot.middlewares import AuthMiddleware, LanguageMiddleware
+from telegram_bot.middlewares.request_id import RequestIDMiddleware
 from telegram_bot.middlewares.throttling import throttling_service
 
 logger = logging.getLogger(__name__)
@@ -62,7 +63,8 @@ async def global_error_handler(event: ErrorEvent) -> bool:
 
 def setup_bot(dp: Dispatcher, bot: Bot) -> Dispatcher:
     """Set up bot with all handlers and middleware."""
-    # Register middleware
+    # Register middleware (order matters: first registered = outermost)
+    dp.update.outer_middleware(RequestIDMiddleware())
     dp.update.outer_middleware(AuthMiddleware(bot))
     dp.update.outer_middleware(LanguageMiddleware())
 

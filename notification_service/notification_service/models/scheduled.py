@@ -24,8 +24,12 @@ class ScheduledNotification(Base):
     recipient_email: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
     # Content
-    type: Mapped[NotificationType] = mapped_column(Enum(NotificationType), nullable=False, index=True)
-    channel: Mapped[NotificationChannel] = mapped_column(Enum(NotificationChannel), nullable=False)
+    type: Mapped[NotificationType] = mapped_column(
+        Enum(NotificationType, schema="notification", name="notificationtype"), nullable=False, index=True
+    )
+    channel: Mapped[NotificationChannel] = mapped_column(
+        Enum(NotificationChannel, schema="notification", name="notificationchannel"), nullable=False
+    )
     subject: Mapped[str | None] = mapped_column(String(500), nullable=True)
     body: Mapped[str] = mapped_column(Text, nullable=False)
     data: Mapped[dict] = mapped_column(JSONB, default=dict, nullable=False)

@@ -1,4 +1,4 @@
-.PHONY: help start stop restart logs clean reset-db create-invitation shell-auth shell-checklist shell-knowledge shell-postgres shell-redis status full-reboot logs-notification logs-escalation logs-meeting shell-notification shell-escalation shell-meeting restart-notification restart-escalation restart-meeting reboot-notification reboot-escalation reboot-meeting logs-admin restart-admin restart-admin-dev reboot-admin shell-admin logs-telegram restart-telegram reboot-telegram shell-telegram dev-admin dev-meeting reset-locks update-deps mock-data prune test coverage coverage-html coverage-clean build-push docker-login prod-pull prod-up prod-down prod-logs prod-deploy
+.PHONY: help start stop restart logs clean reset-db create-invitation shell-auth shell-checklist shell-knowledge shell-postgres shell-redis status full-reboot logs-notification logs-escalation logs-meeting shell-notification shell-escalation shell-meeting restart-notification restart-escalation restart-meeting reboot-notification reboot-escalation reboot-meeting logs-admin restart-admin restart-admin-dev reboot-admin shell-admin logs-telegram restart-telegram reboot-telegram shell-telegram dev-admin dev-meeting reset-locks update-deps mock-data prune test coverage coverage-html coverage-clean build-push docker-login prod-pull prod-up prod-down prod-logs prod-deploy up up-svc
 
 # Docker compose project name
 PROJECT_NAME = mentor-bot
@@ -8,6 +8,8 @@ help:
 	@echo ""
 	@echo "Main commands:"
 	@echo "  make start             - Start the project (docker compose up -d --build)"
+	@echo "  make up               - Start without rebuild (use after make start)"
+	@echo "  make up-svc SERVICE=x - Start a single service without rebuild"
 	@echo "  make stop              - Stop the project (docker compose stop)"
 	@echo "  make restart           - Rebuild the entire project (down + up --build)"
 	@echo "  make full-reboot       - Restart the entire project with full clean"
@@ -127,6 +129,13 @@ test-admin-watch:
 
 start:
 	docker compose up -d --build
+
+up:
+	docker compose up -d
+
+up-svc:
+	@if [ -z "$(SERVICE)" ]; then echo "SERVICE is required (e.g. SERVICE=auth_service)"; exit 1; fi
+	docker compose up -d $(SERVICE)
 
 prune:
 	docker image prune -f

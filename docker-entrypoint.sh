@@ -9,24 +9,24 @@ fi
 # On first deploy against a DB that was already created by init_db (no
 # alembic_version row), stamp to head so existing tables are not re-created.
 if [ -f "/app/alembic.ini" ] && [ "$SERVICE_NAME" != "telegram_bot" ]; then
-  if su-exec appuser alembic upgrade head; then
+  if gosu appuser /app/.venv/bin/python -m alembic upgrade head; then
     echo "Migrations applied."
   else
     echo "alembic upgrade failed, stamping head (baseline for existing schema)"
-    su-exec appuser alembic stamp head
+    gosu appuser /app/.venv/bin/python -m alembic stamp head
   fi
 fi
 
 if [ "$DEBUG" = "true" ]; then
   if [ "$SERVICE_NAME" = "telegram_bot" ]; then
-    exec su-exec appuser python -Xfrozen_modules=off -m debugpy --listen 0.0.0.0:5671 -m telegram_bot.main
+    exec gosu appuser python -Xfrozen_modules=off -m debugpy --listen 0.0.0.0:5671 -m telegram_bot.main
   else
-    exec su-exec appuser python -Xfrozen_modules=off -m debugpy --listen 0.0.0.0:5671 -m uvicorn ${SERVICE_NAME}.main:app --host 0.0.0.0 --port 8000
+    exec gosu appuser python -Xfrozen_modules=off -m debugpy --listen 0.0.0.0:5671 -m uvicorn ${SERVICE_NAME}.main:app --host 0.0.0.0 --port 8000
   fi
 else
   if [ "$SERVICE_NAME" = "telegram_bot" ]; then
-    exec su-exec appuser python -m telegram_bot.main
+    exec gosu appuser python -m telegram_bot.main
   else
-    exec su-exec appuser "$@"
+    exec gosu appuser "$@"
   fi
 fi

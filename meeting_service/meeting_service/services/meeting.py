@@ -171,7 +171,7 @@ class MeetingService:
                 logger.info("Created Google Calendar event %s for user %s", event["id"], assignment_data.user_id)
             except (ValidationException, NotFoundException) as e:
                 # Don't fail the assignment if calendar sync fails
-                logger.warning("Failed to create Google Calendar event: %s", e)
+                logger.debug("Skipped Google Calendar sync: %s", e)
 
         await self._uow.commit()
         return created_assignment
@@ -272,7 +272,7 @@ class MeetingService:
                             )
                             logger.info("Updated Google Calendar event %s", assignment.google_calendar_event_id)
                         except (ValidationException, NotFoundException) as e:
-                            logger.warning("Failed to update Google Calendar event: %s", e)
+                            logger.debug("Skipped Google Calendar sync: %s", e)
                     else:
                         # Create new event
                         try:
@@ -280,7 +280,7 @@ class MeetingService:
                             assignment.google_calendar_event_id = event["id"]
                             logger.info("Created Google Calendar event %s for user %s", event["id"], assignment.user_id)
                         except (ValidationException, NotFoundException) as e:
-                            logger.warning("Failed to create Google Calendar event: %s", e)
+                            logger.debug("Skipped Google Calendar sync: %s", e)
 
         for field, value in update_dict.items():
             setattr(assignment, field, value)

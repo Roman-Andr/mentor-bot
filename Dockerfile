@@ -3,7 +3,7 @@ ARG PYTHON_VERSION=3.14
 # ── Dependencies ──────────────────────────────────────────────────────────────
 # Installs Python deps into a venv. Reused by dev and prod, so service code
 # changes never invalidate this layer.
-FROM python:${PYTHON_VERSION}-alpine AS deps
+FROM python:${PYTHON_VERSION}-slim AS deps
 
 ARG SERVICE_NAME
 
@@ -16,7 +16,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
   uv sync --no-dev --frozen --no-install-project
 
 # ── Runtime base (shared by dev + prod) ───────────────────────────────────────
-FROM python:${PYTHON_VERSION}-alpine AS base
+FROM python:${PYTHON_VERSION}-slim AS base
 
 ARG SERVICE_NAME
 
@@ -34,14 +34,17 @@ ENV AUTH_SERVICE_URL=http://auth_service:8000 \
 
 WORKDIR /app
 
-RUN adduser -D appuser && apk add --no-cache su-exec tzdata
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends gosu tzdata procps \
+  && rm -rf /var/lib/apt/lists/* \
+  && useradd --create-home --shell /bin/sh appuser
 
 EXPOSE 8000
 
 ENTRYPOINT ["/app/docker-entrypoint.sh"]
 CMD ["sh", "-c", "python -m uvicorn ${SERVICE_NAME}.main:app --host 0.0.0.0 --port 8000"]
 
-HEALTHCHECK --interval=15s --timeout=4s --start-period=30s --start-interval=2s --retries=10 \
+HEALTHCHECK --interval=15s --timeout=4s --start-period=20s --start-interval=2s --retries=10 \
   CMD ["python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
 
 # ── Development ───────────────────────────────────────────────────────────────
@@ -62,7 +65,7 @@ RUN chmod +x /app/docker-entrypoint.sh
 # ── Builder (prod staging) ────────────────────────────────────────────────────
 # Collects venv + code + migrations + entrypoint under /build/app so the prod
 # stage needs a single COPY --from=builder and stays flat.
-FROM python:${PYTHON_VERSION}-alpine AS builder
+FROM python:${PYTHON_VERSION}-slim AS builder
 
 ARG SERVICE_NAME
 

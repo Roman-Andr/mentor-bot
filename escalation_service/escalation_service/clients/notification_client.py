@@ -151,5 +151,5 @@ class NotificationClient:
                 response.raise_for_status()
                 return True
         except Exception:
-            logger.exception("Failed to send notification to user %s", user_id)
+            logger.debug("Could not send notification to user %s (likely no Telegram ID)", user_id)
             return False

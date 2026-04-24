@@ -18,6 +18,11 @@ ignore = [
     "C901",
     "PLR0912",
     "PLR0915",
+    "BLE001",
+    "ANN401",
+    "ANN202",
+    "ANN003",
+    "TC003",
 ]
 
 [lint.per-file-ignores]

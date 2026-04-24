@@ -43,12 +43,14 @@ class User(Base):
     department_id: Mapped[int | None] = mapped_column(ForeignKey("departments.id"), nullable=True)
     department: Mapped[Department | None] = relationship("Department", back_populates="users")
     position: Mapped[str | None] = mapped_column(String(100), nullable=True)
-    level: Mapped[EmployeeLevel | None] = mapped_column(Enum(EmployeeLevel, native=False), nullable=True)
+    level: Mapped[EmployeeLevel | None] = mapped_column(
+        Enum(EmployeeLevel, schema="auth", name="employeelevel", native=False), nullable=True
+    )
     hire_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # Authentication and authorization
     password_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    role: Mapped[UserRole] = mapped_column(Enum(UserRole), default=UserRole.NEWBIE, nullable=False)
+    role: Mapped[UserRole] = mapped_column(Enum(UserRole, schema="auth", name="userrole"), default=UserRole.NEWBIE, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 

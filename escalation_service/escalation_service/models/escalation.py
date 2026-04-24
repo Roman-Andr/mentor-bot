@@ -22,14 +22,21 @@ class EscalationRequest(Base):
     user_id: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
 
     # Request details
-    type: Mapped[EscalationType] = mapped_column(Enum(EscalationType), nullable=False, index=True)
-    source: Mapped[EscalationSource] = mapped_column(Enum(EscalationSource), nullable=False, index=True)
+    type: Mapped[EscalationType] = mapped_column(
+        Enum(EscalationType, schema="escalation", name="escalationtype"), nullable=False, index=True
+    )
+    source: Mapped[EscalationSource] = mapped_column(
+        Enum(EscalationSource, schema="escalation", name="escalationsource"), nullable=False, index=True
+    )
     reason: Mapped[str | None] = mapped_column(Text, nullable=True)  # free text explanation
     context: Mapped[dict] = mapped_column(JSONB, default=dict, nullable=False)  # additional context
 
     # Assignment and status
     status: Mapped[EscalationStatus] = mapped_column(
-        Enum(EscalationStatus), default=EscalationStatus.PENDING, nullable=False, index=True
+        Enum(EscalationStatus, schema="escalation", name="escalationstatus"),
+        default=EscalationStatus.PENDING,
+        nullable=False,
+        index=True,
     )
     assigned_to: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)  # user_id of assignee
 

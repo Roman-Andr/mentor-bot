@@ -1,0 +1,22 @@
+{
+  "Servers": {
+    "1": {
+      "Group": "Servers",
+      "Name": "Main postgres database",
+      "Host": "postgres",
+      "Port": 5432,
+      "MaintenanceDB": "${POSTGRES_DB}",
+      "Username": "${POSTGRES_USER}",
+      "UseSSHTunnel": 0,
+      "TunnelPort": "22",
+      "TunnelAuthentication": 0,
+      "KerberosAuthentication": false,
+      "ConnectionParameters": {
+        "sslmode": "prefer",
+        "connect_timeout": 10,
+        "sslcompression": 0,
+        "passfile": "/pgpass"
+      }
+    }
+  }
+}

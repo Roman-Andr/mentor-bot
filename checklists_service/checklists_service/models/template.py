@@ -12,8 +12,7 @@ from checklists_service.core import EmployeeLevel, TaskCategory, TemplateStatus
 from checklists_service.database import Base
 
 if TYPE_CHECKING:
-    from checklists_service.models import Checklist
-    from checklists_service.models.department import Department
+    from checklists_service.models import Checklist, TaskTemplate, Department
 
 
 class Template(Base):
@@ -29,7 +28,9 @@ class Template(Base):
     department_id: Mapped[int | None] = mapped_column(ForeignKey("departments.id"), nullable=True)
     department: Mapped[Department | None] = relationship("Department", back_populates="templates")
     position: Mapped[str | None] = mapped_column(String(100), nullable=True)
-    level: Mapped[EmployeeLevel | None] = mapped_column(Enum(EmployeeLevel, native=False), nullable=True)
+    level: Mapped[EmployeeLevel | None] = mapped_column(
+        Enum(EmployeeLevel, schema="checklists", name="employeelevel", native=False), nullable=True
+    )
 
     # Configuration
     duration_days: Mapped[int] = mapped_column(Integer, default=30, nullable=False)
@@ -37,7 +38,9 @@ class Template(Base):
     default_assignee_role: Mapped[str | None] = mapped_column(String(50), nullable=True)
 
     # Status
-    status: Mapped[TemplateStatus] = mapped_column(Enum(TemplateStatus), default=TemplateStatus.ACTIVE, nullable=False)
+    status: Mapped[TemplateStatus] = mapped_column(
+        Enum(TemplateStatus, schema="checklists", name="templatestatus"), default=TemplateStatus.ACTIVE, nullable=False
+    )
 
     # Metadata
     version: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
@@ -73,7 +76,14 @@ class TaskTemplate(Base):
 
     # Task configuration
     category: Mapped[TaskCategory] = mapped_column(
-        Enum(TaskCategory), default=TaskCategory.DOCUMENTATION, nullable=False
+        Enum(
+            TaskCategory,
+            schema="checklists",
+            name="taskcategory",
+            native=True,
+        ),
+        default=TaskCategory.DOCUMENTATION,
+        nullable=False,
     )
     order: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     due_days: Mapped[int] = mapped_column(Integer, default=1, nullable=False)

@@ -1,5 +1,7 @@
 """Unit tests for password reset service."""
 
+from __future__ import annotations
+
 from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock
 
@@ -14,8 +16,7 @@ class TestPasswordResetService:
     @pytest.fixture
     def mock_session(self):
         """Create a mock database session."""
-        session = AsyncMock()
-        return session
+        return AsyncMock()
 
     @pytest.fixture
     def mock_uow(self):
@@ -64,7 +65,9 @@ class TestPasswordResetService:
             role=UserRole.NEWBIE,
         )
 
-    def _create_token_record(self, token: str, user_id: int, *, expired: bool = False, used: bool = False):
+    def _create_token_record(
+        self, token: str, user_id: int, *, expired: bool = False, used: bool = False
+    ) -> "PasswordResetToken":
         """Help to create a PasswordResetToken with proper bcrypt hash."""
         from auth_service.models import PasswordResetToken
 
@@ -104,7 +107,7 @@ class TestPasswordResetService:
         assert result is False
 
     @pytest.mark.asyncio
-    async def test_confirm_reset_token_expired(self, mock_uow, mock_session, active_user):
+    async def test_confirm_reset_token_expired(self, mock_uow, mock_session):
         """Test confirm_reset returns False when token expired."""
         # Expired tokens are filtered out by _get_valid_token_record
         service = PasswordResetService(mock_uow, mock_session)
@@ -163,8 +166,6 @@ class TestPasswordResetService:
     @pytest.mark.asyncio
     async def test_get_valid_token_record_success(self, mock_uow, mock_session, active_user):
         """Test _get_valid_token_record returns token when found and valid."""
-        from auth_service.models import PasswordResetToken
-
         token = "test-token"
         mock_token = self._create_token_record(token, active_user.id)
 

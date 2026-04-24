@@ -1,6 +1,5 @@
 """FastAPI application entry point for Auth Service."""
 
-import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
@@ -8,6 +7,7 @@ from datetime import UTC, datetime
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from loguru import logger
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
@@ -17,16 +17,13 @@ from sqlalchemy import text
 from auth_service.api import auth, departments, invitations, password_reset, user_mentors, users
 from auth_service.config import settings
 from auth_service.database import engine, init_db
+from auth_service.middleware.request_id import RequestIDMiddleware
 from auth_service.schemas import HealthCheck, ServiceStatus
 from auth_service.utils.department_sync import department_sync_client
 from auth_service.utils.integrations import checklists_service_client, notification_service_client
+from auth_service.utils.logging import configure_logging
 
-# Configure logging
-logging.basicConfig(
-    level=getattr(logging, settings.LOG_LEVEL),
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-)
-logger = logging.getLogger(__name__)
+configure_logging(service_name="auth_service", log_level=settings.LOG_LEVEL)
 
 
 @asynccontextmanager
@@ -71,6 +68,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.ALLOWED_HOSTS)
+app.add_middleware(RequestIDMiddleware)
 
 # Include routers
 app.include_router(auth.router, prefix=f"{settings.API_V1_PREFIX}/auth", tags=["authentication"])

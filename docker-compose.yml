@@ -280,10 +280,10 @@ services:
       - postgres_data:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-      interval: 10s
-      timeout: 5s
+      interval: 5s
+      timeout: 3s
       retries: 10
-      start_period: 30s
+      start_period: 10s
       start_interval: 1s
 
   redis:
@@ -329,7 +329,7 @@ services:
       interval: 10s
       timeout: 10s
       retries: 3
-      start_period: 140s
+      start_period: 60s
       start_interval: 5s
 
   redis-insight:
@@ -384,12 +384,69 @@ services:
       retries: 20
       start_period: 10s
       start_interval: 2s
+
+  loki:
+    container_name: loki
+    image: grafana/loki:3.2.1
+    restart: unless-stopped
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./observability/loki:/etc/loki
+      - loki_data:/loki
+    networks:
+      - mentor_network
+    command: -config.file=/etc/loki/loki-config.yaml
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3100/ready"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  alloy:
+    container_name: alloy
+    image: grafana/alloy:latest
+    restart: unless-stopped
+    volumes:
+      - ./observability/alloy:/etc/alloy
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - mentor_network
+    command: run --server.http.listen-addr=0.0.0.0:12345 /etc/alloy/config.alloy
+    depends_on:
+      - loki
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:11.3.1
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    volumes:
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning
+      - grafana_data:/var/lib/grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    networks:
+      - mentor_network
+    depends_on:
+      - loki
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
 volumes:
   postgres_data:
   redis_data:
   pgadmin-data:
   redis-insight:
   minio_data:
+  loki_data:
+  grafana_data:
 
 networks:
   mentor_network:
@@ -397,24 +454,8 @@ networks:
 
 configs:
   pgpass:
-    content: postgres:5432:${POSTGRES_DB}:${POSTGRES_USER}:${POSTGRES_PASSWORD}
+    file: observability/pgadmin/pgpass
+    name: pgpass
   servers.json:
-    content: |
-      {"Servers": {"1": {
-        "Group": "Servers",
-        "Name": "Main postgres database",
-        "Host": "postgres",
-        "Port": 5432,
-        "MaintenanceDB": "${POSTGRES_DB}",
-        "Username": "${POSTGRES_USER}",
-        "UseSSHTunnel": 0,
-        "TunnelPort": "22",
-        "TunnelAuthentication": 0,
-        "KerberosAuthentication": false,
-        "ConnectionParameters": {
-            "sslmode": "prefer",
-            "connect_timeout": 10,
-            "sslcompression": 0,
-            "passfile": "/pgpass"
-        }
-      }}}
+    file: observability/pgadmin/servers.json
+    name: servers.json

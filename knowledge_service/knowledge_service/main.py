@@ -1,6 +1,5 @@
 """FastAPI application entry point for Knowledge Service."""
 
-import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
@@ -8,6 +7,7 @@ from datetime import UTC, datetime
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from loguru import logger
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
@@ -18,15 +18,12 @@ from knowledge_service.api import articles, attachments, categories, departments
 from knowledge_service.config import settings
 from knowledge_service.database import engine, init_db
 from knowledge_service.middleware.auth import AuthTokenMiddleware
+from knowledge_service.middleware.request_id import RequestIDMiddleware
 from knowledge_service.schemas import HealthCheck, ServiceStatus
 from knowledge_service.utils import cache
+from knowledge_service.utils.logging import configure_logging
 
-# Configure logging
-logging.basicConfig(
-    level=getattr(logging, settings.LOG_LEVEL),
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-)
-logger = logging.getLogger(__name__)
+configure_logging(service_name="knowledge_service", log_level=settings.LOG_LEVEL)
 
 
 @asynccontextmanager
@@ -75,6 +72,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.ALLOWED_HOSTS)
+app.add_middleware(RequestIDMiddleware)
 
 # Include routers
 app.include_router(categories.router, prefix=f"{settings.API_V1_PREFIX}/categories", tags=["categories"])

@@ -56,18 +56,8 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 
 
 async def init_db() -> None:
-    """Initialize database tables."""
+    """Create database schema if it does not exist. Tables are managed by Alembic migrations."""
     async with engine.begin() as conn:
-        # Create schema if it does not exist
         await conn.run_sync(
             lambda sync_conn: sync_conn.execute(schema.CreateSchema(settings.DATABASE_SCHEMA, if_not_exists=True))
         )
-
-        # Create all tables
-        from feedback_service.models import (  # noqa: F401, PLC0415
-            Comment,
-            ExperienceRating,
-            PulseSurvey,
-        )
-
-        await conn.run_sync(Base.metadata.create_all)

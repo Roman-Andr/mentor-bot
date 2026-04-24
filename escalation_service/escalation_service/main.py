@@ -1,6 +1,5 @@
 """FastAPI application entry point for Escalation Service."""
 
-import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
@@ -8,6 +7,7 @@ from datetime import UTC, datetime
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from loguru import logger
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
@@ -17,14 +17,11 @@ from sqlalchemy import text
 from escalation_service.api.endpoints import escalations_router
 from escalation_service.config import settings
 from escalation_service.database import engine, init_db
+from escalation_service.middleware.request_id import RequestIDMiddleware
 from escalation_service.schemas import HealthCheck, ServiceStatus
+from escalation_service.utils.logging import configure_logging
 
-# Configure logging
-logging.basicConfig(
-    level=getattr(logging, settings.LOG_LEVEL),
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-)
-logger = logging.getLogger(__name__)
+configure_logging(service_name="escalation_service", log_level=settings.LOG_LEVEL)
 
 
 @asynccontextmanager
@@ -67,6 +64,7 @@ app.add_middleware(
 
 # Trusted hosts
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.ALLOWED_HOSTS)
+app.add_middleware(RequestIDMiddleware)
 
 # Include routers
 app.include_router(escalations_router, prefix=f"{settings.API_V1_PREFIX}/escalations", tags=["escalations"])

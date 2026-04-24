@@ -64,7 +64,7 @@ class AuthService:
         try:
             payload = decode_token(refresh_data.refresh_token, expected_type="refresh")
         except HTTPException as e:
-            msg = e.detail if e.detail else "Invalid refresh token"
+            msg = e.detail or "Invalid refresh token"
             raise AuthException(msg) from e
 
         # Get user

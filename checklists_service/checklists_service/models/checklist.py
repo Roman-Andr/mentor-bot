@@ -12,7 +12,7 @@ from checklists_service.core import ChecklistStatus, TaskCategory, TaskStatus
 from checklists_service.database import Base
 
 if TYPE_CHECKING:
-    from checklists_service.models import Template
+    from checklists_service.models import Template, Task
 
 
 class Checklist(Base):
@@ -31,7 +31,7 @@ class Checklist(Base):
 
     # Progress tracking
     status: Mapped[ChecklistStatus] = mapped_column(
-        Enum(ChecklistStatus), default=ChecklistStatus.IN_PROGRESS, nullable=False
+        Enum(ChecklistStatus, schema="checklists", name="status"), default=ChecklistStatus.IN_PROGRESS, nullable=False
     )
     progress_percentage: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     completed_tasks: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
@@ -74,10 +74,14 @@ class Task(Base):
     # Task details
     title: Mapped[str] = mapped_column(String(200), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
-    category: Mapped[TaskCategory] = mapped_column(Enum(TaskCategory, native=False), nullable=False)
+    category: Mapped[TaskCategory] = mapped_column(
+        Enum(TaskCategory, schema="checklists", name="taskcategory", native=False), nullable=False
+    )
 
     # Status and tracking
-    status: Mapped[TaskStatus] = mapped_column(Enum(TaskStatus), default=TaskStatus.PENDING, nullable=False)
+    status: Mapped[TaskStatus] = mapped_column(
+        Enum(TaskStatus, schema="checklists", name="status"), default=TaskStatus.PENDING, nullable=False
+    )
     order: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
 
     # Assignees

@@ -56,29 +56,11 @@ async def get_db() -> AsyncGenerator[AsyncSession]:
 
 
 async def init_db() -> None:
-    """Initialize database tables and search indexes."""
+    """Create database schema and search indexes. Tables are managed by Alembic migrations."""
     async with engine.begin() as conn:
-        # Create schema if it does not exist
         await conn.run_sync(
             lambda sync_conn: sync_conn.execute(schema.CreateSchema(settings.DATABASE_SCHEMA, if_not_exists=True))
         )
-
-        # Create all tables
-        from knowledge_service.models import (  # noqa: F401, PLC0415
-            Article,
-            ArticleView,
-            Attachment,
-            Category,
-            DialogueScenario,
-            DialogueStep,
-            SearchHistory,
-            Tag,
-            article_tags,
-        )
-
-        await conn.run_sync(Base.metadata.create_all)
-
-        # Create full-text search indexes
         await conn.run_sync(_create_search_indexes)
 
 

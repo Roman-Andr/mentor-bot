@@ -1,6 +1,5 @@
 """FastAPI application entry point for Checklists Service."""
 
-import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
@@ -10,6 +9,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
+from loguru import logger
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
@@ -20,15 +20,12 @@ from checklists_service.api import checklists, departments, tasks, templates
 from checklists_service.config import settings
 from checklists_service.database import engine, init_db
 from checklists_service.middleware.auth import AuthTokenMiddleware
+from checklists_service.middleware.request_id import RequestIDMiddleware
 from checklists_service.schemas import HealthCheck, ServiceStatus
 from checklists_service.utils import cache, shutdown_storage
+from checklists_service.utils.logging import configure_logging
 
-# Configure logging
-logging.basicConfig(
-    level=getattr(logging, settings.LOG_LEVEL),
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-)
-logger = logging.getLogger(__name__)
+configure_logging(service_name="checklists_service", log_level=settings.LOG_LEVEL)
 
 
 @asynccontextmanager
@@ -77,6 +74,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.ALLOWED_HOSTS)
+app.add_middleware(RequestIDMiddleware)
 
 
 # Add validation error handler for debugging
