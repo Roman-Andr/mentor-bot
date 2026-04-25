@@ -24,6 +24,7 @@ import {
   CalendarCheck,
   MessageSquare,
   Code,
+  MessageCircle,
 } from "lucide-react";
 
 const iconMap = {
@@ -39,6 +40,7 @@ const iconMap = {
   CalendarCheck,
   MessageSquare,
   Code,
+  MessageCircle,
 };
 
 export function Sidebar() {
@@ -58,6 +60,7 @@ export function Sidebar() {
     { name: t("nav.invitations"), href: "/invitations", icon: "Mail" },
     { name: t("nav.escalations"), href: "/escalations", icon: "AlertTriangle" },
     { name: t("nav.meetings"), href: "/meetings", icon: "CalendarCheck" },
+    { name: t("nav.feedback"), href: "/feedback", icon: "MessageCircle" },
     { name: t("nav.analytics"), href: "/analytics", icon: "BarChart3" },
     { name: t("nav.settings"), href: "/settings", icon: "Settings" },
   ];

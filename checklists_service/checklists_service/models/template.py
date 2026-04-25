@@ -12,7 +12,7 @@ from checklists_service.core import EmployeeLevel, TaskCategory, TemplateStatus
 from checklists_service.database import Base
 
 if TYPE_CHECKING:
-    from checklists_service.models import Checklist, TaskTemplate, Department
+    from checklists_service.models import Checklist, TaskTemplate
 
 
 class Template(Base):
@@ -25,11 +25,10 @@ class Template(Base):
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     # Target audience
-    department_id: Mapped[int | None] = mapped_column(ForeignKey("departments.id"), nullable=True)
-    department: Mapped[Department | None] = relationship("Department", back_populates="templates")
+    department_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
     position: Mapped[str | None] = mapped_column(String(100), nullable=True)
     level: Mapped[EmployeeLevel | None] = mapped_column(
-        Enum(EmployeeLevel, schema="checklists", name="employeelevel", native=False), nullable=True
+        Enum(EmployeeLevel, name="employeelevel"), nullable=True
     )
 
     # Configuration
@@ -39,7 +38,7 @@ class Template(Base):
 
     # Status
     status: Mapped[TemplateStatus] = mapped_column(
-        Enum(TemplateStatus, schema="checklists", name="templatestatus"), default=TemplateStatus.ACTIVE, nullable=False
+        Enum(TemplateStatus, name="templatestatus"), default=TemplateStatus.ACTIVE, nullable=False
     )
 
     # Metadata
@@ -69,7 +68,9 @@ class TaskTemplate(Base):
     __tablename__ = "task_templates"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    template_id: Mapped[int] = mapped_column(ForeignKey("templates.id", ondelete="CASCADE"), nullable=False)
+    template_id: Mapped[int] = mapped_column(
+        ForeignKey("templates.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     title: Mapped[str] = mapped_column(String(200), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     instructions: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -78,9 +79,7 @@ class TaskTemplate(Base):
     category: Mapped[TaskCategory] = mapped_column(
         Enum(
             TaskCategory,
-            schema="checklists",
             name="taskcategory",
-            native=True,
         ),
         default=TaskCategory.DOCUMENTATION,
         nullable=False,

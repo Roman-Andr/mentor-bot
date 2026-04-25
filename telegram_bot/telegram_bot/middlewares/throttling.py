@@ -8,6 +8,7 @@ from typing import Any
 from aiogram import BaseMiddleware
 from aiogram.dispatcher.flags import get_flag
 from aiogram.types import TelegramObject
+from loguru import logger
 from redis.asyncio import Redis
 from redis.exceptions import RedisError
 
@@ -38,7 +39,7 @@ class ThrottlingMiddleware(BaseMiddleware):
             if data:
                 return json.loads(data)
         except (RedisError, json.JSONDecodeError):
-            return None
+            logger.warning("Failed to get rate limit data (user_id={})", user_id)
         return None
 
     async def _set_rate_limit_data(
@@ -53,6 +54,7 @@ class ThrottlingMiddleware(BaseMiddleware):
             )
             return True
         except RedisError:
+            logger.warning("Failed to set rate limit data (user_id={})", user_id)
             return False
 
     async def _is_rate_limited(
@@ -116,9 +118,10 @@ class ThrottlingMiddleware(BaseMiddleware):
             calls = rate_limit.get("calls", self._default_calls)
             period = rate_limit.get("period", self._default_period)
 
-            is_limited, _ = await self._is_rate_limited(user_id, calls, period)
+            is_limited, remaining = await self._is_rate_limited(user_id, calls, period)
 
             if is_limited:
+                logger.warning("Rate limit exceeded (user_id={})", user_id)
                 if hasattr(event, "answer"):
                     await event.answer(
                         "Too many requests. Please wait a moment.", show_alert=True
@@ -137,11 +140,13 @@ class ThrottlingService:
 
     async def connect(self) -> None:
         """Connect to Redis."""
+        logger.info("Connecting to Redis for throttling")
         if not self.redis:
             self.redis = Redis.from_url(str(settings.REDIS_URL))
 
     async def disconnect(self) -> None:
         """Disconnect from Redis."""
+        logger.info("Disconnecting from Redis for throttling")
         if self.redis:
             await self.redis.aclose()
             self.redis = None

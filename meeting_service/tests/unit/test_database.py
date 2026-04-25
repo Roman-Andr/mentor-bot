@@ -110,77 +110,24 @@ class TestInitDB:
     """Tests for database initialization."""
 
     @pytest.mark.asyncio
-    async def test_init_db_creates_schema(self):
-        """Test init_db creates schema if not exists."""
+    async def test_init_db_completes_successfully(self):
+        """Test init_db completes without errors (no schema creation needed)."""
         from meeting_service.database import init_db
 
-        mock_conn = MagicMock()
-        mock_conn.run_sync = AsyncMock()
+        await init_db()
+
+    @pytest.mark.asyncio
+    async def test_init_db_does_not_create_schema(self):
+        """Test init_db does not attempt schema creation (uses public schema)."""
+        from meeting_service.database import init_db
 
         mock_engine = MagicMock()
         mock_engine.begin = MagicMock()
-        mock_context = MagicMock()
-        mock_context.__aenter__ = AsyncMock(return_value=mock_conn)
-        mock_context.__aexit__ = AsyncMock(return_value=None)
-        mock_engine.begin.return_value = mock_context
 
         with patch("meeting_service.database.engine", mock_engine):
             await init_db()
 
-        # Should call run_sync twice: once for schema creation, once for table creation
-        assert mock_conn.run_sync.call_count == 2
-
-    @pytest.mark.asyncio
-    async def test_init_db_exception_handling(self):
-        """Test init_db handles exceptions during initialization."""
-        from meeting_service.database import init_db
-
-        mock_conn = MagicMock()
-        mock_conn.run_sync = AsyncMock(side_effect=Exception("Database error"))
-
-        mock_engine = MagicMock()
-        mock_engine.begin = MagicMock()
-        mock_context = MagicMock()
-        mock_context.__aenter__ = AsyncMock(return_value=mock_conn)
-        mock_context.__aexit__ = AsyncMock(return_value=None)
-        mock_engine.begin.return_value = mock_context
-
-        with patch("meeting_service.database.engine", mock_engine):
-            with pytest.raises(Exception, match="Database error"):
-                await init_db()
-
-    @pytest.mark.asyncio
-    async def test_init_db_schema_creation_call(self):
-        """Test that init_db properly creates schema."""
-        from meeting_service.database import init_db, settings
-
-        mock_conn = MagicMock()
-        mock_conn.run_sync = AsyncMock()
-
-        mock_engine = MagicMock()
-        mock_engine.begin = MagicMock()
-        mock_context = MagicMock()
-        mock_context.__aenter__ = AsyncMock(return_value=mock_conn)
-        mock_context.__aexit__ = AsyncMock(return_value=None)
-        mock_engine.begin.return_value = mock_context
-
-        with patch("meeting_service.database.engine", mock_engine):
-            await init_db()
-
-        # Get the first run_sync call (schema creation)
-        first_call = mock_conn.run_sync.call_args_list[0]
-        callable_arg = first_call[0][0]
-
-        # Verify the callable when executed creates a CreateSchema statement
-        mock_sync_conn = MagicMock()
-        callable_arg(mock_sync_conn)
-
-        # Check that execute was called on the sync connection
-        mock_sync_conn.execute.assert_called_once()
-        call_args = mock_sync_conn.execute.call_args[0][0]
-
-        # Verify it's a CreateSchema statement for the correct schema
-        assert str(settings.DATABASE_SCHEMA) in str(call_args)
+        mock_engine.begin.assert_not_called()
 
 
 class TestBase:
@@ -192,8 +139,9 @@ class TestBase:
 
         assert Base.metadata == metadata_obj
 
-    def test_metadata_has_schema(self):
-        """Test metadata is configured with correct schema."""
-        from meeting_service.database import metadata_obj, settings
+    def test_metadata_exists(self):
+        """Test metadata object exists and is usable."""
+        from meeting_service.database import metadata_obj
 
-        assert metadata_obj.schema == settings.DATABASE_SCHEMA
+        assert metadata_obj is not None
+        assert hasattr(metadata_obj, "tables")

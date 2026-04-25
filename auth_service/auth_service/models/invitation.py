@@ -37,16 +37,16 @@ class Invitation(Base):
     department: Mapped[Department | None] = relationship("Department", back_populates="invitations")
     position: Mapped[str | None] = mapped_column(String(100), nullable=True)
     level: Mapped[EmployeeLevel | None] = mapped_column(
-        Enum(EmployeeLevel, schema="auth", name="employeelevel", native=False), nullable=True
+        Enum(EmployeeLevel, name="employeelevel", native=False), nullable=True
     )
-    role: Mapped[UserRole] = mapped_column(Enum(UserRole, schema="auth", name="userrole"), default=UserRole.NEWBIE, nullable=False)
+    role: Mapped[UserRole] = mapped_column(Enum(UserRole, name="userrole"), default=UserRole.NEWBIE, nullable=False)
 
     # Mentor assignment
     mentor_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
     mentor: Mapped[User | None] = relationship("User", foreign_keys=[mentor_id])
 
     # Status
-    status: Mapped[InvitationStatus] = mapped_column(Enum(InvitationStatus, schema="auth", name="invitationstatus"), nullable=False)
+    status: Mapped[InvitationStatus] = mapped_column(Enum(InvitationStatus, name="invitationstatus"), nullable=False)
 
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)

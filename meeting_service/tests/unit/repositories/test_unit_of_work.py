@@ -105,6 +105,26 @@ class TestSqlAlchemyUnitOfWork:
         # Assert
         mock_session.rollback.assert_called_once()
 
+    async def test_aexit_rollbacks_session_on_exception(self):
+        """Exiting the context manager with an exception triggers session.rollback()."""
+        # Arrange
+        mock_session = MagicMock(spec=AsyncSession)
+        mock_session.rollback = AsyncMock()
+        mock_session.close = AsyncMock()
+        mock_session_factory = MagicMock(spec=async_sessionmaker, return_value=mock_session)
+
+        uow = SqlAlchemyUnitOfWork(mock_session_factory)
+
+        # Act & Assert
+        with pytest.raises(ValueError, match="boom"):
+            async with uow:
+                msg = "boom"
+                raise ValueError(msg)
+
+        mock_session.rollback.assert_called_once()
+        mock_session.close.assert_called_once()
+        assert uow._session is None
+
 
 class TestSqlalchemyUowContextManager:
     """Tests for the sqlalchemy_uow async context manager function."""

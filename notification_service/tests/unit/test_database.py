@@ -145,8 +145,8 @@ class TestInitDb:
         with patch("notification_service.database.engine", mock_engine):
             await init_db()
 
-        # Verify schema creation was called (run_sync is called twice: once for schema, once for tables)
-        assert mock_conn.run_sync.await_count == 2
+        # init_db is empty (uses public schema, no schema/table creation)
+        assert mock_conn.run_sync.await_count == 0
 
     async def test_handles_connection_begin(self) -> None:
         """init_db uses engine.begin() context manager."""
@@ -162,4 +162,5 @@ class TestInitDb:
         with patch("notification_service.database.engine", mock_engine):
             await init_db()
 
-        mock_engine.begin.assert_called_once()
+        # init_db is empty (uses public schema, no schema/table creation)
+        mock_engine.begin.assert_not_called()

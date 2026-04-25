@@ -26,7 +26,7 @@ class Attachment(Base):
     # Attachment details
     name: Mapped[str] = mapped_column(String(500), nullable=False)
     type: Mapped[AttachmentType] = mapped_column(
-        Enum(AttachmentType, schema="knowledge", name="attachmenttype"), nullable=False, index=True
+        Enum(AttachmentType, name="attachmenttype"), nullable=False, index=True
     )
     url: Mapped[str] = mapped_column(String(2000), nullable=False)
     file_size: Mapped[int | None] = mapped_column(Integer, nullable=True)  # in bytes

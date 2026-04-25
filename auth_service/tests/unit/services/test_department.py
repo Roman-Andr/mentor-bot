@@ -1,7 +1,7 @@
 """Unit tests for department_service/services/department.py."""
 
 from datetime import UTC, datetime
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -108,14 +108,13 @@ class TestCreateDepartment:
         mock_uow.departments.get_by_name.return_value = None
         mock_uow.departments.create.return_value = sample_department
 
-        with patch("auth_service.services.department.department_sync_client.sync_department", new_callable=AsyncMock):
-            service = DepartmentService(mock_uow)
-            department_data = DepartmentCreate(
-                name="Engineering",
-                description="Software Engineering Department",
-            )
+        service = DepartmentService(mock_uow)
+        department_data = DepartmentCreate(
+            name="Engineering",
+            description="Software Engineering Department",
+        )
 
-            department = await service.create_department(department_data)
+        department = await service.create_department(department_data)
 
         assert department.name == "Engineering"
         assert department.description == "Software Engineering Department"
@@ -136,25 +135,6 @@ class TestCreateDepartment:
             await service.create_department(department_data)
 
         assert "department with this name already exists" in str(exc_info.value.detail).lower()
-
-    async def test_create_department_syncs_to_other_services(self, mock_uow, sample_department):
-        """Test creating department syncs to other services."""
-        mock_uow.departments.get_by_name.return_value = None
-        mock_uow.departments.create.return_value = sample_department
-
-        with patch(
-            "auth_service.services.department.department_sync_client.sync_department",
-            new_callable=AsyncMock,
-        ) as mock_sync:
-            service = DepartmentService(mock_uow)
-            department_data = DepartmentCreate(
-                name="Engineering",
-                description="Software Engineering Department",
-            )
-
-            await service.create_department(department_data)
-
-        mock_sync.assert_called_once_with("Engineering", "Software Engineering Department")
 
 
 class TestUpdateDepartment:
@@ -268,11 +248,7 @@ class TestDeleteDepartment:
         mock_uow.departments.delete.return_value = True
         service = DepartmentService(mock_uow)
 
-        with patch(
-            "auth_service.services.department.department_sync_client.sync_department_delete",
-            new_callable=AsyncMock,
-        ):
-            await service.delete_department(1)
+        await service.delete_department(1)
 
         mock_uow.departments.delete.assert_called_once_with(1)
 

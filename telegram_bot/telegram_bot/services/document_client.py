@@ -1,14 +1,11 @@
 """HTTP client for document service integration."""
 
-import logging
-
 import httpx
 from fastapi import status
+from loguru import logger
 
 from telegram_bot.config import settings
 from telegram_bot.utils.cache import cached
-
-logger = logging.getLogger(__name__)
 
 
 class DocumentServiceClient:
@@ -26,6 +23,7 @@ class DocumentServiceClient:
         self, department: str, auth_token: str
     ) -> list[dict]:
         """Get documents for department (cached)."""
+        logger.debug("Fetching department documents (department={})", department)
         try:
             response = await self.client.get(
                 f"{settings.API_V1_PREFIX}/articles/department/{department}",
@@ -33,9 +31,10 @@ class DocumentServiceClient:
             )
             if response.status_code == status.HTTP_200_OK:
                 data = response.json()
+                logger.debug("Department documents fetched (department={}, count={})", department, len(data.get("articles", [])))
                 return data.get("articles", [])
         except httpx.RequestError:
-            logger.exception("Document service request failed")
+            logger.exception("Document service request failed (department={})", department)
         return []
 
     @cached(ttl=60, key_prefix="company_policies")
@@ -43,6 +42,7 @@ class DocumentServiceClient:
         """Get company policies (cached)."""
         # Assuming company policies are stored in a specific category or department
         # For now, return empty list or fetch from a specific endpoint
+        logger.debug("Fetching company policies")
         try:
             # This is a placeholder - adjust based on actual API structure
             response = await self.client.get(
@@ -52,6 +52,7 @@ class DocumentServiceClient:
             )
             if response.status_code == status.HTTP_200_OK:
                 data = response.json()
+                logger.debug("Company policies fetched (count={})", len(data.get("articles", [])))
                 return data.get("articles", [])
         except httpx.RequestError:
             logger.exception("Document service request failed")
@@ -60,6 +61,7 @@ class DocumentServiceClient:
     @cached(ttl=60, key_prefix="training_materials")
     async def get_training_materials(self, auth_token: str) -> list[dict]:
         """Get training materials (cached)."""
+        logger.debug("Fetching training materials")
         try:
             # This is a placeholder - adjust based on actual API structure
             response = await self.client.get(
@@ -69,6 +71,7 @@ class DocumentServiceClient:
             )
             if response.status_code == status.HTTP_200_OK:
                 data = response.json()
+                logger.debug("Training materials fetched (count={})", len(data.get("articles", [])))
                 return data.get("articles", [])
         except httpx.RequestError:
             logger.exception("Document service request failed")
@@ -78,15 +81,18 @@ class DocumentServiceClient:
         self, article_id: int, auth_token: str
     ) -> dict | None:
         """Get article details with attachments."""
+        logger.debug("Fetching article details (article_id={})", article_id)
         try:
             response = await self.client.get(
                 f"{settings.API_V1_PREFIX}/articles/{article_id}",
                 headers={"Authorization": f"Bearer {auth_token}"},
             )
             if response.status_code == status.HTTP_200_OK:
+                logger.debug("Article details fetched (article_id={})", article_id)
                 return response.json()
+            logger.warning("Article not found (article_id={})", article_id)
         except httpx.RequestError:
-            logger.exception("Document service request failed")
+            logger.exception("Document service request failed (article_id={})", article_id)
         return None
 
 

@@ -2,25 +2,8 @@
 
 
 from meeting_service.core.enums import MeetingStatus, MeetingType
-from meeting_service.models import Department, Meeting, MeetingMaterial, UserMeeting
+from meeting_service.models import Meeting, MeetingMaterial, UserMeeting
 from meeting_service.models.google_calendar_account import GoogleCalendarAccount
-
-
-class TestDepartmentRepr:
-    """Tests for Department model representation."""
-
-    def test_department_repr(self):
-        """Test Department __repr__ method."""
-        dept = Department(id=1, name="Engineering")
-        result = repr(dept)
-        assert result == "<Department(id=1, name=Engineering)>"
-
-    def test_department_repr_different_values(self):
-        """Test Department __repr__ with different values."""
-        dept = Department(id=42, name="Human Resources")
-        result = repr(dept)
-        assert "id=42" in result
-        assert "name=Human Resources" in result
 
 
 class TestGoogleCalendarAccountRepr:

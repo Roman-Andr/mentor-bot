@@ -1,11 +1,11 @@
 {
   "Servers": {
     "1": {
-      "Group": "Servers",
-      "Name": "Main postgres database",
+      "Group": "Auth Service",
+      "Name": "auth_db",
       "Host": "postgres",
       "Port": 5432,
-      "MaintenanceDB": "${POSTGRES_DB}",
+      "MaintenanceDB": "auth_db",
       "Username": "${POSTGRES_USER}",
       "UseSSHTunnel": 0,
       "TunnelPort": "22",
@@ -14,7 +14,125 @@
       "ConnectionParameters": {
         "sslmode": "prefer",
         "connect_timeout": 10,
-        "sslcompression": 0,
+        "passfile": "/pgpass"
+      }
+    },
+    "2": {
+      "Group": "Checklists Service",
+      "Name": "checklists_db",
+      "Host": "postgres",
+      "Port": 5432,
+      "MaintenanceDB": "checklists_db",
+      "Username": "${POSTGRES_USER}",
+      "UseSSHTunnel": 0,
+      "TunnelPort": "22",
+      "TunnelAuthentication": 0,
+      "KerberosAuthentication": false,
+      "ConnectionParameters": {
+        "sslmode": "prefer",
+        "connect_timeout": 10,
+        "passfile": "/pgpass"
+      }
+    },
+    "3": {
+      "Group": "Knowledge Service",
+      "Name": "knowledge_db",
+      "Host": "postgres",
+      "Port": 5432,
+      "MaintenanceDB": "knowledge_db",
+      "Username": "${POSTGRES_USER}",
+      "UseSSHTunnel": 0,
+      "TunnelPort": "22",
+      "TunnelAuthentication": 0,
+      "KerberosAuthentication": false,
+      "ConnectionParameters": {
+        "sslmode": "prefer",
+        "connect_timeout": 10,
+        "passfile": "/pgpass"
+      }
+    },
+    "4": {
+      "Group": "Notification Service",
+      "Name": "notification_db",
+      "Host": "postgres",
+      "Port": 5432,
+      "MaintenanceDB": "notification_db",
+      "Username": "${POSTGRES_USER}",
+      "UseSSHTunnel": 0,
+      "TunnelPort": "22",
+      "TunnelAuthentication": 0,
+      "KerberosAuthentication": false,
+      "ConnectionParameters": {
+        "sslmode": "prefer",
+        "connect_timeout": 10,
+        "passfile": "/pgpass"
+      }
+    },
+    "5": {
+      "Group": "Escalation Service",
+      "Name": "escalation_db",
+      "Host": "postgres",
+      "Port": 5432,
+      "MaintenanceDB": "escalation_db",
+      "Username": "${POSTGRES_USER}",
+      "UseSSHTunnel": 0,
+      "TunnelPort": "22",
+      "TunnelAuthentication": 0,
+      "KerberosAuthentication": false,
+      "ConnectionParameters": {
+        "sslmode": "prefer",
+        "connect_timeout": 10,
+        "passfile": "/pgpass"
+      }
+    },
+    "6": {
+      "Group": "Meeting Service",
+      "Name": "meeting_db",
+      "Host": "postgres",
+      "Port": 5432,
+      "MaintenanceDB": "meeting_db",
+      "Username": "${POSTGRES_USER}",
+      "UseSSHTunnel": 0,
+      "TunnelPort": "22",
+      "TunnelAuthentication": 0,
+      "KerberosAuthentication": false,
+      "ConnectionParameters": {
+        "sslmode": "prefer",
+        "connect_timeout": 10,
+        "passfile": "/pgpass"
+      }
+    },
+    "7": {
+      "Group": "Feedback Service",
+      "Name": "feedback_db",
+      "Host": "postgres",
+      "Port": 5432,
+      "MaintenanceDB": "feedback_db",
+      "Username": "${POSTGRES_USER}",
+      "UseSSHTunnel": 0,
+      "TunnelPort": "22",
+      "TunnelAuthentication": 0,
+      "KerberosAuthentication": false,
+      "ConnectionParameters": {
+        "sslmode": "prefer",
+        "connect_timeout": 10,
+        "passfile": "/pgpass"
+      }
+    },
+    "8": {
+      "Group": "Telegram Bot",
+      "Name": "telegram_db",
+      "Host": "postgres",
+      "Port": 5432,
+      "MaintenanceDB": "telegram_db",
+      "Username": "${POSTGRES_USER}",
+      "UseSSHTunnel": 0,
+      "TunnelPort": "22",
+      "TunnelAuthentication": 0,
+      "KerberosAuthentication": false,
+      "ConnectionParameters": {
+        "sslmode": "prefer",
+        "connect_timeout": 10,
         "passfile": "/pgpass"
       }
     }

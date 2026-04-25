@@ -4,6 +4,7 @@ import json
 import re
 from typing import Any
 
+from loguru import logger
 from sqlalchemy import and_, case, func, literal, or_, select
 from sqlalchemy.orm import selectinload
 
@@ -35,10 +36,18 @@ class SearchService:
         user_id: int | None = None,
     ) -> tuple[list[dict], int, list[str]]:
         """Search articles with full-text search and proper relevance scoring."""
+        logger.debug(
+            "Searching articles (query_present={}, page={}, size={}, user_id={})",
+            bool(query.strip()),
+            page,
+            size,
+            user_id,
+        )
         filters_str = json.dumps(filters, sort_keys=True)
         cache_key = f"search:{query}:{filters_str}:{sort_by}:{page}:{size}"
         cached_result = await cache.get(cache_key)
         if cached_result:
+            logger.debug("Search cache hit (query_present={}, total={})", bool(query.strip()), cached_result["total"])
             return (
                 cached_result["results"],
                 cached_result["total"],
@@ -107,6 +116,7 @@ class SearchService:
 
         if not rows:
             empty_result = [], 0, []
+            logger.info("Search returned no results (query_present={}, user_id={})", bool(query.strip()), user_id)
             if user_id:
                 await self._uow.search_history.record_search(
                     user_id=user_id,
@@ -184,6 +194,7 @@ class SearchService:
             ttl=settings.SEARCH_CACHE_TTL,
         )
 
+        logger.info("Search completed (query_present={}, total={}, returned={})", bool(query.strip()), total, len(formatted_results))
         return formatted_results, total, suggestions
 
     async def get_search_suggestions(
@@ -194,11 +205,13 @@ class SearchService:
     ) -> list[str]:
         """Get search suggestions based on query."""
         if not query or len(query) < MIN_QUERY_LENGTH:
+            logger.debug("Skipping suggestions: query too short")
             return []
 
         cache_key = f"suggestions:{query}:{department_id}"
         cached = await cache.get(cache_key)
         if cached:
+            logger.debug("Search suggestions cache hit (department_id={})", department_id)
             return cached
 
         search_suggestions = await self._uow.search_history.get_suggestions(query, department_id, limit)
@@ -222,6 +235,7 @@ class SearchService:
 
         await cache.set(cache_key, suggestions, ttl=settings.SEARCH_SUGGESTIONS_CACHE_TTL)
 
+        logger.debug("Search suggestions generated (count={}, department_id={})", len(suggestions), department_id)
         return suggestions
 
     async def get_popular_searches(
@@ -233,26 +247,32 @@ class SearchService:
         cache_key = f"popular_searches:{department_id}"
         cached = await cache.get(cache_key)
         if cached:
+            logger.debug("Popular searches cache hit (department_id={})", department_id)
             return cached
 
         popular = await self._uow.search_history.get_popular_searches(department_id, limit)
         await cache.set(cache_key, popular, ttl=settings.POPULAR_SEARCHES_CACHE_TTL)
 
+        logger.debug("Popular searches fetched (count={}, department_id={})", len(popular), department_id)
         return popular
 
     async def get_user_search_history(self, user_id: int, skip: int = 0, limit: int = 50) -> tuple[list, int]:
         """Get user's search history."""
         items, total = await self._uow.search_history.find_by_user(user_id, skip=skip, limit=limit)
+        logger.debug("User search history fetched (user_id={}, count={}, total={})", user_id, len(items), total)
         return list(items), total
 
     async def clear_user_search_history(self, user_id: int) -> None:
         """Clear user's search history."""
         await self._uow.search_history.clear_user_history(user_id)
         await self._uow.commit()
+        logger.info("User search history cleared (user_id={})", user_id)
 
     async def get_search_stats(self) -> dict[str, Any]:
         """Get search statistics."""
-        return await self._uow.search_history.get_search_stats()
+        stats = await self._uow.search_history.get_search_stats()
+        logger.debug("Search stats fetched")
+        return stats
 
     def _highlight_text(self, text: str, query: str) -> str:
         """Highlight search terms in text."""

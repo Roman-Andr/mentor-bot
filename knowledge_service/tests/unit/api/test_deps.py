@@ -1,6 +1,5 @@
 """Tests for API dependencies (api/deps.py)."""
 
-from contextlib import suppress
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
 import pytest

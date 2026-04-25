@@ -18,7 +18,19 @@ from checklists_service.core.enums import (
     TaskStatus,
     TemplateStatus,
 )
-from checklists_service.models import Checklist, Department, Task, TaskTemplate, Template
+from checklists_service.models import Checklist, Task, TaskTemplate, Template
+
+
+class Department:
+    """Simple test class for Department (not a real model in checklists_service)."""
+
+    def __init__(self, id: int, name: str, description: str, created_at: datetime, updated_at: datetime | None = None):
+        """Initialize Department test class."""
+        self.id = id
+        self.name = name
+        self.description = description
+        self.created_at = created_at
+        self.updated_at = updated_at
 from checklists_service.repositories.unit_of_work import IUnitOfWork
 from checklists_service.schemas import (
     ChecklistCreate,

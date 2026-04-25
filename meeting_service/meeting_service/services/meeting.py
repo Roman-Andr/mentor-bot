@@ -1,8 +1,8 @@
 """Meeting management service with repository pattern."""
 
-import logging
 from datetime import UTC, datetime, timedelta
 
+from loguru import logger
 from sqlalchemy.exc import IntegrityError
 
 from meeting_service.core import (
@@ -23,8 +23,6 @@ from meeting_service.schemas import (
 )
 from meeting_service.services.google_calendar_service import GoogleCalendarService
 
-logger = logging.getLogger(__name__)
-
 
 class MeetingService:
     """Service for meeting management operations with repository pattern."""
@@ -36,32 +34,47 @@ class MeetingService:
     # --- Meeting templates ---
     async def create_meeting(self, meeting_data: MeetingCreate) -> Meeting:
         """Create a new meeting template."""
+        logger.debug(
+            "Creating meeting (title={}, type={}, department_id={}, position={})",
+            meeting_data.title,
+            meeting_data.type,
+            meeting_data.department_id,
+            meeting_data.position,
+        )
         meeting = Meeting(**meeting_data.model_dump())
         created = await self._uow.meetings.create(meeting)
         await self._uow.commit()
+        logger.info("Meeting created (meeting_id={}, title={})", created.id, created.title)
         return created
 
     async def get_meeting(self, meeting_id: int) -> Meeting:
         """Get meeting template by ID."""
+        logger.debug("Fetching meeting (meeting_id={})", meeting_id)
         meeting = await self._uow.meetings.get_by_id(meeting_id)
         if not meeting:
+            logger.warning("Meeting not found (meeting_id={})", meeting_id)
             msg = "Meeting"
             raise NotFoundException(msg)
         return meeting
 
     async def update_meeting(self, meeting_id: int, meeting_data: MeetingUpdate) -> Meeting:
         """Update meeting template."""
+        logger.debug("Updating meeting (meeting_id={})", meeting_id)
         meeting = await self.get_meeting(meeting_id)
         update_data = meeting_data.model_dump(exclude_unset=True)
         for field, value in update_data.items():
             setattr(meeting, field, value)
         meeting.updated_at = datetime.now(UTC)
-        return await self._uow.meetings.update(meeting)
+        updated = await self._uow.meetings.update(meeting)
+        logger.info("Meeting updated (meeting_id={})", updated.id)
+        return updated
 
     async def delete_meeting(self, meeting_id: int) -> None:
         """Delete meeting template (and all related materials, assignments)."""
+        logger.debug("Deleting meeting (meeting_id={})", meeting_id)
         meeting = await self.get_meeting(meeting_id)
         await self._uow.meetings.delete(meeting.id)
+        logger.info("Meeting deleted (meeting_id={})", meeting_id)
 
     async def get_meetings(
         self,
@@ -78,6 +91,14 @@ class MeetingService:
         sort_order: str = "asc",
     ) -> tuple[list[Meeting], int]:
         """Get paginated list of meeting templates with filters."""
+        logger.debug(
+            "Listing meetings (skip={}, limit={}, type={}, department_id={}, search_present={})",
+            skip,
+            limit,
+            meeting_type,
+            department_id,
+            bool(search),
+        )
         meetings, total = await self._uow.meetings.find_meetings(
             skip=skip,
             limit=limit,
@@ -90,31 +111,46 @@ class MeetingService:
             sort_by=sort_by,
             sort_order=sort_order,
         )
+        logger.debug("Meetings listed (count={}, total={})", len(list(meetings)), total)
         return list(meetings), total
 
     # --- Materials ---
     async def add_material(self, meeting_id: int, material_data: MaterialCreate) -> MeetingMaterial:
         """Add a material to a meeting template."""
+        logger.debug("Adding material to meeting (meeting_id={}, title={})", meeting_id, material_data.title)
         await self.get_meeting(meeting_id)  # ensure meeting exists
         material = MeetingMaterial(meeting_id=meeting_id, **material_data.model_dump())
-        return await self._uow.materials.create(material)
+        created = await self._uow.materials.create(material)
+        logger.info("Material added (material_id={}, meeting_id={})", created.id, meeting_id)
+        return created
 
     async def get_materials(self, meeting_id: int) -> list[MeetingMaterial]:
         """Get all materials for a meeting."""
+        logger.debug("Fetching materials for meeting (meeting_id={})", meeting_id)
         materials = await self._uow.materials.get_by_meeting(meeting_id)
+        logger.debug("Materials fetched (meeting_id={}, count={})", meeting_id, len(list(materials)))
         return list(materials)
 
     async def delete_material(self, material_id: int) -> None:
         """Delete a material."""
+        logger.debug("Deleting material (material_id={})", material_id)
         material = await self._uow.materials.get_by_id(material_id)
         if not material:
+            logger.warning("Material not found (material_id={})", material_id)
             msg = "Material"
             raise NotFoundException(msg)
         await self._uow.materials.delete(material.id)
+        logger.info("Material deleted (material_id={})", material_id)
 
     # --- User assignments ---
     async def assign_meeting(self, assignment_data: UserMeetingCreate) -> UserMeeting:
         """Assign a meeting template to a user."""
+        logger.debug(
+            "Assigning meeting (user_id={}, meeting_id={}, scheduled_at={})",
+            assignment_data.user_id,
+            assignment_data.meeting_id,
+            assignment_data.scheduled_at,
+        )
         # Validate scheduled_at is in the future if provided
         if assignment_data.scheduled_at:
             # Handle both timezone-aware and naive datetimes
@@ -124,6 +160,12 @@ class MeetingService:
                 # Treat naive datetime as UTC
                 scheduled_at = scheduled_at.replace(tzinfo=UTC)
             if scheduled_at < now:
+                logger.warning(
+                    "Assignment failed: scheduled_at in the past (user_id={}, meeting_id={}, scheduled_at={})",
+                    assignment_data.user_id,
+                    assignment_data.meeting_id,
+                    scheduled_at,
+                )
                 msg = "Meeting time must be in the future"
                 raise ValidationException(msg)
 
@@ -133,6 +175,11 @@ class MeetingService:
         # Check if already assigned (early check to avoid unnecessary DB operations)
         existing = await self._uow.user_meetings.get_user_meeting(assignment_data.user_id, assignment_data.meeting_id)
         if existing:
+            logger.warning(
+                "Assignment conflict: already assigned (user_id={}, meeting_id={})",
+                assignment_data.user_id,
+                assignment_data.meeting_id,
+            )
             msg = "Meeting already assigned to this user"
             raise ConflictException(msg)
 
@@ -146,6 +193,11 @@ class MeetingService:
             created_assignment = await self._uow.user_meetings.create(assignment)
         except IntegrityError as e:
             # Database unique constraint violated - race condition protection
+            logger.warning(
+                "Assignment conflict: database integrity error (user_id={}, meeting_id={})",
+                assignment_data.user_id,
+                assignment_data.meeting_id,
+            )
             msg = "Meeting already assigned to this user"
             raise ConflictException(msg) from e
 
@@ -174,6 +226,12 @@ class MeetingService:
                 logger.debug("Skipped Google Calendar sync: %s", e)
 
         await self._uow.commit()
+        logger.info(
+            "Meeting assigned (assignment_id={}, user_id={}, meeting_id={})",
+            created_assignment.id,
+            assignment_data.user_id,
+            assignment_data.meeting_id,
+        )
         return created_assignment
 
     async def get_user_meetings(
@@ -184,12 +242,14 @@ class MeetingService:
         status: MeetingStatus | None = None,
     ) -> tuple[list[UserMeeting], int]:
         """Get meetings assigned to a specific user."""
+        logger.debug("Fetching user meetings (user_id={}, status={})", user_id, status)
         items, total = await self._uow.user_meetings.find_by_user(
             user_id=user_id,
             skip=skip,
             limit=limit,
             status=status,
         )
+        logger.debug("User meetings fetched (user_id={}, count={}, total={})", user_id, len(list(items)), total)
         return list(items), total
 
     async def get_meeting_assignments(
@@ -200,6 +260,7 @@ class MeetingService:
         status: MeetingStatus | None = None,
     ) -> tuple[list[UserMeeting], int]:
         """Get all user assignments for a specific meeting template."""
+        logger.debug("Fetching meeting assignments (meeting_id={}, status={})", meeting_id, status)
         await self.get_meeting(meeting_id)  # ensure meeting exists
         items, total = await self._uow.user_meetings.find_by_meeting(
             meeting_id=meeting_id,
@@ -207,18 +268,22 @@ class MeetingService:
             limit=limit,
             status=status,
         )
+        logger.debug("Meeting assignments fetched (meeting_id={}, count={}, total={})", meeting_id, len(list(items)), total)
         return list(items), total
 
     async def get_assignment(self, assignment_id: int) -> UserMeeting:
         """Get a specific user meeting assignment by its ID."""
+        logger.debug("Fetching assignment (assignment_id={})", assignment_id)
         item = await self._uow.user_meetings.get_by_id(assignment_id)
         if not item:
+            logger.warning("Assignment not found (assignment_id={})", assignment_id)
             msg = "User meeting assignment"
             raise NotFoundException(msg)
         return item
 
     async def update_assignment(self, assignment_id: int, update_data: UserMeetingUpdate) -> UserMeeting:
         """Update a user meeting assignment (status, scheduled_at)."""
+        logger.debug("Updating assignment (assignment_id={})", assignment_id)
         assignment = await self.get_assignment(assignment_id)
         update_dict = update_data.model_dump(exclude_unset=True)
 
@@ -285,12 +350,16 @@ class MeetingService:
         for field, value in update_dict.items():
             setattr(assignment, field, value)
         assignment.updated_at = datetime.now(UTC)
-        return await self._uow.user_meetings.update(assignment)
+        updated = await self._uow.user_meetings.update(assignment)
+        logger.info("Assignment updated (assignment_id={})", updated.id)
+        return updated
 
     async def complete_meeting(self, assignment_id: int, completion: UserMeetingComplete) -> UserMeeting:
         """Mark a user meeting as completed with feedback and rating."""
+        logger.debug("Completing meeting (assignment_id={})", assignment_id)
         assignment = await self.get_assignment(assignment_id)
         if assignment.status == MeetingStatus.COMPLETED:
+            logger.warning("Complete meeting failed: already completed (assignment_id={})", assignment_id)
             msg = "Meeting already completed"
             raise ValidationException(msg)
 
@@ -299,10 +368,13 @@ class MeetingService:
         assignment.feedback = completion.feedback
         assignment.rating = completion.rating
         assignment.updated_at = datetime.now(UTC)
-        return await self._uow.user_meetings.update(assignment)
+        updated = await self._uow.user_meetings.update(assignment)
+        logger.info("Meeting completed (assignment_id={})", updated.id)
+        return updated
 
     async def delete_assignment(self, assignment_id: int) -> None:
         """Delete a user meeting assignment (e.g., cancel)."""
+        logger.debug("Deleting assignment (assignment_id={})", assignment_id)
         assignment = await self.get_assignment(assignment_id)
 
         # Delete Google Calendar event if it exists
@@ -319,6 +391,7 @@ class MeetingService:
                 logger.warning("Failed to delete Google Calendar event: %s", e)
 
         await self._uow.user_meetings.delete(assignment.id)
+        logger.info("Assignment deleted (assignment_id={})", assignment_id)
 
     # --- Auto-assignment for new user ---
     async def assign_meetings_for_user(
@@ -329,6 +402,13 @@ class MeetingService:
         level: EmployeeLevel | None = None,
     ) -> list[UserMeeting]:
         """Automatically assign all mandatory meetings matching user's department/position/level."""
+        logger.info(
+            "Auto-assigning meetings for user (user_id={}, department_id={}, position={}, level={})",
+            user_id,
+            department_id,
+            position,
+            level,
+        )
         # Find all meetings that match the user's attributes (or have null targeting)
         meetings, _ = await self._uow.meetings.find_meetings(
             is_mandatory=True,
@@ -348,4 +428,6 @@ class MeetingService:
                     status=MeetingStatus.SCHEDULED,
                 )
                 created.append(await self._uow.user_meetings.create(assignment))
+                logger.debug("Auto-assigned meeting (user_id={}, meeting_id={})", user_id, meeting.id)
+        logger.info("Auto-assign meetings completed (user_id={}, created_count={})", user_id, len(created))
         return created

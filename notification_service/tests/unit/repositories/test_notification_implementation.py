@@ -1,6 +1,6 @@
 """Unit tests for notification_service/repositories/implementations/notification.py."""
 
-from datetime import UTC, datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -372,7 +372,7 @@ class TestScheduledNotificationRepositoryMarkProcessed:
         self, scheduled_repo: ScheduledNotificationRepository, mock_session: MagicMock
     ) -> None:
         """Test lines 122-126: verify flush and refresh are called in mark_processed."""
-        from datetime import timezone, timedelta
+        from datetime import timedelta
 
         notification = ScheduledNotification(
             id=1,

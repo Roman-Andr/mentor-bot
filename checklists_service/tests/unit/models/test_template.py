@@ -133,7 +133,6 @@ class TestTemplateModel:
         )
 
         # Relationships should be defined
-        assert hasattr(template, "department")
         assert hasattr(template, "checklists")
         assert hasattr(template, "tasks")
 

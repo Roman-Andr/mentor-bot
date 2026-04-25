@@ -31,9 +31,8 @@ class Settings(BaseSettings):
 
     # Database
     DATABASE_URL: PostgresDsn = Field(
-        default="postgresql+asyncpg://user:password@localhost:5432/telegram_bot"
+        default="postgresql+asyncpg://user:password@localhost:5432/telegram_db"
     )
-    DATABASE_SCHEMA: str = Field(default="telegram_bot")
 
     # Services
     AUTH_SERVICE_URL: str = Field(default="http://localhost:8001")

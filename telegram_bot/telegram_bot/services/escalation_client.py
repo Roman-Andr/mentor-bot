@@ -1,14 +1,12 @@
 """HTTP client for escalation service integration."""
 
-import logging
 from typing import Any, ClassVar
 
 import httpx
 from fastapi import status as http_status
+from loguru import logger
 
 from telegram_bot.config import settings
-
-logger = logging.getLogger(__name__)
 
 
 class EscalationServiceClient:
@@ -84,6 +82,7 @@ class EscalationServiceClient:
         priority: str = "normal",
     ) -> dict | None:
         """Create escalation request with correct schema."""
+        logger.info("Creating escalation (user_id={}, category={})", user_id, category)
         try:
             payload = self._build_payload(
                 user_id=user_id,
@@ -99,15 +98,18 @@ class EscalationServiceClient:
                 headers={"Authorization": f"Bearer {auth_token}"},
             )
             if response.status_code == http_status.HTTP_201_CREATED:
+                logger.info("Escalation created (user_id={})", user_id)
                 return response.json()
+            logger.warning("Escalation creation failed (user_id={}, status={})", user_id, response.status_code)
         except httpx.RequestError:
-            logger.exception("Escalation service request failed")
+            logger.exception("Escalation service request failed (user_id={})", user_id)
         return None
 
     async def get_user_escalations(
         self, user_id: int, auth_token: str, limit: int = 10
     ) -> list[dict]:
         """Get user escalations."""
+        logger.debug("Fetching user escalations (user_id={}, limit={})", user_id, limit)
         try:
             response = await self.client.get(
                 f"{settings.API_V1_PREFIX}/escalations/user/{user_id}",
@@ -117,31 +119,38 @@ class EscalationServiceClient:
             if response.status_code == http_status.HTTP_200_OK:
                 data = response.json()
                 if isinstance(data, list):
+                    logger.debug("User escalations fetched (user_id={}, count={})", user_id, len(data))
                     return data
-                return data.get("escalations", [])
+                result = data.get("escalations", [])
+                logger.debug("User escalations fetched (user_id={}, count={})", user_id, len(result))
+                return result
         except httpx.RequestError:
-            logger.exception("Escalation service get escalations failed")
+            logger.exception("Escalation service get escalations failed (user_id={})", user_id)
         return []
 
     async def get_escalation_status(
         self, escalation_id: int, auth_token: str
     ) -> dict | None:
         """Get escalation status."""
+        logger.debug("Fetching escalation status (escalation_id={})", escalation_id)
         try:
             response = await self.client.get(
                 f"{settings.API_V1_PREFIX}/escalations/{escalation_id}",
                 headers={"Authorization": f"Bearer {auth_token}"},
             )
             if response.status_code == http_status.HTTP_200_OK:
+                logger.debug("Escalation status fetched (escalation_id={})", escalation_id)
                 return response.json()
+            logger.warning("Escalation not found (escalation_id={})", escalation_id)
         except httpx.RequestError:
-            logger.exception("Escalation service get status failed")
+            logger.exception("Escalation service get status failed (escalation_id={})", escalation_id)
         return None
 
     async def update_escalation_status(
         self, escalation_id: int, status: str, auth_token: str, notes: str | None = None
     ) -> dict | None:
         """Update escalation status."""
+        logger.info("Updating escalation status (escalation_id={}, status={})", escalation_id, status)
         try:
             json_data: dict[str, str | None] = {"status": status}
             if notes:
@@ -153,9 +162,11 @@ class EscalationServiceClient:
                 headers={"Authorization": f"Bearer {auth_token}"},
             )
             if response.status_code == http_status.HTTP_200_OK:
+                logger.info("Escalation status updated (escalation_id={})", escalation_id)
                 return response.json()
+            logger.warning("Escalation status update failed (escalation_id={}, status={})", escalation_id, response.status_code)
         except httpx.RequestError:
-            logger.exception("Escalation service update status failed")
+            logger.exception("Escalation service update status failed (escalation_id={})", escalation_id)
         return None
 
 

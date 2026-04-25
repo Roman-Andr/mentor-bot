@@ -326,8 +326,8 @@ class TestServiceApiKeyVerification:
 
     async def test_raises_when_service_key_not_configured(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Raises HTTPException 500 when SERVICE_API_KEY not configured (lines 105-109)."""
-        from notification_service.api.deps import verify_service_api_key
         from notification_service import config
+        from notification_service.api.deps import verify_service_api_key
 
         monkeypatch.setattr(config.settings, "SERVICE_API_KEY", None)
 

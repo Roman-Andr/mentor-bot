@@ -24,8 +24,38 @@ class RequestIDMiddleware(BaseHTTPMiddleware):
         response: Response | None = None
         try:
             with logger.contextualize(request_id=rid, method=request.method, path=request.url.path):
-                result = await call_next(request)
+                logger.debug("HTTP request received: {} {}", request.method, request.url.path)
+                try:
+                    result = await call_next(request)
+                except Exception:
+                    logger.exception(
+                        "Unhandled exception during request: {} {}",
+                        request.method,
+                        request.url.path,
+                    )
+                    raise
                 response = result
+                if response is not None and response.status_code >= 500:
+                    logger.error(
+                        "HTTP {} {} -> {}",
+                        request.method,
+                        request.url.path,
+                        response.status_code,
+                    )
+                elif response is not None and response.status_code >= 400:
+                    logger.warning(
+                        "HTTP {} {} -> {}",
+                        request.method,
+                        request.url.path,
+                        response.status_code,
+                    )
+                else:
+                    logger.debug(
+                        "HTTP {} {} -> {}",
+                        request.method,
+                        request.url.path,
+                        response.status_code if response is not None else "no_response",
+                    )
         finally:
             request_id_var.reset(token)
 

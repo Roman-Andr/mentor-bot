@@ -3,6 +3,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Query, status
+from loguru import logger
 
 from auth_service.api.deps import (
     AdminUser,
@@ -73,10 +74,16 @@ async def create_user(
     _current_user: AdminUser,
 ) -> UserResponse:
     """Create new user (admin only)."""
+    logger.info(
+        "Admin user creation request (admin_id={}, target_email={})",
+        _current_user.id,
+        user_data.email,
+    )
     try:
         user = await user_service.create_user(user_data)
         return UserResponse.model_validate(user)
     except ConflictException as e:
+        logger.warning("Create user conflict: {}", e.detail)
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=str(e.detail),
@@ -96,6 +103,11 @@ async def get_user(
     is_my_mentor = any(m.mentor_id == user_id and m.is_active for m in current_user.mentor_assignments)
 
     if not (is_self or is_hr_or_admin or is_my_mentor):
+        logger.warning(
+            "Permission denied to view user (caller_id={}, target_user_id={})",
+            current_user.id,
+            user_id,
+        )
         raise PermissionDenied
 
     try:
@@ -116,7 +128,15 @@ async def update_user(
     current_user: CurrentUser,
 ) -> UserResponse:
     """Update user (users can update themselves, admins can update anyone)."""
+    logger.info(
+        "Update user request (caller_id={}, target_user_id={})", current_user.id, user_id
+    )
     if current_user.id != user_id and current_user.role not in [UserRole.HR, UserRole.ADMIN]:
+        logger.warning(
+            "Permission denied to update user (caller_id={}, target_user_id={})",
+            current_user.id,
+            user_id,
+        )
         raise PermissionDenied
 
     try:
@@ -141,6 +161,11 @@ async def deactivate_user(
     _current_user: AdminUser,
 ) -> MessageResponse:
     """Deactivate user account (soft delete) (admin only)."""
+    logger.info(
+        "Deactivate user request (admin_id={}, target_user_id={})",
+        _current_user.id,
+        user_id,
+    )
     try:
         await user_service.deactivate_user(user_id)
         return MessageResponse(message="User deactivated successfully")
@@ -158,6 +183,9 @@ async def delete_user(
     _current_user: AdminUser,
 ) -> MessageResponse:
     """Permanently delete user (admin only)."""
+    logger.warning(
+        "Delete user request (admin_id={}, target_user_id={})", _current_user.id, user_id
+    )
     try:
         await user_service.delete_user(user_id)
         return MessageResponse(message="User deleted successfully")
@@ -232,6 +260,12 @@ async def change_user_role(
     _current_user: AdminUser,
 ) -> UserResponse:
     """Change user role (admin only)."""
+    logger.info(
+        "Change user role request (admin_id={}, target_user_id={}, new_role={})",
+        _current_user.id,
+        user_id,
+        role,
+    )
     try:
         user = await user_service.update_user_role(user_id, role)
         return UserResponse.model_validate(user)
@@ -251,7 +285,17 @@ async def change_password(
     current_user: CurrentUser,
 ) -> MessageResponse:
     """Change user password."""
+    logger.info(
+        "Change password request (caller_id={}, target_user_id={})",
+        current_user.id,
+        user_id,
+    )
     if current_user.id != user_id and current_user.role not in [UserRole.HR, UserRole.ADMIN]:
+        logger.warning(
+            "Permission denied to change password (caller_id={}, target_user_id={})",
+            current_user.id,
+            user_id,
+        )
         raise PermissionDenied
 
     try:

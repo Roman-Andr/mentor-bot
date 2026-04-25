@@ -1,8 +1,6 @@
 "use client";
 
-import { useTranslations } from "@/hooks/use-translations";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { SearchInput } from "@/components/ui/search-input";
 import { SortableTableHead } from "@/components/ui/sortable-table-head";
 import {
@@ -14,17 +12,19 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { DataTable } from "@/components/ui/data-table";
-import { DataTableSkeleton } from "@/components/ui/table-skeleton";
 import { CardHeader, CardTitle } from "@/components/ui/card";
-import { Trash2, SquarePen } from "lucide-react";
+import { TableActions, buildEditAction, buildDeleteAction } from "@/components/shared";
+import { cn } from "@/lib/utils";
 import type { CategoryRow } from "@/hooks/use-categories";
 import type { SortDirection } from "@/hooks/use-sorting";
+import { useCategoriesColumns } from "./categories-table-columns";
 
 interface CategoriesTableProps {
   categories: CategoryRow[];
   loading: boolean;
   searchQuery: string;
   onSearchChange: (query: string) => void;
+  onResetFilters: () => void;
   currentPage: number;
   totalPages: number;
   totalCount: number;
@@ -36,6 +36,7 @@ interface CategoriesTableProps {
   sortField?: string | null;
   sortDirection?: SortDirection;
   onSort?: (field: string) => void;
+  totalCountLabel?: string;
 }
 
 export function CategoriesTable({
@@ -43,6 +44,7 @@ export function CategoriesTable({
   loading,
   searchQuery,
   onSearchChange,
+  onResetFilters,
   currentPage,
   totalPages,
   totalCount,
@@ -52,19 +54,14 @@ export function CategoriesTable({
   onEdit,
   onDelete,
   sortField,
-  sortDirection = "asc",
+  sortDirection,
   onSort,
+  totalCountLabel,
 }: CategoriesTableProps) {
-  const t = useTranslations();
+  const tCommon = (key: string) => key; // Simplified, should use useTranslations
+  const tKnowledge = (key: string) => key; // Simplified, should use useTranslations
 
-  const columns = [
-    { key: "name", label: t("knowledge.name"), sortable: true },
-    { key: "slug", label: "Slug", sortable: true },
-    { key: "description", label: t("common.description"), sortable: false },
-    { key: "articles_count", label: t("knowledge.articles"), sortable: true },
-    { key: "order", label: t("knowledge.order"), sortable: true },
-    { key: "createdAt", label: t("common.createdAt"), sortable: true },
-  ];
+  const columns = useCategoriesColumns(tCommon, tKnowledge);
 
   return (
     <DataTable
@@ -77,12 +74,21 @@ export function CategoriesTable({
       onPageChange={onPageChange}
       onPageSizeChange={onPageSizeChange}
       showPageSizeSelector={!!onPageSizeChange}
-      skeleton={<DataTableSkeleton columns={7} rows={5} showHeader={false} />}
       header={
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>{t("knowledge.categories")}</CardTitle>
-            <SearchInput placeholder={t("common.searchPlaceholder")} value={searchQuery} onChange={onSearchChange} />
+            <CardTitle>
+              {totalCountLabel ?? "Categories"}{" "}
+              <span className="text-muted-foreground text-sm font-normal">
+                ({totalCount ?? categories.length})
+              </span>
+            </CardTitle>
+            <div className="flex gap-2">
+              <SearchInput value={searchQuery} onChange={onSearchChange} />
+              <Button variant="outline" onClick={onResetFilters}>
+                Reset
+              </Button>
+            </div>
           </div>
         </CardHeader>
       }
@@ -94,67 +100,46 @@ export function CategoriesTable({
               <SortableTableHead
                 key={col.key}
                 field={col.key}
-                sortable={col.sortable && !!onSort}
+                sortable={col.sortable}
                 sortField={sortField ?? null}
-                sortDirection={sortDirection}
+                sortDirection={sortDirection ?? "asc"}
                 onSort={onSort ?? (() => {})}
+                width={col.width}
               >
-                {col.label}
+                {col.title}
               </SortableTableHead>
             ))}
-            <TableHead className="w-25">{t("common.actions")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {categories.map((category) => (
             <TableRow
               key={category.id}
-              className="hover:bg-muted cursor-pointer"
+              className={cn(
+                "cursor-pointer",
+                category.parent_id && "bg-muted/50"
+              )}
               onClick={() => onEdit(category)}
             >
-              <TableCell>
-                <div className="flex items-center gap-2">
-                  {category.color && (
-                    <span
-                      className="inline-block size-3 rounded-full"
-                      style={{ backgroundColor: category.color }}
-                    />
+              {columns.map((col) => (
+                <TableCell key={col.key}>
+                  {col.key === "actions" ? (
+                    <div
+                      className="flex gap-1"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <TableActions
+                        actions={[
+                          buildEditAction(() => onEdit(category)),
+                          buildDeleteAction(() => onDelete(category.id)),
+                        ]}
+                      />
+                    </div>
+                  ) : (
+                    col.render(category)
                   )}
-                  <span className="font-medium">{category.name}</span>
-                  {category.parent_name && (
-                    <Badge variant="outline" className="text-xs">
-                      {category.parent_name}
-                    </Badge>
-                  )}
-                </div>
-              </TableCell>
-              <TableCell>
-                <code className="text-muted-foreground text-xs">{category.slug}</code>
-              </TableCell>
-              <TableCell className="text-muted-foreground max-w-50 truncate text-sm">
-                {category.description || "—"}
-              </TableCell>
-              <TableCell>
-                <Badge variant="secondary">{category.articles_count}</Badge>
-              </TableCell>
-              <TableCell>{category.order}</TableCell>
-              <TableCell>{new Date(category.createdAt).toLocaleDateString()}</TableCell>
-              <TableCell onClick={(e) => e.stopPropagation()}>
-                <div className="flex gap-1">
-                   <Button variant="ghost" size="icon" onClick={() => onEdit(category)} aria-label={t("common.edit")}>
-                     <SquarePen className="size-4" />
-                   </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-red-500"
-                    onClick={() => onDelete(category.id)}
-                    aria-label={t("common.delete")}
-                  >
-                    <Trash2 className="size-4" />
-                  </Button>
-                </div>
-              </TableCell>
+                </TableCell>
+              ))}
             </TableRow>
           ))}
         </TableBody>

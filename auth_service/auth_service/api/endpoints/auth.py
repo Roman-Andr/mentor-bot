@@ -45,11 +45,13 @@ async def login(
 
     Sets httpOnly cookies for token storage (secure against XSS).
     """
+    logger.info("Login request received (email=%s)", form_data.username)
     login_data = LoginRequest(email=form_data.username, password=form_data.password)
 
     try:
         _, token = await auth_service.authenticate_user(login_data)
     except AuthException as e:
+        logger.warning("Login failed for email=%s: %s", form_data.username, e.detail)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=str(e.detail),
@@ -88,9 +90,11 @@ async def refresh_token(
 
     Updates httpOnly cookies with new tokens.
     """
+    logger.debug("Refresh token request received")
     try:
         token = await auth_service.refresh_access_token(refresh_data)
     except AuthException as e:
+        logger.warning("Refresh token failed: %s", e.detail)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=str(e.detail),
@@ -125,13 +129,16 @@ async def telegram_auth(
     api_key: Annotated[str, Header(alias="X-API-Key")],
 ) -> Token:
     """Authenticate with Telegram data using API key."""
+    logger.info("Telegram auth request (telegram_id=%s)", telegram_data.telegram_id)
     if not verify_telegram_api_key(api_key):
+        logger.warning("Telegram auth rejected: invalid API key (telegram_id=%s)", telegram_data.telegram_id)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid API key",
         )
 
     if telegram_data.api_key != api_key:
+        logger.warning("Telegram auth rejected: API key mismatch (telegram_id=%s)", telegram_data.telegram_id)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="API key mismatch",
@@ -147,6 +154,11 @@ async def telegram_auth(
 
         _, token = await auth_service.authenticate_with_telegram(telegram_auth_data)
     except (AuthException, NotFoundException) as e:
+        logger.warning(
+            "Telegram auth failed (telegram_id=%s): %s",
+            telegram_data.telegram_id,
+            e.detail,
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=str(e.detail),
@@ -163,7 +175,12 @@ async def register_with_invitation(
     api_key: Annotated[str, Header(alias="X-API-Key")],
 ) -> Token:
     """Register new user using invitation token with Telegram."""
+    logger.info(
+        "Registration request via invitation (telegram_id=%s)",
+        telegram_data.telegram_id,
+    )
     if not verify_telegram_api_key(api_key):
+        logger.warning("Registration rejected: invalid API key")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid API key",
@@ -180,11 +197,17 @@ async def register_with_invitation(
 
         token = auth_service.create_token_for_user(user)
     except (ValidationException, ConflictException) as e:
+        logger.warning(
+            "Registration failed (telegram_id=%s): %s",
+            telegram_data.telegram_id,
+            e.detail,
+        )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e.detail),
         ) from e
     else:
+        logger.info("Registration completed (user_id=%s)", user.id)
         return token
 
 
@@ -199,6 +222,7 @@ async def get_current_user_info(
 @router.post("/logout")
 async def logout(response: Response) -> MessageResponse:
     """Logout user and clear httpOnly cookies."""
+    logger.info("Logout request received")
     response.delete_cookie(key="access_token")
     response.delete_cookie(key="refresh_token")
     return MessageResponse(message="Successfully logged out")

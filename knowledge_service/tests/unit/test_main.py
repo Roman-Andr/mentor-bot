@@ -89,7 +89,6 @@ class TestAppConfiguration:
         assert any("/api/v1/search" in r for r in routes)
         assert any("/api/v1/tags" in r for r in routes)
         assert any("/api/v1/dialogue-scenarios" in r for r in routes)
-        assert any("/api/v1/departments" in r for r in routes)
 
 
 class TestRootEndpoint:

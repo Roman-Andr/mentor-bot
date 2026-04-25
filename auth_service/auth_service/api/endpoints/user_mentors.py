@@ -3,6 +3,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Query, status
+from loguru import logger
 
 from auth_service.api.deps import HRUser, UOWDep
 from auth_service.models import UserMentor
@@ -47,7 +48,16 @@ async def create_user_mentor(
     _current_user: HRUser,
 ) -> UserMentorResponse:
     """Create a user-mentor relation (HR/admin only)."""
+    logger.info(
+        "Create user-mentor request (hr_id={}, user_id={}, mentor_id={})",
+        _current_user.id,
+        data.user_id,
+        data.mentor_id,
+    )
     if data.user_id == data.mentor_id:
+        logger.warning(
+            "User-mentor rejected: same user and mentor (id={})", data.user_id
+        )
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail="User cannot be their own mentor",
@@ -55,6 +65,11 @@ async def create_user_mentor(
 
     existing = await uow.user_mentors.get_by_user_and_mentor(data.user_id, data.mentor_id)
     if existing:
+        logger.warning(
+            "User-mentor relation already exists (user_id={}, mentor_id={})",
+            data.user_id,
+            data.mentor_id,
+        )
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Relation already exists between this user and mentor",
@@ -62,6 +77,11 @@ async def create_user_mentor(
 
     active = await uow.user_mentors.get_active_by_user_id(data.user_id)
     if active:
+        logger.warning(
+            "User-mentor rejected: user already has active mentor (user_id={}, current_mentor_id={})",
+            data.user_id,
+            active.mentor_id,
+        )
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="User already has an active mentor",
@@ -74,6 +94,12 @@ async def create_user_mentor(
         is_active=True,
     )
     created = await uow.user_mentors.create(relation)
+    logger.info(
+        "User-mentor relation created (id={}, user_id={}, mentor_id={})",
+        created.id,
+        created.user_id,
+        created.mentor_id,
+    )
     return UserMentorResponse.model_validate(created)
 
 
@@ -85,8 +111,16 @@ async def update_user_mentor(
     _current_user: HRUser,
 ) -> UserMentorResponse:
     """Update a user-mentor relation (HR/admin only)."""
+    logger.info(
+        "Update user-mentor request (hr_id={}, relation_id={})",
+        _current_user.id,
+        relation_id,
+    )
     relation = await uow.user_mentors.get_by_id(relation_id)
     if not relation:
+        logger.warning(
+            "User-mentor relation not found (relation_id={})", relation_id
+        )
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Relation not found",
@@ -96,6 +130,7 @@ async def update_user_mentor(
         setattr(relation, field, value)
 
     updated = await uow.user_mentors.update(relation)
+    logger.info("User-mentor relation updated (relation_id={})", relation_id)
     return UserMentorResponse.model_validate(updated)
 
 
@@ -106,8 +141,16 @@ async def delete_user_mentor(
     _current_user: HRUser,
 ) -> MessageResponse:
     """Delete a user-mentor relation (HR/admin only)."""
+    logger.warning(
+        "Delete user-mentor request (hr_id={}, relation_id={})",
+        _current_user.id,
+        relation_id,
+    )
     deleted = await uow.user_mentors.delete(relation_id)
     if not deleted:
+        logger.warning(
+            "Delete user-mentor: relation not found (relation_id={})", relation_id
+        )
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Relation not found",

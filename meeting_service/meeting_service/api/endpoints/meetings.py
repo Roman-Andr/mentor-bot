@@ -3,6 +3,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Query, status
+from loguru import logger
 
 from meeting_service.api.deps import CurrentUser, UOWDep
 from meeting_service.api.endpoints.user_meetings import _to_response
@@ -40,6 +41,7 @@ async def get_meetings(
     sort_order: Annotated[str, Query()] = "asc",
 ) -> MeetingListResponse:
     """Get paginated list of meeting templates (HR/Admin only)."""
+    logger.debug("GET /meetings request (skip={}, limit={})", skip, limit)
     service = MeetingService(uow)
     meetings, total = await service.get_meetings(
         skip=skip,
@@ -71,8 +73,10 @@ async def create_meeting(
     _current_user: CurrentUser,
 ) -> MeetingResponse:
     """Create a new meeting template (HR/Admin only)."""
+    logger.info("POST /meetings request (title={})", meeting_data.title)
     service = MeetingService(uow)
     meeting = await service.create_meeting(meeting_data)
+    logger.info("Meeting created via API (meeting_id={})", meeting.id)
     return MeetingResponse.model_validate(meeting)
 
 
@@ -159,11 +163,13 @@ async def get_meeting(
     _current_user: CurrentUser,
 ) -> MeetingResponse:
     """Get meeting template by ID (HR/Admin only)."""
+    logger.debug("GET /meetings/{} request", meeting_id)
     service = MeetingService(uow)
     try:
         meeting = await service.get_meeting(meeting_id)
         return MeetingResponse.model_validate(meeting)
     except NotFoundException as e:
+        logger.warning("Get meeting failed via API: not found (meeting_id={})", meeting_id)
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e.detail),
@@ -178,11 +184,14 @@ async def update_meeting(
     _current_user: CurrentUser,
 ) -> MeetingResponse:
     """Update meeting template (HR/Admin only)."""
+    logger.debug("PUT /meetings/{} request", meeting_id)
     service = MeetingService(uow)
     try:
         meeting = await service.update_meeting(meeting_id, meeting_data)
+        logger.info("Meeting updated via API (meeting_id={})", meeting_id)
         return MeetingResponse.model_validate(meeting)
     except NotFoundException as e:
+        logger.warning("Update meeting failed via API: not found (meeting_id={})", meeting_id)
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e.detail),
@@ -196,10 +205,13 @@ async def delete_meeting(
     _current_user: CurrentUser,
 ) -> None:
     """Delete meeting template (HR/Admin only)."""
+    logger.debug("DELETE /meetings/{} request", meeting_id)
     service = MeetingService(uow)
     try:
         await service.delete_meeting(meeting_id)
+        logger.info("Meeting deleted via API (meeting_id={})", meeting_id)
     except NotFoundException as e:
+        logger.warning("Delete meeting failed via API: not found (meeting_id={})", meeting_id)
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e.detail),
@@ -214,12 +226,14 @@ async def get_meeting_materials(
     _current_user: CurrentUser,
 ) -> list[MaterialResponse]:
     """Get all materials for a meeting (HR/Admin only)."""
+    logger.debug("GET /meetings/{}/materials request", meeting_id)
     service = MeetingService(uow)
     try:
         await service.get_meeting(meeting_id)
         materials = await service.get_materials(meeting_id)
         return [MaterialResponse.model_validate(m) for m in materials]
     except NotFoundException as e:
+        logger.warning("Get materials failed via API: not found (meeting_id={})", meeting_id)
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e.detail),
@@ -234,11 +248,14 @@ async def add_meeting_material(
     _current_user: CurrentUser,
 ) -> MaterialResponse:
     """Add a material to a meeting (HR/Admin only)."""
+    logger.info("POST /meetings/{}/materials request (title={})", meeting_id, material_data.title)
     service = MeetingService(uow)
     try:
         material = await service.add_material(meeting_id, material_data)
+        logger.info("Material added via API (material_id={})", material.id)
         return MaterialResponse.model_validate(material)
     except NotFoundException as e:
+        logger.warning("Add material failed via API: not found (meeting_id={})", meeting_id)
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e.detail),
@@ -252,10 +269,13 @@ async def delete_meeting_material(
     _current_user: CurrentUser,
 ) -> None:
     """Delete a material (HR/Admin only)."""
+    logger.debug("DELETE /materials/{} request", material_id)
     service = MeetingService(uow)
     try:
         await service.delete_material(material_id)
+        logger.info("Material deleted via API (material_id={})", material_id)
     except NotFoundException as e:
+        logger.warning("Delete material failed via API: not found (material_id={})", material_id)
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e.detail),

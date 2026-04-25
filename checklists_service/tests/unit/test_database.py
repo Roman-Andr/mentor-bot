@@ -88,8 +88,8 @@ class TestInitDb:
         db_base.engine = mock_engine
         try:
             await init_db()
-            # Verify run_sync was called for schema creation and table creation
-            assert mock_conn.run_sync.call_count == 2
+            # init_db is now empty (uses public schema, no schema creation)
+            assert mock_conn.run_sync.call_count == 0
         finally:
             db_base.engine = original_engine
 
@@ -103,7 +103,7 @@ class TestBaseModel:
 
     def test_base_metadata_has_schema(self):
         """Test Base metadata has schema configured."""
-        assert database_base.Base.metadata.schema == "checklists"
+        assert database_base.Base.metadata.schema is None  # Uses public schema
 
 
 class TestGetDB:

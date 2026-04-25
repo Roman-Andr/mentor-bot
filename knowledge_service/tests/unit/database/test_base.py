@@ -8,7 +8,7 @@ from sqlalchemy import Connection
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from knowledge_service.database import AsyncSessionLocal, Base, get_db, init_db
-from knowledge_service.database.base import _create_search_indexes, engine, metadata_obj
+from knowledge_service.database.base import _create_search_indexes, engine
 
 
 class TestBaseMetadata:
@@ -19,13 +19,14 @@ class TestBaseMetadata:
         assert hasattr(Base, "metadata")
         assert Base.metadata is not None
 
-    def test_base_metadata_is_metadata_obj(self) -> None:
-        """Test that Base.metadata is the metadata_obj instance."""
-        assert Base.metadata is metadata_obj
+    def test_base_metadata_is_metadata(self) -> None:
+        """Test that Base.metadata is a MetaData instance."""
+        from sqlalchemy import MetaData
+        assert isinstance(Base.metadata, MetaData)
 
-    def test_metadata_has_schema(self) -> None:
-        """Test that metadata has schema configured."""
-        assert metadata_obj.schema is not None
+    def test_metadata_has_no_schema(self) -> None:
+        """Test that metadata has no schema (uses public)."""
+        assert Base.metadata.schema is None
 
 
 class TestGetDB:
@@ -120,9 +121,9 @@ class TestInitDB:
 
         await init_db()
 
-        # Verify _create_search_indexes was called via run_sync
+        # Verify _create_search_indexes was called via run_sync (once)
         calls = mock_conn.run_sync.call_args_list
-        assert len(calls) >= 2  # At least create_all and search indexes
+        assert len(calls) == 1  # Only search indexes
 
 
 class TestCreateSearchIndexes:

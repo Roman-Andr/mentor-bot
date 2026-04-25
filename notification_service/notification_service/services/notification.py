@@ -1,9 +1,10 @@
 """Main notification service."""
 
-import logging
 from collections.abc import Sequence
 from datetime import UTC, datetime, timedelta
 from typing import Any
+
+from loguru import logger
 
 from notification_service.core.enums import NotificationChannel, NotificationStatus, NotificationType
 from notification_service.models import Notification, ScheduledNotification
@@ -18,8 +19,6 @@ from notification_service.services.template import (
     TemplateService,
 )
 
-logger = logging.getLogger(__name__)
-
 
 class NotificationService:
     """Service for sending and managing notifications."""
@@ -33,7 +32,10 @@ class NotificationService:
 
     async def get_user_notifications(self, user_id: int, skip: int = 0, limit: int = 100) -> Sequence[Notification]:
         """Retrieve notifications for a specific user."""
-        return await self._uow.notifications.get_user_notifications(user_id, skip, limit)
+        logger.debug("Fetching user notifications (user_id={}, skip={}, limit={})", user_id, skip, limit)
+        notifications = await self._uow.notifications.get_user_notifications(user_id, skip, limit)
+        logger.debug("User notifications fetched (user_id={}, count={})", user_id, len(list(notifications)))
+        return notifications
 
     async def find_notifications(
         self,
@@ -46,6 +48,14 @@ class NotificationService:
         sort_order: str = "desc",
     ) -> tuple[list[Notification], int]:
         """Find notifications with filtering and sorting."""
+        logger.debug(
+            "Finding notifications (skip={}, limit={}, user_id={}, type={}, status={})",
+            skip,
+            limit,
+            user_id,
+            notification_type,
+            status,
+        )
         items, total = await self._uow.notifications.find_notifications(
             skip=skip,
             limit=limit,
@@ -55,10 +65,17 @@ class NotificationService:
             sort_by=sort_by,
             sort_order=sort_order,
         )
+        logger.debug("Notifications found (count={}, total={})", len(list(items)), total)
         return list(items), total
 
     async def send_immediate(self, notification_data: NotificationCreate) -> Notification:
         """Send a notification immediately (synchronously)."""
+        logger.debug(
+            "Sending immediate notification (user_id={}, type={}, channel={})",
+            notification_data.user_id,
+            notification_data.type,
+            notification_data.channel,
+        )
         # Create notification record
         notification = Notification(
             user_id=notification_data.user_id,
@@ -84,10 +101,21 @@ class NotificationService:
 
         updated = await self._uow.notifications.update(saved)
         await self._uow.commit()
+        if success:
+            logger.info("Immediate notification sent (notification_id={}, user_id={})", updated.id, updated.user_id)
+        else:
+            logger.warning("Immediate notification failed (notification_id={}, user_id={}, error={})", updated.id, updated.user_id, error_msg)
         return updated
 
     async def schedule(self, schedule_data: ScheduledNotificationCreate) -> ScheduledNotification:
         """Schedule a notification for future sending."""
+        logger.debug(
+            "Scheduling notification (user_id={}, type={}, channel={}, scheduled_time={})",
+            schedule_data.user_id,
+            schedule_data.type,
+            schedule_data.channel,
+            schedule_data.scheduled_time,
+        )
         scheduled = ScheduledNotification(
             user_id=schedule_data.user_id,
             recipient_telegram_id=schedule_data.recipient_telegram_id,
@@ -102,17 +130,21 @@ class NotificationService:
         )
         saved = await self._uow.scheduled_notifications.create(scheduled)
         await self._uow.commit()
+        logger.info("Notification scheduled (scheduled_id={}, user_id={})", saved.id, saved.user_id)
         return saved
 
     async def process_scheduled(self) -> list[Notification]:
         """Process all pending scheduled notifications whose time has come."""
+        logger.debug("Processing scheduled notifications")
         now = datetime.now(UTC)
         pending = await self._uow.scheduled_notifications.find_pending_before(now)
+        logger.debug("Found {} pending scheduled notifications", len(list(pending)))
         processed_notifications = []
 
         for scheduled in pending:
             # Skip if max retries exceeded
             if scheduled.retry_count >= scheduled.max_retries:
+                logger.warning("Skipping scheduled notification: max retries exceeded (scheduled_id={})", scheduled.id)
                 await self._uow.scheduled_notifications.mark_processed(scheduled.id)
                 continue
 
@@ -142,6 +174,7 @@ class NotificationService:
             if success:
                 # Mark scheduled as processed only on success
                 await self._uow.scheduled_notifications.mark_processed(scheduled.id)
+                logger.info("Scheduled notification processed successfully (scheduled_id={})", scheduled.id)
             elif scheduled.retry_count + 1 >= scheduled.max_retries:
                 # Max retries reached, mark as processed (failed)
                 await self._uow.scheduled_notifications.mark_processed(scheduled.id)
@@ -169,6 +202,7 @@ class NotificationService:
 
         if processed_notifications:
             await self._uow.commit()
+            logger.info("Processed {} scheduled notifications", len(processed_notifications))
 
         return processed_notifications
 
@@ -204,6 +238,13 @@ class NotificationService:
             MissingTemplateVariablesError: If required variables are missing
 
         """
+        logger.debug(
+            "Sending template notification (template_name={}, user_id={}, channel={}, language={})",
+            template_name,
+            user_id,
+            channel,
+            language,
+        )
         # Render template
         channel_str = "email" if channel == NotificationChannel.EMAIL else "telegram"
 
@@ -215,13 +256,13 @@ class NotificationService:
                 variables=variables,
             )
         except TemplateNotFoundError:
-            logger.exception("Template not found: %s for channel %s", template_name, channel_str)
+            logger.warning("Template not found: %s for channel %s", template_name, channel_str)
             raise
         except MissingTemplateVariablesError:
-            logger.exception("Missing variables for template: %s", template_name)
+            logger.warning("Missing variables for template: %s", template_name)
             raise
         except TemplateRenderError as e:
-            logger.exception("Template rendering failed: %s", template_name)
+            logger.error("Template rendering failed: %s", template_name)
             msg = f"Template rendering failed: {e}"
             raise ValueError(msg) from e
 
@@ -250,6 +291,10 @@ class NotificationService:
 
         updated = await self._uow.notifications.update(saved)
         await self._uow.commit()
+        if success:
+            logger.info("Template notification sent (notification_id={}, template_name={})", updated.id, template_name)
+        else:
+            logger.warning("Template notification failed (notification_id={}, template_name={}, error={})", updated.id, template_name, error_msg)
         return updated
 
     async def schedule_template(
@@ -282,6 +327,13 @@ class NotificationService:
             The created ScheduledNotification
 
         """
+        logger.debug(
+            "Scheduling template notification (template_name={}, user_id={}, channel={}, scheduled_time={})",
+            template_name,
+            user_id,
+            channel,
+            scheduled_time,
+        )
         # Render template
         channel_str = "email" if channel == NotificationChannel.EMAIL else "telegram"
 
@@ -293,13 +345,13 @@ class NotificationService:
                 variables=variables,
             )
         except TemplateNotFoundError:
-            logger.exception("Template not found: %s for channel %s", template_name, channel_str)
+            logger.warning("Template not found: %s for channel %s", template_name, channel_str)
             raise
         except MissingTemplateVariablesError:
-            logger.exception("Missing variables for template: %s", template_name)
+            logger.warning("Missing variables for template: %s", template_name)
             raise
         except TemplateRenderError as e:
-            logger.exception("Template rendering failed: %s", template_name)
+            logger.error("Template rendering failed: %s", template_name)
             msg = f"Template rendering failed: {e}"
             raise ValueError(msg) from e
 
@@ -319,11 +371,13 @@ class NotificationService:
 
         saved = await self._uow.scheduled_notifications.create(scheduled)
         await self._uow.commit()
+        logger.info("Template notification scheduled (scheduled_id={}, template_name={})", saved.id, template_name)
         return saved
 
     async def _send_to_channel(self, notification: Notification) -> tuple[bool, str | None]:
         """Send notification to the appropriate channel."""
         channel = notification.channel
+        logger.debug("Sending notification to channel (notification_id={}, channel={})", notification.id, channel)
 
         if channel == NotificationChannel.TELEGRAM:
             return await self._send_telegram(notification)
@@ -331,11 +385,13 @@ class NotificationService:
             return await self._send_email(notification)
         if channel == NotificationChannel.BOTH:
             return await self._send_both(notification)
+        logger.warning("Unsupported channel (notification_id={}, channel={})", notification.id, channel)
         return False, f"Unsupported channel: {channel}"
 
     async def _send_telegram(self, notification: Notification) -> tuple[bool, str | None]:
         """Send notification via Telegram."""
         if not notification.recipient_telegram_id:
+            logger.warning("Telegram send failed: no telegram_id (notification_id={})", notification.id)
             return False, "No telegram_id provided"
         try:
             success = await self._telegram.send_message(
@@ -346,11 +402,14 @@ class NotificationService:
             logger.exception("Telegram send failed for notification %s", notification.id)
             return False, "Telegram send failed"
         else:
+            if success:
+                logger.info("Telegram notification sent (notification_id={})", notification.id)
             return success, None if success else "Telegram send failed"
 
     async def _send_email(self, notification: Notification) -> tuple[bool, str | None]:
         """Send notification via Email."""
         if not notification.recipient_email:
+            logger.warning("Email send failed: no email (notification_id={})", notification.id)
             return False, "No email provided"
         try:
             await self._email.send_email(
@@ -362,10 +421,12 @@ class NotificationService:
             logger.exception("Email send failed for notification %s", notification.id)
             return False, "Email send failed"
         else:
+            logger.info("Email notification sent (notification_id={})", notification.id)
             return True, None
 
     async def _send_both(self, notification: Notification) -> tuple[bool, str | None]:
         """Send notification via both Telegram and Email."""
+        logger.debug("Sending notification via both channels (notification_id={})", notification.id)
         telegram_success, telegram_error = await self._send_telegram(notification)
         email_success, email_error = await self._send_email(notification)
 
@@ -377,4 +438,5 @@ class NotificationService:
 
         overall_success = telegram_success and email_success
         error_msg = "; ".join(errors) if errors else None
+        logger.info("Both channels send result (notification_id={}, success={})", notification.id, overall_success)
         return overall_success, error_msg

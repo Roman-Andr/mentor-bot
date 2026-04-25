@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import Annotated, Any
 
 from fastapi import APIRouter, HTTPException, Query, status
+from loguru import logger
 
 from notification_service.api.deps import (
     CurrentUser,
@@ -35,8 +36,10 @@ async def send_notification(
     current_user: CurrentUser,
 ) -> NotificationResponse:
     """Send a notification immediately."""
+    logger.info("POST /notifications/send request (user_id={}, type={})", notification_data.user_id, notification_data.type)
     # Verify that the user sending is either the recipient or has HR/admin rights
     if notification_data.user_id != current_user.id and current_user.role not in ["HR", "ADMIN"]:
+        logger.warning("Send notification forbidden (current_user_id={}, requested_user_id={})", current_user.id, notification_data.user_id)
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Cannot send notifications on behalf of another user",
@@ -45,6 +48,7 @@ async def send_notification(
     async with SqlAlchemyUnitOfWork(lambda: db) as uow:
         service = NotificationService(uow)
         notification = await service.send_immediate(notification_data)
+        logger.info("Notification sent via API (notification_id={})", notification.id)
         return NotificationResponse.model_validate(notification)
 
 
@@ -55,7 +59,9 @@ async def schedule_notification(
     current_user: CurrentUser,
 ) -> ScheduledNotificationResponse:
     """Schedule a notification for future sending."""
+    logger.info("POST /notifications/schedule request (user_id={}, scheduled_time={})", schedule_data.user_id, schedule_data.scheduled_time)
     if schedule_data.user_id != current_user.id and current_user.role not in ["HR", "ADMIN"]:
+        logger.warning("Schedule notification forbidden (current_user_id={}, requested_user_id={})", current_user.id, schedule_data.user_id)
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Cannot schedule notifications on behalf of another user",
@@ -64,6 +70,7 @@ async def schedule_notification(
     async with SqlAlchemyUnitOfWork(lambda: db) as uow:
         service = NotificationService(uow)
         scheduled = await service.schedule(schedule_data)
+        logger.info("Notification scheduled via API (scheduled_id={})", scheduled.id)
         return ScheduledNotificationResponse.model_validate(scheduled)
 
 
@@ -77,6 +84,7 @@ async def get_notification_history(
     sort_order: Annotated[str, Query()] = "desc",
 ) -> list[NotificationResponse]:
     """Get notification history for the current user."""
+    logger.debug("GET /notifications/history request (user_id={}, skip={}, limit={})", current_user.id, skip, limit)
     async with SqlAlchemyUnitOfWork(lambda: db) as uow:
         service = NotificationService(uow)
         notifications, _ = await service.find_notifications(
@@ -100,6 +108,7 @@ async def get_user_notification_history(
     sort_order: Annotated[str, Query()] = "desc",
 ) -> list[NotificationResponse]:
     """Get notification history for a specific user (HR/admin only)."""
+    logger.debug("GET /notifications/history/{} request", user_id)
     async with SqlAlchemyUnitOfWork(lambda: db) as uow:
         service = NotificationService(uow)
         notifications, _ = await service.find_notifications(
@@ -125,6 +134,7 @@ async def list_notifications(
     sort_order: Annotated[str, Query()] = "desc",
 ) -> NotificationListResponse:
     """Get paginated list of notifications with filtering and sorting (HR/admin only)."""
+    logger.debug("GET /notifications/admin/list request (skip={}, limit={})", skip, limit)
     async with SqlAlchemyUnitOfWork(lambda: db) as uow:
         service = NotificationService(uow)
         notifications, total = await service.find_notifications(
@@ -161,6 +171,7 @@ async def send_template_notification(
     language: str = "en",
 ) -> NotificationResponse:
     """Send a notification using a template (HR/Admin only)."""
+    logger.info("POST /notifications/send-template request (template_name={}, user_id={})", template_name, user_id)
     async with SqlAlchemyUnitOfWork(lambda: db) as uow:
         service = NotificationService(uow)
 
@@ -176,16 +187,19 @@ async def send_template_notification(
                 language=language,
             )
         except TemplateNotFoundError as e:
+            logger.warning("Send template failed: not found (template_name={})", template_name)
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=str(e),
             ) from e
         except MissingTemplateVariablesError as e:
+            logger.warning("Send template failed: missing variables (template_name={})", template_name)
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=str(e),
             ) from e
 
+    logger.info("Template notification sent via API (notification_id={})", notification.id)
     return NotificationResponse.model_validate(notification)
 
 
@@ -204,6 +218,7 @@ async def schedule_template_notification(
     language: str = "en",
 ) -> ScheduledNotificationResponse:
     """Schedule a template-based notification (HR/Admin only)."""
+    logger.info("POST /notifications/schedule-template request (template_name={}, user_id={})", template_name, user_id)
     async with SqlAlchemyUnitOfWork(lambda: db) as uow:
         service = NotificationService(uow)
 
@@ -220,14 +235,17 @@ async def schedule_template_notification(
                 language=language,
             )
         except TemplateNotFoundError as e:
+            logger.warning("Schedule template failed: not found (template_name={})", template_name)
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=str(e),
             ) from e
         except MissingTemplateVariablesError as e:
+            logger.warning("Schedule template failed: missing variables (template_name={})", template_name)
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=str(e),
             ) from e
 
+    logger.info("Template notification scheduled via API (scheduled_id={})", scheduled.id)
     return ScheduledNotificationResponse.model_validate(scheduled)

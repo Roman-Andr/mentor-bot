@@ -2,7 +2,6 @@
 
 from collections.abc import AsyncGenerator
 
-from sqlalchemy import MetaData, schema
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
     async_sessionmaker,
@@ -31,15 +30,10 @@ AsyncSessionLocal = async_sessionmaker(
     autoflush=False,
 )
 
-# Declarative metadata
-metadata_obj = MetaData(schema=settings.DATABASE_SCHEMA)
-
 
 # Declarative base
 class Base(DeclarativeBase):
     """Base class for all database models."""
-
-    metadata = metadata_obj
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
@@ -56,8 +50,4 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 
 
 async def init_db() -> None:
-    """Create database schema if it does not exist. Tables are managed by Alembic migrations."""
-    async with engine.begin() as conn:
-        await conn.run_sync(
-            lambda sync_conn: sync_conn.execute(schema.CreateSchema(settings.DATABASE_SCHEMA, if_not_exists=True))
-        )
+    """Initialize database (no schema creation needed, uses public schema)."""

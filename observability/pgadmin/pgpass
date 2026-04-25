@@ -1,1 +1,8 @@
-postgres:5432:${POSTGRES_DB}:${POSTGRES_USER}:${POSTGRES_PASSWORD}
+postgres:5432:auth_db:${POSTGRES_USER}:${POSTGRES_PASSWORD}
+postgres:5432:checklists_db:${POSTGRES_USER}:${POSTGRES_PASSWORD}
+postgres:5432:knowledge_db:${POSTGRES_USER}:${POSTGRES_PASSWORD}
+postgres:5432:notification_db:${POSTGRES_USER}:${POSTGRES_PASSWORD}
+postgres:5432:escalation_db:${POSTGRES_USER}:${POSTGRES_PASSWORD}
+postgres:5432:meeting_db:${POSTGRES_USER}:${POSTGRES_PASSWORD}
+postgres:5432:feedback_db:${POSTGRES_USER}:${POSTGRES_PASSWORD}
+postgres:5432:telegram_db:${POSTGRES_USER}:${POSTGRES_PASSWORD}

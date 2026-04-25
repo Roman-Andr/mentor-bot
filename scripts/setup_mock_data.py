@@ -24,6 +24,31 @@ import httpx
 SCRIPT_DIR = Path(__file__).parent
 MOCK_DATA_DIR = SCRIPT_DIR / "mock_data"
 
+
+# This script is host-side: service URLs in .env (e.g. http://auth_service:8000)
+# only resolve inside the docker network, so we ignore them here and only pick up
+# the DB credentials needed to bootstrap the admin user via psql.
+_ENV_KEYS_TO_LOAD = {"POSTGRES_USER", "POSTGRES_PASSWORD", "AUTH_DB", "ADMIN_EMAIL", "ADMIN_PASSWORD", "SERVICE_API_KEY"}
+
+
+def _load_env_file() -> None:
+    """Load selected DB-related values from project-root .env into os.environ."""
+    env_path = SCRIPT_DIR.parent / ".env"
+    if not env_path.exists():
+        return
+    for raw in env_path.read_text().splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, _, value = line.partition("=")
+        key = key.strip()
+        if key not in _ENV_KEYS_TO_LOAD:
+            continue
+        os.environ.setdefault(key, value.strip().strip('"').strip("'"))
+
+
+_load_env_file()
+
 AUTH_SERVICE_URL = os.getenv("AUTH_SERVICE_URL", "http://localhost:8001")
 CHECKLISTS_SERVICE_URL = os.getenv("CHECKLISTS_SERVICE_URL", "http://localhost:8002")
 KNOWLEDGE_SERVICE_URL = os.getenv("KNOWLEDGE_SERVICE_URL", "http://localhost:8003")
@@ -33,13 +58,14 @@ MEETING_SERVICE_URL = os.getenv("MEETING_SERVICE_URL", "http://localhost:8006")
 FEEDBACK_SERVICE_URL = os.getenv("FEEDBACK_SERVICE_URL", "http://localhost:8007")
 
 
-POSTGRES_USER = os.getenv("POSTGRES_USER", "roman")
-POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "test_password")
-POSTGRES_DB = os.getenv("POSTGRES_DB", "mentor_bot")
+POSTGRES_USER = os.getenv("POSTGRES_USER", "postgres")
+POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "changeme")
+# Auth lives in its own DB under db-per-service architecture.
+AUTH_DB = os.getenv("AUTH_DB", "auth_db")
 
 ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@company.com")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin123")
-API_KEY = os.getenv("API_KEY", "test_api_key")
+SERVICE_API_KEY = os.getenv("SERVICE_API_KEY", "test_api_key")
 
 
 class Colors:
@@ -92,9 +118,21 @@ def load_json(filename: str) -> Any:
         return json.load(f)
 
 
+_INSERT_ADMIN_SQL = """
+INSERT INTO users (
+    email, first_name, last_name, employee_id, password_hash,
+    role, is_active, is_verified, created_at
+) VALUES (
+    '{email}', 'Admin', 'Adminov', 'admin001',
+    '$2b$12$qVTIoIpP3.Vee5or6bynf.ZM9Md46J6noG6PNgpFsFJA.w.3XNYN.',
+    'ADMIN', true, true, NOW()
+) ON CONFLICT (email) DO NOTHING;
+"""
+
+
 def create_admin_user() -> bool:
     """Create admin user via raw SQL if it doesn't exist."""
-    log_step("Creating admin user via database")
+    log_step(f"Creating admin user in {AUTH_DB}")
 
     try:
         result = subprocess.run(
@@ -108,20 +146,24 @@ def create_admin_user() -> bool:
                 "-U",
                 POSTGRES_USER,
                 "-d",
-                POSTGRES_DB,
+                AUTH_DB,
                 "-t",
                 "-A",
                 "-c",
-                f"SELECT EXISTS(SELECT 1 FROM auth.users WHERE email = '{ADMIN_EMAIL}');",
+                f"SELECT EXISTS(SELECT 1 FROM users WHERE email = '{ADMIN_EMAIL}');",
             ],
             capture_output=True,
             text=True,
             timeout=10,
         )
 
-        if result.returncode == 0 and "t" in result.stdout.strip():
+        if result.returncode == 0 and result.stdout.strip() == "t":
             log_success(f"Admin user already exists: {ADMIN_EMAIL}")
             return True
+
+        if result.returncode != 0:
+            log_warning(f"Existence check via docker failed: {result.stderr.strip()}")
+            return create_admin_user_direct()
 
         result = subprocess.run(
             [
@@ -134,18 +176,9 @@ def create_admin_user() -> bool:
                 "-U",
                 POSTGRES_USER,
                 "-d",
-                POSTGRES_DB,
+                AUTH_DB,
                 "-c",
-                f"""
-                INSERT INTO auth.users (
-                    email, first_name, last_name, employee_id, password_hash,
-                    role, is_active, is_verified, created_at
-                ) VALUES (
-                    '{ADMIN_EMAIL}', 'Admin', 'Adminov', 'admin001',
-                    '$2b$12$qVTIoIpP3.Vee5or6bynf.ZM9Md46J6noG6PNgpFsFJA.w.3XNYN.',
-                    'ADMIN', true, true, NOW()
-                );
-                """,
+                _INSERT_ADMIN_SQL.format(email=ADMIN_EMAIL),
             ],
             capture_output=True,
             text=True,
@@ -155,7 +188,7 @@ def create_admin_user() -> bool:
         if result.returncode == 0:
             log_success(f"Admin user created: {ADMIN_EMAIL}")
             return True
-        log_warning(f"Failed to create admin: {result.stderr}")
+        log_warning(f"Failed to create admin: {result.stderr.strip()}")
         return False
 
     except FileNotFoundError:
@@ -167,30 +200,22 @@ def create_admin_user() -> bool:
 
 
 def create_admin_user_direct() -> bool:
-    """Create admin user using direct psql connection."""
-    log_step("Creating admin user via direct database connection")
+    """Create admin user using direct psql connection (fallback)."""
+    log_step("Creating admin user via direct psql on localhost:5432")
     try:
         result = subprocess.run(
             [
                 "psql",
-                f"-U{POSTGRES_USER}",
+                "-U",
+                POSTGRES_USER,
                 "-d",
-                POSTGRES_DB,
+                AUTH_DB,
                 "-h",
                 "localhost",
                 "-p",
                 "5432",
                 "-c",
-                f"""
-                INSERT INTO auth.users (
-                    email, first_name, last_name, employee_id, password_hash,
-                    role, is_active, is_verified, created_at
-                ) VALUES (
-                    '{ADMIN_EMAIL}', 'Admin', 'Adminov', 'admin001',
-                    '$2b$12$qVTIoIpP3.Vee5or6bynf.ZM9Md46J6noG6PNgpFsFJA.w.3XNYN.',
-                    'ADMIN', true, true, NOW()
-                ) ON CONFLICT (email) DO NOTHING;
-                """,
+                _INSERT_ADMIN_SQL.format(email=ADMIN_EMAIL),
             ],
             capture_output=True,
             text=True,
@@ -200,7 +225,7 @@ def create_admin_user_direct() -> bool:
         if result.returncode == 0:
             log_success(f"Admin user created: {ADMIN_EMAIL}")
             return True
-        log_warning(f"Failed to create admin: {result.stderr}")
+        log_warning(f"Failed to create admin: {result.stderr.strip()}")
         return False
     except Exception as e:
         log_warning(f"Error creating admin user: {e}")
@@ -262,10 +287,7 @@ async def create_departments(token: str) -> dict[str, int]:
         tasks = [_create_or_get_department(client, headers, dept) for dept in departments]
         results = await asyncio.gather(*tasks)
 
-    for name, dept_id in results:
-        if dept_id is not None:
-            dept_ids[name] = dept_id
-
+    dept_ids = {name: dept_id for name, dept_id in results if dept_id is not None}
     return dept_ids
 
 
@@ -403,7 +425,7 @@ async def create_checklist_templates(
     template_ids: list[int] = []
 
     async with httpx.AsyncClient() as client:
-        for template in template_data:
+        async def create_template(template: dict) -> int | None:
             tpl_name = template["name"]
             dept_name = template.get("department")
 
@@ -432,10 +454,11 @@ async def create_checklist_templates(
                 if response.status_code in (200, 201):
                     tpl_data = response.json()
                     tpl_id = tpl_data["id"]
-                    template_ids.append(tpl_id)
                     log_success(f"  Template '{tpl_name}' created (ID: {tpl_id})")
 
-                    for task in template.get("tasks", []):
+                    # Create tasks for this template in parallel
+                    tasks = template.get("tasks", [])
+                    async def create_task(task: dict) -> None:
                         task_payload = {
                             "template_id": tpl_id,
                             "title": task["title"],
@@ -456,11 +479,19 @@ async def create_checklist_templates(
                             headers=headers,
                             json=task_payload,
                         )
-                    log_success(f"    Added {len(template.get('tasks', []))} tasks to '{tpl_name}'")
-                else:
-                     log_warning(f"  Failed to create template '{tpl_name}': {response.status_code} - {response.text}")
+
+                    if tasks:
+                        await asyncio.gather(*[create_task(task) for task in tasks])
+                        log_success(f"    Added {len(tasks)} tasks to '{tpl_name}'")
+
+                    return tpl_id
+                log_warning(f"  Failed to create template '{tpl_name}': {response.status_code} - {response.text}")
             except Exception as e:
                 log_warning(f"  Error creating template '{tpl_name}': {e}")
+            return None
+
+        results = await asyncio.gather(*[create_template(tpl) for tpl in template_data])
+        template_ids = [tid for tid in results if tid is not None]
 
     return template_ids
 
@@ -619,10 +650,9 @@ async def create_knowledge_categories(
     """Create knowledge base categories."""
     log_step("Creating knowledge base categories")
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
-    cat_ids: dict[str, int] = {}
 
     async with httpx.AsyncClient() as client:
-        for cat in category_data:
+        async def create_category(cat: dict) -> tuple[str, int | None]:
             slug = cat["slug"]
             dept_name = cat.get("department")
 
@@ -649,12 +679,20 @@ async def create_knowledge_categories(
                 if response.status_code in (200, 201):
                     cat_data = response.json()
                     cat_id = cat_data["id"]
-                    cat_ids[slug] = cat_id
                     log_success(f"  Category '{cat['name']}' created (ID: {cat_id})")
-                else:
-                     log_warning(f"  Failed to create category '{cat['name']}': {response.status_code} - {response.text}")
+                    return (slug, cat_id)
+                log_warning(f"  Failed to create category '{cat['name']}': {response.status_code} - {response.text}")
             except Exception as e:
                 log_warning(f"  Error creating category '{cat['name']}': {e}")
+            return (slug, None)
+
+        # Create categories with small delay between each to avoid overwhelming the DB
+        cat_ids = {}
+        for cat in category_data:
+            slug, cat_id = await create_category(cat)
+            if cat_id is not None:
+                cat_ids[slug] = cat_id
+            await asyncio.sleep(0.1)  # Small delay between requests
 
     return cat_ids
 
@@ -666,10 +704,9 @@ async def create_knowledge_tags(
     """Create knowledge base tags."""
     log_step("Creating knowledge base tags")
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
-    tag_ids: dict[str, int] = {}
 
     async with httpx.AsyncClient() as client:
-        for tag in tag_data:
+        async def create_tag(tag: dict) -> tuple[str, int | None]:
             slug = tag["slug"]
             try:
                 response = await client.post(
@@ -680,12 +717,20 @@ async def create_knowledge_tags(
                 if response.status_code in (200, 201):
                     tag_data_resp = response.json()
                     tag_id = tag_data_resp["id"]
-                    tag_ids[slug] = tag_id
                     log_success(f"  Tag '{tag['name']}' created (ID: {tag_id})")
-                else:
-                     log_warning(f"  Failed to create tag '{tag['name']}': {response.status_code} - {response.text}")
+                    return (slug, tag_id)
+                log_warning(f"  Failed to create tag '{tag['name']}': {response.status_code} - {response.text}")
             except Exception as e:
                 log_warning(f"  Error creating tag '{tag['name']}': {e}")
+            return (slug, None)
+
+        # Create tags with small delay between each to avoid overwhelming the DB
+        tag_ids = {}
+        for tag in tag_data:
+            slug, tag_id = await create_tag(tag)
+            if tag_id is not None:
+                tag_ids[slug] = tag_id
+            await asyncio.sleep(0.1)  # Small delay between requests
 
     return tag_ids
 
@@ -700,10 +745,9 @@ async def create_knowledge_articles(
     """Create knowledge base articles."""
     log_step("Creating knowledge base articles")
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
-    article_ids: list[int] = []
 
     async with httpx.AsyncClient() as client:
-        for article in article_data:
+        async def create_article(article: dict) -> int | None:
             cat_slug = article.get("category")
             cat_id = cat_ids.get(cat_slug) if cat_slug else None
 
@@ -736,14 +780,22 @@ async def create_knowledge_articles(
                 if response.status_code in (200, 201):
                     art_data = response.json()
                     art_id = art_data["id"]
-                    article_ids.append(art_id)
                     log_success(
                         f"  Article '{article['title']}' created (ID: {art_id}, status: {article.get('status')})"
                     )
-                else:
-                     log_warning(f"  Failed to create article '{article['title']}': {response.status_code} - {response.text}")
+                    return art_id
+                log_warning(f"  Failed to create article '{article['title']}': {response.status_code} - {response.text}")
             except Exception as e:
                 log_warning(f"  Error creating article '{article['title']}': {e}")
+            return None
+
+        # Create articles with small delay between each to avoid overwhelming the DB
+        article_ids = []
+        for art in article_data:
+            art_id = await create_article(art)
+            if art_id is not None:
+                article_ids.append(art_id)
+            await asyncio.sleep(0.15)  # Slightly longer delay for articles (larger payloads)
 
     return article_ids
 
@@ -842,46 +894,52 @@ async def create_mock_article_attachments(
     target_article_indices = [0, 1, 2, 4, 5, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24]
     available_indices = [i for i in target_article_indices if i < len(article_ids)]
 
-    total_uploads = 0
+    # Build list of upload tasks
+    upload_tasks = []
+    for idx, article_idx in enumerate(available_indices):
+        article_id = article_ids[article_idx]
+        # Each article gets 1-3 random files
+        num_files = min(3, 1 + (idx % 3))
+        file_selection = mock_files[idx % len(mock_files): (idx % len(mock_files)) + num_files]
+        if len(file_selection) < num_files:
+            file_selection = mock_files[:num_files]
+
+        for i, (filename, content_type, file_size, description) in enumerate(file_selection):
+            # Generate varied synthetic file content
+            content = generate_mock_file_content(filename, content_type, file_size, article_id, i)
+            upload_tasks.append((article_id, filename, content, content_type, description, i))
+
+    total_uploads = len(upload_tasks)
     success_count = 0
 
     async with httpx.AsyncClient() as client:
-        for idx, article_idx in enumerate(available_indices):
-            article_id = article_ids[article_idx]
-            # Each article gets 1-3 random files
-            num_files = min(3, 1 + (idx % 3))
-            file_selection = mock_files[idx % len(mock_files): (idx % len(mock_files)) + num_files]
-            if len(file_selection) < num_files:
-                file_selection = mock_files[:num_files]
+        async def upload_file(article_id: int, filename: str, content: bytes, content_type: str, description: str, order: int) -> None:
+            nonlocal success_count
+            try:
+                response = await client.post(
+                    f"{KNOWLEDGE_SERVICE_URL}/api/v1/attachments/upload",
+                    headers=headers,
+                    data={
+                        "article_id": str(article_id),
+                        "description": description,
+                        "order": str(order),
+                        "is_downloadable": "true",
+                    },
+                    files={
+                        "file": (filename, content, content_type),
+                    },
+                    timeout=30.0,
+                )
+                if response.status_code in (200, 201):
+                    success_count += 1
+                    log_success(f"  Uploaded {filename} to article {article_id}")
+                else:
+                     log_warning(f"  Failed to upload {filename}: {response.status_code} - {response.text}")
+            except Exception as e:
+                log_warning(f"  Error uploading {filename}: {e}")
 
-            for i, (filename, content_type, file_size, description) in enumerate(file_selection):
-                # Generate varied synthetic file content
-                content = generate_mock_file_content(filename, content_type, file_size, article_id, i)
-
-                try:
-                    response = await client.post(
-                        f"{KNOWLEDGE_SERVICE_URL}/api/v1/attachments/upload",
-                        headers=headers,
-                        data={
-                            "article_id": str(article_id),
-                            "description": description,
-                            "order": str(i),
-                            "is_downloadable": "true",
-                        },
-                        files={
-                            "file": (filename, content, content_type),
-                        },
-                        timeout=30.0,
-                    )
-                    if response.status_code in (200, 201):
-                        success_count += 1
-                        log_success(f"  Uploaded {filename} to article {article_id}")
-                    else:
-                         log_warning(f"  Failed to upload {filename}: {response.status_code} - {response.text}")
-                    total_uploads += 1
-                except Exception as e:
-                    log_warning(f"  Error uploading {filename}: {e}")
-                    total_uploads += 1
+        await asyncio.gather(*[upload_file(article_id, filename, content, content_type, description, i)
+                               for article_id, filename, content, content_type, description, i in upload_tasks])
 
     log_success(f"  Created {success_count}/{total_uploads} article attachments")
 
@@ -965,9 +1023,6 @@ async def create_mock_task_attachments(
         ("profile_photo.jpeg", "image/jpeg", 98304, "Employee photo"),
     ]
 
-    total_uploads = 0
-    success_count = 0
-
     async with httpx.AsyncClient() as client:
         # First, get some checklists with tasks to attach files to
         try:
@@ -985,20 +1040,28 @@ async def create_mock_task_attachments(
             log_warning(f"Error fetching checklists: {e}")
             return
 
-        for checklist_idx, checklist in enumerate(checklists[:12]):  # Attach to ~12 checklists
+        # Fetch tasks for all checklists in parallel
+        async def fetch_checklist_tasks(checklist: dict) -> tuple[dict, list]:
             checklist_id = checklist["id"]
-
-            # Get tasks for this checklist
             try:
                 response = await client.get(
                     f"{CHECKLISTS_SERVICE_URL}/api/v1/tasks/checklist/{checklist_id}",
                     headers={**headers, "Content-Type": "application/json"},
                 )
-                if response.status_code != 200:
-                    continue
-                tasks = response.json()
+                if response.status_code == 200:
+                    return (checklist, response.json())
+                return (checklist, [])
             except Exception:
+                return (checklist, [])
+
+        checklist_task_pairs = await asyncio.gather(*[fetch_checklist_tasks(checklist) for checklist in checklists[:12]])
+
+        # Build list of upload tasks
+        upload_tasks = []
+        for checklist_idx, (checklist, tasks) in enumerate(checklist_task_pairs):
+            if not tasks:
                 continue
+            checklist_id = checklist["id"]
 
             # Select 1-2 tasks to attach files to
             num_tasks = 1 + (checklist_idx % 2)
@@ -1012,52 +1075,40 @@ async def create_mock_task_attachments(
 
                 # Generate mock content
                 content = generate_mock_file_content(filename, content_type, file_size, task_id, task_idx)
-
-                try:
-                    response = await client.post(
-                        f"{CHECKLISTS_SERVICE_URL}/api/v1/tasks/{task_id}/attachments",
-                        headers=headers,
-                        data={"description": description},
-                        files={
-                            "file": (filename, content, content_type),
-                        },
-                        timeout=30.0,
-                    )
-                    if response.status_code in (200, 201):
-                        success_count += 1
-                        log_success(f"  Uploaded {filename} to task {task_id}")
-                    else:
-                        log_warning(f"  Failed to upload {filename} to task {task_id}: {response.status_code} - {response.text}")
-                    total_uploads += 1
-                except Exception as e:
-                    log_warning(f"  Error uploading {filename} to task {task_id}: {e}")
-                    total_uploads += 1
+                upload_tasks.append((task_id, filename, content, content_type, description))
 
                 # Occasionally add a second file (30% chance)
                 if checklist_idx % 3 == 0 and task_idx == 0:
                     second_file_idx = (file_idx + 1) % len(task_files)
                     filename2, content_type2, file_size2, desc2 = task_files[second_file_idx]
                     content2 = generate_mock_file_content(filename2, content_type2, file_size2, task_id, task_idx + 10)
+                    upload_tasks.append((task_id, filename2, content2, content_type2, desc2))
 
-                    try:
-                        response = await client.post(
-                            f"{CHECKLISTS_SERVICE_URL}/api/v1/tasks/{task_id}/attachments",
-                            headers=headers,
-                            data={"description": desc2},
-                            files={
-                                "file": (filename2, content2, content_type2),
-                            },
-                            timeout=30.0,
-                        )
-                        if response.status_code in (200, 201):
-                            success_count += 1
-                            log_success(f"  Uploaded {filename2} to task {task_id}")
-                        else:
-                             log_warning(f"  Failed to upload {filename2}: {response.status_code} - {response.text}")
-                        total_uploads += 1
-                    except Exception as e:
-                        log_warning(f"  Error uploading {filename2}: {e}")
-                        total_uploads += 1
+        total_uploads = len(upload_tasks)
+        success_count = 0
+
+        async def upload_file(task_id: int, filename: str, content: bytes, content_type: str, description: str) -> None:
+            nonlocal success_count
+            try:
+                response = await client.post(
+                    f"{CHECKLISTS_SERVICE_URL}/api/v1/tasks/{task_id}/attachments",
+                    headers=headers,
+                    data={"description": description},
+                    files={
+                        "file": (filename, content, content_type),
+                    },
+                    timeout=30.0,
+                )
+                if response.status_code in (200, 201):
+                    success_count += 1
+                    log_success(f"  Uploaded {filename} to task {task_id}")
+                else:
+                    log_warning(f"  Failed to upload {filename} to task {task_id}: {response.status_code} - {response.text}")
+            except Exception as e:
+                log_warning(f"  Error uploading {filename} to task {task_id}: {e}")
+
+        await asyncio.gather(*[upload_file(task_id, filename, content, content_type, description)
+                               for task_id, filename, content, content_type, description in upload_tasks])
 
     log_success(f"  Created {success_count}/{total_uploads} task attachments")
 
@@ -1071,7 +1122,7 @@ async def create_dialogue_scenarios(
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
 
     async with httpx.AsyncClient() as client:
-        for scenario in scenario_data:
+        async def create_scenario(scenario: dict) -> None:
             scenario_title = scenario["title"]
             try:
                 response = await client.post(
@@ -1088,6 +1139,11 @@ async def create_dialogue_scenarios(
             except Exception as e:
                 log_warning(f"  Error creating scenario '{scenario_title}': {e}")
 
+        # Create scenarios with small delay between each to avoid overwhelming the DB
+        for scenario in scenario_data:
+            await create_scenario(scenario)
+            await asyncio.sleep(0.1)  # Small delay between requests
+
 
 async def create_meeting_templates(
     token: str,
@@ -1097,10 +1153,9 @@ async def create_meeting_templates(
     """Create meeting templates."""
     log_step("Creating meeting templates")
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
-    meeting_ids: list[int] = []
 
     async with httpx.AsyncClient() as client:
-        for meeting in meeting_data:
+        async def create_meeting(meeting: dict) -> int | None:
             dept_name = meeting.get("department")
 
             meet_payload = {
@@ -1126,12 +1181,15 @@ async def create_meeting_templates(
                 if response.status_code in (200, 201):
                     meet_data = response.json()
                     meet_id = meet_data["id"]
-                    meeting_ids.append(meet_id)
                     log_success(f"  Meeting '{meeting['title']}' created (ID: {meet_id})")
-                else:
-                     log_warning(f"  Failed to create meeting '{meeting['title']}': {response.status_code} - {response.text}")
+                    return meet_id
+                log_warning(f"  Failed to create meeting '{meeting['title']}': {response.status_code} - {response.text}")
             except Exception as e:
                 log_warning(f"  Error creating meeting '{meeting['title']}': {e}")
+            return None
+
+        results = await asyncio.gather(*[create_meeting(meet) for meet in meeting_data])
+        meeting_ids = [meet_id for meet_id in results if meet_id is not None]
 
     return meeting_ids
 
@@ -1258,10 +1316,11 @@ async def create_notifications_async(
             except Exception as e:
                 log_warning(f"  Error sending notification: {e}")
 
-        tasks = []
-        for notif in notification_data:
-            for user_id in user_ids[:3]:
-                tasks.append(send_notification(notif, user_id))
+        tasks = [
+            send_notification(notif, user_id)
+            for notif in notification_data
+            for user_id in user_ids[:3]
+        ]
 
         await asyncio.gather(*tasks)
 
@@ -1321,65 +1380,109 @@ async def create_escalations_async(
 
 
 async def create_feedback_async(
-    user_ids: list[int],
+    token: str,
+    user_ids: dict[str, int],
     feedback_data: dict,
 ) -> None:
     """Create all feedback asynchronously."""
     log_step("Creating feedback (async)")
+    headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+    service_headers = {"X-Service-Api-Key": SERVICE_API_KEY, "Content-Type": "application/json"}
 
     async with httpx.AsyncClient() as client:
         pulse_data = feedback_data.get("pulse_surveys", [])
         exp_data = feedback_data.get("experience_ratings", [])
         comment_data = feedback_data.get("comments", [])
 
-        async def create_pulse(pulse: dict, idx: int) -> None:
-            if idx >= len(user_ids):
-                return
-            payload = {"user_id": user_ids[idx], "rating": pulse.get("rating", 7)}
+        async def create_pulse(pulse: dict) -> None:
+            user_key = pulse.get("user_key")
+            user_id = user_ids.get(user_key) if user_key else None
+            
+            # Make all feedback non-anonymous to avoid department_id/level requirement
+            payload = {
+                "user_id": user_id,
+                "rating": pulse.get("rating", 7),
+                "is_anonymous": False,  # Force non-anonymous for now
+            }
+            
             try:
                 response = await client.post(
                     f"{FEEDBACK_SERVICE_URL}/api/v1/feedback/pulse",
+                    headers=service_headers,
                     json=payload,
                 )
                 if response.status_code in (200, 201):
-                    log_success(f"  Pulse survey created for user {user_ids[idx]} (rating: {payload['rating']})")
+                    user_info = f"user {user_id}" if user_id else "anonymous"
+                    log_success(f"  Pulse survey created for {user_info} (rating: {payload['rating']})")
+                else:
+                    log_warning(f"  Failed to create pulse survey: {response.status_code} - {response.text[:100]}")
             except Exception as e:
                 log_warning(f"  Error creating pulse survey: {e}")
 
-        async def create_experience(exp: dict, idx: int) -> None:
-            if idx >= len(user_ids):
-                return
-            payload = {"user_id": user_ids[idx], "rating": exp.get("rating", 4)}
+        async def create_experience(exp: dict) -> None:
+            user_key = exp.get("user_key")
+            user_id = user_ids.get(user_key) if user_key else None
+            
+            # Make all feedback non-anonymous to avoid department_id/level requirement
+            payload = {
+                "user_id": user_id,
+                "rating": exp.get("rating", 4),
+                "is_anonymous": False,  # Force non-anonymous for now
+            }
+            
             try:
                 response = await client.post(
                     f"{FEEDBACK_SERVICE_URL}/api/v1/feedback/experience",
+                    headers=service_headers,
                     json=payload,
                 )
                 if response.status_code in (200, 201):
-                    log_success(f"  Experience rating created for user {user_ids[idx]} (rating: {payload['rating']})")
+                    user_info = f"user {user_id}" if user_id else "anonymous"
+                    log_success(f"  Experience rating created for {user_info} (rating: {payload['rating']})")
+                else:
+                    log_warning(f"  Failed to create experience rating: {response.status_code} - {response.text[:100]}")
             except Exception as e:
                 log_warning(f"  Error creating experience rating: {e}")
 
-        async def create_comment(comment: dict, idx: int) -> None:
-            if idx >= len(user_ids):
-                return
-            payload = {"user_id": user_ids[idx], "comment": comment.get("comment", "Great experience!")}
+        async def create_comment(comment: dict) -> None:
+            user_key = comment.get("user_key")
+            user_id = user_ids.get(user_key) if user_key else None
+            
+            # Make all feedback non-anonymous to avoid department_id/level requirement
+            payload = {
+                "user_id": user_id,
+                "comment": comment.get("comment", "Great experience!"),
+                "is_anonymous": False,  # Force non-anonymous for now
+                "allow_contact": comment.get("allow_contact", False),
+                "contact_email": comment.get("contact_email"),
+            }
+            
             try:
                 response = await client.post(
                     f"{FEEDBACK_SERVICE_URL}/api/v1/feedback/comments",
+                    headers=service_headers,
                     json=payload,
                 )
                 if response.status_code in (200, 201):
-                    log_success(f"  Comment created for user {user_ids[idx]}")
+                    user_info = f"user {user_id}" if user_id else "anonymous"
+                    log_success(f"  Comment created for {user_info}")
+                else:
+                    log_warning(f"  Failed to create comment: {response.status_code} - {response.text[:100]}")
             except Exception as e:
                 log_warning(f"  Error creating comment: {e}")
 
-        tasks = []
-        tasks.extend([create_pulse(p, i) for i, p in enumerate(pulse_data[:5])])
-        tasks.extend([create_experience(e, i) for i, e in enumerate(exp_data[:5])])
-        tasks.extend([create_comment(c, i) for i, c in enumerate(comment_data[:5])])
+        # Create feedback with small delay to avoid overwhelming the service
+        for pulse in pulse_data:
+            await create_pulse(pulse)
+            await asyncio.sleep(0.05)
 
-        await asyncio.gather(*tasks)
+        for exp in exp_data:
+            await create_experience(exp)
+            await asyncio.sleep(0.05)
+
+        for comment in comment_data:
+            await create_comment(comment)
+            await asyncio.sleep(0.05)
 
 
 async def create_pending_invitations_async(
@@ -1567,7 +1670,7 @@ async def main(skip_services: list[str] | None = None, dry_run: bool = False) ->
 
     if "feedback" not in skip_services:
         feedback = load_json("feedback.json")
-        await create_feedback_async(list(user_ids.values()), feedback)
+        await create_feedback_async(token, user_ids, feedback)
 
     article_ids: list[int] = []
     if "knowledge" not in skip_services:
@@ -1628,7 +1731,11 @@ async def main(skip_services: list[str] | None = None, dry_run: bool = False) ->
         escalations = load_json("escalations.json")
         log_info(f"  Escalations:       {len(escalations)} (PENDING, ASSIGNED, IN_PROGRESS, RESOLVED, REJECTED)")
     if "feedback" not in skip_services:
-        log_info("  Feedback entries: 15 (pulse, experience, comments)")
+        feedback = load_json("feedback.json")
+        pulse_count = len(feedback.get("pulse_surveys", []))
+        exp_count = len(feedback.get("experience_ratings", []))
+        comment_count = len(feedback.get("comments", []))
+        log_info(f"  Feedback entries:  {pulse_count} pulse, {exp_count} experience, {comment_count} comments")
     user_mentors = load_json("user_mentors.json")
     log_info(f"  User-Mentor relations: {len(user_mentors)}")
     log_divider()

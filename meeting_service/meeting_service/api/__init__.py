@@ -18,7 +18,6 @@ __all__ = [
     "HRUser",
     "MeetingServiceDep",
     "UserInfo",
-    "departments",
     "get_current_active_user",
     "get_current_user",
     "meetings",

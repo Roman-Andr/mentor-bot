@@ -138,21 +138,18 @@ class TestInitDb:
             await init_db()
 
             # Assert
-            assert mock_conn.run_sync.call_count == 2  # Once for schema, once for tables
-            mock_engine.begin.assert_called_once()
+            # init_db is empty (uses public schema, no schema/table creation)
+            assert mock_conn.run_sync.call_count == 0
+            mock_engine.begin.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_init_db_handles_connection_error(self) -> None:
-        """Test init_db propagates connection errors."""
+        """Test init_db does not call engine (empty function)."""
         # Arrange
-        mock_begin_cm = MagicMock()
-        mock_begin_cm.__aenter__ = AsyncMock(side_effect=SQLAlchemyError("Connection failed"))
-        mock_begin_cm.__aexit__ = AsyncMock(return_value=None)
-
         with patch("feedback_service.database.engine") as mock_engine:
-            mock_engine.begin = MagicMock(return_value=mock_begin_cm)
-
-            # Act & Assert
+            # Act
             from feedback_service.database import init_db
-            with pytest.raises(SQLAlchemyError, match="Connection failed"):
-                await init_db()
+            await init_db()
+
+            # Assert - empty init_db never touches engine
+            mock_engine.begin.assert_not_called()

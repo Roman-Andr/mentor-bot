@@ -18,7 +18,8 @@ import { DataTableSkeleton } from "@/components/ui/table-skeleton";
 import { CardHeader, CardTitle } from "@/components/ui/card";
 import { useConfirm } from "@/hooks/use-confirm";
 import { cn } from "@/lib/utils";
-import { Edit, Trash2, Power } from "lucide-react";
+import { TableActions, buildEditAction, buildDeleteAction } from "@/components/shared";
+import { Power } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { DialogueRow } from "@/hooks/use-dialogues";
 import type { SortDirection } from "@/hooks/use-sorting";
@@ -128,7 +129,6 @@ export function DialoguesTable({
       onPageChange={onPageChange}
       onPageSizeChange={onPageSizeChange}
       showPageSizeSelector={!!onPageSizeChange}
-      skeleton={<DataTableSkeleton columns={5} rows={5} showHeader={false} />}
       header={
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -194,27 +194,19 @@ export function DialoguesTable({
                 </span>
               </TableCell>
               <TableCell onClick={(e) => e.stopPropagation()}>
-                <div className="flex gap-1">
-                  <Button variant="ghost" size="icon" onClick={() => handleEdit(d)} aria-label={t("common.edit")}>
-                    <Edit className="size-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => onToggleActive(d.id, !d.isActive)}
-                    aria-label={d.isActive ? t("common.deactivate") : t("common.activate")}
-                  >
-                    <Power
-                      className={cn(
-                        "size-4",
-                        d.isActive ? "text-orange-500" : "text-green-500",
-                      )}
-                    />
-                  </Button>
-                  <Button variant="ghost" size="icon" onClick={() => handleDelete(d.id, d.title)} aria-label={t("common.delete")}>
-                    <Trash2 className="size-4 text-red-500" />
-                  </Button>
-                </div>
+                <TableActions
+                  actions={[
+                    buildEditAction(() => handleEdit(d)),
+                    {
+                      icon: Power,
+                      label: d.isActive ? t("common.deactivate") : t("common.activate"),
+                      onClick: () => onToggleActive(d.id, !d.isActive),
+                      variant: "ghost" as const,
+                      color: d.isActive ? "text-orange-500" : "text-green-500",
+                    },
+                    buildDeleteAction(() => handleDelete(d.id, d.title)),
+                  ]}
+                />
               </TableCell>
             </TableRow>
           ))}

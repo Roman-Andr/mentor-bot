@@ -48,26 +48,18 @@ class TestLifespan:
                 mock_init_db.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_lifespan_shutdown_logs(self, caplog):
+    async def test_lifespan_shutdown_logs(self):
         """Test lifespan shutdown logs message."""
-        import logging
+        mock_app = MagicMock()
 
-        mock_settings = MagicMock()
-        mock_settings.LOG_LEVEL = "INFO"
-        mock_init_db = AsyncMock()
-
-        with patch("meeting_service.main.settings", mock_settings):
-            with patch("meeting_service.main.init_db", mock_init_db):
+        with patch("meeting_service.main.init_db", new_callable=AsyncMock):
+            with patch("meeting_service.main.logger") as mock_logger:
                 from meeting_service.main import lifespan
 
-                mock_app = MagicMock()
-                caplog.set_level(logging.INFO)
-
                 async with lifespan(mock_app):
-                    pass  # Startup happens here
+                    pass
 
-                # Shutdown log message should be present
-                assert any("Shutting down Meeting Service" in record.message for record in caplog.records)
+                mock_logger.info.assert_any_call("Shutting down Meeting Service...")
 
 
 class TestRootEndpoints:

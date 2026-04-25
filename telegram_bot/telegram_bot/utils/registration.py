@@ -5,6 +5,7 @@ import logging
 from aiogram.fsm.context import FSMContext
 from aiogram.types import User as TgUser
 
+from telegram_bot.config import settings
 from telegram_bot.services.auth_client import auth_client
 from telegram_bot.services.cache import user_cache
 from telegram_bot.utils.validators import validate_invitation_token
@@ -30,7 +31,7 @@ async def register_by_token(
         )
 
     telegram_data = {
-        "api_key": auth_client.client.headers.get("X-API-Key"),
+        "api_key": settings.TELEGRAM_API_KEY,
         "telegram_id": tg_user.id,
         "username": tg_user.username,
         "first_name": tg_user.first_name,

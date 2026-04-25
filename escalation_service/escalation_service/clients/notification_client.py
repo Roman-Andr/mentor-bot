@@ -1,12 +1,9 @@
 """Client to send notifications via notification_service."""
 
-import logging
-
 import httpx
+from loguru import logger
 
 from escalation_service.config import settings
-
-logger = logging.getLogger(__name__)
 
 
 class NotificationClient:
@@ -26,6 +23,12 @@ class NotificationClient:
         priority: str,
     ) -> bool:
         """Notify relevant parties when escalation is created."""
+        logger.debug(
+            "Preparing escalation-created notifications (escalation_id={}, user_id={}, assignee_id={})",
+            escalation_id,
+            user_id,
+            assignee_id,
+        )
         reason_preview = reason[:100] + "..." if len(reason) > 100 else reason
 
         # Notify the assignee (if assigned)
@@ -64,6 +67,12 @@ class NotificationClient:
         reason: str,
     ) -> bool:
         """Notify when escalation is assigned/reassigned."""
+        logger.debug(
+            "Preparing escalation-assigned notifications (escalation_id={}, new_assignee_id={}, previous_assignee_id={})",
+            escalation_id,
+            new_assignee_id,
+            previous_assignee_id,
+        )
         reason_preview = reason[:100] + "..." if len(reason) > 100 else reason
 
         # Notify new assignee
@@ -102,6 +111,13 @@ class NotificationClient:
         comment: str | None = None,
     ) -> bool:
         """Notify requester when escalation status changes."""
+        logger.debug(
+            "Preparing escalation status notification (escalation_id={}, user_id={}, from={}, to={})",
+            escalation_id,
+            user_id,
+            old_status,
+            new_status,
+        )
         # Determine template based on new status
         template_map = {
             "IN_PROGRESS": "escalation_in_progress",
@@ -137,6 +153,12 @@ class NotificationClient:
         """Send notification via notification_service."""
         try:
             async with httpx.AsyncClient() as client:
+                logger.debug(
+                    "Sending notification template (user_id={}, template_name={}, channel={})",
+                    user_id,
+                    template_name,
+                    channel,
+                )
                 response = await client.post(
                     f"{self.base_url}/api/v1/notifications/send-template",
                     json={
@@ -149,7 +171,18 @@ class NotificationClient:
                     timeout=10.0,
                 )
                 response.raise_for_status()
+                logger.info(
+                    "Notification template sent (user_id={}, template_name={}, channel={})",
+                    user_id,
+                    template_name,
+                    channel,
+                )
                 return True
         except Exception:
-            logger.debug("Could not send notification to user %s (likely no Telegram ID)", user_id)
+            logger.warning(
+                "Could not send notification (user_id={}, template_name={}, channel={})",
+                user_id,
+                template_name,
+                channel,
+            )
             return False

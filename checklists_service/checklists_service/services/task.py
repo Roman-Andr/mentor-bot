@@ -3,6 +3,7 @@
 from datetime import UTC, datetime
 from typing import Any
 
+from loguru import logger
 from sqlalchemy.orm.attributes import flag_modified
 
 from checklists_service.core import NotFoundException, TaskStatus, ValidationException
@@ -22,6 +23,7 @@ class TaskService:
         """Get task by ID."""
         task = await self._uow.tasks.get_by_id(task_id)
         if not task:
+            logger.warning("Task not found (task_id={})", task_id)
             msg = "Task"
             raise NotFoundException(msg)
         return task
@@ -61,9 +63,16 @@ class TaskService:
 
     async def update_task(self, task_id: int, update_data: TaskUpdate) -> Task:
         """Update task."""
+        logger.debug("Updating task (task_id={})", task_id)
         task = await self.get_task(task_id)
 
         if update_data.status and not self._is_valid_status_transition(task.status, update_data.status):
+            logger.warning(
+                "Invalid task status transition (task_id={}, from={}, to={})",
+                task_id,
+                task.status,
+                update_data.status,
+            )
             msg = f"Invalid status transition from {task.status} to {update_data.status}"
             raise ValidationException(msg)
 
@@ -74,6 +83,11 @@ class TaskService:
             incomplete_deps = list(await self._uow.tasks.get_incomplete_dependencies(task_id))
             if incomplete_deps:
                 dep_titles = [t.title for t in incomplete_deps]
+                logger.warning(
+                    "Task complete blocked by deps (task_id={}, deps={})",
+                    task_id,
+                    [d.id for d in incomplete_deps],
+                )
                 msg = f"Cannot complete task. Dependencies not completed: {', '.join(dep_titles)}"
                 raise ValidationException(msg)
 
@@ -88,10 +102,18 @@ class TaskService:
 
         await self._uow.checklists.recalculate_progress(task.checklist_id)
 
+        logger.info(
+            "Task updated (task_id={}, status={})", task.id, task.status
+        )
         return task
 
     async def update_task_progress(self, task_id: int, progress_data: TaskProgress) -> Task:
         """Update task progress."""
+        logger.debug(
+            "Updating task progress (task_id={}, new_status={})",
+            task_id,
+            progress_data.status,
+        )
         task = await self.get_task(task_id)
 
         old_status = task.status
@@ -112,6 +134,11 @@ class TaskService:
             incomplete_deps = list(await self._uow.tasks.get_incomplete_dependencies(task_id))
             if incomplete_deps:
                 dep_titles = [t.title for t in incomplete_deps]
+                logger.warning(
+                    "Task progress complete blocked by deps (task_id={}, deps={})",
+                    task_id,
+                    [d.id for d in incomplete_deps],
+                )
                 msg = f"Cannot complete task. Dependencies not completed: {', '.join(dep_titles)}"
                 raise ValidationException(msg)
 
@@ -120,18 +147,30 @@ class TaskService:
 
         await self._uow.checklists.recalculate_progress(task.checklist_id)
 
+        logger.info(
+            "Task progress updated (task_id={}, status={})", task.id, task.status
+        )
         return task
 
     async def complete_task(self, task_id: int, completed_by: int, notes: str | None = None) -> Task:
         """Mark task as completed."""
+        logger.debug(
+            "Completing task (task_id={}, completed_by={})", task_id, completed_by
+        )
         task = await self.get_task(task_id)
 
         if task.status == TaskStatus.COMPLETED:
+            logger.debug("complete_task: already completed (task_id={})", task_id)
             return task
 
         incomplete_deps = list(await self._uow.tasks.get_incomplete_dependencies(task_id))
         if incomplete_deps:
             dep_titles = [t.title for t in incomplete_deps]
+            logger.warning(
+                "complete_task blocked by deps (task_id={}, deps={})",
+                task_id,
+                [d.id for d in incomplete_deps],
+            )
             msg = f"Cannot complete task. Dependencies not completed: {', '.join(dep_titles)}"
             raise ValidationException(msg)
 
@@ -152,16 +191,30 @@ class TaskService:
 
         await self._unblock_dependent_tasks(task_id)
 
+        logger.info(
+            "Task completed (task_id={}, completed_by={})", task.id, completed_by
+        )
         return task
 
     async def bulk_update_tasks(self, bulk_data: TaskBulkUpdate) -> None:
         """Bulk update tasks."""
         if not bulk_data.task_ids:
+            logger.debug("bulk_update_tasks called with empty task_ids")
             return
 
+        logger.info(
+            "Bulk update tasks (count={}, task_ids={})",
+            len(bulk_data.task_ids),
+            bulk_data.task_ids,
+        )
         tasks = list(await self._uow.tasks.find_by_ids(bulk_data.task_ids))
 
         if len(tasks) != len(bulk_data.task_ids):
+            logger.warning(
+                "Bulk update: some tasks missing (requested={}, found={})",
+                len(bulk_data.task_ids),
+                len(tasks),
+            )
             msg = "Some tasks not found"
             raise ValidationException(msg)
 
@@ -204,6 +257,11 @@ class TaskService:
                 blocked_task.status = TaskStatus.PENDING
                 blocked_task.updated_at = datetime.now(UTC)
                 await self._uow.tasks.update(blocked_task)
+                logger.info(
+                    "Task unblocked (task_id={}, unblocked_by_task_id={})",
+                    blocked_task.id,
+                    task_id,
+                )
 
     async def add_attachment(
         self,
@@ -215,6 +273,13 @@ class TaskService:
         uploaded_by: int,
     ) -> dict:
         """Add an attachment to a task."""
+        logger.debug(
+            "Adding attachment to task (task_id={}, filename={}, size={}, mime={})",
+            task_id,
+            filename,
+            file_size,
+            mime_type,
+        )
         task = await self.get_task(task_id)
 
         attachment = {
@@ -234,6 +299,12 @@ class TaskService:
         task.updated_at = datetime.now(UTC)
         await self._uow.tasks.update(task)
 
+        logger.info(
+            "Attachment added (task_id={}, filename={}, uploaded_by={})",
+            task_id,
+            filename,
+            uploaded_by,
+        )
         return attachment
 
     async def get_attachments(self, task_id: int) -> list[dict]:

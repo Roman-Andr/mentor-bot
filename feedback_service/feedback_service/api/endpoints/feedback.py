@@ -1,12 +1,12 @@
 """Feedback API endpoints."""
 
-import logging
 from datetime import datetime
 from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Query, status
+from loguru import logger
 
-from feedback_service.api.deps import CurrentUser, HRAdminUser, UOWDep, check_user_access
+from feedback_service.api.deps import AuthUser, CurrentUser, HRAdminUser, ServiceAuth, UOWDep, check_user_access
 from feedback_service.models import Comment, ExperienceRating, PulseSurvey
 from feedback_service.schemas import (
     CommentCreate,
@@ -24,7 +24,6 @@ from feedback_service.schemas import (
 )
 
 router = APIRouter()
-logger = logging.getLogger(__name__)
 
 
 # ============================================================================
@@ -35,36 +34,55 @@ logger = logging.getLogger(__name__)
 async def submit_pulse_survey(
     data: PulseSurveyCreate,
     uow: UOWDep,
-    current_user: CurrentUser,
+    service_auth: ServiceAuth = False,
+    current_user: AuthUser = None,
 ) -> PulseSurveyResponse:
     """Submit a daily pulse survey rating. Can be anonymous."""
     try:
+        # For service-to-service calls, use user_id from request body
+        user_id = data.user_id if service_auth else (current_user.id if current_user else None)
+        department_id = None if service_auth else (current_user.department_id if current_user else None)
+        position_level = None if service_auth else (current_user.level if current_user else None)
+
+        logger.debug(
+            "Submitting pulse survey (user_id={}, anonymous={}, rating={}, service_call={})",
+            user_id,
+            data.is_anonymous,
+            data.rating,
+            service_auth,
+        )
         if data.is_anonymous:
             # Store without user_id but keep department for analytics
             pulse_survey = PulseSurvey(
                 user_id=None,
                 is_anonymous=True,
-                department_id=current_user.department_id,
-                position_level=current_user.level,
+                department_id=department_id,
+                position_level=position_level,
                 rating=data.rating,
             )
         else:
             # Normal attributed submission
             pulse_survey = PulseSurvey(
-                user_id=current_user.id,
+                user_id=user_id,
                 is_anonymous=False,
-                department_id=current_user.department_id,
-                position_level=current_user.level,
+                department_id=department_id,
+                position_level=position_level,
                 rating=data.rating,
             )
 
         result = await uow.pulse_surveys.create(pulse_survey)
         await uow.commit()
+        logger.info(
+            "Pulse survey submitted (survey_id={}, user_id={}, anonymous={})",
+            result.id,
+            user_id,
+            data.is_anonymous,
+        )
         return PulseSurveyResponse.model_validate(result)
-    except Exception:
-        logger.exception("Failed to submit pulse survey")
+    except Exception as e:
+        logger.exception(f"Failed to submit pulse survey: {e!s}")
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to submit pulse survey"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to submit pulse survey: {e!s}"
         ) from None
 
 
@@ -88,6 +106,13 @@ async def get_pulse_surveys(
     effective_user_id = check_user_access(current_user, user_id, ["HR", "ADMIN"], "pulse surveys")
 
     try:
+        logger.debug(
+            "Fetching pulse surveys (current_user_id={}, effective_user_id={}, skip={}, limit={})",
+            current_user.id,
+            effective_user_id,
+            skip,
+            limit,
+        )
         surveys, total = await uow.pulse_surveys.get_by_user(
             user_id=effective_user_id,
             from_date=from_date,
@@ -96,6 +121,7 @@ async def get_pulse_surveys(
             skip=skip,
             limit=limit,
         )
+        logger.debug("Pulse surveys fetched (count={}, total={})", len(surveys), total)
 
         return PulseSurveyListResponse(
             items=[PulseSurveyResponse.model_validate(s) for s in surveys],
@@ -128,6 +154,11 @@ async def get_pulse_stats(
     effective_user_id = check_user_access(current_user, user_id, ["HR", "ADMIN"], "pulse stats")
 
     try:
+        logger.debug(
+            "Fetching pulse stats (current_user_id={}, effective_user_id={})",
+            current_user.id,
+            effective_user_id,
+        )
         stats = await uow.pulse_surveys.get_stats(
             user_id=effective_user_id,
             from_date=from_date,
@@ -138,6 +169,7 @@ async def get_pulse_stats(
             from_date=from_date,
             to_date=to_date,
         )
+        logger.debug("Pulse stats fetched (current_user_id={}, effective_user_id={})", current_user.id, effective_user_id)
 
         return PulseStatsResponse(
             **stats,
@@ -161,11 +193,17 @@ async def get_pulse_anonymity_stats(
 ) -> dict:
     """Get anonymity stats for pulse surveys (HR/Admin only)."""
     try:
+        logger.debug(
+            "Fetching pulse anonymity stats (current_user_id={}, department_id={})",
+            current_user.id,
+            department_id,
+        )
         stats = await uow.pulse_surveys.get_anonymity_stats(
             department_id=department_id,
             from_date=from_date,
             to_date=to_date,
         )
+        logger.debug("Pulse anonymity stats fetched (current_user_id={})", current_user.id)
         return stats
     except Exception:
         logger.exception("Failed to get pulse anonymity stats")
@@ -183,29 +221,47 @@ async def get_pulse_anonymity_stats(
 async def submit_experience_rating(
     data: ExperienceRatingCreate,
     uow: UOWDep,
-    current_user: CurrentUser,
+    service_auth: ServiceAuth = False,
+    current_user: AuthUser = None,
 ) -> ExperienceRatingResponse:
     """Submit an experience rating. Can be anonymous."""
     try:
+        # For service-to-service calls, use user_id from request body
+        user_id = data.user_id if service_auth else (current_user.id if current_user else None)
+        department_id = None if service_auth else (current_user.department_id if current_user else None)
+
+        logger.debug(
+            "Submitting experience rating (user_id={}, anonymous={}, rating={}, service_call={})",
+            user_id,
+            data.is_anonymous,
+            data.rating,
+            service_auth,
+        )
         if data.is_anonymous:
             # Store without user_id but keep department for analytics
             rating = ExperienceRating(
                 user_id=None,
                 is_anonymous=True,
-                department_id=current_user.department_id,
+                department_id=department_id,
                 rating=data.rating,
             )
         else:
             # Normal attributed submission
             rating = ExperienceRating(
-                user_id=current_user.id,
+                user_id=user_id,
                 is_anonymous=False,
-                department_id=current_user.department_id,
+                department_id=department_id,
                 rating=data.rating,
             )
 
         result = await uow.experience_ratings.create(rating)
         await uow.commit()
+        logger.info(
+            "Experience rating submitted (rating_id={}, user_id={}, anonymous={})",
+            result.id,
+            user_id,
+            data.is_anonymous,
+        )
         return ExperienceRatingResponse.model_validate(result)
     except Exception:
         logger.exception("Failed to submit experience rating")
@@ -235,6 +291,13 @@ async def get_experience_ratings(
     effective_user_id = check_user_access(current_user, user_id, ["HR", "ADMIN"], "experience ratings")
 
     try:
+        logger.debug(
+            "Fetching experience ratings (current_user_id={}, effective_user_id={}, skip={}, limit={})",
+            current_user.id,
+            effective_user_id,
+            skip,
+            limit,
+        )
         ratings, total = await uow.experience_ratings.get_by_user(
             user_id=effective_user_id,
             from_date=from_date,
@@ -244,6 +307,7 @@ async def get_experience_ratings(
             skip=skip,
             limit=limit,
         )
+        logger.debug("Experience ratings fetched (count={}, total={})", len(ratings), total)
 
         return ExperienceRatingListResponse(
             items=[ExperienceRatingResponse.model_validate(r) for r in ratings],
@@ -276,6 +340,11 @@ async def get_experience_stats(
     effective_user_id = check_user_access(current_user, user_id, ["HR", "ADMIN"], "experience stats")
 
     try:
+        logger.debug(
+            "Fetching experience stats (current_user_id={}, effective_user_id={})",
+            current_user.id,
+            effective_user_id,
+        )
         stats = await uow.experience_ratings.get_stats(
             user_id=effective_user_id,
             from_date=from_date,
@@ -285,6 +354,11 @@ async def get_experience_stats(
             user_id=effective_user_id,
             from_date=from_date,
             to_date=to_date,
+        )
+        logger.debug(
+            "Experience stats fetched (current_user_id={}, effective_user_id={})",
+            current_user.id,
+            effective_user_id,
         )
 
         return ExperienceStatsResponse(
@@ -307,16 +381,28 @@ async def get_experience_stats(
 async def submit_comment(
     data: CommentCreate,
     uow: UOWDep,
-    current_user: CurrentUser,
+    service_auth: ServiceAuth = False,
+    current_user: AuthUser = None,
 ) -> CommentResponse:
     """Submit a comment or suggestion. Can be anonymous."""
     try:
+        # For service-to-service calls, use user_id from request body
+        user_id = data.user_id if service_auth else (current_user.id if current_user else None)
+        department_id = None if service_auth else (current_user.department_id if current_user else None)
+
+        logger.debug(
+            "Submitting comment (user_id={}, anonymous={}, allow_contact={}, service_call={})",
+            user_id,
+            data.is_anonymous,
+            data.allow_contact,
+            service_auth,
+        )
         if data.is_anonymous:
             # Store without user_id but keep department for analytics
             comment = Comment(
                 user_id=None,
                 is_anonymous=True,
-                department_id=current_user.department_id,
+                department_id=department_id,
                 comment=data.comment,
                 allow_contact=data.allow_contact,
                 contact_email=data.contact_email if data.allow_contact else None,
@@ -324,9 +410,9 @@ async def submit_comment(
         else:
             # Normal attributed submission
             comment = Comment(
-                user_id=current_user.id,
+                user_id=user_id,
                 is_anonymous=False,
-                department_id=current_user.department_id,
+                department_id=department_id,
                 comment=data.comment,
                 allow_contact=False,
                 contact_email=None,
@@ -334,6 +420,12 @@ async def submit_comment(
 
         result = await uow.comments.create(comment)
         await uow.commit()
+        logger.info(
+            "Comment submitted (comment_id={}, user_id={}, anonymous={})",
+            result.id,
+            user_id,
+            data.is_anonymous,
+        )
         return CommentResponse.model_validate(result)
     except Exception:
         logger.exception("Failed to submit comment")
@@ -363,6 +455,13 @@ async def get_comments(
     effective_user_id = check_user_access(current_user, user_id, ["HR", "ADMIN"], "comments")
 
     try:
+        logger.debug(
+            "Fetching comments (current_user_id={}, effective_user_id={}, skip={}, limit={})",
+            current_user.id,
+            effective_user_id,
+            skip,
+            limit,
+        )
         comments, total = await uow.comments.get_by_user(
             user_id=effective_user_id,
             from_date=from_date,
@@ -372,6 +471,7 @@ async def get_comments(
             skip=skip,
             limit=limit,
         )
+        logger.debug("Comments fetched (count={}, total={})", len(comments), total)
 
         return CommentListResponse(
             items=[CommentResponse.model_validate(c) for c in comments],
@@ -396,9 +496,15 @@ async def reply_to_comment(
 ) -> CommentResponse:
     """HR/Admin can reply to comments. Cannot reply to anonymous comments unless contact email is provided."""
     try:
+        logger.debug(
+            "Replying to comment (comment_id={}, replied_by={})",
+            comment_id,
+            current_user.id,
+        )
         # Check if comment exists and is not anonymous without contact info
         comment = await uow.comments.get_by_id(comment_id)
         if not comment:
+            logger.warning("Reply to comment failed: not found (comment_id={})", comment_id)
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Comment not found",
@@ -406,6 +512,10 @@ async def reply_to_comment(
 
         # Cannot reply to anonymous comments without contact info
         if comment.is_anonymous and not comment.allow_contact:
+            logger.warning(
+                "Reply to comment forbidden: anonymous without contact (comment_id={})",
+                comment_id,
+            )
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Cannot reply to anonymous comments without contact information",
@@ -418,6 +528,7 @@ async def reply_to_comment(
         )
 
         await uow.commit()
+        logger.info("Comment reply added (comment_id={}, replied_by={})", comment_id, current_user.id)
         return CommentResponse.model_validate(comment)
     except HTTPException:
         raise

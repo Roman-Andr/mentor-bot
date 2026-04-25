@@ -5,7 +5,6 @@ from typing import cast
 
 from sqlalchemy import Column, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload
 
 from checklists_service.core.enums import TemplateStatus
 from checklists_service.models import Checklist, TaskTemplate, Template
@@ -21,8 +20,8 @@ class TemplateRepository(SqlAlchemyBaseRepository[Template, int], ITemplateRepos
         super().__init__(session, Template)
 
     async def get_by_id(self, entity_id: int) -> Template | None:
-        """Get template by ID with department eagerly loaded."""
-        stmt = select(Template).options(joinedload(Template.department)).where(Template.id == entity_id)
+        """Get template by ID."""
+        stmt = select(Template).where(Template.id == entity_id)
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none()
 
@@ -84,7 +83,7 @@ class TemplateRepository(SqlAlchemyBaseRepository[Template, int], ITemplateRepos
         sort_column = self._get_sort_column(sort_by)
         stmt = stmt.order_by(sort_column.asc() if sort_order.lower() == "asc" else sort_column.desc())
 
-        stmt = stmt.options(joinedload(Template.department)).offset(skip).limit(limit)
+        stmt = stmt.offset(skip).limit(limit)
         result = await self._session.execute(stmt)
         templates = result.scalars().all()
 

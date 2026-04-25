@@ -3,6 +3,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Query, status
+from loguru import logger
 
 from auth_service.api.deps import AdminUser, DepartmentServiceDep
 from auth_service.core import ConflictException, NotFoundException
@@ -56,10 +57,16 @@ async def create_department(
     _current_user: AdminUser,
 ) -> DepartmentResponse:
     """Create new department (admin only)."""
+    logger.info(
+        "Create department request (admin_id={}, name={})",
+        _current_user.id,
+        department_data.name,
+    )
     try:
         department = await department_service.create_department(department_data)
         return DepartmentResponse.model_validate(department)
     except ConflictException as e:
+        logger.warning("Create department conflict: {}", e.detail)
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=str(e.detail),
@@ -113,6 +120,11 @@ async def delete_department(
     _current_user: AdminUser,
 ) -> MessageResponse:
     """Delete department (admin only)."""
+    logger.warning(
+        "Delete department request (admin_id={}, department_id={})",
+        _current_user.id,
+        department_id,
+    )
     try:
         await department_service.delete_department(department_id)
         return MessageResponse(message="Department deleted successfully")

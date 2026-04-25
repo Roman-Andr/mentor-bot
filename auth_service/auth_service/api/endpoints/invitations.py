@@ -4,6 +4,7 @@ from datetime import UTC, datetime
 from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Query, status
+from loguru import logger
 
 from auth_service.api.deps import (
     HRUser,
@@ -84,6 +85,12 @@ async def create_invitation(
     _current_user: HRUser,
 ) -> InvitationResponse:
     """Create new invitation (HR/admin only)."""
+    logger.info(
+        "Create invitation request (hr_id={}, email={}, role={})",
+        _current_user.id,
+        invitation_data.email,
+        invitation_data.role,
+    )
     try:
         invitation = await invitation_service.create_invitation(invitation_data)
         return InvitationResponse(
@@ -92,6 +99,7 @@ async def create_invitation(
             is_expired=False,
         )
     except ConflictException as e:
+        logger.warning("Create invitation conflict: {}", e.detail)
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=str(e.detail),
@@ -146,6 +154,11 @@ async def resend_invitation(
     _current_user: HRUser,
 ) -> InvitationResponse:
     """Resend invitation with new token (HR/admin only)."""
+    logger.info(
+        "Resend invitation request (hr_id={}, invitation_id={})",
+        _current_user.id,
+        invitation_id,
+    )
     try:
         invitation = await invitation_service.resend_invitation(invitation_id)
         return InvitationResponse(
@@ -167,6 +180,11 @@ async def revoke_invitation(
     _current_user: HRUser,
 ) -> InvitationResponse:
     """Revoke invitation (HR/admin only)."""
+    logger.info(
+        "Revoke invitation request (hr_id={}, invitation_id={})",
+        _current_user.id,
+        invitation_id,
+    )
     try:
         invitation = await invitation_service.revoke_invitation(invitation_id)
         return InvitationResponse(
@@ -197,6 +215,11 @@ async def delete_invitation(
     _current_user: HRUser,
 ) -> MessageResponse:
     """Delete invitation (HR/admin only)."""
+    logger.warning(
+        "Delete invitation request (hr_id={}, invitation_id={})",
+        _current_user.id,
+        invitation_id,
+    )
     try:
         await invitation_service.delete_invitation(invitation_id)
         return MessageResponse(message="Invitation deleted successfully")

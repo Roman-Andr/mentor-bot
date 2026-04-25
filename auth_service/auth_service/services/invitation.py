@@ -2,6 +2,7 @@
 
 from datetime import UTC, datetime, timedelta
 
+from loguru import logger
 from pydantic import HttpUrl
 
 from auth_service.config import settings
@@ -27,21 +28,40 @@ class InvitationService:
 
     async def create_invitation(self, invitation_data: InvitationCreate) -> Invitation:
         """Create new invitation."""
+        logger.debug(
+            "Creating invitation (email={}, employee_id={}, role={}, mentor_id={})",
+            invitation_data.email,
+            invitation_data.employee_id,
+            invitation_data.role,
+            invitation_data.mentor_id,
+        )
         # Check if pending invitation already exists for email
         has_pending = await self._uow.invitations.exists_pending_for_email(invitation_data.email)
         if has_pending:
+            logger.warning(
+                "Create invitation conflict: pending invitation exists for email ({})",
+                invitation_data.email,
+            )
             msg = "Pending invitation already exists for this email"
             raise ConflictException(msg)
 
         # Check if user already exists
         existing_user = await self._uow.users.get_by_email(invitation_data.email)
         if existing_user:
+            logger.warning(
+                "Create invitation conflict: user already exists for email ({})",
+                invitation_data.email,
+            )
             msg = "User with this email already exists"
             raise ConflictException(msg)
 
         # Check if employee_id is already used
         existing_employee = await self._uow.users.get_by_employee_id(invitation_data.employee_id)
         if existing_employee:
+            logger.warning(
+                "Create invitation conflict: employee_id already in use ({})",
+                invitation_data.employee_id,
+            )
             msg = "Employee ID already in use"
             raise ConflictException(msg)
 
@@ -49,6 +69,10 @@ class InvitationService:
         if invitation_data.mentor_id is not None:
             mentor = await self._uow.users.get_by_id(invitation_data.mentor_id)
             if not mentor:
+                logger.warning(
+                    "Create invitation: mentor not found (mentor_id={})",
+                    invitation_data.mentor_id,
+                )
                 msg = "Mentor not found"
                 raise NotFoundException(msg)
 
@@ -71,12 +95,19 @@ class InvitationService:
         # Save invitation
         created = await self._uow.invitations.create(invitation)
         await self._uow.commit()
+        logger.info(
+            "Invitation created (invitation_id={}, email={}, expires_at={})",
+            created.id,
+            created.email,
+            created.expires_at.isoformat() if created.expires_at else None,
+        )
         return created
 
     async def get_invitation_by_id(self, invitation_id: int) -> Invitation:
         """Get invitation by ID."""
         invitation = await self._uow.invitations.get_by_id(invitation_id)
         if not invitation:
+            logger.warning("Invitation not found (invitation_id={})", invitation_id)
             msg = "Invitation"
             raise NotFoundException(msg)
         return invitation
@@ -85,6 +116,7 @@ class InvitationService:
         """Get valid (pending and not expired) invitation by token."""
         invitation = await self._uow.invitations.get_valid_by_token(token)
         if not invitation:
+            logger.warning("Invalid or expired invitation token")
             msg = "Invalid or expired invitation"
             raise ValidationException(msg)
         return invitation
@@ -94,6 +126,11 @@ class InvitationService:
         invitation = await self.get_invitation_by_id(invitation_id)
 
         if invitation.status != InvitationStatus.PENDING:
+            logger.warning(
+                "Resend invitation rejected: status is {} (invitation_id={})",
+                invitation.status,
+                invitation_id,
+            )
             msg = "Can only resend pending invitations"
             raise ValidationException(msg)
 
@@ -102,19 +139,28 @@ class InvitationService:
         invitation.expires_at = datetime.now(UTC) + timedelta(days=7)
         invitation.status = InvitationStatus.PENDING
 
-        return await self._uow.invitations.update(invitation)
+        updated = await self._uow.invitations.update(invitation)
+        logger.info("Invitation resent (invitation_id={})", updated.id)
+        return updated
 
     async def revoke_invitation(self, invitation_id: int) -> Invitation:
         """Revoke (cancel) invitation."""
         invitation = await self.get_invitation_by_id(invitation_id)
 
         if invitation.status != InvitationStatus.PENDING:
+            logger.warning(
+                "Revoke invitation rejected: status is {} (invitation_id={})",
+                invitation.status,
+                invitation_id,
+            )
             msg = "Can only revoke pending invitations"
             raise ValidationException(msg)
 
         invitation.status = InvitationStatus.REVOKED
 
-        return await self._uow.invitations.update(invitation)
+        updated = await self._uow.invitations.update(invitation)
+        logger.info("Invitation revoked (invitation_id={})", updated.id)
+        return updated
 
     async def get_invitations(
         self,
@@ -151,9 +197,14 @@ class InvitationService:
         """Delete invitation by ID."""
         invitation = await self._uow.invitations.get_by_id(invitation_id)
         if not invitation:
+            logger.warning("Delete invitation: not found (invitation_id={})", invitation_id)
             msg = "Invitation"
             raise NotFoundException(msg)
-        return await self._uow.invitations.delete(invitation_id)
+        deleted = await self._uow.invitations.delete(invitation_id)
+        logger.info(
+            "Invitation deleted (invitation_id={}, deleted={})", invitation_id, deleted
+        )
+        return deleted
 
     def generate_invitation_url(self, token: str) -> HttpUrl:
         """Generate invitation URL for Telegram bot."""

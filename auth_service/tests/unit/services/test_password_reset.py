@@ -67,7 +67,7 @@ class TestPasswordResetService:
 
     def _create_token_record(
         self, token: str, user_id: int, *, expired: bool = False, used: bool = False
-    ) -> "PasswordResetToken":
+    ) -> PasswordResetToken:
         """Help to create a PasswordResetToken with proper bcrypt hash."""
         from auth_service.models import PasswordResetToken
 

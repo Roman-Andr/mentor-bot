@@ -1,10 +1,26 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { renderHook, act } from '@testing-library/react'
+import { createElement, type ReactNode } from 'react'
+import { renderHook, render, act } from '@testing-library/react'
 import { useFocusTrap } from '@/hooks/use-focus-trap'
+
+let currentTrapRef: { current: HTMLDivElement | null } | undefined
+
+function FocusTrapFixture({
+  enabled = true,
+  children,
+}: {
+  enabled?: boolean
+  children?: ReactNode
+}) {
+  const ref = useFocusTrap<HTMLDivElement>(enabled)
+  currentTrapRef = ref
+  return createElement('div', { ref, id: 'focus-trap' }, children)
+}
 
 describe('useFocusTrap', () => {
   beforeEach(() => {
     document.body.innerHTML = ''
+    currentTrapRef = undefined
   })
 
   afterEach(() => {
@@ -271,5 +287,138 @@ describe('useFocusTrap', () => {
     result.current.current = container
 
     expect(result.current.current).toBe(container)
+  })
+
+  it('focuses the first focusable element and restores previous focus on unmount', () => {
+    const outside = document.createElement('button')
+    outside.textContent = 'Outside'
+    document.body.appendChild(outside)
+    outside.focus()
+
+    const { unmount } = render(createElement(
+      FocusTrapFixture,
+      null,
+      createElement('button', { id: 'first' }, 'First'),
+      createElement('button', { id: 'second' }, 'Second'),
+    ))
+
+    expect(document.activeElement).toBe(document.getElementById('first'))
+
+    unmount()
+
+    expect(document.activeElement).toBe(outside)
+  })
+
+  it('wraps focus forward on Tab from the last element and from outside', () => {
+    const outside = document.createElement('button')
+    outside.textContent = 'Outside'
+    document.body.appendChild(outside)
+
+    render(createElement(
+      FocusTrapFixture,
+      null,
+      createElement('button', { id: 'first' }, 'First'),
+      createElement('button', { id: 'last' }, 'Last'),
+    ))
+
+    const first = document.getElementById('first') as HTMLButtonElement
+    const last = document.getElementById('last') as HTMLButtonElement
+
+    first.focus()
+    const containedEvent = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true })
+    act(() => {
+      document.dispatchEvent(containedEvent)
+    })
+    expect(containedEvent.defaultPrevented).toBe(false)
+
+    last.focus()
+    const lastEvent = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true })
+    act(() => {
+      document.dispatchEvent(lastEvent)
+    })
+    expect(lastEvent.defaultPrevented).toBe(true)
+    expect(document.activeElement).toBe(first)
+
+    outside.focus()
+    const outsideEvent = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true })
+    act(() => {
+      document.dispatchEvent(outsideEvent)
+    })
+    expect(outsideEvent.defaultPrevented).toBe(true)
+    expect(document.activeElement).toBe(first)
+  })
+
+  it('wraps focus backward on Shift+Tab from the first element and from outside', () => {
+    const outside = document.createElement('button')
+    outside.textContent = 'Outside'
+    document.body.appendChild(outside)
+
+    render(createElement(
+      FocusTrapFixture,
+      null,
+      createElement('button', { id: 'first' }, 'First'),
+      createElement('button', { id: 'last' }, 'Last'),
+    ))
+
+    const first = document.getElementById('first') as HTMLButtonElement
+    const last = document.getElementById('last') as HTMLButtonElement
+
+    last.focus()
+    const containedEvent = new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true, cancelable: true })
+    act(() => {
+      document.dispatchEvent(containedEvent)
+    })
+    expect(containedEvent.defaultPrevented).toBe(false)
+
+    first.focus()
+    const firstEvent = new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true, cancelable: true })
+    act(() => {
+      document.dispatchEvent(firstEvent)
+    })
+    expect(firstEvent.defaultPrevented).toBe(true)
+    expect(document.activeElement).toBe(last)
+
+    outside.focus()
+    const outsideEvent = new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true, cancelable: true })
+    act(() => {
+      document.dispatchEvent(outsideEvent)
+    })
+    expect(outsideEvent.defaultPrevented).toBe(true)
+    expect(document.activeElement).toBe(last)
+  })
+
+  it('ignores non-Tab keys and handles empty focusable lists', () => {
+    const { unmount } = render(createElement(
+      FocusTrapFixture,
+      null,
+      createElement('button', { id: 'first' }, 'First'),
+    ))
+
+    const escapeEvent = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true })
+    act(() => {
+      document.dispatchEvent(escapeEvent)
+    })
+    expect(escapeEvent.defaultPrevented).toBe(false)
+
+    currentTrapRef!.current = null
+    const nullRefEvent = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true })
+    act(() => {
+      document.dispatchEvent(nullRefEvent)
+    })
+    expect(nullRefEvent.defaultPrevented).toBe(false)
+
+    unmount()
+
+    render(createElement(
+      FocusTrapFixture,
+      null,
+      createElement('span', null, 'No focusable elements'),
+    ))
+
+    const emptyEvent = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true })
+    act(() => {
+      document.dispatchEvent(emptyEvent)
+    })
+    expect(emptyEvent.defaultPrevented).toBe(false)
   })
 })

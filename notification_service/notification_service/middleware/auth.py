@@ -4,6 +4,7 @@ from collections.abc import Callable
 from secrets import compare_digest
 
 from fastapi import Request, Response
+from loguru import logger
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
@@ -24,6 +25,9 @@ class AuthTokenMiddleware(BaseHTTPMiddleware):
 
         if auth_header and auth_header.startswith("Bearer "):
             token = auth_header[7:]
+            logger.debug("Auth token extracted from request header")
+        elif auth_header:
+            logger.warning("Invalid Authorization header format")
 
         request.state.auth_token = token
 
@@ -43,5 +47,9 @@ def verify_service_api_key(api_key: str) -> bool:
     """
     configured_key = settings.SERVICE_API_KEY
     if not configured_key:
+        logger.debug("No SERVICE_API_KEY configured, accepting any key")
         return bool(api_key)
-    return compare_digest(api_key, settings.SERVICE_API_KEY)
+    is_valid = compare_digest(api_key, settings.SERVICE_API_KEY)
+    if not is_valid:
+        logger.warning("Invalid service API key provided")
+    return is_valid

@@ -1,13 +1,10 @@
 """HTTP client for meeting service integration."""
 
-import logging
-
 import httpx
 from fastapi import status
+from loguru import logger
 
 from telegram_bot.config import settings
-
-logger = logging.getLogger(__name__)
 
 
 class MeetingServiceClient:
@@ -32,6 +29,7 @@ class MeetingServiceClient:
         meeting_type: str = "onboarding",
     ) -> dict | None:
         """Create meeting."""
+        logger.info("Creating meeting (user_id={}, title={})", user_id, title)
         try:
             response = await self.client.post(
                 f"{settings.API_V1_PREFIX}/user-meetings",
@@ -47,15 +45,18 @@ class MeetingServiceClient:
                 headers={"Authorization": f"Bearer {auth_token}"},
             )
             if response.status_code == status.HTTP_201_CREATED:
+                logger.info("Meeting created (user_id={})", user_id)
                 return response.json()
+            logger.warning("Meeting creation failed (user_id={}, status={})", user_id, response.status_code)
         except httpx.RequestError:
-            logger.exception("Meeting service request failed")
+            logger.exception("Meeting service request failed (user_id={})", user_id)
         return None
 
     async def get_user_meetings(
         self, user_id: int, auth_token: str, limit: int = 10
     ) -> list[dict]:
         """Get user meetings."""
+        logger.debug("Fetching user meetings (user_id={}, limit={})", user_id, limit)
         try:
             response = await self.client.get(
                 f"{settings.API_V1_PREFIX}/user-meetings",
@@ -64,15 +65,17 @@ class MeetingServiceClient:
             )
             if response.status_code == status.HTTP_200_OK:
                 data = response.json()
+                logger.debug("User meetings fetched (user_id={}, count={})", user_id, len(data.get("meetings", [])))
                 return data.get("meetings", [])
         except httpx.RequestError:
-            logger.exception("Meeting service get meetings failed")
+            logger.exception("Meeting service get meetings failed (user_id={})", user_id)
         return []
 
     async def get_upcoming_meetings(
         self, user_id: int, auth_token: str, limit: int = 5
     ) -> list[dict]:
         """Get upcoming meetings for user."""
+        logger.debug("Fetching upcoming meetings (user_id={}, limit={})", user_id, limit)
         try:
             response = await self.client.get(
                 f"{settings.API_V1_PREFIX}/user-meetings/upcoming",
@@ -81,15 +84,17 @@ class MeetingServiceClient:
             )
             if response.status_code == status.HTTP_200_OK:
                 data = response.json()
+                logger.debug("Upcoming meetings fetched (user_id={}, count={})", user_id, len(data.get("meetings", [])))
                 return data.get("meetings", [])
         except httpx.RequestError:
-            logger.exception("Meeting service get upcoming meetings failed")
+            logger.exception("Meeting service get upcoming meetings failed (user_id={})", user_id)
         return []
 
     async def confirm_meeting(
         self, meeting_id: int, user_id: int, auth_token: str
     ) -> dict | None:
         """Confirm meeting attendance."""
+        logger.info("Confirming meeting (meeting_id={}, user_id={})", meeting_id, user_id)
         try:
             response = await self.client.post(
                 f"{settings.API_V1_PREFIX}/user-meetings/{meeting_id}/confirm",
@@ -97,15 +102,18 @@ class MeetingServiceClient:
                 headers={"Authorization": f"Bearer {auth_token}"},
             )
             if response.status_code == status.HTTP_200_OK:
+                logger.info("Meeting confirmed (meeting_id={}, user_id={})", meeting_id, user_id)
                 return response.json()
+            logger.warning("Meeting confirmation failed (meeting_id={}, user_id={}, status={})", meeting_id, user_id, response.status_code)
         except httpx.RequestError:
-            logger.exception("Meeting service confirm meeting failed")
+            logger.exception("Meeting service confirm meeting failed (meeting_id={})", meeting_id)
         return None
 
     async def cancel_meeting(
         self, meeting_id: int, user_id: int, auth_token: str, reason: str | None = None
     ) -> dict | None:
         """Cancel meeting."""
+        logger.info("Canceling meeting (meeting_id={}, user_id={})", meeting_id, user_id)
         try:
             json_data: dict[str, int | str] = {"user_id": user_id}
             if reason:
@@ -117,9 +125,11 @@ class MeetingServiceClient:
                 headers={"Authorization": f"Bearer {auth_token}"},
             )
             if response.status_code == status.HTTP_200_OK:
+                logger.info("Meeting canceled (meeting_id={}, user_id={})", meeting_id, user_id)
                 return response.json()
+            logger.warning("Meeting cancellation failed (meeting_id={}, user_id={}, status={})", meeting_id, user_id, response.status_code)
         except httpx.RequestError:
-            logger.exception("Meeting service cancel meeting failed")
+            logger.exception("Meeting service cancel meeting failed (meeting_id={})", meeting_id)
         return None
 
 

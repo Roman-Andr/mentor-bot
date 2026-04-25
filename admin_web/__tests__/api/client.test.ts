@@ -56,6 +56,15 @@ describe('fetchApi', () => {
     expect(window.location.href).toBe('/login')
   })
 
+  it('handles 401 unauthorized without window', async () => {
+    vi.stubGlobal('window', undefined)
+    mockFetchError(401, 'Unauthorized')
+
+    const result = await fetchApi('/api/test')
+
+    expect(result.error).toBe('Unauthorized')
+  })
+
   it('handles 500 server error', async () => {
     mockFetchError(500, 'Internal Server Error')
 
@@ -70,6 +79,14 @@ describe('fetchApi', () => {
     const result = await fetchApi('/api/test')
 
     expect(result.error).toBe('Failed to fetch')
+  })
+
+  it('handles non-Error thrown values as network errors', async () => {
+    global.fetch = vi.fn().mockRejectedValue('Failed')
+
+    const result = await fetchApi('/api/test')
+
+    expect(result.error).toBe('Network error')
   })
 
   it('handles malformed JSON in error response', async () => {
@@ -156,6 +173,15 @@ describe('fetchUpload', () => {
 
     expect(result.error).toBe('Network error')
   })
+
+  it('handles non-Error thrown values during upload', async () => {
+    global.fetch = vi.fn().mockRejectedValue('Failed')
+
+    const formData = new FormData()
+    const result = await fetchUpload('/api/upload', formData)
+
+    expect(result.error).toBe('Network error')
+  })
 })
 
 describe('fetchApiNew', () => {
@@ -204,6 +230,15 @@ describe('fetchApiNew', () => {
     expect(result.success).toBe(false)
     expect(result.error.message).toBe('Connection refused')
     expect(result.error.status).toBeUndefined()
+  })
+
+  it('handles non-Error thrown values as network errors', async () => {
+    global.fetch = vi.fn().mockRejectedValue('Failed')
+
+    const result = await fetchApiNew('/api/test')
+
+    expect(result.success).toBe(false)
+    expect(result.error.message).toBe('Network error')
   })
 
   it('includes credentials in request', async () => {

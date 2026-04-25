@@ -1,7 +1,8 @@
 """Escalation management service with repository pattern."""
 
-from contextlib import suppress
 from datetime import UTC, datetime
+
+from loguru import logger
 
 from escalation_service.clients.notification_client import NotificationClient
 from escalation_service.core.enums import EscalationStatus, EscalationType
@@ -78,6 +79,12 @@ class EscalationService:
 
     async def create_escalation(self, data: EscalationRequestCreate) -> EscalationRequest:
         """Create a new escalation request and notify relevant parties."""
+        logger.debug(
+            "Creating escalation (user_id={}, type={}, assigned_to={})",
+            data.user_id,
+            data.type,
+            data.assigned_to,
+        )
         request = EscalationRequest(
             user_id=data.user_id,
             type=data.type,
@@ -91,9 +98,16 @@ class EscalationService:
         )
         created = await self._uow.escalations.create(request)
         await self._uow.commit()
+        logger.info(
+            "Escalation created (escalation_id={}, user_id={}, type={}, assigned_to={})",
+            created.id,
+            created.user_id,
+            created.type,
+            created.assigned_to,
+        )
 
         # Send notifications (non-blocking)
-        with suppress(Exception):
+        try:
             await self._notification.notify_escalation_created(
                 escalation_id=created.id,
                 user_id=data.user_id,
@@ -101,6 +115,8 @@ class EscalationService:
                 reason=data.reason or "",
                 priority=data.context.get("priority", "normal") if data.context else "normal",
             )
+        except Exception:
+            logger.exception("Escalation creation notification failed (escalation_id={})", created.id)
 
         return created
 
@@ -108,6 +124,7 @@ class EscalationService:
         """Get escalation request by ID."""
         request = await self._uow.escalations.get_by_id(escalation_id)
         if not request:
+            logger.warning("Escalation not found (escalation_id={})", escalation_id)
             msg = "Escalation request"
             raise NotFoundException(msg)
         return request
@@ -125,6 +142,15 @@ class EscalationService:
         sort_order: str = "desc",
     ) -> tuple[list[EscalationRequest], int]:
         """Get paginated list of escalation requests with filters."""
+        logger.debug(
+            "Listing escalations (skip={}, limit={}, user_id={}, assigned_to={}, type={}, status={})",
+            skip,
+            limit,
+            user_id,
+            assigned_to,
+            escalation_type,
+            status,
+        )
         requests, total = await self._uow.escalations.find_requests(
             skip=skip,
             limit=limit,
@@ -136,18 +162,26 @@ class EscalationService:
             sort_by=sort_by,
             sort_order=sort_order,
         )
+        logger.debug("Escalations listed (count={}, total={})", len(requests), total)
         return list(requests), total
 
     async def update_escalation(
         self, escalation_id: int, update_data: EscalationRequestUpdate, changed_by_id: int = 1
     ) -> EscalationRequest:
         """Update escalation request (status, assignee) and notify on status change."""
+        logger.debug("Updating escalation (escalation_id={}, changed_by_id={})", escalation_id, changed_by_id)
         request = await self.get_escalation_by_id(escalation_id)
         old_status = request.status
 
         if update_data.status is not None:
             # Validate state machine transition
             _validate_status_transition(old_status, update_data.status)
+            logger.info(
+                "Escalation status transition accepted (escalation_id={}, from={}, to={})",
+                escalation_id,
+                old_status,
+                update_data.status,
+            )
 
             request.status = update_data.status
             if update_data.status in (EscalationStatus.RESOLVED, EscalationStatus.CLOSED):
@@ -181,7 +215,7 @@ class EscalationService:
                     comment=resolution_note,
                 )
             except Exception:
-                pass
+                logger.exception("Escalation status notification failed (escalation_id={})", escalation_id)
 
         return updated
 
@@ -189,6 +223,12 @@ class EscalationService:
         self, escalation_id: int, assignee_id: int, assigned_by_id: int = 1
     ) -> EscalationRequest:
         """Assign escalation to a user and notify."""
+        logger.debug(
+            "Assigning escalation (escalation_id={}, assignee_id={}, assigned_by_id={})",
+            escalation_id,
+            assignee_id,
+            assigned_by_id,
+        )
         request = await self.get_escalation_by_id(escalation_id)
         previous_assignee = request.assigned_to
 
@@ -197,9 +237,15 @@ class EscalationService:
         request.updated_at = datetime.now(UTC)
         updated = await self._uow.escalations.update(request)
         await self._uow.commit()
+        logger.info(
+            "Escalation assigned (escalation_id={}, previous_assignee={}, new_assignee={})",
+            escalation_id,
+            previous_assignee,
+            assignee_id,
+        )
 
         # Notify (non-blocking)
-        with suppress(Exception):
+        try:
             await self._notification.notify_escalation_assigned(
                 escalation_id=escalation_id,
                 new_assignee_id=assignee_id,
@@ -207,6 +253,8 @@ class EscalationService:
                 assigned_by_id=assigned_by_id,
                 reason=request.reason or "",
             )
+        except Exception:
+            logger.exception("Escalation assignment notification failed (escalation_id={})", escalation_id)
 
         return updated
 
@@ -214,6 +262,7 @@ class EscalationService:
         self, escalation_id: int, resolved_by_id: int = 1, comment: str | None = None
     ) -> EscalationRequest:
         """Mark escalation as resolved and notify requester."""
+        logger.debug("Resolving escalation (escalation_id={}, resolved_by_id={})", escalation_id, resolved_by_id)
         request = await self.get_escalation_by_id(escalation_id)
         old_status = request.status
 
@@ -228,9 +277,10 @@ class EscalationService:
 
         updated = await self._uow.escalations.update(request)
         await self._uow.commit()
+        logger.info("Escalation resolved (escalation_id={}, previous_status={})", escalation_id, old_status)
 
         # Notify requester of resolution (non-blocking)
-        with suppress(Exception):
+        try:
             await self._notification.notify_status_change(
                 escalation_id=escalation_id,
                 user_id=request.user_id,
@@ -239,5 +289,7 @@ class EscalationService:
                 changed_by_id=resolved_by_id,
                 comment=comment,
             )
+        except Exception:
+            logger.exception("Escalation resolution notification failed (escalation_id={})", escalation_id)
 
         return updated

@@ -9,6 +9,15 @@ import type {
   AnonymityStats,
 } from "@/types";
 
+// Helper to filter out undefined values from params
+function buildQueryString(params?: Record<string, unknown>): string {
+  if (!params) return "";
+  const filtered = Object.fromEntries(
+    Object.entries(params).filter(([_, v]) => v !== undefined && v !== null)
+  );
+  return new URLSearchParams(filtered as Record<string, string>).toString();
+}
+
 export const feedbackApi = {
   // Pulse surveys
   getPulseSurveys: (params?: {
@@ -20,7 +29,7 @@ export const feedbackApi = {
     limit?: number;
   }) =>
     fetchApi<FeedbackListResponse<PulseSurvey>>(
-      `/api/v1/feedback/pulse?${new URLSearchParams(params as Record<string, string>).toString()}`
+      `/api/v1/feedback/pulse?${buildQueryString(params as Record<string, unknown>)}`
     ),
 
   submitPulse: (data: { rating: number; is_anonymous?: boolean }) =>
@@ -31,7 +40,7 @@ export const feedbackApi = {
 
   getPulseStats: (params?: { user_id?: number; from_date?: string; to_date?: string }) =>
     fetchApi<PulseStats>(
-      `/api/v1/feedback/pulse/stats?${new URLSearchParams(params as Record<string, string>).toString()}`
+      `/api/v1/feedback/pulse/stats?${buildQueryString(params as Record<string, unknown>)}`
     ),
 
   // Experience ratings
@@ -45,7 +54,7 @@ export const feedbackApi = {
     limit?: number;
   }) =>
     fetchApi<FeedbackListResponse<ExperienceRating>>(
-      `/api/v1/feedback/experience?${new URLSearchParams(params as Record<string, string>).toString()}`
+      `/api/v1/feedback/experience?${buildQueryString(params as Record<string, unknown>)}`
     ),
 
   submitExperience: (data: { rating: number; is_anonymous?: boolean }) =>
@@ -56,7 +65,7 @@ export const feedbackApi = {
 
   getExperienceStats: (params?: { user_id?: number; from_date?: string; to_date?: string }) =>
     fetchApi<ExperienceStats>(
-      `/api/v1/feedback/experience/stats?${new URLSearchParams(params as Record<string, string>).toString()}`
+      `/api/v1/feedback/experience/stats?${buildQueryString(params as Record<string, unknown>)}`
     ),
 
   // Comments
@@ -70,7 +79,7 @@ export const feedbackApi = {
     limit?: number;
   }) =>
     fetchApi<FeedbackListResponse<Comment>>(
-      `/api/v1/feedback/comments?${new URLSearchParams(params as Record<string, string>).toString()}`
+      `/api/v1/feedback/comments?${buildQueryString(params as Record<string, unknown>)}`
     ),
 
   submitComment: (data: {
@@ -93,16 +102,16 @@ export const feedbackApi = {
   // Anonymity stats (admin only)
   getPulseAnonymityStats: (params?: { department_id?: number; from_date?: string; to_date?: string }) =>
     fetchApi<AnonymityStats>(
-      `/api/v1/feedback/pulse/anonymity-stats?${new URLSearchParams(params as Record<string, string>).toString()}`
+      `/api/v1/feedback/pulse/anonymity-stats?${buildQueryString(params as Record<string, unknown>)}`
     ),
 
   getExperienceAnonymityStats: (params?: { department_id?: number; from_date?: string; to_date?: string }) =>
     fetchApi<AnonymityStats>(
-      `/api/v1/feedback/experience/anonymity-stats?${new URLSearchParams(params as Record<string, string>).toString()}`
+      `/api/v1/feedback/experience/anonymity-stats?${buildQueryString(params as Record<string, unknown>)}`
     ),
 
   getCommentAnonymityStats: (params?: { department_id?: number; from_date?: string; to_date?: string }) =>
     fetchApi<AnonymityStats>(
-      `/api/v1/feedback/comments/anonymity-stats?${new URLSearchParams(params as Record<string, string>).toString()}`
+      `/api/v1/feedback/comments/anonymity-stats?${buildQueryString(params as Record<string, unknown>)}`
     ),
 };

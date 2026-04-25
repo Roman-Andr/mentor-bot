@@ -4,6 +4,7 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from typing import Protocol, Self, runtime_checkable
 
+from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from feedback_service.repositories.implementations.feedback import (
@@ -61,6 +62,7 @@ class SqlAlchemyUnitOfWork(IUnitOfWork):
         self.pulse_surveys = PulseSurveyRepository(self._session)
         self.experience_ratings = ExperienceRatingRepository(self._session)
         self.comments = CommentRepository(self._session)
+        logger.debug("UnitOfWork session opened")
         return self
 
     async def __aexit__(
@@ -69,23 +71,29 @@ class SqlAlchemyUnitOfWork(IUnitOfWork):
         """Exit async context manager and clean up session."""
         if self._session:
             if exc_type:
+                logger.warning("UnitOfWork rollback on exception (exc_type={})", exc_type)
                 await self._session.rollback()
             await self._session.close()
             self._session = None
+            logger.debug("UnitOfWork session closed")
 
     async def commit(self) -> None:
         """Commit all changes made in this unit of work."""
         if not self._session:
+            logger.error("UnitOfWork commit failed: session not initialized")
             msg = "Session not initialized"
             raise RuntimeError(msg)
         await self._session.commit()
+        logger.debug("UnitOfWork committed")
 
     async def rollback(self) -> None:
         """Rollback all changes made in this unit of work."""
         if not self._session:
+            logger.error("UnitOfWork rollback failed: session not initialized")
             msg = "Session not initialized"
             raise RuntimeError(msg)
         await self._session.rollback()
+        logger.debug("UnitOfWork rolled back")
 
 
 @asynccontextmanager

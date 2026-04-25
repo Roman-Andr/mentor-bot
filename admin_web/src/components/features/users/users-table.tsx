@@ -17,7 +17,8 @@ import {
 import { DataTable } from "@/components/ui/data-table";
 import { DataTableSkeleton } from "@/components/ui/table-skeleton";
 import { CardHeader, CardTitle } from "@/components/ui/card";
-import { Building, SquarePen, Trash2, UserCheck } from "lucide-react";
+import { TableActions, buildEditAction, buildDeleteAction, buildAssignAction } from "@/components/shared";
+import { Building, UserCheck } from "lucide-react";
 import { ROLES, ROLES_WITH_ALL } from "@/lib/constants";
 import type { UserItem } from "@/hooks/use-users";
 import { SortableTableHead } from "@/components/ui/sortable-table-head";
@@ -95,7 +96,6 @@ export function UsersTable({
       onPageChange={onPageChange}
       onPageSizeChange={onPageSizeChange}
       showPageSizeSelector={!!onPageSizeChange}
-      skeleton={<DataTableSkeleton columns={8} rows={5} showHeader={false} />}
       header={
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -227,31 +227,21 @@ export function UsersTable({
                 {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "-"}
               </TableCell>
               <TableCell onClick={(e) => e.stopPropagation()}>
-                <div className="flex gap-1">
-                   <Button variant="ghost" size="icon" onClick={() => onEdit(user)} aria-label={t("common.edit")}>
-                     <SquarePen className="size-4" />
-                   </Button>
-                   {onAssignMentor && user.role === "NEWBIE" && (
-                     <Button
-                       variant="ghost"
-                       size="icon"
-                       onClick={() => onAssignMentor(user)}
-                       title={t("users.assignMentor")}
-                       aria-label={t("users.assignMentor")}
-                     >
-                       <UserCheck className="size-4" />
-                     </Button>
-                   )}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-red-500"
-                    onClick={() => onDelete(user.id)}
-                    aria-label={t("common.delete")}
-                  >
-                    <Trash2 className="size-4" />
-                  </Button>
-                </div>
+                <TableActions
+                  actions={[
+                    buildEditAction(() => onEdit(user)),
+                    ...(onAssignMentor && user.role === "NEWBIE"
+                      ? [{
+                          icon: UserCheck,
+                          label: t("users.assignMentor"),
+                          onClick: () => onAssignMentor(user),
+                          variant: "ghost" as const,
+                        }]
+                      : []
+                    ),
+                    buildDeleteAction(() => onDelete(user.id)),
+                  ]}
+                />
               </TableCell>
             </TableRow>
           ))}

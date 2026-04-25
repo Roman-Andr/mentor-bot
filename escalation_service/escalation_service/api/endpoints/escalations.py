@@ -3,6 +3,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Query, status
+from loguru import logger
 
 from escalation_service.api.deps import (
     AdminUser,
@@ -32,6 +33,12 @@ async def get_my_assigned_escalations(
     limit: Annotated[int, Query(ge=1, le=100)] = 50,
 ) -> list[EscalationRequestResponse]:
     """Get escalation requests assigned to the current user."""
+    logger.debug(
+        "Fetching assigned escalations (user_id={}, skip={}, limit={})",
+        current_user.id,
+        skip,
+        limit,
+    )
     requests, _ = await escalation_service.get_escalations(
         skip=skip,
         limit=limit,
@@ -59,6 +66,11 @@ async def get_escalations(
     # Authorization: regular users can only see their own requests
     if not current_user.has_role(["HR", "ADMIN"]):
         if user_id is not None and user_id != current_user.id:
+            logger.warning(
+                "Escalation list forbidden: current_user_id={}, requested_user_id={}",
+                current_user.id,
+                user_id,
+            )
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Cannot view other users' requests",
@@ -66,6 +78,14 @@ async def get_escalations(
         user_id = current_user.id
         assigned_to = None  # cannot filter by assignee
 
+    logger.debug(
+        "Fetching escalations (current_user_id={}, user_id={}, assigned_to={}, skip={}, limit={})",
+        current_user.id,
+        user_id,
+        assigned_to,
+        skip,
+        limit,
+    )
     requests, total = await escalation_service.get_escalations(
         skip=skip,
         limit=limit,
@@ -98,12 +118,18 @@ async def create_escalation(
 ) -> EscalationRequestResponse:
     """Create a new escalation request."""
     if data.user_id != current_user.id and not current_user.has_role(["HR", "ADMIN"]):
+        logger.warning(
+            "Create escalation forbidden (current_user_id={}, requested_user_id={})",
+            current_user.id,
+            data.user_id,
+        )
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Cannot create requests for other users",
         )
 
     request = await escalation_service.create_escalation(data)
+    logger.info("Escalation created via API (escalation_id={}, user_id={})", request.id, request.user_id)
     return EscalationRequestResponse.model_validate(request)
 
 
@@ -118,6 +144,11 @@ async def get_escalation(
 
     # Check permission: user must be owner, assignee, or HR/Admin
     if current_user.id not in (request.user_id, request.assigned_to) and not current_user.has_role(["HR", "ADMIN"]):
+        logger.warning(
+            "Get escalation forbidden (current_user_id={}, escalation_id={})",
+            current_user.id,
+            escalation_id,
+        )
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Access denied",
@@ -138,18 +169,26 @@ async def update_escalation(
     # Fetch and check permissions
     request = await uow.escalations.get_by_id(escalation_id)
     if not request:
+        logger.warning("Update escalation failed: not found (escalation_id={})", escalation_id)
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Escalation request not found",
         )
 
     if request.assigned_to != current_user.id and not current_user.has_role(["HR", "ADMIN"]):
+        logger.warning(
+            "Update escalation forbidden (current_user_id={}, escalation_id={}, assigned_to={})",
+            current_user.id,
+            escalation_id,
+            request.assigned_to,
+        )
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Only assignee or HR can update this request",
         )
 
     updated = await escalation_service.update_escalation(escalation_id, update_data)
+    logger.info("Escalation updated via API (escalation_id={}, user_id={})", escalation_id, current_user.id)
     return EscalationRequestResponse.model_validate(updated)
 
 
@@ -164,10 +203,12 @@ async def assign_escalation(
     try:
         request = await escalation_service.assign_escalation(escalation_id, assignee_id)
     except NotFoundException as e:
+        logger.warning("Assign escalation failed: not found (escalation_id={})", escalation_id)
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e.detail),
         ) from e
+    logger.info("Escalation assigned via API (escalation_id={}, assignee_id={})", escalation_id, assignee_id)
     return EscalationRequestResponse.model_validate(request)
 
 
@@ -181,12 +222,19 @@ async def resolve_escalation(
     # Permission check inside the endpoint
     request = await escalation_service.get_escalation_by_id(escalation_id)
     if request.assigned_to != current_user.id and not current_user.has_role(["HR", "ADMIN"]):
+        logger.warning(
+            "Resolve escalation forbidden (current_user_id={}, escalation_id={}, assigned_to={})",
+            current_user.id,
+            escalation_id,
+            request.assigned_to,
+        )
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Only assignee or HR can resolve this request",
         )
 
     resolved = await escalation_service.resolve_escalation(escalation_id)
+    logger.info("Escalation resolved via API (escalation_id={}, user_id={})", escalation_id, current_user.id)
     return EscalationRequestResponse.model_validate(resolved)
 
 
@@ -201,6 +249,11 @@ async def get_user_escalations(
     """Get escalation requests for a specific user."""
     # Check permission: only that user or HR/Admin
     if user_id != current_user.id and not current_user.has_role(["HR", "ADMIN"]):
+        logger.warning(
+            "Get user escalations forbidden (current_user_id={}, requested_user_id={})",
+            current_user.id,
+            user_id,
+        )
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Access denied",
@@ -223,9 +276,11 @@ async def delete_escalation(
     """Delete an escalation request (admin only)."""
     deleted = await uow.escalations.delete(escalation_id)
     if not deleted:
+        logger.warning("Delete escalation failed: not found (escalation_id={})", escalation_id)
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Escalation request not found",
         )
     await uow.commit()
+    logger.info("Escalation deleted (escalation_id={})", escalation_id)
     return MessageResponse(message="Escalation request deleted successfully")

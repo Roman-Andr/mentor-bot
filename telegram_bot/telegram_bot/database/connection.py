@@ -3,7 +3,6 @@
 import logging
 from collections.abc import AsyncGenerator
 
-from sqlalchemy import MetaData, schema
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
     async_sessionmaker,
@@ -12,6 +11,8 @@ from sqlalchemy.ext.asyncio import (
 
 from telegram_bot.config import settings
 from telegram_bot.database.models import Base
+
+metadata_obj = Base.metadata
 
 logger = logging.getLogger(__name__)
 
@@ -34,10 +35,6 @@ AsyncSessionLocal = async_sessionmaker(
     autoflush=False,
 )
 
-# Declarative metadata
-metadata_obj = MetaData(schema=settings.DATABASE_SCHEMA)
-Base.metadata = metadata_obj
-
 
 async def get_db() -> AsyncGenerator[AsyncSession]:
     """Dependency for getting async database session."""
@@ -55,14 +52,6 @@ async def get_db() -> AsyncGenerator[AsyncSession]:
 async def init_db() -> None:
     """Initialize database tables."""
     async with engine.begin() as conn:
-        # Create schema if it does not exist
-        await conn.run_sync(
-            lambda sync_conn: sync_conn.execute(
-                schema.CreateSchema(settings.DATABASE_SCHEMA, if_not_exists=True)
-            )
-        )
-
-        # Create all tables
         await conn.run_sync(Base.metadata.create_all)
 
     logger.info("Database initialized")

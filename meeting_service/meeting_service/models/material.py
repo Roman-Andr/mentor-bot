@@ -27,7 +27,7 @@ class MeetingMaterial(Base):
     description: Mapped[str | None] = mapped_column(String(500), nullable=True)
     url: Mapped[str] = mapped_column(String(500), nullable=False)  # Link to file or external resource
     type: Mapped[MaterialType] = mapped_column(
-        Enum(MaterialType, schema="meeting", name="materialtype"), nullable=False
+        Enum(MaterialType, name="materialtype"), nullable=False
     )
     order: Mapped[int] = mapped_column(default=0, nullable=False)
 

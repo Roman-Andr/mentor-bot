@@ -1,13 +1,11 @@
 """Models package for the Meeting Service."""
 
-from meeting_service.models.department import Department
 from meeting_service.models.google_calendar_account import GoogleCalendarAccount
 from meeting_service.models.material import MeetingMaterial
 from meeting_service.models.meeting import Meeting
 from meeting_service.models.user_meeting import UserMeeting
 
 __all__ = [
-    "Department",
     "GoogleCalendarAccount",
     "Meeting",
     "MeetingMaterial",

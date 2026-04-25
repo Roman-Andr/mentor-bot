@@ -6,6 +6,7 @@ from collections.abc import Callable
 from enum import Enum
 
 import httpx
+from loguru import logger
 
 from checklists_service.config import settings
 
@@ -46,8 +47,16 @@ class CircuitBreaker:
         async with self._lock:
             if self.state == CircuitState.OPEN:
                 if time.time() - self.last_failure_time > self.recovery_timeout:
+                    logger.info(
+                        "Circuit breaker transitioning OPEN -> HALF_OPEN (recovery_timeout={}s elapsed)",
+                        self.recovery_timeout,
+                    )
                     self.state = CircuitState.HALF_OPEN
                 else:
+                    logger.warning(
+                        "Circuit breaker is OPEN, rejecting call (failure_count={})",
+                        self.failure_count,
+                    )
                     msg = "Circuit breaker is OPEN"
                     raise CircuitBreakerOpenError(msg)
 
@@ -59,12 +68,25 @@ class CircuitBreaker:
                 self.last_failure_time = int(time.time())
 
                 if self.state == CircuitState.HALF_OPEN or self.failure_count >= self.failure_threshold:
+                    if self.state != CircuitState.OPEN:
+                        logger.error(
+                            "Circuit breaker tripped to OPEN (failure_count={}, threshold={})",
+                            self.failure_count,
+                            self.failure_threshold,
+                        )
                     self.state = CircuitState.OPEN
+                else:
+                    logger.warning(
+                        "Circuit breaker recorded failure ({}/{})",
+                        self.failure_count,
+                        self.failure_threshold,
+                    )
 
             raise
         else:
             async with self._lock:
                 if self.state == CircuitState.HALF_OPEN:
+                    logger.info("Circuit breaker recovered HALF_OPEN -> CLOSED")
                     self.state = CircuitState.CLOSED
                     self.failure_count = 0
 

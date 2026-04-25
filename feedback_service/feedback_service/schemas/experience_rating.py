@@ -10,6 +10,7 @@ class ExperienceRatingCreate(BaseModel):
 
     rating: int = Field(..., description="Rating from 1 to 5", ge=1, le=5)
     is_anonymous: bool = Field(default=False, description="Submit anonymously")
+    user_id: int | None = Field(default=None, description="User ID (for service-to-service calls)")
 
 
 class ExperienceRatingResponse(BaseModel):

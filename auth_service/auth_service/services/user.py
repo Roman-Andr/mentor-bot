@@ -2,6 +2,8 @@
 
 from datetime import UTC, datetime
 
+from loguru import logger
+
 from auth_service.core import (
     ConflictException,
     NotFoundException,
@@ -24,8 +26,10 @@ class UserService:
 
     async def get_user_by_id(self, user_id: int) -> User:
         """Get user by ID."""
+        logger.debug("Fetching user by id={}", user_id)
         user = await self._uow.users.get_by_id(user_id)
         if not user:
+            logger.warning("User not found (user_id={})", user_id)
             msg = "User"
             raise NotFoundException(msg)
         return user
@@ -40,15 +44,26 @@ class UserService:
 
     async def create_user(self, user_data: UserCreate) -> User:
         """Create new user with repository pattern."""
+        logger.debug(
+            "Creating user (email={}, employee_id={}, role={})",
+            user_data.email,
+            user_data.employee_id,
+            user_data.role,
+        )
         # Check if email already exists
         existing_user = await self._uow.users.get_by_email(user_data.email)
         if existing_user:
+            logger.warning("Create user conflict: email already registered ({})", user_data.email)
             msg = "Email already registered"
             raise ConflictException(msg)
 
         # Check if employee_id already exists
         existing_employee = await self._uow.users.get_by_employee_id(user_data.employee_id)
         if existing_employee:
+            logger.warning(
+                "Create user conflict: employee_id already registered ({})",
+                user_data.employee_id,
+            )
             msg = "Employee ID already registered"
             raise ConflictException(msg)
 
@@ -56,6 +71,10 @@ class UserService:
         if user_data.telegram_id is not None:
             existing_user = await self._uow.users.get_by_telegram_id(user_data.telegram_id)
             if existing_user:
+                logger.warning(
+                    "Create user conflict: telegram_id already linked ({})",
+                    user_data.telegram_id,
+                )
                 msg = "Telegram account already linked to another user"
                 raise ConflictException(msg)
 
@@ -78,16 +97,21 @@ class UserService:
 
         created = await self._uow.users.create(user)
         await self._uow.commit()
+        logger.info("User created (user_id={}, email={})", created.id, created.email)
         return created
 
     async def update_user(self, user_id: int, user_data: UserUpdate) -> User:
         """Update user information."""
+        logger.debug("Updating user (user_id={})", user_id)
         user = await self.get_user_by_id(user_id)
 
         # Check if email is being changed and already exists
         if user_data.email and user_data.email != user.email:
             existing_user = await self._uow.users.get_by_email(user_data.email)
             if existing_user:
+                logger.warning(
+                    "Update user conflict: email already registered ({})", user_data.email
+                )
                 msg = "Email already registered"
                 raise ConflictException(msg)
             user.email = user_data.email
@@ -100,20 +124,29 @@ class UserService:
                 if field == "telegram_id" and value is not None:
                     existing_user = await self._uow.users.get_by_telegram_id(value)
                     if existing_user and existing_user.id != user_id:
+                        logger.warning(
+                            "Update user conflict: telegram_id already linked (telegram_id={}, owner_user_id={})",
+                            value,
+                            existing_user.id,
+                        )
                         msg = "Telegram account already linked to another user"
                         raise ConflictException(msg)
                 setattr(user, field, value)
 
         user.updated_at = datetime.now(UTC)
 
-        return await self._uow.users.update(user)
+        updated = await self._uow.users.update(user)
+        logger.info("User updated (user_id={})", updated.id)
+        return updated
 
     async def deactivate_user(self, user_id: int) -> None:
         """Deactivate user account."""
+        logger.info("Deactivating user (user_id={})", user_id)
         await self._uow.users.deactivate_user(user_id)
 
     async def delete_user(self, user_id: int) -> None:
         """Permanently delete user account."""
+        logger.info("Deleting user (user_id={})", user_id)
         # Verify user exists before deleting
         await self.get_user_by_id(user_id)
         await self._uow.users.delete(user_id)
@@ -145,13 +178,22 @@ class UserService:
 
     async def update_user_role(self, user_id: int, role: UserRole) -> User:
         """Update user role."""
+        logger.info("Updating user role (user_id={}, new_role={})", user_id, role)
         return await self._uow.users.update_role(user_id, role)
 
     async def link_telegram_account(self, user_id: int, telegram_id: int, username: str | None = None) -> User:
         """Link Telegram account to user."""
+        logger.debug(
+            "Linking telegram account (user_id={}, telegram_id={})", user_id, telegram_id
+        )
         # Check if telegram_id is already linked to another user
         existing_user = await self._uow.users.get_by_telegram_id(telegram_id)
         if existing_user and existing_user.id != user_id:
+            logger.warning(
+                "Link telegram conflict (telegram_id={}, owner_user_id={})",
+                telegram_id,
+                existing_user.id,
+            )
             msg = "Telegram account already linked to another user"
             raise ConflictException(msg)
 
@@ -160,17 +202,24 @@ class UserService:
         user.username = username
         user.updated_at = datetime.now(UTC)
 
-        return await self._uow.users.update(user)
+        updated = await self._uow.users.update(user)
+        logger.info(
+            "Telegram account linked (user_id={}, telegram_id={})", updated.id, telegram_id
+        )
+        return updated
 
     async def change_password(self, user_id: int, current_password: str, new_password: str) -> None:
         """Change user password."""
+        logger.debug("Password change requested (user_id={})", user_id)
         user = await self.get_user_by_id(user_id)
 
         if not user.password_hash:
+            logger.warning("Password change failed: no password set (user_id={})", user_id)
             msg = "Password not set for this user"
             raise ValidationException(msg)
 
         if not verify_password(current_password, user.password_hash):
+            logger.warning("Password change failed: invalid current password (user_id={})", user_id)
             msg = "Current password is incorrect"
             raise ValidationException(msg)
 
@@ -178,3 +227,4 @@ class UserService:
         user.updated_at = datetime.now(UTC)
 
         await self._uow.users.update(user)
+        logger.info("Password changed successfully (user_id={})", user_id)

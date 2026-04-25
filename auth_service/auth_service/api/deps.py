@@ -5,6 +5,7 @@ from typing import Annotated
 
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPBearer
+from loguru import logger
 
 from auth_service.core import AuthException, PermissionDenied, UserRole
 from auth_service.database import AsyncSessionLocal
@@ -68,17 +69,20 @@ async def get_current_user(
     token = get_token_from_request(request)
 
     if not token:
+        logger.debug("Authentication required but no token provided")
         msg = "Not authenticated"
         raise AuthException(msg)
 
     try:
         user = await auth_service.get_current_user(token)
         if not user.is_active:
+            logger.warning("Authenticated user is inactive (user_id={})", user.id)
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Inactive user",
             )
     except Exception as e:
+        logger.warning("Authentication failed: {}", e)
         msg = "Invalid authentication credentials"
         raise AuthException(msg) from e
     else:
@@ -92,6 +96,12 @@ def require_role(allowed_roles: list[UserRole]) -> Callable[..., Awaitable[User]
         current_user: Annotated[User, Depends(get_current_user)],
     ) -> User:
         if current_user.role not in allowed_roles:
+            logger.warning(
+                "Access denied for role={} (user_id={}, allowed={})",
+                current_user.role,
+                current_user.id,
+                [r.value if hasattr(r, "value") else r for r in allowed_roles],
+            )
             msg = "Access denied"
             raise PermissionDenied(msg)
         return current_user

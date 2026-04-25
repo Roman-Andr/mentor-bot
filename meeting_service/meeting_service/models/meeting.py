@@ -3,7 +3,7 @@
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, Enum, ForeignKey, Integer, String, Text
+from sqlalchemy import DateTime, Enum, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
@@ -11,7 +11,6 @@ from meeting_service.core.enums import EmployeeLevel, MeetingType
 from meeting_service.database import Base
 
 if TYPE_CHECKING:
-    from meeting_service.models.department import Department
     from meeting_service.models.material import MeetingMaterial
     from meeting_service.models.user_meeting import UserMeeting
 
@@ -27,15 +26,14 @@ class Meeting(Base):
     title: Mapped[str] = mapped_column(String(200), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     type: Mapped[MeetingType] = mapped_column(
-        Enum(MeetingType, schema="meeting", name="meetingtype"), nullable=False, index=True
+        Enum(MeetingType, name="meetingtype"), nullable=False, index=True
     )
 
     # Targeting (who this meeting is for)
-    department_id: Mapped[int | None] = mapped_column(ForeignKey("departments.id"), nullable=True)
-    department: Mapped[Department | None] = relationship("Department", back_populates="meetings")
+    department_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
     position: Mapped[str | None] = mapped_column(String(100), nullable=True, index=True)
     level: Mapped[EmployeeLevel | None] = mapped_column(
-        Enum(EmployeeLevel, schema="meeting", name="employeelevel", native=False), nullable=True, index=True
+        Enum(EmployeeLevel, name="employeelevel"), nullable=True, index=True
     )
 
     # Scheduling rules

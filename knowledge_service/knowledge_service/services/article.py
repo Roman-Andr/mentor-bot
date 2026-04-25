@@ -3,6 +3,7 @@
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
+from loguru import logger
 from slugify import slugify
 
 from knowledge_service.core import ArticleStatus, NotFoundException
@@ -21,6 +22,12 @@ class ArticleService:
 
     async def create_article(self, article_data: ArticleCreate, author_id: int, author_name: str) -> Article:
         """Create new article."""
+        logger.debug(
+            "Creating article (author_id={}, category_id={}, status={})",
+            author_id,
+            article_data.category_id,
+            article_data.status,
+        )
         base_slug = slugify(article_data.title)
         slug = base_slug
         counter = 1
@@ -63,6 +70,13 @@ class ArticleService:
 
         await self._uow.articles.update_search_vector(created.id)
         await self._uow.commit()
+        logger.info(
+            "Article created (article_id={}, author_id={}, status={}, slug={})",
+            created.id,
+            author_id,
+            created.status,
+            created.slug,
+        )
 
         return await self._uow.articles.get_by_id_with_relations(created.id)
 
@@ -70,6 +84,7 @@ class ArticleService:
         """Get article by ID."""
         article = await self._uow.articles.get_by_id_with_relations(article_id)
         if not article:
+            logger.warning("Article not found (article_id={})", article_id)
             msg = "Article"
             raise NotFoundException(msg)
         return article
@@ -78,12 +93,14 @@ class ArticleService:
         """Get article by slug."""
         article = await self._uow.articles.get_by_slug(slug)
         if not article:
+            logger.warning("Article not found by slug (slug={})", slug)
             msg = "Article"
             raise NotFoundException(msg)
         return article
 
     async def update_article(self, article_id: int, update_data: ArticleUpdate) -> Article:
         """Update article."""
+        logger.debug("Updating article (article_id={})", article_id)
         article = await self.get_article_by_id(article_id)
 
         update_dict = update_data.model_dump(exclude_unset=True)
@@ -132,10 +149,12 @@ class ArticleService:
         await self._uow.articles.update_search_vector(article.id)
         updated = await self._uow.articles.update(article)
         await self._uow.commit()
+        logger.info("Article updated (article_id={}, status={})", updated.id, updated.status)
         return updated
 
     async def delete_article(self, article_id: int) -> None:
         """Delete article."""
+        logger.debug("Deleting article (article_id={})", article_id)
         article = await self.get_article_by_id(article_id)
 
         for tag in list(article.tags):
@@ -144,6 +163,7 @@ class ArticleService:
 
         await self._uow.articles.delete(article_id)
         await self._uow.commit()
+        logger.info("Article deleted (article_id={})", article_id)
 
     async def get_articles(
         self,
@@ -162,6 +182,14 @@ class ArticleService:
         sort_order: str = "desc",
     ) -> tuple[list[Article], int]:
         """Get paginated list of articles with filters."""
+        logger.debug(
+            "Listing articles (skip={}, limit={}, category_id={}, status={}, search_present={})",
+            skip,
+            limit,
+            category_id,
+            status,
+            bool(search),
+        )
         items, total = await self._uow.articles.find_articles(
             skip=skip,
             limit=limit,
@@ -176,17 +204,21 @@ class ArticleService:
             sort_by=sort_by,
             sort_order=sort_order,
         )
+        logger.debug("Articles listed (count={}, total={})", len(items), total)
         return list(items), total
 
     async def get_articles_by_ids(self, article_ids: list[int]) -> list[Article]:
         """Get articles by their IDs, preserving order."""
         if not article_ids:
+            logger.debug("Skipping get_articles_by_ids: empty id list")
             return []
         articles = await self._uow.articles.get_by_ids(article_ids)
+        logger.debug("Articles fetched by ids (requested={}, found={})", len(article_ids), len(articles))
         return list(articles)
 
     async def publish_article(self, article_id: int) -> Article:
         """Publish article."""
+        logger.debug("Publishing article (article_id={})", article_id)
         article = await self.get_article_by_id(article_id)
 
         article.status = ArticleStatus.PUBLISHED
@@ -195,24 +227,29 @@ class ArticleService:
 
         await self._uow.articles.update(article)
         await self._uow.commit()
+        logger.info("Article published (article_id={})", article_id)
 
         return await self.get_article_by_id(article_id)
 
     async def record_view(self, article_id: int, user_id: int | None = None) -> None:
         """Record article view and increment counter."""
+        logger.debug("Recording article view (article_id={}, user_id={})", article_id, user_id)
         await self._uow.articles.increment_view_count(article_id)
         await self._uow.article_views.record_view(article_id, user_id)
         await self._uow.commit()
+        logger.info("Article view recorded (article_id={}, user_id={})", article_id, user_id)
 
     async def get_department_articles(
         self, department_id: int, skip: int = 0, limit: int = 50
     ) -> tuple[list[Article], int]:
         """Get articles for specific department."""
         items, total = await self._uow.articles.find_department_articles(department_id, skip=skip, limit=limit)
+        logger.debug("Department articles fetched (department_id={}, count={}, total={})", department_id, len(items), total)
         return list(items), total
 
     async def get_article_stats(self, article_id: int) -> dict[str, Any]:
         """Get detailed view statistics for an article."""
+        logger.debug("Fetching article stats (article_id={})", article_id)
         article = await self.get_article_by_id(article_id)
 
         end_date = datetime.now(UTC).date()

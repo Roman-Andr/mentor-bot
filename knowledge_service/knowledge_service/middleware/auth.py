@@ -3,6 +3,7 @@
 from collections.abc import Callable
 
 from fastapi import Request, Response
+from loguru import logger
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
@@ -23,5 +24,10 @@ class AuthTokenMiddleware(BaseHTTPMiddleware):
             token = auth_header[7:]
 
         request.state.auth_token = token
+        logger.debug(
+            "Auth token extracted from request (has_token={}, path={})",
+            token is not None,
+            request.url.path,
+        )
 
         return await call_next(request)

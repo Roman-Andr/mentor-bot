@@ -1,17 +1,13 @@
 """Search history database model."""
 
 from datetime import datetime
-from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String
+from sqlalchemy import DateTime, Integer, String
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
 
 from knowledge_service.database import Base
-
-if TYPE_CHECKING:
-    from knowledge_service.models import Department
 
 
 class SearchHistory(Base):
@@ -26,8 +22,7 @@ class SearchHistory(Base):
     # Search context
     filters: Mapped[dict] = mapped_column(JSONB, default=dict, nullable=False)
     results_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
-    department_id: Mapped[int | None] = mapped_column(ForeignKey("departments.id"), nullable=True)
-    department: Mapped[Department | None] = relationship("Department", back_populates="search_histories")
+    department_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
     position: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
     # Timestamps

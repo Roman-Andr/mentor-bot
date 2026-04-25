@@ -64,6 +64,7 @@ class FileUploadRateLimiter:
 
         Returns:
             tuple of (is_limited, remaining_calls, retry_after_seconds)
+
         """
         if not self.redis:
             return False, calls, 0
@@ -121,6 +122,7 @@ async def check_file_upload_rate_limit(
 
     Returns:
         tuple of (is_limited, retry_after_seconds)
+
     """
     if not message.from_user:
         return False, 0
@@ -136,11 +138,12 @@ def file_upload_rate_limit(
     max_uploads: int = DEFAULT_UPLOAD_CALLS,
     window_seconds: int = DEFAULT_UPLOAD_PERIOD,
 ) -> Callable[[Callable[..., Awaitable[T]]], Callable[..., Awaitable[T]]]:
-    """Decorator to apply file upload rate limiting to a handler.
+    """Apply file upload rate limiting to a handler.
 
     Args:
         max_uploads: Maximum number of uploads allowed in the window
         window_seconds: Time window in seconds
+
     """
 
     def decorator(func: Callable[..., Awaitable[T]]) -> Callable[..., Awaitable[T]]:

@@ -3,6 +3,7 @@
 from collections.abc import Callable
 
 from fastapi import Request, Response
+from loguru import logger
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
@@ -21,6 +22,11 @@ class AuthTokenMiddleware(BaseHTTPMiddleware):
 
         if auth_header and auth_header.startswith("Bearer "):
             token = auth_header[7:]
+            logger.debug("Auth token extracted from header (path={})", request.url.path)
+        else:
+            logger.debug(
+                "No bearer auth token in request (path={})", request.url.path
+            )
 
         request.state.auth_token = token
 

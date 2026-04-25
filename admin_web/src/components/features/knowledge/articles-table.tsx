@@ -18,7 +18,8 @@ import {
 import { DataTable } from "@/components/ui/data-table";
 import { DataTableSkeleton } from "@/components/ui/table-skeleton";
 import { CardHeader, CardTitle } from "@/components/ui/card";
-import { BookOpen, Eye, Pin, Star, Trash2, SquarePen } from "lucide-react";
+import { TableActions, buildEditAction, buildDeleteAction } from "@/components/shared";
+import { BookOpen, Eye, Pin, Star } from "lucide-react";
 import type { Category } from "@/types";
 import { ARTICLE_STATUSES } from "@/lib/constants";
 import type { ArticleRow } from "@/hooks/use-articles";
@@ -112,7 +113,6 @@ export function ArticlesTable({
       onPageChange={onPageChange}
       onPageSizeChange={onPageSizeChange}
       showPageSizeSelector={!!onPageSizeChange}
-      skeleton={<DataTableSkeleton columns={7} rows={5} showHeader={false} />}
       header={
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -187,32 +187,22 @@ export function ArticlesTable({
               </TableCell>
               <TableCell>{new Date(article.createdAt).toLocaleDateString()}</TableCell>
               <TableCell onClick={(e) => e.stopPropagation()}>
-                <div className="flex gap-1">
-                   <Button variant="ghost" size="icon" onClick={() => onEdit(article)} aria-label={t("common.edit")}>
-                     <SquarePen className="size-4" />
-                   </Button>
-                  {article.status === "DRAFT" && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-green-500"
-                      onClick={() => onPublish(article.id)}
-                      title={t("knowledge.publish")}
-                      aria-label={t("knowledge.publish")}
-                    >
-                      <BookOpen className="size-4" />
-                    </Button>
-                  )}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-red-500"
-                    onClick={() => onDelete(article.id)}
-                    aria-label={t("common.delete")}
-                  >
-                    <Trash2 className="size-4" />
-                  </Button>
-                </div>
+                <TableActions
+                  actions={[
+                    buildEditAction(() => onEdit(article)),
+                    ...(article.status === "DRAFT"
+                      ? [{
+                          icon: BookOpen,
+                          label: t("knowledge.publish"),
+                          onClick: () => onPublish(article.id),
+                          variant: "ghost" as const,
+                          color: "text-green-500",
+                        }]
+                      : []
+                    ),
+                    buildDeleteAction(() => onDelete(article.id)),
+                  ]}
+                />
               </TableCell>
             </TableRow>
           ))}

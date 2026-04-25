@@ -72,7 +72,7 @@ def main() -> None:
     total = 0
 
     # Update root pyproject.toml first
-    total += update_project(Path("."))
+    total += update_project(Path())
 
     for service in SERVICES:
         service_dir = Path(service)

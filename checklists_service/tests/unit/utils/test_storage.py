@@ -7,8 +7,8 @@ import pytest
 from botocore.exceptions import ClientError
 
 from checklists_service.utils.storage import (
-    StorageFileNotFoundError,
     StorageError,
+    StorageFileNotFoundError,
     StorageService,
     get_storage_service,
 )

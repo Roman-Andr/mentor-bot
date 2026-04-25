@@ -5,8 +5,9 @@ from secrets import compare_digest
 from typing import Annotated
 
 import httpx
-from fastapi import Depends, Header, HTTPException, status
+from fastapi import Depends, Header, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from feedback_service.config import settings
@@ -28,7 +29,8 @@ class UserInfo:
         self.is_active = data.get("is_active", True)
         self.is_verified = data.get("is_verified", False)
         self.department = data.get("department")
-        self.department_id = self.department.get("id") if self.department else None
+        # Try to get department_id from top-level field first, then from nested department object
+        self.department_id = data.get("department_id") or (self.department.get("id") if self.department else None)
         self.position = data.get("position")
         self.level = data.get("level")
         self.first_name = data.get("first_name")
@@ -69,14 +71,88 @@ def check_user_access(
     """
     if user_id and user_id != current_user.id:
         if not current_user.has_role(allowed_roles):
+            logger.warning(
+                "Access denied to {} (current_user_id={}, requested_user_id={}, role={})",
+                resource_name,
+                current_user.id,
+                user_id,
+                current_user.role,
+            )
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"Can only view your own {resource_name}",
             )
         return user_id
     if not user_id and not current_user.has_role(allowed_roles):
+        logger.debug(
+            "Restricting {} query to current user (user_id={}, role={})",
+            resource_name,
+            current_user.id,
+            current_user.role,
+        )
         return current_user.id
     return user_id
+
+
+async def get_current_user_optional(
+    credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)],
+) -> UserInfo | None:
+    """Dependency to get current authenticated user via auth service (optional)."""
+    if not credentials:
+        return None
+
+    async with httpx.AsyncClient() as client:
+        try:
+            logger.debug("Validating bearer token via auth service")
+            response = await client.get(
+                f"{settings.AUTH_SERVICE_URL}/api/v1/auth/me",
+                headers={"Authorization": f"Bearer {credentials.credentials}"},
+                timeout=settings.AUTH_SERVICE_TIMEOUT,
+            )
+
+            if response.status_code != status.HTTP_200_OK:
+                logger.warning(
+                    "Authentication failed: auth service returned status={}",
+                    response.status_code,
+                )
+                return None
+
+            user_data = response.json()
+            logger.debug(
+                "Authenticated user loaded (user_id={}, role={})",
+                user_data.get("id"),
+                user_data.get("role"),
+            )
+            return UserInfo(user_data)
+
+        except httpx.RequestError as e:
+            logger.error("Auth service unavailable during token validation: {}", e)
+            return None
+
+
+async def get_current_user_from_cookie(
+    request: Request,
+) -> UserInfo | None:
+    """Dependency to get current authenticated user via cookie (for admin web)."""
+    # Try to get session cookie and validate with auth service
+    # For now, this is a placeholder - the admin web should use Bearer tokens
+    # or we need to implement cookie-based auth validation
+    return None
+
+
+async def require_auth(
+    service_auth: Annotated[bool, Depends(verify_service_api_key)],
+    current_user: Annotated[UserInfo | None, Depends(get_current_user_optional)],
+) -> UserInfo | None:
+    """Require either service auth or user auth."""
+    if not service_auth and not current_user:
+        logger.warning("Authentication failed: neither service key nor user token provided")
+        msg = "Not authenticated"
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=msg,
+        )
+    return current_user
 
 
 async def get_current_user(
@@ -84,6 +160,7 @@ async def get_current_user(
 ) -> UserInfo:
     """Dependency to get current authenticated user via auth service."""
     if not credentials:
+        logger.warning("Authentication failed: missing bearer token")
         msg = "Not authenticated"
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -92,6 +169,7 @@ async def get_current_user(
 
     async with httpx.AsyncClient() as client:
         try:
+            logger.debug("Validating bearer token via auth service")
             response = await client.get(
                 f"{settings.AUTH_SERVICE_URL}/api/v1/auth/me",
                 headers={"Authorization": f"Bearer {credentials.credentials}"},
@@ -99,6 +177,10 @@ async def get_current_user(
             )
 
             if response.status_code != status.HTTP_200_OK:
+                logger.warning(
+                    "Authentication failed: auth service returned status={}",
+                    response.status_code,
+                )
                 msg = "Invalid authentication credentials"
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
@@ -106,9 +188,15 @@ async def get_current_user(
                 )
 
             user_data = response.json()
+            logger.debug(
+                "Authenticated user loaded (user_id={}, role={})",
+                user_data.get("id"),
+                user_data.get("role"),
+            )
             return UserInfo(user_data)
 
         except httpx.RequestError as e:
+            logger.error("Auth service unavailable during token validation: {}", e)
             msg = "Auth service unavailable"
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -121,6 +209,7 @@ async def get_current_active_user(
 ) -> UserInfo:
     """Dependency to get current active user."""
     if not current_user.is_active:
+        logger.warning("Inactive user rejected (user_id={})", current_user.id)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Inactive user",
@@ -133,6 +222,7 @@ async def require_admin(
 ) -> UserInfo:
     """Dependency to require admin role."""
     if not current_user.has_role(["ADMIN"]):
+        logger.warning("Admin access denied (user_id={}, role={})", current_user.id, current_user.role)
         msg = "Admin access required"
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -146,6 +236,7 @@ async def require_hr_or_admin(
 ) -> UserInfo:
     """Dependency to require HR or Admin role."""
     if not current_user.has_role(["HR", "ADMIN"]):
+        logger.warning("HR/Admin access denied (user_id={}, role={})", current_user.id, current_user.role)
         msg = "HR or Admin access required"
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -157,13 +248,17 @@ async def require_hr_or_admin(
 async def verify_service_api_key(
     x_api_key: Annotated[str | None, Header(alias="X-Service-Api-Key")] = None,
 ) -> bool:
-    """Verify service-to-service API key."""
+    """Verify service-to-service API key. Returns True if valid, raises if invalid."""
+    if not x_api_key:
+        return False
     if not settings.SERVICE_API_KEY:
+        logger.error("Service API key is not configured")
         msg = "Service API key not configured"
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=msg)
-    if not x_api_key or not compare_digest(x_api_key, settings.SERVICE_API_KEY):
-        msg = "Invalid service API key"
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=msg)
+    if not compare_digest(x_api_key, settings.SERVICE_API_KEY):
+        logger.warning("Invalid service API key rejected")
+        return False
+    logger.debug("Service API key accepted")
     return True
 
 
@@ -180,3 +275,4 @@ HRAdminUser = Annotated[UserInfo, Depends(require_hr_or_admin)]
 DbDep = Annotated[AsyncSession, Depends(get_db)]
 ServiceAuth = Annotated[bool, Depends(verify_service_api_key)]
 UOWDep = Annotated[SqlAlchemyUnitOfWork, Depends(get_uow)]
+AuthUser = Annotated[UserInfo | None, Depends(require_auth)]

@@ -70,7 +70,7 @@ def create_mock_uow():
 
 
 def setup_mock_uow(mock_uow: MagicMock) -> None:
-    """Setup the mock UOW to work as an async context manager."""
+    """Set up the mock UOW to work as an async context manager."""
     mock_uow.__aenter__ = AsyncMock(return_value=mock_uow)
     mock_uow.__aexit__ = AsyncMock(return_value=None)
 

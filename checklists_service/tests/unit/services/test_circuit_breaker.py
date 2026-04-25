@@ -25,7 +25,8 @@ RECOVERY_TIMEOUT_30 = 30
 
 @pytest.fixture(autouse=True)
 def reset_circuit_breaker_singleton() -> None:
-    """Reset auth_service_circuit_breaker singleton state before each test.
+    """
+    Reset auth_service_circuit_breaker singleton state before each test.
 
     This prevents test pollution since the singleton maintains state across tests.
     """

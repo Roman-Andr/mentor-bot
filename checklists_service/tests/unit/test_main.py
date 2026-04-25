@@ -147,7 +147,6 @@ class TestAppConfiguration:
         assert any("/api/v1/templates" in route for route in routes)
         assert any("/api/v1/checklists" in route for route in routes)
         assert any("/api/v1/tasks" in route for route in routes)
-        assert any("/api/v1/departments" in route for route in routes)
 
     def test_app_has_lifespan(self):
         """Test app has lifespan handler."""

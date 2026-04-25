@@ -273,7 +273,6 @@ class TestGetUow:
         async def mock_aexit(self, exc_type, exc_val, exc_tb):
             if exc_type:
                 await mock_uow.rollback()
-            return None
 
         mock_uow.__aexit__ = mock_aexit
 

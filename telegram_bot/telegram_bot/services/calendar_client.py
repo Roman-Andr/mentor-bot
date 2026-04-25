@@ -1,14 +1,12 @@
 """Client for interacting with Meeting Service Calendar API."""
 
-import logging
 from typing import Any
 
 import httpx
 from google_auth_oauthlib.flow import Flow
+from loguru import logger
 
 from telegram_bot.config import settings
-
-logger = logging.getLogger(__name__)
 
 
 class CalendarClient:
@@ -25,22 +23,25 @@ class CalendarClient:
         self, user_id: int, auth_token: str
     ) -> dict[str, Any]:
         """Check if user has connected Google Calendar."""
+        logger.debug("Checking calendar connection status (user_id={})", user_id)
         try:
             response = await self.client.get(
                 f"{settings.API_V1_PREFIX}/calendar/status/{user_id}",
                 headers={"Authorization": f"Bearer {auth_token}"},
             )
             response.raise_for_status()
+            logger.debug("Calendar status checked (user_id={}, connected=True)", user_id)
             return response.json()
         except httpx.HTTPStatusError as e:
-            logger.warning("Calendar status check failed: %s", e.response.status_code)
+            logger.warning("Calendar status check failed (user_id={}, status={})", user_id, e.response.status_code)
             return {"connected": False, "error": f"HTTP {e.response.status_code}"}
         except httpx.RequestError as e:
-            logger.exception("Calendar service request failed")
+            logger.exception("Calendar service request failed (user_id={})", user_id)
             return {"connected": False, "error": str(e)}
 
     async def get_connect_url(self, user_id: int, state: str) -> str:
         """Get Google Calendar connection URL."""
+        logger.debug("Generating Google Calendar connect URL (user_id={})", user_id)
         # Format state as user_id:random_state for CSRF protection
         formatted_state = f"{user_id}:{state}"
 
@@ -66,22 +67,25 @@ class CalendarClient:
             state=formatted_state,
         )
 
+        logger.debug("Google Calendar connect URL generated (user_id={})", user_id)
         return authorization_url
 
     async def disconnect_calendar(
         self, user_id: int, auth_token: str
     ) -> dict[str, Any]:
         """Disconnect Google Calendar account."""
+        logger.info("Disconnecting Google Calendar (user_id={})", user_id)
         try:
             response = await self.client.delete(
                 f"{settings.API_V1_PREFIX}/calendar/{user_id}",
                 headers={"Authorization": f"Bearer {auth_token}"},
             )
             response.raise_for_status()
+            logger.info("Google Calendar disconnected (user_id={})", user_id)
             return response.json()
         except httpx.HTTPStatusError as e:
-            logger.warning("Calendar disconnect failed: %s", e.response.status_code)
+            logger.warning("Calendar disconnect failed (user_id={}, status={})", user_id, e.response.status_code)
             return {"success": False, "error": f"HTTP {e.response.status_code}"}
         except httpx.RequestError as e:
-            logger.exception("Calendar disconnect request failed")
+            logger.exception("Calendar disconnect request failed (user_id={})", user_id)
             return {"success": False, "error": str(e)}

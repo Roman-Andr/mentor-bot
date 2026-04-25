@@ -5,6 +5,7 @@ from typing import Any
 
 from aiogram import BaseMiddleware
 from aiogram.types import TelegramObject
+from loguru import logger
 
 from telegram_bot.i18n import DEFAULT_LOCALE
 from telegram_bot.services.cache import user_cache
@@ -27,6 +28,7 @@ class LanguageMiddleware(BaseMiddleware):
             user_data = await user_cache.get_user(tg_user.id)
             if user_data:
                 locale = user_data.get("language", DEFAULT_LOCALE)
+                logger.debug("Language detected (telegram_id={}, locale={})", tg_user.id, locale)
 
         data["locale"] = locale
         return await handler(event, data)

@@ -1,13 +1,11 @@
 """API endpoint routers for the Checklists Service."""
 
 from checklists_service.api.endpoints.checklists import router as checklists_router
-from checklists_service.api.endpoints.departments import router as departments_router
 from checklists_service.api.endpoints.tasks import router as tasks_router
 from checklists_service.api.endpoints.templates import router as templates_router
 
 __all__ = [
     "checklists_router",
-    "departments_router",
     "tasks_router",
     "templates_router",
 ]

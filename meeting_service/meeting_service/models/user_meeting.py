@@ -28,7 +28,7 @@ class UserMeeting(Base):
     meeting_id: Mapped[int] = mapped_column(ForeignKey("meetings.id"), nullable=False)
 
     status: Mapped[MeetingStatus] = mapped_column(
-        Enum(MeetingStatus, schema="meeting", name="meetingstatus"), default=MeetingStatus.SCHEDULED, nullable=False
+        Enum(MeetingStatus, name="meetingstatus"), default=MeetingStatus.SCHEDULED, nullable=False
     )
 
     scheduled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

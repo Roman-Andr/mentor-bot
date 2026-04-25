@@ -9,10 +9,8 @@ import { EntityPage } from "@/components/entity";
 import { CreateInvitationDialog } from "@/components/features/invitations/create-invitation-dialog";
 import { InvitationLinkDialog } from "@/components/features/invitations/invitation-link-dialog";
 import { InvitationStats } from "@/components/features/invitations/invitation-stats";
-import { StatusBadge } from "@/components/ui/status-badge";
-import { Button } from "@/components/ui/button";
-import { RefreshCw, XCircle, Copy, Check } from "lucide-react";
-import { ROLES, ROLES_WITH_ALL, INVITATION_STATUSES } from "@/lib/constants";
+import { useInvitationsColumns } from "@/components/features/invitations/invitations-columns";
+import { ROLES_WITH_ALL, INVITATION_STATUSES } from "@/lib/constants";
 
 export default function InvitationsPage() {
   const t = useTranslations();
@@ -25,6 +23,14 @@ export default function InvitationsPage() {
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
   };
+
+  const columns = useInvitationsColumns({
+    copiedId,
+    onCopy: handleCopy,
+    onResend: inv.handleResendInvitation,
+    onRevoke: inv.handleRevokeInvitation,
+    t,
+  });
 
   return (
     <PageContent title={t("invitations.title")} subtitle={t("invitations.title")}>
@@ -120,88 +126,7 @@ export default function InvitationsPage() {
             </select>
           </>
         }
-        columns={[
-          {
-            key: "email",
-            header: t("invitations.email"),
-            cell: (item) => <span className="font-medium">{item.email}</span>,
-            sortable: true,
-          },
-          {
-            key: "role",
-            header: t("invitations.role"),
-            cell: (item) => ROLES.find((r) => r.value === item.role)?.label || item.role,
-            sortable: true,
-          },
-          {
-            key: "department",
-            header: t("common.department"),
-            cell: (item) => item.department || "—",
-            sortable: true,
-          },
-          {
-            key: "status",
-            header: t("common.status"),
-            cell: (item) => <StatusBadge status={item.status} />,
-            sortable: true,
-          },
-          {
-            key: "createdAt",
-            header: t("invitations.createdAt"),
-            cell: (item) => new Date(item.createdAt).toLocaleDateString(),
-            sortable: true,
-          },
-          {
-            key: "expiresAt",
-            header: t("invitations.expiresAt"),
-            cell: (item) => new Date(item.expiresAt).toLocaleDateString(),
-            sortable: true,
-          },
-          {
-            key: "actions",
-            header: "",
-            cell: (item) => (
-              <div className="flex gap-1">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-muted-foreground"
-                  onClick={() => handleCopy(item.invitationUrl, item.id)}
-                  title={t("invitations.copyLink")}
-                >
-                  {copiedId === item.id ? (
-                    <Check className="size-4 text-green-600" />
-                  ) : (
-                    <Copy className="size-4" />
-                  )}
-                </Button>
-                {item.status === "PENDING" && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-blue-500"
-                    title={t("invitations.resend")}
-                    onClick={() => inv.handleResendInvitation(item.id)}
-                  >
-                    <RefreshCw className="size-4" />
-                  </Button>
-                )}
-                {item.status === "PENDING" && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-orange-500"
-                    title={t("invitations.revoke")}
-                    onClick={() => inv.handleRevokeInvitation(item.id)}
-                  >
-                    <XCircle className="size-4" />
-                  </Button>
-                )}
-              </div>
-            ),
-            width: "w-40",
-          },
-        ]}
+        columns={columns}
         renderForm={() => null}
         isFormValid={!!inv.formData.email && inv.emailTouched}
       />

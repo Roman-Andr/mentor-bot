@@ -17,7 +17,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { CardHeader, CardTitle } from "@/components/ui/card";
-import { SquarePen, Trash2, CheckCircle, AlertTriangle, Clock } from "lucide-react";
+import { TableActions, buildEditAction, buildDeleteAction, buildCompleteAction } from "@/components/shared";
+import { AlertTriangle, Clock } from "lucide-react";
 import { CHECKLIST_STATUSES } from "@/lib/constants";
 import { formatDate } from "@/lib/utils";
 import type { ChecklistItem } from "@/hooks/use-checklists";
@@ -99,7 +100,6 @@ export function ChecklistsTable({
       onPageChange={onPageChange}
       onPageSizeChange={onPageSizeChange}
       showPageSizeSelector={!!onPageSizeChange}
-      skeleton={<DataTableSkeleton columns={7} rows={5} showHeader={false} />}
       header={
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -205,32 +205,16 @@ export function ChecklistsTable({
                 )}
               </TableCell>
               <TableCell onClick={(e) => e.stopPropagation()}>
-                <div className="flex gap-1">
-                   <Button variant="ghost" size="icon" onClick={() => onEdit(checklist)} aria-label={t("common.edit")}>
-                     <SquarePen className="size-4" />
-                   </Button>
-                  {checklist.status !== "COMPLETED" && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-green-500"
-                      onClick={() => onComplete(checklist.id)}
-                      title={t("checklists.markComplete")}
-                      aria-label={t("checklists.markComplete")}
-                    >
-                      <CheckCircle className="size-4" />
-                    </Button>
-                  )}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-red-500"
-                    onClick={() => onDelete(checklist.id)}
-                    aria-label={t("common.delete")}
-                  >
-                    <Trash2 className="size-4" />
-                  </Button>
-                </div>
+                <TableActions
+                  actions={[
+                    buildEditAction(() => onEdit(checklist)),
+                    ...(checklist.status !== "COMPLETED"
+                      ? [buildCompleteAction(() => onComplete(checklist.id))]
+                      : []
+                    ),
+                    buildDeleteAction(() => onDelete(checklist.id)),
+                  ]}
+                />
               </TableCell>
             </TableRow>
           ))}

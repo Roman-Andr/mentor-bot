@@ -111,14 +111,6 @@ def mock_init_db():
 
 
 @pytest.fixture(autouse=True)
-def mock_department_sync_client():
-    """Mock department sync client for all tests."""
-    with patch("auth_service.utils.department_sync.department_sync_client.sync_department", new_callable=AsyncMock):
-        with patch("auth_service.utils.department_sync.department_sync_client.close", new_callable=AsyncMock):
-            yield
-
-
-@pytest.fixture(autouse=True)
 def override_uow_dependency(mock_uow):
     """Override the UOW dependency for all API tests."""
     from auth_service.api import deps

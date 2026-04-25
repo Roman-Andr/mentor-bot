@@ -18,7 +18,8 @@ import {
 import { DataTable } from "@/components/ui/data-table";
 import { DataTableSkeleton } from "@/components/ui/table-skeleton";
 import { CardHeader, CardTitle } from "@/components/ui/card";
-import { SquarePen, Calendar, CheckCircle, Trash2 } from "lucide-react";
+import { TableActions, buildEditAction, buildDeleteAction } from "@/components/shared";
+import { Calendar, CheckCircle } from "lucide-react";
 import { TEMPLATE_STATUSES } from "@/lib/constants";
 import type { TemplateItem } from "@/hooks/use-templates";
 import type { SortDirection } from "@/hooks/use-sorting";
@@ -79,7 +80,6 @@ export function TemplatesTable({
       onPageChange={onPageChange}
       onPageSizeChange={onPageSizeChange}
       showPageSizeSelector={!!onPageSizeChange}
-      skeleton={<DataTableSkeleton columns={7} rows={5} showHeader={false} />}
       header={
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -197,32 +197,22 @@ export function TemplatesTable({
                 <StatusBadge status={template.status} />
               </TableCell>
               <TableCell onClick={(e) => e.stopPropagation()}>
-                <div className="flex gap-1">
-                   <Button variant="ghost" size="icon" onClick={() => onEdit(template)} aria-label={t("common.edit")}>
-                     <SquarePen className="size-4" />
-                   </Button>
-                  {template.status === "DRAFT" && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-green-500"
-                      onClick={() => onPublish(template.id)}
-                      title={t("templates.publish")}
-                      aria-label={t("templates.publish")}
-                    >
-                      <CheckCircle className="size-4" />
-                    </Button>
-                  )}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-red-500"
-                    onClick={() => onDelete(template.id)}
-                    aria-label={t("common.delete")}
-                  >
-                    <Trash2 className="size-4" />
-                  </Button>
-                </div>
+                <TableActions
+                  actions={[
+                    buildEditAction(() => onEdit(template)),
+                    ...(template.status === "DRAFT"
+                      ? [{
+                          icon: CheckCircle,
+                          label: t("templates.publish"),
+                          onClick: () => onPublish(template.id),
+                          variant: "ghost" as const,
+                          color: "text-green-500",
+                        }]
+                      : []
+                    ),
+                    buildDeleteAction(() => onDelete(template.id)),
+                  ]}
+                />
               </TableCell>
             </TableRow>
           ))}

@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Any
 
 from aiogram import BaseMiddleware, Bot
 from aiogram.types import TelegramObject
+from loguru import logger
 
 from telegram_bot.config import settings
 from telegram_bot.services.auth_client import auth_client
@@ -40,11 +41,13 @@ class AuthMiddleware(BaseMiddleware):
         if not tg_user:
             return await handler(event, data)
 
+        logger.debug("Auth middleware processing (telegram_id={})", tg_user.id)
         data["tg_user"] = tg_user
 
         user_data = await user_cache.get_user(tg_user.id)
 
         if not user_data:
+            logger.debug("User not in cache, authenticating (telegram_id={})", tg_user.id)
             telegram_data = {
                 "api_key": settings.TELEGRAM_API_KEY,
                 "telegram_id": tg_user.id,
@@ -64,6 +67,11 @@ class AuthMiddleware(BaseMiddleware):
                         "refresh_token": auth_result["refresh_token"],
                     }
                     await user_cache.set_user(tg_user.id, user_data)
+                    logger.info("User authenticated and cached (telegram_id={}, user_id={})", tg_user.id, user_data.get("id"))
+                else:
+                    logger.warning("Authentication successful but user data fetch failed (telegram_id={})", tg_user.id)
+            else:
+                logger.debug("Authentication failed (telegram_id={})", tg_user.id)
 
         if user_data:
             data["user"] = user_data

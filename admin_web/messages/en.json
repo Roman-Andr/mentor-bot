@@ -74,6 +74,7 @@
   "common": {
     "actions": "Actions",
     "active": "Active",
+    "activate": "Activate",
     "add": "Add",
     "all": "All",
     "cancel": "Cancel",
@@ -86,6 +87,7 @@
     "created": "Created",
     "createdAt": "Created",
     "days": "days",
+    "deactivate": "Deactivate",
     "minutes": "min",
     "delete": "Delete",
     "deleteTitle": "Delete",
@@ -251,6 +253,28 @@
     "subject": "Subject",
     "title": "Escalations"
   },
+  "feedback": {
+    "title": "Feedback",
+    "subtitle": "User feedback and ratings",
+    "pulseSurveys": "Pulse Surveys",
+    "avgRating": "Avg Rating",
+    "experienceRatings": "Experience Ratings",
+    "comments": "Comments",
+    "withReply": "with reply",
+    "anonymityStats": "Anonymity Statistics",
+    "pulseSurveysAnon": "Pulse Surveys (anon/attributed)",
+    "experienceRatingsAnon": "Experience Ratings (anon/attributed)",
+    "commentsAnon": "Comments (anon/attributed)",
+    "attributed": "attributed",
+    "type": "Type",
+    "user": "User",
+    "content": "Content",
+    "submittedAt": "Submitted At",
+    "status": "Status",
+    "anonymous": "Anonymous",
+    "viewDetails": "View Details",
+    "reply": "Reply"
+  },
   "invitations": {
     "acceptedCount": "Accepted",
     "copyLink": "Copy link",
@@ -405,12 +429,13 @@
   },
   "nav": {
     "analytics": "Analytics",
-    
+
     "appName": "Mentor Bot",
     "checklists": "Checklists",
     "dashboard": "Dashboard",
     "dialogues": "Dialogues",
     "escalations": "Escalations",
+    "feedback": "Feedback",
     "invitations": "Invitations",
     "knowledgeBase": "Knowledge Base",
     "loggedInAs": "Logged in as",
@@ -503,7 +528,13 @@
     "RESOLVED": "Resolved",
     "CLOSED": "Closed",
     "ASSIGNED": "Assigned",
-    "REJECTED": "Rejected"
+    "REJECTED": "Rejected",
+    "pending": "Pending",
+    "pulse": "Pulse Survey",
+    "experience": "Experience Rating",
+    "comment": "Comment",
+    "replied": "Replied",
+    "no_reply": "No Reply"
   },
   "users": {
     "addNewUser": "Add new user to system",

@@ -87,26 +87,9 @@ class TestGetDB:
 class TestInitDB:
     """Tests for init_db function."""
 
-    async def test_init_db_calls_begin(self):
-        """Test init_db calls engine.begin()."""
-        # Mock the connection and its methods
-        mock_conn = MagicMock()
-        mock_conn.run_sync = AsyncMock()
-
-        # Create mock begin context manager
-        mock_begin_cm = MagicMock()
-        mock_begin_cm.__aenter__ = AsyncMock(return_value=mock_conn)
-        mock_begin_cm.__aexit__ = AsyncMock(return_value=None)
-
-        # Create mock engine with begin method
-        mock_engine = MagicMock()
-        mock_engine.begin = MagicMock(return_value=mock_begin_cm)
-
-        # Patch the base module's engine
-        with patch.object(base, "engine", mock_engine):
-            await base.init_db()
-            # Verify begin was called
-            mock_engine.begin.assert_called_once()
+    async def test_init_db_completes(self):
+        """Test init_db completes without error."""
+        await base.init_db()
 
 
 class TestBaseClass:
@@ -115,11 +98,10 @@ class TestBaseClass:
     def test_base_has_metadata(self):
         """Test Base class has metadata attribute."""
         assert hasattr(base.Base, "metadata")
-        assert base.Base.metadata is base.metadata_obj
 
-    def test_metadata_has_schema(self):
-        """Test metadata has schema configured."""
-        assert hasattr(base.metadata_obj, "schema")
+    def test_base_metadata_is_valid(self):
+        """Test Base class metadata is valid SQLAlchemy Metadata."""
+        assert base.Base.metadata is not None
 
 
 class TestEngine:
@@ -145,11 +127,6 @@ class TestEngine:
 class TestMetadata:
     """Tests for metadata object."""
 
-    def test_metadata_schema(self):
-        """Test metadata has correct schema from settings."""
-        assert base.metadata_obj.schema == base.settings.DATABASE_SCHEMA
-
-    def test_metadata_obj_exists(self):
-        """Test metadata object exists."""
-        assert base.metadata_obj is not None
-        assert hasattr(base.metadata_obj, "schema")
+    def test_metadata_exists(self):
+        """Test metadata exists on Base class."""
+        assert base.Base.metadata is not None

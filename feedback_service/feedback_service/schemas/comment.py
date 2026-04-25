@@ -12,6 +12,7 @@ class CommentCreate(BaseModel):
     is_anonymous: bool = Field(default=False, description="Submit anonymously")
     allow_contact: bool = Field(default=False, description="Allow HR to contact for follow-up")
     contact_email: EmailStr | None = Field(default=None, description="Contact email for follow-up")
+    user_id: int | None = Field(default=None, description="User ID (for service-to-service calls)")
 
 
 class CommentReplyCreate(BaseModel):

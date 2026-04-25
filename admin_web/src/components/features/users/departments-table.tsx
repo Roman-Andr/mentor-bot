@@ -14,7 +14,7 @@ import {
 import { DataTable } from "@/components/ui/data-table";
 import { DataTableSkeleton } from "@/components/ui/table-skeleton";
 import { CardHeader, CardTitle } from "@/components/ui/card";
-import { Trash2, SquarePen } from "lucide-react";
+import { TableActions, buildEditAction, buildDeleteAction } from "@/components/shared";
 import type { DepartmentRow } from "@/hooks/use-departments";
 
 interface DepartmentsTableProps {
@@ -59,7 +59,6 @@ export function DepartmentsTable({
       onPageChange={onPageChange}
       onPageSizeChange={onPageSizeChange}
       showPageSizeSelector={!!onPageSizeChange}
-      skeleton={<DataTableSkeleton columns={4} rows={5} showHeader={false} />}
       header={
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -93,20 +92,12 @@ export function DepartmentsTable({
               </TableCell>
               <TableCell>{new Date(department.createdAt).toLocaleDateString()}</TableCell>
               <TableCell onClick={(e) => e.stopPropagation()}>
-                <div className="flex gap-1">
-                   <Button variant="ghost" size="icon" onClick={() => onEdit(department)} aria-label={t("common.edit")}>
-                     <SquarePen className="size-4" />
-                   </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-red-500"
-                    onClick={() => onDelete(department.id)}
-                    aria-label={t("common.delete")}
-                  >
-                    <Trash2 className="size-4" />
-                  </Button>
-                </div>
+                <TableActions
+                  actions={[
+                    buildEditAction(() => onEdit(department)),
+                    buildDeleteAction(() => onDelete(department.id)),
+                  ]}
+                />
               </TableCell>
             </TableRow>
           ))}

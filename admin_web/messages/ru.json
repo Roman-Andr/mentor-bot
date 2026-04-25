@@ -74,6 +74,7 @@
   "common": {
     "actions": "Действия",
     "active": "Активен",
+    "activate": "Активировать",
     "add": "Добавить",
     "all": "Все",
     "cancel": "Отмена",
@@ -86,6 +87,7 @@
     "created": "Создана",
     "createdAt": "Создано",
     "days": "дней",
+    "deactivate": "Деактивировать",
     "minutes": "мин",
     "delete": "Удалить",
     "deleteTitle": "Удаление",
@@ -251,6 +253,28 @@
     "subject": "Тема",
     "title": "Запросы"
   },
+  "feedback": {
+    "title": "Обратная связь",
+    "subtitle": "Отзывы и оценки пользователей",
+    "pulseSurveys": "Опросы пульса",
+    "avgRating": "Средняя оценка",
+    "experienceRatings": "Оценки опыта",
+    "comments": "Комментарии",
+    "withReply": "с ответом",
+    "anonymityStats": "Статистика анонимности",
+    "pulseSurveysAnon": "Опросы пульса (анон/по имени)",
+    "experienceRatingsAnon": "Оценки опыта (анон/по имени)",
+    "commentsAnon": "Комментарии (анон/по имени)",
+    "attributed": "по имени",
+    "type": "Тип",
+    "user": "Пользователь",
+    "content": "Содержание",
+    "submittedAt": "Отправлено",
+    "status": "Статус",
+    "anonymous": "Анонимно",
+    "viewDetails": "Просмотр деталей",
+    "reply": "Ответить"
+  },
   "invitations": {
     "acceptedCount": "Принято",
     "copyLink": "Копировать ссылку",
@@ -405,12 +429,13 @@
   },
   "nav": {
     "analytics": "Аналитика",
-    
+
     "appName": "Ментор-бот",
     "checklists": "Чек-листы",
     "dashboard": "Дашборд",
     "dialogues": "Диалоги",
     "escalations": "Запросы",
+    "feedback": "Обратная связь",
     "invitations": "Приглашения",
     "knowledgeBase": "База знаний",
     "loggedInAs": "Вошли как",
@@ -503,7 +528,13 @@
     "RESOLVED": "Решено",
     "CLOSED": "Закрыто",
     "ASSIGNED": "Назначено",
-    "REJECTED": "Отклонено"
+    "REJECTED": "Отклонено",
+    "pending": "Ожидает",
+    "pulse": "Опрос пульса",
+    "experience": "Оценка опыта",
+    "comment": "Комментарий",
+    "replied": "Отвечено",
+    "no_reply": "Без ответа"
   },
   "users": {
     "addNewUser": "Добавьте нового пользователя в систему",

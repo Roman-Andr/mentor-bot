@@ -2,7 +2,7 @@
 
 from collections.abc import AsyncGenerator
 
-from sqlalchemy import Connection, MetaData, schema, text
+from sqlalchemy import Connection, text
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
     async_sessionmaker,
@@ -31,15 +31,10 @@ AsyncSessionLocal = async_sessionmaker(
     autoflush=False,
 )
 
-# Declarative metadata
-metadata_obj = MetaData(schema=settings.DATABASE_SCHEMA)
-
 
 # Declarative base
 class Base(DeclarativeBase):
     """Base class for all database models."""
-
-    metadata = metadata_obj
 
 
 async def get_db() -> AsyncGenerator[AsyncSession]:
@@ -56,61 +51,55 @@ async def get_db() -> AsyncGenerator[AsyncSession]:
 
 
 async def init_db() -> None:
-    """Create database schema and search indexes. Tables are managed by Alembic migrations."""
+    """Create search indexes. Tables are managed by Alembic migrations."""
     async with engine.begin() as conn:
-        await conn.run_sync(
-            lambda sync_conn: sync_conn.execute(schema.CreateSchema(settings.DATABASE_SCHEMA, if_not_exists=True))
-        )
         await conn.run_sync(_create_search_indexes)
 
 
 def _create_search_indexes(sync_conn: Connection) -> None:
     """Create full-text search indexes for PostgreSQL."""
-    # Create search vector column for articles
     sync_conn.execute(
-        text(f"""
+        text("""
         CREATE INDEX IF NOT EXISTS idx_articles_search_vector
-        ON {settings.DATABASE_SCHEMA}.articles USING GIN(search_vector);
+        ON articles USING GIN(search_vector);
         """)
     )
 
-    # Create indexes for common search filters
     sync_conn.execute(
-        text(f"""
+        text("""
         CREATE INDEX IF NOT EXISTS idx_articles_status
-        ON {settings.DATABASE_SCHEMA}.articles(status);
+        ON articles(status);
         """)
     )
 
     sync_conn.execute(
-        text(f"""
+        text("""
         CREATE INDEX IF NOT EXISTS idx_articles_department_id
-        ON {settings.DATABASE_SCHEMA}.articles(department_id);
+        ON articles(department_id);
         """)
     )
 
     sync_conn.execute(
-        text(f"""
+        text("""
         CREATE INDEX IF NOT EXISTS idx_articles_category_id
-        ON {settings.DATABASE_SCHEMA}.articles(category_id);
+        ON articles(category_id);
         """)
     )
 
     sync_conn.execute(
-        text(f"""
+        text("""
         CREATE INDEX IF NOT EXISTS idx_categories_parent_id
-        ON {settings.DATABASE_SCHEMA}.categories(parent_id);
+        ON categories(parent_id);
         """)
     )
 
     sync_conn.execute(
-        text(f"""
+        text("""
         CREATE INDEX IF NOT EXISTS idx_article_views_article_id_viewed_at
-        ON {settings.DATABASE_SCHEMA}.article_views(article_id, viewed_at DESC);
+        ON article_views(article_id, viewed_at DESC);
         """)
     )
 
-    # Create trigram indexes for fuzzy search
     sync_conn.execute(
         text("""
         CREATE EXTENSION IF NOT EXISTS pg_trgm;
@@ -118,15 +107,15 @@ def _create_search_indexes(sync_conn: Connection) -> None:
     )
 
     sync_conn.execute(
-        text(f"""
+        text("""
         CREATE INDEX IF NOT EXISTS idx_articles_title_trgm
-        ON {settings.DATABASE_SCHEMA}.articles USING GIN(title gin_trgm_ops);
+        ON articles USING GIN(title gin_trgm_ops);
         """)
     )
 
     sync_conn.execute(
-        text(f"""
+        text("""
         CREATE INDEX IF NOT EXISTS idx_tags_name_trgm
-        ON {settings.DATABASE_SCHEMA}.tags USING GIN(name gin_trgm_ops);
+        ON tags USING GIN(name gin_trgm_ops);
         """)
     )

@@ -95,15 +95,13 @@ class TestBaseMetadata:
         """Test Base.metadata is the metadata_obj instance."""
         assert Base.metadata is metadata_obj
 
-    def test_metadata_has_schema(self):
-        """Test metadata has schema configured."""
-        assert metadata_obj.schema is not None
+    def test_metadata_has_no_schema(self):
+        """Test metadata has no schema (uses public schema)."""
+        assert metadata_obj.schema is None
 
-    def test_metadata_schema_matches_settings(self):
-        """Test metadata schema matches settings."""
-        from telegram_bot.config import settings
-
-        assert metadata_obj.schema == settings.DATABASE_SCHEMA
+    def test_metadata_uses_public_schema(self):
+        """Test metadata uses public schema (None means public)."""
+        assert metadata_obj.schema is None
 
 
 class TestGetDB:
@@ -206,7 +204,7 @@ class TestInitDB:
         # Verify begin was called
         mock_engine.begin.assert_called_once()
         # Verify connection was used
-        assert mock_conn.run_sync.call_count == 2  # Schema creation + table creation
+        assert mock_conn.run_sync.call_count == 1  # Only table creation (no schema creation)
         # Verify logging
         mock_logger.info.assert_called_once_with("Database initialized")
 
@@ -236,8 +234,8 @@ class TestInitDB:
 
         # Verify create_all is called via run_sync
         calls = mock_conn.run_sync.call_args_list
-        # Should have at least 2 calls: CreateSchema and create_all
-        assert len(calls) >= 2
+        # Only 1 call: create_all (no schema creation)
+        assert len(calls) == 1
 
 
 class TestUserSessionModel:

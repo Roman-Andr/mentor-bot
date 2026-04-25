@@ -4,6 +4,7 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from typing import Protocol, Self, runtime_checkable
 
+from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from auth_service.repositories.implementations.department import DepartmentRepository
@@ -65,6 +66,9 @@ class SqlAlchemyUnitOfWork(IUnitOfWork):
         """Exit async context manager and clean up session."""
         if self._session:
             if exc_type:
+                logger.warning(
+                    "UoW rollback on exit due to exception: {}", exc_type.__name__
+                )
                 await self._session.rollback()
             await self._session.close()
             self._session = None
@@ -72,15 +76,19 @@ class SqlAlchemyUnitOfWork(IUnitOfWork):
     async def commit(self) -> None:
         """Commit all changes made in this unit of work."""
         if not self._session:
+            logger.error("UoW commit attempted on uninitialized session")
             msg = "Session not initialized"
             raise RuntimeError(msg)
+        logger.debug("UoW commit")
         await self._session.commit()
 
     async def rollback(self) -> None:
         """Rollback all changes made in this unit of work."""
         if not self._session:
+            logger.error("UoW rollback attempted on uninitialized session")
             msg = "Session not initialized"
             raise RuntimeError(msg)
+        logger.debug("UoW rollback")
         await self._session.rollback()
 
 

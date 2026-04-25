@@ -19,7 +19,6 @@ from auth_service.config import settings
 from auth_service.database import engine, init_db
 from auth_service.middleware.request_id import RequestIDMiddleware
 from auth_service.schemas import HealthCheck, ServiceStatus
-from auth_service.utils.department_sync import department_sync_client
 from auth_service.utils.integrations import checklists_service_client, notification_service_client
 from auth_service.utils.logging import configure_logging
 
@@ -34,7 +33,6 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     logger.info("Database initialized")
     yield
     logger.info("Shutting down Auth Service...")
-    await department_sync_client.close()
     await checklists_service_client.aclose()
     await notification_service_client.aclose()
 
@@ -99,6 +97,7 @@ async def health_check() -> HealthCheck:
             await conn.execute(text("SELECT 1"))
             db_status = "connected"
     except Exception:
+        logger.exception("Health check: database connectivity failed")
         db_status = "disconnected"
 
     return HealthCheck(

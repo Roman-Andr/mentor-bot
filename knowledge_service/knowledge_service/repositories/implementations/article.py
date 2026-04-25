@@ -9,7 +9,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from sqlalchemy.sql.expression import text
 
-from knowledge_service.config import settings
 from knowledge_service.core import ArticleStatus
 from knowledge_service.models import Article
 from knowledge_service.models.article_view import ArticleView
@@ -234,14 +233,14 @@ class ArticleRepository(SqlAlchemyBaseRepository[Article, int], IArticleReposito
 
     async def update_search_vector(self, article_id: int) -> None:
         """Update full-text search vector for an article."""
-        stmt = text(f"""
-            UPDATE {settings.DATABASE_SCHEMA}.articles
+        stmt = text("""
+            UPDATE articles
             SET search_vector =
                 setweight(to_tsvector('russian', coalesce(title, '')), 'A') ||
                 setweight(to_tsvector('russian', coalesce(content, '')), 'B') ||
                 setweight(to_tsvector('russian', coalesce(excerpt, '')), 'C')
             WHERE id = :article_id
-        """)  # noqa: S608
+        """)
         await self._session.execute(stmt, {"article_id": article_id})
 
     async def get_daily_views(self, article_id: int, start_date: date) -> dict[date, int]:

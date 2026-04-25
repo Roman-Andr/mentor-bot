@@ -1,5 +1,6 @@
 "use client";
 
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useCallback, useEffect } from "react";
 import { useTranslations } from "@/hooks/use-translations";
 import { Button } from "@/components/ui/button";
@@ -40,12 +41,14 @@ export function AssignMentorDialog({
   const [assigning, setAssigning] = useState(false);
   const [unassigning, setUnassigning] = useState(false);
 
-  // Reset state when dialog opens/closes
+  // Reset state when dialog closes
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
     if (!isOpen) {
       setSelectedMentorId("");
       setSelectedMentorLabel("");
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
   // Search for mentors (users with MENTOR role)

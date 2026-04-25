@@ -4,7 +4,9 @@ import { api } from "@/lib/api";
 import { queryKeys } from "@/lib/query-keys";
 import { feedbackApi } from "@/lib/api/feedback";
 import type {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   PulseSurvey,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   ExperienceRating,
   Comment,
   FeedbackItem,
@@ -13,14 +15,6 @@ import type {
   AnonymityStats,
   FeedbackType,
 } from "@/types";
-
-interface FeedbackFilters {
-  search?: string;
-  type?: FeedbackType | "all";
-  anonymity?: "all" | "anonymous" | "attributed";
-  from_date?: string;
-  to_date?: string;
-}
 
 export function useFeedback() {
   const queryClient = useQueryClient();
@@ -108,22 +102,10 @@ export function useFeedback() {
     staleTime: 5 * 60 * 1000,
   });
 
-  // Fetch anonymity stats
+  // Fetch anonymity stats (only pulse exists in backend)
   const { data: pulseAnonymityStats } = useQuery({
     queryKey: queryKeys.feedback.pulseAnonymityStats(),
     queryFn: () => feedbackApi.getPulseAnonymityStats(),
-    staleTime: 5 * 60 * 1000,
-  });
-
-  const { data: experienceAnonymityStats } = useQuery({
-    queryKey: queryKeys.feedback.experienceAnonymityStats(),
-    queryFn: () => feedbackApi.getExperienceAnonymityStats(),
-    staleTime: 5 * 60 * 1000,
-  });
-
-  const { data: commentAnonymityStats } = useQuery({
-    queryKey: queryKeys.feedback.commentAnonymityStats(),
-    queryFn: () => feedbackApi.getCommentAnonymityStats(),
     staleTime: 5 * 60 * 1000,
   });
 
@@ -267,8 +249,6 @@ export function useFeedback() {
     pulseStats: pulseStats?.data as PulseStats | undefined,
     experienceStats: experienceStats?.data as ExperienceStats | undefined,
     pulseAnonymityStats: pulseAnonymityStats?.data as AnonymityStats | undefined,
-    experienceAnonymityStats: experienceAnonymityStats?.data as AnonymityStats | undefined,
-    commentAnonymityStats: commentAnonymityStats?.data as AnonymityStats | undefined,
     totalComments,
     commentsWithReply,
 

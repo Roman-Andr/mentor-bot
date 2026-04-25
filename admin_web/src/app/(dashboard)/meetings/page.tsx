@@ -4,9 +4,6 @@ import { useState } from "react";
 import { useTranslations } from "@/hooks/use-translations";
 import { Dialog } from "@/components/ui/dialog";
 import { PageContent } from "@/components/layout/page-content";
-import { Calendar, Clock, UserPlus, Users } from "lucide-react";
-import { MEETING_TYPES } from "@/lib/constants";
-import { formatDate } from "@/lib/utils";
 import { useMeetings } from "@/hooks/use-meetings";
 import { useDepartments } from "@/hooks/use-departments";
 import { useToast } from "@/hooks/use-toast";
@@ -16,8 +13,9 @@ import { MeetingFormDialog } from "@/components/meetings/meeting-form-dialog";
 import { AssignDialog, AssignmentsDialog } from "@/components/meetings";
 import type { User, UserMeeting } from "@/types";
 import type { MeetingItem, MeetingFormData } from "@/hooks/use-meetings";
-import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
+import { MEETING_TYPES } from "@/lib/constants";
+import { useMeetingsColumns } from "@/components/features/meetings/meetings-columns";
 
 export default function MeetingsPage() {
   const t = useTranslations();
@@ -91,28 +89,12 @@ export default function MeetingsPage() {
     }
   };
 
-  const renderActionButtons = (item: MeetingItem) => {
-    return (
-      <div className="flex gap-1">
-        <Button
-          variant="ghost"
-          size="icon"
-          title={t("meetings.assignedUsers")}
-          onClick={() => openAssignmentsDialog(item.id, item.title)}
-        >
-          <Users className="size-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          title={t("meetings.assignMeeting")}
-          onClick={() => openAssignDialog(item.id, item.title)}
-        >
-          <UserPlus className="size-4" />
-        </Button>
-      </div>
-    );
-  };
+  const columns = useMeetingsColumns({
+    departments: d.items,
+    onOpenAssignDialog: openAssignDialog,
+    onOpenAssignmentsDialog: openAssignmentsDialog,
+    t,
+  });
 
   return (
     <PageContent title={t("meetings.title")} subtitle={t("meetings.title")}>
@@ -207,90 +189,7 @@ export default function MeetingsPage() {
             options={MEETING_TYPES}
           />
         }
-        columns={[
-          {
-            key: "title",
-            header: t("meetings.name"),
-            cell: (item) => (
-              <div>
-                <p className="font-medium">{item.title}</p>
-                {item.description && (
-                  <p className="text-muted-foreground line-clamp-1 max-w-64 text-sm">
-                    {item.description}
-                  </p>
-                )}
-              </div>
-            ),
-            sortable: true,
-          },
-          {
-            key: "type",
-            header: t("meetings.type"),
-            cell: (item) => MEETING_TYPES.find((t) => t.value === item.type)?.label || item.type,
-            sortable: true,
-          },
-          {
-            key: "department",
-            header: t("meetings.department"),
-            cell: (item) =>
-              item.department || d.items.find((dept) => dept.id === item.departmentId)?.name || "—",
-            sortable: true,
-          },
-          {
-            key: "deadlineDays",
-            header: t("meetings.deadlineDays"),
-            cell: (item) => (
-              <div className="flex items-center gap-1">
-                <Calendar className="text-muted-foreground size-4" />
-                {item.deadlineDays} {t("common.days")}
-              </div>
-            ),
-            sortable: true,
-          },
-          {
-            key: "durationMinutes",
-            header: t("meetings.durationMinutes"),
-            cell: (item) => (
-              <div className="flex items-center gap-1">
-                <Clock className="text-muted-foreground size-4" />
-                {item.durationMinutes} {t("common.minutes")}
-              </div>
-            ),
-            sortable: true,
-            width: "w-32",
-          },
-          {
-            key: "isMandatory",
-            header: t("meetings.isMandatory"),
-            cell: (item) =>
-              item.isMandatory ? (
-                <span className="text-green-600">{t("common.yes")}</span>
-              ) : (
-                <span className="text-muted-foreground">{t("common.no")}</span>
-              ),
-            sortable: true,
-          },
-          {
-            key: "order",
-            header: t("meetings.order"),
-            cell: (item) => item.order,
-            sortable: true,
-            width: "w-24",
-          },
-          {
-            key: "createdAt",
-            header: t("common.created"),
-            cell: (item) => formatDate(item.createdAt),
-            sortable: true,
-            width: "w-32",
-          },
-          {
-            key: "assignments",
-            header: "",
-            cell: renderActionButtons,
-            width: "w-24",
-          },
-        ]}
+        columns={columns}
         renderForm={({ formData, onChange }) => (
           <MeetingFormDialog
             mode="create"

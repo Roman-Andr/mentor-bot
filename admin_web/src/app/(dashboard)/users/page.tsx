@@ -3,17 +3,13 @@
 import { useState } from "react";
 import { useTranslations } from "@/hooks/use-translations";
 import { Button } from "@/components/ui/button";
-import { Dialog } from "@/components/ui/dialog";
 import { PageContent } from "@/components/layout/page-content";
-import { UserPlus, Building2, Users } from "lucide-react";
+import { UserPlus, Building2 } from "lucide-react";
 import { useUsers } from "@/hooks/use-users";
 import { useDepartments } from "@/hooks/use-departments";
-import { UserFormDialog } from "@/components/features/users/user-form-dialog";
-import { UsersTable } from "@/components/features/users/users-table";
-import { AssignMentorDialog } from "@/components/features/users/assign-mentor-dialog";
-import { DepartmentsTable } from "@/components/features/users/departments-table";
-import { DepartmentFormDialog } from "@/components/features/users/department-form-dialog";
-import { cn } from "@/lib/utils";
+import { UsersTabSwitcher } from "@/components/features/users/users-tab-switcher";
+import { UsersSection } from "@/components/features/users/users-section";
+import { DepartmentsSection } from "@/components/features/users/departments-section";
 
 type Tab = "users" | "departments";
 
@@ -33,50 +29,24 @@ export default function UsersPage() {
     u.loadDepartments();
   };
 
+  const handleAddClick = () => {
+    if (activeTab === "users") {
+      u.resetForm();
+      u.setIsCreateDialogOpen(true);
+    } else {
+      d.resetForm();
+      d.setIsCreateDialogOpen(true);
+    }
+  };
+
   return (
     <PageContent
       title={t("users.title")}
       subtitle={t("users.title")}
       actions={
         <div className="flex items-center gap-2">
-          <div className="flex rounded-md border">
-            <button
-              className={cn(
-                "flex cursor-pointer items-center gap-1.5 rounded-l-md px-3 py-1.5 text-sm font-medium transition-colors",
-                activeTab === "users"
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-background text-muted-foreground hover:bg-muted",
-              )}
-              onClick={() => setActiveTab("users")}
-            >
-              <Users className="size-4" />
-              {t("users.title")}
-            </button>
-            <button
-              className={cn(
-                "flex cursor-pointer items-center gap-1.5 rounded-r-md px-3 py-1.5 text-sm font-medium transition-colors",
-                activeTab === "departments"
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-background text-muted-foreground hover:bg-muted",
-              )}
-              onClick={() => setActiveTab("departments")}
-            >
-              <Building2 className="size-4" />
-              {t("users.department")}
-            </button>
-          </div>
-          <Button
-            className="gap-2"
-            onClick={() => {
-              if (activeTab === "users") {
-                u.resetForm();
-                u.setIsCreateDialogOpen(true);
-              } else {
-                d.resetForm();
-                d.setIsCreateDialogOpen(true);
-              }
-            }}
-          >
+          <UsersTabSwitcher activeTab={activeTab} onTabChange={setActiveTab} />
+          <Button className="gap-2" onClick={handleAddClick}>
             {activeTab === "users" ? (
               <>
                 <UserPlus className="size-4" />
@@ -93,111 +63,70 @@ export default function UsersPage() {
       }
     >
       {activeTab === "users" && (
-        <>
-          <UserFormDialog
-            open={u.isCreateDialogOpen}
-            onOpenChange={u.setIsCreateDialogOpen}
-            mode="create"
-            formData={u.formData}
-            onFormDataChange={u.setFormData}
-            onSubmit={u.handleCreateUser}
-            onCancel={() => u.setIsCreateDialogOpen(false)}
-            departments={u.departments}
-          />
-
-          <UserFormDialog
-            open={u.isEditDialogOpen}
-            onOpenChange={u.setIsEditDialogOpen}
-            mode="edit"
-            formData={u.formData}
-            onFormDataChange={u.setFormData}
-            onSubmit={u.handleUpdateUser}
-            onCancel={() => {
-              u.setIsEditDialogOpen(false);
-              u.setSelectedUser(null);
-            }}
-            departments={u.departments}
-          />
-
-          <UsersTable
-            users={u.users}
-            loading={u.loading}
-            onEdit={u.openEditDialog}
-            onDelete={u.handleDeleteUser}
-            onAssignMentor={u.openAssignMentorDialog}
-            searchQuery={u.searchQuery}
-            onSearchChange={u.setSearchQuery}
-            roleFilter={u.roleFilter}
-            onRoleFilterChange={u.setRoleFilter}
-            departmentFilter={u.departmentFilter}
-            onDepartmentFilterChange={u.setDepartmentFilter}
-            onReset={u.resetFilters}
-            departments={u.departments}
-            currentPage={u.currentPage}
-            totalPages={u.totalPages}
-            totalCount={u.totalUsers}
-            pageSize={u.pageSize}
-            onPageChange={u.setCurrentPage}
-            onPageSizeChange={u.setPageSize}
-            sortField={u.sortField}
-            sortDirection={u.sortDirection}
-            onSort={u.toggleSort}
-          />
-
-          <AssignMentorDialog
-            isOpen={u.assignMentorDialogOpen}
-            onOpenChange={u.setAssignMentorDialogOpen}
-            userId={u.selectedUserForMentor?.id || null}
-            userName={u.selectedUserForMentor?.name || ""}
-            onAssign={u.handleAssignMentor}
-            onUnassign={u.handleUnassignMentor}
-            currentMentor={u.currentMentor}
-          />
-        </>
+        <UsersSection
+          isCreateDialogOpen={u.isCreateDialogOpen}
+          setIsCreateDialogOpen={u.setIsCreateDialogOpen}
+          isEditDialogOpen={u.isEditDialogOpen}
+          setIsEditDialogOpen={u.setIsEditDialogOpen}
+          formData={u.formData}
+          setFormData={u.setFormData}
+          handleCreateUser={u.handleCreateUser}
+          handleUpdateUser={u.handleUpdateUser}
+          setSelectedUser={u.setSelectedUser}
+          departments={u.departments}
+          users={u.users}
+          loading={u.loading}
+          openEditDialog={u.openEditDialog}
+          handleDeleteUser={u.handleDeleteUser}
+          openAssignMentorDialog={u.openAssignMentorDialog}
+          searchQuery={u.searchQuery}
+          setSearchQuery={u.setSearchQuery}
+          roleFilter={u.roleFilter}
+          setRoleFilter={u.setRoleFilter}
+          departmentFilter={u.departmentFilter}
+          setDepartmentFilter={u.setDepartmentFilter}
+          resetFilters={u.resetFilters}
+          currentPage={u.currentPage}
+          totalPages={u.totalPages}
+          totalUsers={u.totalUsers}
+          pageSize={u.pageSize}
+          setCurrentPage={u.setCurrentPage}
+          setPageSize={u.setPageSize}
+          sortField={u.sortField}
+          sortDirection={u.sortDirection}
+          toggleSort={u.toggleSort}
+          assignMentorDialogOpen={u.assignMentorDialogOpen}
+          setAssignMentorDialogOpen={u.setAssignMentorDialogOpen}
+          selectedUserForMentor={u.selectedUserForMentor}
+          handleAssignMentor={(mentorId: number) => u.handleAssignMentor(u.selectedUserForMentor?.id || 0, mentorId)}
+          handleUnassignMentor={() => u.handleUnassignMentor(u.currentMentor?.id || 0)}
+          currentMentor={u.currentMentor}
+        />
       )}
 
       {activeTab === "departments" && (
-        <>
-          <Dialog open={d.isCreateDialogOpen} onOpenChange={d.setIsCreateDialogOpen}>
-            <DepartmentFormDialog
-              mode="create"
-              formData={d.formData}
-              onFormDataChange={d.updateFormField}
-              onSubmit={handleDepartmentSubmit}
-              onCancel={() => {
-                d.setIsCreateDialogOpen(false);
-                d.resetForm();
-              }}
-            />
-          </Dialog>
-          <Dialog open={d.isEditDialogOpen} onOpenChange={d.setIsEditDialogOpen}>
-            <DepartmentFormDialog
-              mode="edit"
-              formData={d.formData}
-              onFormDataChange={d.updateFormField}
-              onSubmit={handleDepartmentSubmit}
-              onCancel={() => {
-                d.setIsEditDialogOpen(false);
-                d.resetForm();
-              }}
-            />
-          </Dialog>
-
-          <DepartmentsTable
-            departments={d.items}
-            loading={d.loading}
-            searchQuery={d.searchQuery}
-            onSearchChange={d.setSearchQuery}
-            currentPage={d.currentPage}
-            totalPages={d.totalPages}
-            totalCount={d.totalCount}
-            pageSize={d.pageSize}
-            onPageChange={d.setCurrentPage}
-            onPageSizeChange={d.setPageSize}
-            onEdit={d.openEditDialog}
-            onDelete={handleDepartmentDelete}
-          />
-        </>
+        <DepartmentsSection
+          isCreateDialogOpen={d.isCreateDialogOpen}
+          setIsCreateDialogOpen={d.setIsCreateDialogOpen}
+          isEditDialogOpen={d.isEditDialogOpen}
+          setIsEditDialogOpen={d.setIsEditDialogOpen}
+          formData={d.formData}
+          updateFormField={d.updateFormField}
+          handleSubmit={handleDepartmentSubmit}
+          resetForm={d.resetForm}
+          items={d.items}
+          loading={d.loading}
+          searchQuery={d.searchQuery}
+          setSearchQuery={d.setSearchQuery}
+          currentPage={d.currentPage}
+          totalPages={d.totalPages}
+          totalCount={d.totalCount}
+          pageSize={d.pageSize}
+          setCurrentPage={d.setCurrentPage}
+          setPageSize={d.setPageSize}
+          openEditDialog={d.openEditDialog}
+          handleDelete={handleDepartmentDelete}
+        />
       )}
     </PageContent>
   );

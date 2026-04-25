@@ -12,7 +12,6 @@ from checklists_service.schemas.checklist import (
     CompletionTimeStats,
     MonthlyStats,
 )
-from checklists_service.schemas.department import DepartmentCreate, DepartmentResponse
 from checklists_service.schemas.responses import (
     HealthCheck,
     MessageResponse,
@@ -28,7 +27,6 @@ from checklists_service.schemas.task import (
     TaskUpdate,
 )
 from checklists_service.schemas.template import (
-    DepartmentInfo,
     TaskTemplateCreate,
     TaskTemplateResponse,
     TemplateCreate,
@@ -46,9 +44,6 @@ __all__ = [
     "ChecklistStats",
     "ChecklistUpdate",
     "CompletionTimeStats",
-    "DepartmentCreate",
-    "DepartmentInfo",
-    "DepartmentResponse",
     "HealthCheck",
     "MessageResponse",
     "MonthlyStats",

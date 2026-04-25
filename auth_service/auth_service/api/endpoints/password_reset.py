@@ -32,6 +32,7 @@ async def request_password_reset(
     Always returns success to prevent email enumeration attacks.
     Rate limited to 3 requests per user per hour.
     """
+    logger.info("Password reset request received (email=%s)", data.email)
     async with AsyncSessionLocal() as session:
         uow = SqlAlchemyUnitOfWork(AsyncSessionLocal)
         await uow.__aenter__()
@@ -73,6 +74,7 @@ async def validate_reset_token(data: PasswordResetValidateSchema) -> PasswordRes
 
     Returns success if token is valid and not expired.
     """
+    logger.debug("Password reset validate token request")
     async with AsyncSessionLocal() as session:
         uow = SqlAlchemyUnitOfWork(AsyncSessionLocal)
         await uow.__aenter__()
@@ -81,6 +83,7 @@ async def validate_reset_token(data: PasswordResetValidateSchema) -> PasswordRes
             user = await service.validate_token(data.token)
 
             if not user:
+                logger.warning("Password reset token validation failed")
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Invalid or expired token",
@@ -105,6 +108,7 @@ async def confirm_password_reset(
     Updates the user's password and marks the token as used.
     Sends confirmation email on success.
     """
+    logger.info("Password reset confirm request received")
     async with AsyncSessionLocal() as session:
         uow = SqlAlchemyUnitOfWork(AsyncSessionLocal)
         await uow.__aenter__()
@@ -122,6 +126,7 @@ async def confirm_password_reset(
             success = await service.confirm_reset(data.token, data.new_password)
 
             if not success:
+                logger.warning("Password reset confirm failed: invalid or expired token")
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Invalid or expired token",

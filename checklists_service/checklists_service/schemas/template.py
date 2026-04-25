@@ -7,15 +7,6 @@ from pydantic import BaseModel, ConfigDict, Field
 from checklists_service.core import EmployeeLevel, TaskCategory, TemplateStatus
 
 
-class DepartmentInfo(BaseModel):
-    """Minimal department info for embedding in responses."""
-
-    id: int
-    name: str
-
-    model_config = ConfigDict(from_attributes=True)
-
-
 class TemplateBase(BaseModel):
     """Base template schema."""
 
@@ -51,7 +42,6 @@ class TemplateResponse(TemplateBase):
     status: TemplateStatus
     version: int
     is_default: bool
-    department: DepartmentInfo | None = None
     created_at: datetime
     updated_at: datetime | None = None
 

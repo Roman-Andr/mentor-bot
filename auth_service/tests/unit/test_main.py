@@ -126,22 +126,6 @@ class TestLifespan:
                 mock_logger.info.assert_any_call("Database initialized")
                 mock_logger.info.assert_any_call("Shutting down Auth Service...")
 
-    async def test_lifespan_shutdown_closes_department_sync(self):
-        """Test lifespan shutdown closes department_sync_client."""
-        mock_app = MagicMock()
-
-        with patch("auth_service.main.init_db", new_callable=AsyncMock):
-            with patch("auth_service.main.logger"):
-                # Patch where it's imported in main.py, not where it's defined
-                with patch("auth_service.main.department_sync_client") as mock_sync_client:
-                    mock_sync_client.close = AsyncMock()
-
-                    async with lifespan(mock_app):
-                        pass
-
-                    mock_sync_client.close.assert_awaited_once()
-
-
 class TestRateLimiter:
     """Tests for rate limiter configuration."""
 
