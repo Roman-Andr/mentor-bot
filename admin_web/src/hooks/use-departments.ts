@@ -47,15 +47,15 @@ function toForm(item: DepartmentRow): DepartmentFormData {
 }
 
 export function useDepartments() {
-  return useEntity<DepartmentRow, DepartmentFormData>({
+  return useEntity<DepartmentRow, DepartmentFormData, ReturnType<typeof toCreatePayload>, ReturnType<typeof toUpdatePayload>>({
     entityName: "Отдел",
     translationNamespace: "departments",
     queryKeyPrefix: "departments",
     listFn: (params) => api.departments.list(params),
     listDataKey: "departments",
-    createFn: (data: { name: string; description?: string | null }) => api.departments.create(data),
-    updateFn: (id: number, data: { name?: string; description?: string | null }) => api.departments.update(id, data),
-    deleteFn: (id: number) => api.departments.delete(id),
+    createFn: (data) => api.departments.create(data),
+    updateFn: (id, data) => api.departments.update(id, data),
+    deleteFn: (id) => api.departments.delete(id),
     defaultForm: DEFAULT_FORM,
     mapItem: (item: unknown) => mapDepartment(item as Department),
     toCreatePayload,

@@ -9,6 +9,7 @@ import type {
   ExperienceStats,
   AnonymityStats,
   FeedbackType,
+  Comment,
 } from "@/types/feedback";
 
 export function useFeedback() {

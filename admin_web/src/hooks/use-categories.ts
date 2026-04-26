@@ -158,7 +158,7 @@ function toForm(item: CategoryRow): CategoryFormData {
 }
 
 export function useCategories() {
-  const entity = useEntity<CategoryRow, CategoryFormData>({
+  const entity = useEntity<CategoryRow, CategoryFormData, ReturnType<typeof toCreatePayload>, ReturnType<typeof toUpdatePayload>>({
     entityName: "Категория",
     translationNamespace: "knowledge",
     queryKeyPrefix: "categories",

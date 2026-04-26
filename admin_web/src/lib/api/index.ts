@@ -1,4 +1,4 @@
-export { fetchApi, fetchUpload, fetchApiNew, setAuthToken } from "./client";
+export { fetchApi, fetchUpload, fetchApiNew } from "./client";
 export type { ApiResponse, ApiResult, ApiError } from "./client";
 
 export { usersApi } from "./users";

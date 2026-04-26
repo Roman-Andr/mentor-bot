@@ -191,6 +191,7 @@ export default function KnowledgePage() {
             loading={c.loading}
             searchQuery={c.searchQuery}
             onSearchChange={c.setSearchQuery}
+            onResetFilters={c.resetFilters}
             currentPage={c.currentPage}
             totalPages={c.totalPages}
             totalCount={c.totalCount}

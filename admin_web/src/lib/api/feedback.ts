@@ -2,12 +2,12 @@ import { fetchApi } from "./client";
 import type {
   PulseSurvey,
   ExperienceRating,
-  Comment,
   FeedbackListResponse,
   PulseStats,
   ExperienceStats,
   AnonymityStats,
 } from "@/types";
+import type { Comment } from "@/types/feedback";
 
 // Helper to filter out undefined values from params
 function buildQueryString(params?: Record<string, unknown>): string {

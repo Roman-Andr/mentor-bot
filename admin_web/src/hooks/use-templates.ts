@@ -231,7 +231,7 @@ export function useTemplates() {
       if (response.data?.tasks) {
         entity.setExtendedState((prev) => ({
           ...(prev as unknown as ExtendedState),
-          tasks: response.data.tasks,
+          tasks: response.data?.tasks,
         }));
       }
     } catch (error) {

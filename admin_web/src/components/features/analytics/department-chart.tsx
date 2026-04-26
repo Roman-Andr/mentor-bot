@@ -27,8 +27,7 @@ const DEPARTMENT_COLORS = [
   "#D97706", // orange
 ];
 
-const CustomTooltip = (props: TooltipProps<number, string>) => {
-  const { active, payload } = props;
+const CustomTooltip = ({ active, payload }: any) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload as DepartmentData;
     return (
@@ -62,7 +61,6 @@ export function DepartmentChart({ data }: DepartmentChartProps) {
               cy="45%"
               innerRadius={60}
               outerRadius={100}
-              activeOuterRadius={100}
               paddingAngle={2}
               dataKey="value"
               label={false}
