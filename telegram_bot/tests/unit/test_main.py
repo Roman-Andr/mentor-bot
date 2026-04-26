@@ -64,6 +64,7 @@ class TestLifespan:
 
         self.mock_settings.ENABLE_NOTIFICATIONS = True
         self.mock_settings.LOG_LEVEL = "INFO"
+        self.mock_settings.TELEGRAM_PROXY = ""
 
         # Setup async mocks for cache methods
         self.mock_user_cache.connect = AsyncMock()
@@ -218,6 +219,7 @@ class TestMainFunction:
 
             self.mock_settings.TELEGRAM_BOT_TOKEN = "123456:test_token"
             self.mock_settings.REDIS_URL = "redis://localhost:6379/3"
+            self.mock_settings.TELEGRAM_PROXY = ""
 
             # Setup async context manager for lifespan mock
             self.mock_lifespan.return_value.__aenter__ = AsyncMock()
@@ -259,6 +261,7 @@ class TestMainModule:
             mock_settings.REDIS_URL = "redis://localhost:6379/3"
             mock_settings.ENABLE_NOTIFICATIONS = True
             mock_settings.ADMIN_IDS = []
+            mock_settings.TELEGRAM_PROXY = ""
 
             # Import fresh to check logging setup
             with patch.dict(sys.modules, {

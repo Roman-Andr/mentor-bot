@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager, suppress
 
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
+from aiogram.client.session.aiohttp import AiohttpSession
 from aiogram.fsm.storage.redis import RedisStorage
 from aiogram.types import BotCommand
 from loguru import logger
@@ -98,9 +99,17 @@ async def main() -> None:
     redis = Redis.from_url(str(settings.REDIS_URL))
     storage = RedisStorage(redis=redis)
 
+    # Create bot session with proxy if configured
+    session_kwargs = {}
+    if settings.TELEGRAM_PROXY:
+        session_kwargs["proxy"] = settings.TELEGRAM_PROXY
+        logger.info(f"Using Telegram proxy: {settings.TELEGRAM_PROXY}")
+    session = AiohttpSession(**session_kwargs)
+
     # Create bot and dispatcher
     bot = Bot(
         token=settings.TELEGRAM_BOT_TOKEN,
+        session=session,
         default=DefaultBotProperties(parse_mode="Markdown"),
     )
     dp = Dispatcher(storage=storage)

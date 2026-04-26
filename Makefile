@@ -24,6 +24,7 @@ help:
 	@echo "  make logs-telegram     - Show logs for telegram bot"
 	@echo "  make logs-minio        - Show logs for MinIO service"
 	@echo "  make status            - Show status of all containers"
+	@echo "  make status-watch      - Watch container status in real-time (updates every 1s)"
 	@echo ""
 	@echo "Database management:"
 	@echo "  make reset-db          - Full database reset (remove volumes + build cache)"
@@ -238,6 +239,9 @@ logs-minio:
 
 status:
 	docker compose ps --format "table {{.Name}}\t{{.Status}}"
+
+status-watch:
+	watch -n 1 "docker compose ps --format 'table {{.Name}}\t{{.Status}}'"
 
 shell-auth:
 	docker compose exec auth_service /bin/bash

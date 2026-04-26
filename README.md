@@ -1,5 +1,6 @@
 # Mentor Bot
 
+![Version](https://img.shields.io/badge/version-v1.0.0-blue)
 [![Build and push images](https://github.com/Roman-Andr/mentor-bot/actions/workflows/build-and-push.yml/badge.svg)](https://github.com/Roman-Andr/mentor-bot/actions/workflows/build-and-push.yml)
 
 A microservices platform for managing mentoring relationships between employees and new hires. Includes a Telegram bot for day-to-day interactions and a Next.js admin dashboard for HR / team leads.
@@ -31,7 +32,7 @@ A microservices platform for managing mentoring relationships between employees 
 
 ## Architecture
 
-Eight FastAPI services + one Next.js admin dashboard communicate over a shared Docker network. Each service owns its data (isolated PostgreSQL schemas where needed, its own Redis DB).
+Eight FastAPI services + one Next.js admin dashboard communicate over a shared Docker network. Each service owns its data (dedicated PostgreSQL database per service, its own Redis DB).
 
 ![Architecture diagram](./schema.png)
 
@@ -40,7 +41,7 @@ Eight FastAPI services + one Next.js admin dashboard communicate over a shared D
 - **Async-first:** All DB I/O uses SQLAlchemy 2.0 async with `asyncpg`.
 - **Inter-service auth:** Services authenticate each other with a shared `SERVICE_API_KEY` header.
 - **Redis databases:** Each service owns a dedicated Redis DB (auth=0, checklists=1, knowledge=2, telegram=3, meeting=4).
-- **Schema isolation:** `feedback`, `escalation`, and `meeting` use dedicated PostgreSQL schemas.
+- **DB-per-service:** Each service has its own PostgreSQL database (auth_db, checklists_db, knowledge_db, notification_db, escalation_db, meeting_db, feedback_db, telegram_db, admin_web_db). Databases are created automatically on first start via init script.
 - **Rate limiting:** `slowapi` on public API routes.
 - **Dependency management:** `uv` for Python services, Bun for admin web.
 - **Docker builds:** Single parameterized `Dockerfile` with `SERVICE_NAME` build arg shared across all Python services; admin web has its own `admin_web/Dockerfile`.
@@ -151,7 +152,6 @@ Copy `.env.example` → `.env`. Highlights:
 
 | Variable                  | Purpose                                                    |
 | ------------------------- | ---------------------------------------------------------- |
-| `POSTGRES_DB`             | Database name (default `mentor_bot`)                       |
 | `POSTGRES_USER`           | DB user (default `postgres`)                               |
 | `POSTGRES_PASSWORD`       | DB password                                                |
 | `REDIS_URL`               | e.g. `redis://redis:6379`                                  |

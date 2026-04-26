@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     # Telegram
     TELEGRAM_BOT_TOKEN: str = Field(..., description="Telegram Bot API Token")
     TELEGRAM_API_KEY: str = Field(..., description="Telegram API Key for auth")
+    TELEGRAM_PROXY: str = Field(default="", description="Proxy URL for Telegram Bot (e.g., socks5://127.0.0.1:1080)")
 
     # Application
     APP_NAME: str = "Mentor Bot"
