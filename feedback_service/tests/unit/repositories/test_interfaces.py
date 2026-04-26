@@ -428,7 +428,7 @@ class TestIPulseSurveyRepositoryAdditional:
             async def get_by_user(
                 self, user_id: int | None, from_date: datetime | None, to_date: datetime | None, skip: int, limit: int
             ) -> tuple[list[PulseSurvey], int]:
-                return await super().get_by_user(user_id, from_date, to_date, skip, limit)
+                return await super().get_by_user(user_id, from_date, to_date, None, skip, limit)
 
             async def get_stats(
                 self, user_id: int | None, from_date: datetime | None, to_date: datetime | None

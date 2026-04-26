@@ -1,6 +1,11 @@
 """Pytest configuration for checklists_service tests."""
 
 import os
+
+# Clear proxy environment variables to prevent httpx errors with unsupported socks:// scheme
+for proxy_var in ["http_proxy", "https_proxy", "HTTP_PROXY", "HTTPS_PROXY", "all_proxy", "ALL_PROXY"]:
+    os.environ.pop(proxy_var, None)
+
 from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock
 

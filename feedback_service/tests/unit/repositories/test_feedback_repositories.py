@@ -112,6 +112,27 @@ class TestPulseSurveyRepository:
         # Assert
         assert result == []
 
+    async def test_get_by_user_with_asc_sort(
+        self, pulse_survey_repo: PulseSurveyRepository, mock_db: MagicMock
+    ) -> None:
+        """Test get_by_user with ascending sort order (line 76)."""
+        # Arrange
+        mock_scalars = MagicMock()
+        mock_scalars.all.return_value = []
+        mock_result = MagicMock()
+        mock_result.scalars.return_value = mock_scalars
+        mock_result.scalar.return_value = 0
+        mock_db.execute.return_value = mock_result
+
+        # Act
+        result, total = await pulse_survey_repo.get_by_user(
+            user_id=1, skip=0, limit=50, sort_order="asc"
+        )
+
+        # Assert
+        assert result == []
+        assert total == 0
+
     async def test_find_by_user_respects_skip_limit(
         self, pulse_survey_repo: PulseSurveyRepository, mock_db: MagicMock
     ) -> None:
@@ -522,6 +543,27 @@ class TestExperienceRatingRepositoryGetByUser:
         assert result == []
         assert total == 0
 
+    async def test_get_by_user_with_asc_sort(
+        self, experience_rating_repo: ExperienceRatingRepository, mock_db: MagicMock
+    ) -> None:
+        """Test get_by_user with ascending sort order (line 222)."""
+        # Arrange
+        mock_scalars = MagicMock()
+        mock_scalars.all.return_value = []
+        mock_result = MagicMock()
+        mock_result.scalars.return_value = mock_scalars
+        mock_result.scalar.return_value = 0
+        mock_db.execute.return_value = mock_result
+
+        # Act
+        result, total = await experience_rating_repo.get_by_user(
+            user_id=1, skip=0, limit=50, sort_order="asc"
+        )
+
+        # Assert
+        assert result == []
+        assert total == 0
+
     async def test_get_by_user_with_date_filters(
         self, experience_rating_repo: ExperienceRatingRepository, mock_db: MagicMock
     ) -> None:
@@ -723,6 +765,27 @@ class TestCommentRepositoryGetByUser:
         # Act
         result, total = await comment_repo.get_by_user(
             user_id=1, has_reply=False, skip=0, limit=50
+        )
+
+        # Assert
+        assert result == []
+        assert total == 0
+
+    async def test_get_by_user_with_asc_sort(
+        self, comment_repo: CommentRepository, mock_db: MagicMock
+    ) -> None:
+        """Test get_by_user with ascending sort order (line 374)."""
+        # Arrange
+        mock_scalars = MagicMock()
+        mock_scalars.all.return_value = []
+        mock_result = MagicMock()
+        mock_result.scalars.return_value = mock_scalars
+        mock_result.scalar.return_value = 0
+        mock_db.execute.return_value = mock_result
+
+        # Act
+        result, total = await comment_repo.get_by_user(
+            user_id=1, skip=0, limit=50, sort_order="asc"
         )
 
         # Assert

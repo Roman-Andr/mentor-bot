@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { renderHook } from '@testing-library/react'
+import { renderHook, act } from '@testing-library/react'
 import { ConfirmProvider, useConfirm } from '@/components/ui/confirm-dialog'
 
 // Mock next-intl
@@ -28,7 +28,10 @@ describe('useConfirm', () => {
       wrapper: ConfirmProvider
     })
 
-    const confirmPromise = result.current('Are you sure?')
+    let confirmPromise!: Promise<boolean>
+    act(() => {
+      confirmPromise = result.current('Are you sure?')
+    })
 
     expect(confirmPromise).toBeInstanceOf(Promise)
   })
@@ -38,12 +41,15 @@ describe('useConfirm', () => {
       wrapper: ConfirmProvider
     })
 
-    const confirmPromise = result.current({
-      title: 'Delete Item',
-      description: 'This cannot be undone',
-      confirmText: 'Delete',
-      cancelText: 'Keep',
-      variant: 'destructive'
+    let confirmPromise!: Promise<boolean>
+    act(() => {
+      confirmPromise = result.current({
+        title: 'Delete Item',
+        description: 'This cannot be undone',
+        confirmText: 'Delete',
+        cancelText: 'Keep',
+        variant: 'destructive'
+      })
     })
 
     expect(confirmPromise).toBeInstanceOf(Promise)
@@ -54,7 +60,10 @@ describe('useConfirm', () => {
       wrapper: ConfirmProvider
     })
 
-    const confirmPromise = result.current('Simple confirmation message')
+    let confirmPromise!: Promise<boolean>
+    act(() => {
+      confirmPromise = result.current('Simple confirmation message')
+    })
 
     expect(confirmPromise).toBeInstanceOf(Promise)
   })

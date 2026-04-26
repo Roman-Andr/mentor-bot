@@ -18,19 +18,19 @@ class IUnitOfWork(Protocol):
 
     async def commit(self) -> None:
         """Commit all changes made in this unit of work."""
-        ...
+        ...  # pragma: no cover
 
     async def rollback(self) -> None:
         """Rollback all changes made in this unit of work."""
-        ...
+        ...  # pragma: no cover
 
     async def __aenter__(self) -> Self:
         """Enter async context manager."""
-        ...
+        ...  # pragma: no cover
 
     async def __aexit__(self, *args: object) -> None:
         """Exit async context manager."""
-        ...
+        ...  # pragma: no cover
 
 
 class SqlAlchemyUnitOfWork(IUnitOfWork):

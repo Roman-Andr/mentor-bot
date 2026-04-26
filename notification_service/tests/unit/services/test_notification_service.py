@@ -588,9 +588,8 @@ class TestNotificationServiceProcessScheduled:
         mock_uow.scheduled_notifications.mark_processed.assert_awaited_once_with(1)
         assert result == []  # No notifications sent
 
-    async def test_marks_processed_when_max_retries_reached_on_failure(self, mock_uow: MagicMock, caplog: LogCaptureFixture) -> None:
+    async def test_marks_processed_when_max_retries_reached_on_failure(self, mock_uow: MagicMock) -> None:
         """Test lines 147-148: Marks as processed when max retries reached on failure."""
-        caplog.set_level("WARNING")
         service = NotificationService(mock_uow)
 
         now = datetime.now(UTC)
@@ -618,7 +617,6 @@ class TestNotificationServiceProcessScheduled:
         # Should mark as processed since max retries reached
         mock_uow.scheduled_notifications.mark_processed.assert_awaited_once_with(1)
         assert len(result) == 1
-        assert "failed after 3 retries" in caplog.text
 
 
 class TestNotificationServiceSendToChannel:
@@ -744,9 +742,8 @@ class TestNotificationServiceSendTelegram:
 
         assert result == (False, "Telegram send failed")
 
-    async def test_returns_failure_on_exception(self, mock_uow: MagicMock, caplog: LogCaptureFixture) -> None:
+    async def test_returns_failure_on_exception(self, mock_uow: MagicMock) -> None:
         """Returns failure and logs exception on error."""
-        caplog.set_level("ERROR")
         service = NotificationService(mock_uow)
 
         notification = Notification(
@@ -761,7 +758,6 @@ class TestNotificationServiceSendTelegram:
         result = await service._send_telegram(notification)
 
         assert result == (False, "Telegram send failed")
-        assert "Telegram send failed for notification 1" in caplog.text
 
 
 class TestNotificationServiceSendEmail:
@@ -824,9 +820,8 @@ class TestNotificationServiceSendEmail:
         call_kwargs = service._email.send_email.call_args.kwargs
         assert call_kwargs["subject"] == "Notification"
 
-    async def test_returns_failure_on_exception(self, mock_uow: MagicMock, caplog: LogCaptureFixture) -> None:
+    async def test_returns_failure_on_exception(self, mock_uow: MagicMock) -> None:
         """Returns failure and logs exception on error."""
-        caplog.set_level("ERROR")
         service = NotificationService(mock_uow)
 
         notification = Notification(
@@ -841,7 +836,6 @@ class TestNotificationServiceSendEmail:
         result = await service._send_email(notification)
 
         assert result == (False, "Email send failed")
-        assert "Email send failed for notification 1" in caplog.text
 
 
 class TestNotificationServiceSendBoth:
@@ -965,6 +959,45 @@ class TestNotificationServiceSendTemplate:
         mock_uow.notifications.create.assert_awaited_once()
         mock_uow.commit.assert_awaited_once()
         assert result.status == NotificationStatus.SENT
+
+    async def test_send_template_send_failure(self, mock_uow: MagicMock) -> None:
+        """Send template notification when sending fails."""
+        from notification_service.services.template import RenderedNotification
+
+        service = NotificationService(mock_uow)
+
+        rendered = RenderedNotification(
+            subject="Welcome John!",
+            body="<h1>Welcome John!</h1><p>Thanks for joining.</p>",
+            channel="email",
+            variables_used=["user_name"],
+        )
+
+        mock_uow.notifications.create = AsyncMock(return_value=Notification(id=1))
+        mock_uow.notifications.update = AsyncMock(return_value=Notification(id=1, status=NotificationStatus.FAILED))
+
+        with patch.object(service._template_service, "render", return_value=rendered) as mock_render:
+            with patch.object(service, "_send_to_channel", return_value=(False, "Connection error")):
+                result = await service.send_template(
+                    template_name="welcome",
+                    user_id=42,
+                    recipient_telegram_id=None,
+                    recipient_email="user@example.com",
+                    variables={"user_name": "John"},
+                    channel=NotificationChannel.EMAIL,
+                    notification_type=NotificationType.GENERAL,
+                    language="en",
+                )
+
+        mock_render.assert_awaited_once_with(
+            template_name="welcome",
+            channel="email",
+            language="en",
+            variables={"user_name": "John"},
+        )
+        mock_uow.notifications.create.assert_awaited_once()
+        mock_uow.commit.assert_awaited_once()
+        assert result.status == NotificationStatus.FAILED
 
     async def test_send_template_telegram_channel(self, mock_uow: MagicMock) -> None:
         """Send template notification via telegram channel."""

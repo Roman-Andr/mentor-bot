@@ -89,6 +89,7 @@ class TestGetTemplates:
     async def test_get_templates(self, sample_hr_user) -> None:
         """Test getting list of templates."""
         uow = MagicMock()
+        uow.templates.count_tasks = AsyncMock(return_value=0)
 
         now = datetime.now(UTC)
 
@@ -117,6 +118,7 @@ class TestGetTemplates:
 
         with patch("checklists_service.api.endpoints.templates.TemplateService") as mock_cls:
             instance = MagicMock()
+            instance._uow = uow
             mock_cls.return_value = instance
             instance.get_templates = AsyncMock(return_value=([mock_template], 1))
 
@@ -136,6 +138,7 @@ class TestGetTemplates:
     async def test_get_templates_with_filters(self, sample_hr_user) -> None:
         """Test getting templates with filters."""
         uow = MagicMock()
+        uow.templates.count_tasks = AsyncMock(return_value=0)
 
         now = datetime.now(UTC)
 
@@ -164,6 +167,7 @@ class TestGetTemplates:
 
         with patch("checklists_service.api.endpoints.templates.TemplateService") as mock_cls:
             instance = MagicMock()
+            instance._uow = uow
             mock_cls.return_value = instance
             instance.get_templates = AsyncMock(return_value=([mock_template], 1))
 

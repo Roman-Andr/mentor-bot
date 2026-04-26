@@ -268,6 +268,17 @@ class TestKnowledgeServiceClient:
 
         assert result is None
 
+    @patch("telegram_bot.services.knowledge_client.httpx.AsyncClient.post")
+    async def test_create_article_non_200_status(self, mock_post):
+        """Test creating article - non-200 status code."""
+        mock_response = MagicMock()
+        mock_response.status_code = 400
+        mock_post.return_value = mock_response
+
+        result = await self.client.create_article("Article", "Content", self.auth_token)
+
+        assert result is None
+
     def test_get_attachment_download_url(self):
         """Test getting attachment download URL."""
         result = self.client.get_attachment_download_url(1, "file.pdf")
@@ -332,6 +343,20 @@ class TestKnowledgeServiceClient:
         """Test getting scenario by ID - error."""
         import httpx
         mock_get.side_effect = httpx.RequestError("Connection failed")
+
+        with patch("telegram_bot.utils.cache.cache.get", return_value=None):
+            with patch("telegram_bot.utils.cache.cache.set", new_callable=AsyncMock):
+                result = await self.client.get_scenario(1)
+
+        assert result["id"] == 1
+        assert result["steps"] == []
+
+    @patch("telegram_bot.services.knowledge_client.httpx.AsyncClient.get")
+    async def test_get_scenario_not_found(self, mock_get):
+        """Test getting scenario by ID - not found (non-200 status)."""
+        mock_response = MagicMock()
+        mock_response.status_code = 404
+        mock_get.return_value = mock_response
 
         with patch("telegram_bot.utils.cache.cache.get", return_value=None):
             with patch("telegram_bot.utils.cache.cache.set", new_callable=AsyncMock):

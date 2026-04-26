@@ -1,5 +1,11 @@
 """Unit tests for utils/http.py."""
 
+import os
+
+# Clear proxy environment variables to prevent httpx errors with unsupported socks:// scheme
+for proxy_var in ["http_proxy", "https_proxy", "HTTP_PROXY", "HTTPS_PROXY", "all_proxy", "ALL_PROXY"]:
+    os.environ.pop(proxy_var, None)
+
 import httpx
 
 from escalation_service.utils.http import make_async_client

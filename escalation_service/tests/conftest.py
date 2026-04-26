@@ -9,6 +9,10 @@ import pytest
 from fastapi.testclient import TestClient
 from httpx import ASGITransport, AsyncClient
 
+# Clear proxy environment variables to prevent httpx errors with unsupported socks:// scheme
+for proxy_var in ["http_proxy", "https_proxy", "HTTP_PROXY", "HTTPS_PROXY", "all_proxy", "ALL_PROXY"]:
+    os.environ.pop(proxy_var, None)
+
 # Set required environment variables BEFORE any app imports
 os.environ.setdefault("DATABASE_URL", "postgresql+asyncpg://test:test@localhost:5432/test_escalation_db")
 os.environ.setdefault("REDIS_URL", "redis://localhost:6379/4")

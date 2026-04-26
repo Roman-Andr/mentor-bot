@@ -250,14 +250,17 @@ async def verify_service_api_key(
 ) -> bool:
     """Verify service-to-service API key. Returns True if valid, raises if invalid."""
     if not x_api_key:
-        return False
+        logger.warning("Service API key missing")
+        msg = "Invalid service API key"
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=msg)
     if not settings.SERVICE_API_KEY:
         logger.error("Service API key is not configured")
         msg = "Service API key not configured"
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=msg)
     if not compare_digest(x_api_key, settings.SERVICE_API_KEY):
         logger.warning("Invalid service API key rejected")
-        return False
+        msg = "Invalid service API key"
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=msg)
     logger.debug("Service API key accepted")
     return True
 

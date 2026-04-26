@@ -141,6 +141,17 @@ class TestTemplateRepository:
         call_stmt = str(mock_session.execute.call_args[0][0])
         assert "ORDER BY" in call_stmt
 
+    async def test_find_templates_sort_by_tasks(self, repository, mock_session, sample_template):
+        """Test finding templates sorted by task count (lines 86-92)."""
+        mock_result = MagicMock()
+        mock_result.scalar_one.return_value = 1
+        mock_result.scalars.return_value.all.return_value = [sample_template]
+        mock_session.execute.return_value = mock_result
+
+        _templates, total = await repository.find_templates(sort_by="tasks", sort_order="desc")
+
+        assert total == 1
+
     async def test_get_by_name_and_department_found(self, repository, mock_session, sample_template):
         """Test getting template by name and department."""
         mock_result = MagicMock()

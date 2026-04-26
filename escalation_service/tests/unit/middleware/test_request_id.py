@@ -6,8 +6,8 @@ import pytest
 from starlette.requests import Request
 from starlette.responses import Response
 
-from checklists_service.middleware.request_id import RequestIDMiddleware
-from checklists_service.utils.logging import request_id_var
+from escalation_service.middleware.request_id import RequestIDMiddleware
+from escalation_service.utils.logging import request_id_var
 
 
 def _build_request() -> Request:

@@ -9,6 +9,15 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
+# Clear proxy environment variables to avoid httpx proxy errors
+# httpx doesn't support 'socks://' scheme, only 'socks5://' and 'socks5h://'
+os.environ.pop("http_proxy", None)
+os.environ.pop("https_proxy", None)
+os.environ.pop("HTTP_PROXY", None)
+os.environ.pop("HTTPS_PROXY", None)
+os.environ.pop("all_proxy", None)
+os.environ.pop("ALL_PROXY", None)
+
 # Set required environment variables BEFORE any app imports
 os.environ.setdefault("DATABASE_URL", "postgresql+asyncpg://test:test@localhost:5432/test_feedback_db")
 os.environ.setdefault("REDIS_URL", "redis://localhost:6379/0")

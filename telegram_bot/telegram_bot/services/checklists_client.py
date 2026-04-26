@@ -88,7 +88,7 @@ class ChecklistsServiceClient:
                 await invalidate_cache("assigned_tasks:*")
                 logger.info("Task status updated (task_id={}, status={})", task_id, new_status)
                 return response.json()
-            logger.warning(
+            logger.error(
                 "Update task failed (task_id={}, status={})",
                 task_id,
                 response.status_code,
@@ -244,7 +244,7 @@ class ChecklistsServiceClient:
                 logger.info("Task attachment uploaded (task_id={}, filename={})", task_id, filename)
                 return response.json()
             # Log error response for debugging
-            logger.warning(
+            logger.error(
                 "Upload failed (task_id={}, status={})",
                 task_id,
                 response.status_code,

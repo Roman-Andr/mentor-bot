@@ -179,7 +179,7 @@ class NotificationService:
                 # Max retries reached, mark as processed (failed)
                 await self._uow.scheduled_notifications.mark_processed(scheduled.id)
                 logger.warning(
-                    "Scheduled notification %s failed after %d retries",
+                    "Scheduled notification {} failed after {} retries",
                     scheduled.id,
                     scheduled.max_retries,
                 )
@@ -398,8 +398,8 @@ class NotificationService:
                 chat_id=notification.recipient_telegram_id,
                 text=notification.body,
             )
-        except Exception:
-            logger.exception("Telegram send failed for notification %s", notification.id)
+        except Exception as e:
+            logger.error("Telegram send failed for notification {}: {}", notification.id, str(e))
             return False, "Telegram send failed"
         else:
             if success:
@@ -417,8 +417,8 @@ class NotificationService:
                 subject=notification.subject or "Notification",
                 body=notification.body,
             )
-        except Exception:
-            logger.exception("Email send failed for notification %s", notification.id)
+        except Exception as e:
+            logger.error("Email send failed for notification {}: {}", notification.id, str(e))
             return False, "Email send failed"
         else:
             logger.info("Email notification sent (notification_id={})", notification.id)

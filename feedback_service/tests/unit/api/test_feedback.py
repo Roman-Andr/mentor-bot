@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock
 from fastapi import status
 from fastapi.testclient import TestClient
 
-from feedback_service.api.deps import get_current_active_user, get_uow
+from feedback_service.api.deps import get_current_active_user, get_uow, require_auth, verify_service_api_key
 from feedback_service.database import get_db
 from feedback_service.main import app
 from feedback_service.models import Comment, ExperienceRating, PulseSurvey
@@ -97,7 +97,8 @@ class TestSubmitPulseSurvey:
         setup_mock_uow(mock_uow)
 
         app.dependency_overrides[get_uow] = lambda: mock_uow
-        app.dependency_overrides[get_current_active_user] = lambda: mock_current_user(1, "USER")
+        app.dependency_overrides[require_auth] = lambda: mock_current_user(1, "USER")
+        app.dependency_overrides[verify_service_api_key] = lambda: True
 
         # Act
         response = client.post("/api/v1/feedback/pulse", json={"rating": 7, "is_anonymous": False})
@@ -127,7 +128,8 @@ class TestSubmitPulseSurvey:
         setup_mock_uow(mock_uow)
 
         app.dependency_overrides[get_uow] = lambda: mock_uow
-        app.dependency_overrides[get_current_active_user] = lambda: mock_current_user(1, "USER")
+        app.dependency_overrides[require_auth] = lambda: mock_current_user(1, "USER")
+        app.dependency_overrides[verify_service_api_key] = lambda: True
 
         # Act
         response = client.post("/api/v1/feedback/pulse", json={"rating": 8, "is_anonymous": True})
@@ -144,7 +146,7 @@ class TestSubmitPulseSurvey:
     def test_submit_pulse_survey_invalid_rating_high(self) -> None:
         """Test pulse survey with rating > 10 returns 422."""
         app.dependency_overrides[get_uow] = lambda: create_mock_uow()
-        app.dependency_overrides[get_current_active_user] = lambda: mock_current_user(1, "USER")
+        app.dependency_overrides[require_auth] = lambda: mock_current_user(1, "USER")
         response = client.post("/api/v1/feedback/pulse", json={"rating": 11, "is_anonymous": False})
 
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
@@ -152,7 +154,7 @@ class TestSubmitPulseSurvey:
     def test_submit_pulse_survey_invalid_rating_low(self) -> None:
         """Test pulse survey with rating < 1 returns 422."""
         app.dependency_overrides[get_uow] = lambda: create_mock_uow()
-        app.dependency_overrides[get_current_active_user] = lambda: mock_current_user(1, "USER")
+        app.dependency_overrides[require_auth] = lambda: mock_current_user(1, "USER")
         response = client.post("/api/v1/feedback/pulse", json={"rating": 0, "is_anonymous": False})
 
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
@@ -165,7 +167,8 @@ class TestSubmitPulseSurvey:
         setup_mock_uow(mock_uow)
 
         app.dependency_overrides[get_uow] = lambda: mock_uow
-        app.dependency_overrides[get_current_active_user] = lambda: mock_current_user(1, "USER")
+        app.dependency_overrides[require_auth] = lambda: mock_current_user(1, "USER")
+        app.dependency_overrides[verify_service_api_key] = lambda: True
 
         # Act
         response = client.post("/api/v1/feedback/pulse", json={"rating": 7, "is_anonymous": False})
@@ -193,7 +196,8 @@ class TestSubmitExperienceRating:
         setup_mock_uow(mock_uow)
 
         app.dependency_overrides[get_uow] = lambda: mock_uow
-        app.dependency_overrides[get_current_active_user] = lambda: mock_current_user(1, "USER")
+        app.dependency_overrides[require_auth] = lambda: mock_current_user(1, "USER")
+        app.dependency_overrides[verify_service_api_key] = lambda: True
 
         # Act
         response = client.post("/api/v1/feedback/experience", json={"rating": 4, "is_anonymous": False})
@@ -222,7 +226,8 @@ class TestSubmitExperienceRating:
         setup_mock_uow(mock_uow)
 
         app.dependency_overrides[get_uow] = lambda: mock_uow
-        app.dependency_overrides[get_current_active_user] = lambda: mock_current_user(1, "USER")
+        app.dependency_overrides[require_auth] = lambda: mock_current_user(1, "USER")
+        app.dependency_overrides[verify_service_api_key] = lambda: True
 
         # Act
         response = client.post("/api/v1/feedback/experience", json={"rating": 5, "is_anonymous": True})
@@ -239,7 +244,7 @@ class TestSubmitExperienceRating:
     def test_submit_experience_rating_invalid_high(self) -> None:
         """Test experience rating with rating > 5 returns 422."""
         app.dependency_overrides[get_uow] = lambda: create_mock_uow()
-        app.dependency_overrides[get_current_active_user] = lambda: mock_current_user(1, "USER")
+        app.dependency_overrides[require_auth] = lambda: mock_current_user(1, "USER")
         response = client.post("/api/v1/feedback/experience", json={"rating": 6, "is_anonymous": False})
 
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
@@ -247,7 +252,7 @@ class TestSubmitExperienceRating:
     def test_submit_experience_rating_invalid_low(self) -> None:
         """Test experience rating with rating < 1 returns 422."""
         app.dependency_overrides[get_uow] = lambda: create_mock_uow()
-        app.dependency_overrides[get_current_active_user] = lambda: mock_current_user(1, "USER")
+        app.dependency_overrides[require_auth] = lambda: mock_current_user(1, "USER")
         response = client.post("/api/v1/feedback/experience", json={"rating": 0, "is_anonymous": False})
 
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
@@ -260,7 +265,8 @@ class TestSubmitExperienceRating:
         setup_mock_uow(mock_uow)
 
         app.dependency_overrides[get_uow] = lambda: mock_uow
-        app.dependency_overrides[get_current_active_user] = lambda: mock_current_user(1, "USER")
+        app.dependency_overrides[require_auth] = lambda: mock_current_user(1, "USER")
+        app.dependency_overrides[verify_service_api_key] = lambda: True
 
         # Act
         response = client.post("/api/v1/feedback/experience", json={"rating": 4, "is_anonymous": False})
@@ -292,7 +298,8 @@ class TestSubmitComment:
         setup_mock_uow(mock_uow)
 
         app.dependency_overrides[get_uow] = lambda: mock_uow
-        app.dependency_overrides[get_current_active_user] = lambda: mock_current_user(1, "USER")
+        app.dependency_overrides[require_auth] = lambda: mock_current_user(1, "USER")
+        app.dependency_overrides[verify_service_api_key] = lambda: True
 
         # Act
         response = client.post(
@@ -328,7 +335,8 @@ class TestSubmitComment:
         setup_mock_uow(mock_uow)
 
         app.dependency_overrides[get_uow] = lambda: mock_uow
-        app.dependency_overrides[get_current_active_user] = lambda: mock_current_user(1, "USER")
+        app.dependency_overrides[require_auth] = lambda: mock_current_user(1, "USER")
+        app.dependency_overrides[verify_service_api_key] = lambda: True
 
         # Act
         response = client.post(
@@ -354,7 +362,7 @@ class TestSubmitComment:
     def test_submit_comment_too_short(self) -> None:
         """Test comment with less than 10 characters returns 422."""
         app.dependency_overrides[get_uow] = lambda: create_mock_uow()
-        app.dependency_overrides[get_current_active_user] = lambda: mock_current_user(1, "USER")
+        app.dependency_overrides[require_auth] = lambda: mock_current_user(1, "USER")
         response = client.post(
             "/api/v1/feedback/comments",
             json={"comment": "Short", "is_anonymous": False}
@@ -370,7 +378,8 @@ class TestSubmitComment:
         setup_mock_uow(mock_uow)
 
         app.dependency_overrides[get_uow] = lambda: mock_uow
-        app.dependency_overrides[get_current_active_user] = lambda: mock_current_user(1, "USER")
+        app.dependency_overrides[require_auth] = lambda: mock_current_user(1, "USER")
+        app.dependency_overrides[verify_service_api_key] = lambda: True
 
         # Act
         response = client.post(

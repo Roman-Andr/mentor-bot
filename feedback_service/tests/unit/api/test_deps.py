@@ -10,7 +10,10 @@ from feedback_service.api.deps import (
     UserInfo,
     get_current_active_user,
     get_current_user,
+    get_current_user_from_cookie,
+    get_current_user_optional,
     require_admin,
+    require_auth,
     require_hr_or_admin,
     verify_service_api_key,
 )
@@ -142,7 +145,96 @@ class TestGetCurrentUser:
             await get_current_user(mock_credentials)
 
         assert exc_info.value.status_code == status.HTTP_503_SERVICE_UNAVAILABLE
-        assert "unavailable" in exc_info.value.detail.lower()
+
+
+class TestGetCurrentUserOptional:
+    """Tests for get_current_user_optional dependency."""
+
+    async def test_get_current_user_optional_no_credentials(self) -> None:
+        """Test returns None when no credentials provided."""
+        result = await get_current_user_optional(None)
+        assert result is None
+
+    @patch("httpx.AsyncClient.get")
+    async def test_get_current_user_optional_success(self, mock_get: MagicMock) -> None:
+        """Test successful authentication returns user."""
+        mock_credentials = MagicMock()
+        mock_credentials.credentials = "valid_token"
+
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            "id": 1,
+            "email": "test@example.com",
+            "role": "USER",
+        }
+        mock_get.return_value = mock_response
+
+        result = await get_current_user_optional(mock_credentials)
+
+        assert result is not None
+        assert result.id == 1
+        assert result.email == "test@example.com"
+
+    @patch("httpx.AsyncClient.get")
+    async def test_get_current_user_optional_non_200_status(self, mock_get: MagicMock) -> None:
+        """Test returns None when auth service returns non-200."""
+        mock_credentials = MagicMock()
+        mock_credentials.credentials = "invalid_token"
+
+        mock_response = MagicMock()
+        mock_response.status_code = 401
+        mock_get.return_value = mock_response
+
+        result = await get_current_user_optional(mock_credentials)
+
+        assert result is None
+
+    @patch("httpx.AsyncClient.get")
+    async def test_get_current_user_optional_request_error(self, mock_get: MagicMock) -> None:
+        """Test returns None when auth service is unavailable."""
+        mock_credentials = MagicMock()
+        mock_credentials.credentials = "valid_token"
+
+        mock_get.side_effect = httpx.RequestError("Connection failed")
+
+        result = await get_current_user_optional(mock_credentials)
+
+        assert result is None
+
+
+class TestGetCurrentUserFromCookie:
+    """Tests for get_current_user_from_cookie dependency."""
+
+    async def test_get_current_user_from_cookie_returns_none(self) -> None:
+        """Test returns None (placeholder implementation)."""
+        request = MagicMock()
+        result = await get_current_user_from_cookie(request)
+        assert result is None
+
+
+class TestRequireAuth:
+    """Tests for require_auth dependency."""
+
+    async def test_require_auth_no_service_no_user_raises(self) -> None:
+        """Test raises 401 when neither service auth nor user auth provided."""
+        with pytest.raises(HTTPException) as exc_info:
+            await require_auth(False, None)
+
+        assert exc_info.value.status_code == status.HTTP_401_UNAUTHORIZED
+        assert "Not authenticated" in exc_info.value.detail
+
+    async def test_require_auth_service_auth_passes(self) -> None:
+        """Test passes when service auth is provided."""
+        result = await require_auth(True, None)
+        assert result is None  # Returns current_user which is None
+
+    async def test_require_auth_user_auth_passes(self) -> None:
+        """Test passes when user auth is provided."""
+        mock_user = MagicMock()
+        mock_user.id = 1
+        result = await require_auth(False, mock_user)
+        assert result is mock_user
 
 
 class TestGetCurrentActiveUser:

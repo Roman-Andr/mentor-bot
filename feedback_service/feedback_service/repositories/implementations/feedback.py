@@ -72,7 +72,7 @@ class PulseSurveyRepository(DateFilterMixin, SqlAlchemyBaseRepository[PulseSurve
         total = total_result.scalar() or 0
 
         # Apply sorting
-        sort_column = getattr(PulseSurvey, sort_by, PulseSurvey.submitted_at)
+        sort_column = getattr(PulseSurvey, sort_by or "submitted_at", PulseSurvey.submitted_at)
         if sort_order == "asc":
             query = query.order_by(sort_column.asc())
         else:
@@ -218,7 +218,7 @@ class ExperienceRatingRepository(DateFilterMixin, SqlAlchemyBaseRepository[Exper
         total = total_result.scalar() or 0
 
         # Apply sorting
-        sort_column = getattr(ExperienceRating, sort_by, ExperienceRating.submitted_at)
+        sort_column = getattr(ExperienceRating, sort_by or "submitted_at", ExperienceRating.submitted_at)
         if sort_order == "asc":
             query = query.order_by(sort_column.asc())
         else:
@@ -370,7 +370,7 @@ class CommentRepository(DateFilterMixin, SqlAlchemyBaseRepository[Comment, int],
         total = total_result.scalar() or 0
 
         # Apply sorting
-        sort_column = getattr(Comment, sort_by, Comment.submitted_at)
+        sort_column = getattr(Comment, sort_by or "submitted_at", Comment.submitted_at)
         if sort_order == "asc":
             query = query.order_by(sort_column.asc())
         else:
