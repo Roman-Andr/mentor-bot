@@ -7,7 +7,7 @@ A microservices platform for managing mentoring relationships between employees 
 - **Backend:** 8 FastAPI services (`Python 3.14`, `async SQLAlchemy 2.0`, `uv`)
 - **Bot:** `aiogram 3` (Telegram) with Google OAuth callback
 - **Frontend:** `Next.js 16` (`React 19`, `next-intl`, `Tailwind 4`, `shadcn/ui`) built with Bun
-- **Infra:** `PostgreSQL 18`, `Redis 8`, `MinIO` (S3-compatible), `pgAdmin`, `RedisInsight`
+- **Infra:** `PostgreSQL 18`, `Redis 8`, `MinIO` (S3-compatible), `Mox` (mail server), `pgAdmin`, `RedisInsight`
 - **Orchestration:** `Docker Compose` (dev + prod), `GitHub Actions` (CI + image publish)
 
 ---
@@ -58,8 +58,9 @@ Eight FastAPI services + one Next.js admin dashboard communicate over a shared D
 | `feedback_service`    | 8007        | Feedback collection                                                      |
 | `telegram_bot`        | 5670        | Telegram interface (aiogram 3) + Google OAuth callback                   |
 | `admin_web`           | 3000        | Next.js admin dashboard (i18n: en / ru)                                  |
+| `mox`                 | 8025        | Mail server (SMTP/IMAP) for romanandr.ru                                 |
 
-Infra ports: PostgreSQL `5432`, Redis `6379`, pgAdmin `5050`, RedisInsight `5540`, MinIO S3 `9000` / console `9001`.
+Infra ports: PostgreSQL `5432`, Redis `6379`, pgAdmin `5050`, RedisInsight `5540`, MinIO S3 `9000` / console `9001`, Mox SMTP `25` / SMTPS `465` / submission `587` / IMAPS `993`.
 
 ### Service internal layout
 
@@ -136,6 +137,8 @@ make full-reboot    # reset-db + start + mock-data
 - pgAdmin: <http://localhost:5050>
 - RedisInsight: <http://localhost:5540>
 - MinIO console: <http://localhost:9001> (root creds from `.env`)
+- Mox admin: <http://localhost:8025> (mail server for romanandr.ru)
+- Mox mailbox: <http://localhost:8025/mailbox>
 - Service health: `http://localhost:8001/health` … `8007/health`
 
 ---
@@ -218,6 +221,10 @@ Copy `.env.example` → `.env`. Highlights:
 | RedisInsight    | `5540`     |
 | MinIO S3 API    | `9000`     |
 | MinIO console   | `9001`     |
+| Mox SMTP        | `25`       |
+| Mox SMTPS       | `465`      |
+| Mox submission  | `587`      |
+| Mox IMAPS       | `993`      |
 | Debugger ports  | `5670-5678`, `9229` (admin_web) |
 
 Each FastAPI service exposes OpenAPI docs at `http://localhost:<port>/docs`.
