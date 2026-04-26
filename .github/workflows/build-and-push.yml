@@ -4,6 +4,12 @@ on:
   push:
     branches: [main]
     tags: ['v*']
+    paths-ignore:
+      - 'docs/**'
+      - '.course_work_2/**'
+      - 'README.md'
+      - 'LICENSE'
+      - 'CLAUDE.md'
   workflow_dispatch:
     inputs:
       tag:

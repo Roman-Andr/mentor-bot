@@ -1,5 +1,7 @@
 # Mentor Bot
 
+[![Build and push images](https://github.com/Roman-Andr/mentor-bot/actions/workflows/build-and-push.yml/badge.svg)](https://github.com/Roman-Andr/mentor-bot/actions/workflows/build-and-push.yml)
+
 A microservices platform for managing mentoring relationships between employees and new hires. Includes a Telegram bot for day-to-day interactions and a Next.js admin dashboard for HR / team leads.
 
 - **Backend:** 8 FastAPI services (`Python 3.14`, `async SQLAlchemy 2.0`, `uv`)
