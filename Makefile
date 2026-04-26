@@ -1,4 +1,4 @@
-.PHONY: help start stop restart logs clean reset-db create-invitation shell-auth shell-checklist shell-knowledge shell-postgres shell-redis status full-reboot logs-notification logs-escalation logs-meeting shell-notification shell-escalation shell-meeting restart-notification restart-escalation restart-meeting reboot-notification reboot-escalation reboot-meeting logs-admin restart-admin restart-admin-dev reboot-admin shell-admin logs-telegram restart-telegram reboot-telegram shell-telegram dev-admin dev-meeting reset-locks update-deps mock-data prune test coverage coverage-html coverage-clean build-push docker-login prod-pull prod-up prod-down prod-logs prod-deploy up up-svc
+.PHONY: help start stop restart logs clean reset-db create-invitation shell-auth shell-checklist shell-knowledge shell-postgres shell-redis status full-reboot logs-notification logs-escalation logs-meeting shell-notification shell-escalation shell-meeting restart-notification restart-escalation restart-meeting reboot-notification reboot-escalation reboot-meeting logs-admin restart-admin restart-admin-dev reboot-admin shell-admin logs-telegram restart-telegram reboot-telegram shell-telegram dev-admin dev-meeting reset-locks update-deps mock-data prune test coverage coverage-html coverage-clean build-push docker-login prod-pull prod-up prod-down prod-logs prod-deploy up up-svc generate-secrets
 
 # Docker compose project name
 PROJECT_NAME = mentor-bot
@@ -32,6 +32,7 @@ help:
 	@echo "  make reset-locks       - Delete all uv.lock files and regenerate with uv sync"
 	@echo "  make update-deps       - Check PyPI and update outdated deps (uv remove/add)"
 	@echo "  make prune             - Remove dangling Docker images, containers, volumes, and build cache"
+	@echo "  make generate-secrets  - Generate .env from .env.example with secure random secrets"
 
 	@echo ""
 	@echo "Service access:"
@@ -83,7 +84,7 @@ help:
 	@echo "  make docker-login DOCKER_USERNAME=user          - Login to Docker Hub"
 	@echo "  make prod-pull                                  - Pull prod images on VPS"
 	@echo "  make prod-up / prod-down / prod-logs            - Manage prod stack"
-	@echo "  make prod-deploy TAG=sha                        - Pull + up in one step"
+	@echo "  make prod-deploy                                - Pull + up in one step"
 	@echo ""
 
 test:
@@ -316,6 +317,17 @@ reset-locks:
 update-deps:
 	python scripts/update_deps.py
 
+generate-env:
+	@if [ -f .env ]; then \
+		read -p ".env already exists. Overwrite? (y/N) " -n 1 -r; \
+		echo; \
+		if [[ ! $$REPLY =~ ^[Yy]$$ ]]; then \
+			echo "Aborted."; \
+			exit 1; \
+		fi; \
+	fi
+	python scripts/generate_env.py
+
 
 
 # Health check commands
@@ -398,9 +410,9 @@ prod-logs:
 	$(PROD_COMPOSE) logs -f
 
 prod-deploy:
-	@if [ -z "$(TAG)" ]; then echo "TAG is required (e.g. make prod-deploy TAG=abc1234)"; exit 1; fi
-	IMAGE_TAG=$(TAG) $(PROD_COMPOSE) pull
-	IMAGE_TAG=$(TAG) $(PROD_COMPOSE) up -d
+	$(PROD_COMPOSE) down
+	$(PROD_COMPOSE) pull
+	$(PROD_COMPOSE) up -d
 	$(PROD_COMPOSE) ps
 
 # ─── Alembic migrations ───────────────────────────────────────────────────────

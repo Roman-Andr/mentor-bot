@@ -62,6 +62,10 @@ class Settings(BaseSettings):
     # Password reset
     ADMIN_WEB_URL: str = Field(default="http://localhost:3000")
 
+    # Default admin user
+    ADMIN_EMAIL: str = Field(default="admin@example.com")
+    ADMIN_PASSWORD: str = Field(default="changeme_admin_password")
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", case_sensitive=True, extra="ignore")
 
 

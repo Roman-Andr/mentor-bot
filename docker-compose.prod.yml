@@ -84,7 +84,7 @@ services:
       redis:
         condition: service_healthy
     ports:
-      - "127.0.0.1:3000:3000"
+      - "3000:3000"
     environment:
       <<: *common-env
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/admin_web_db

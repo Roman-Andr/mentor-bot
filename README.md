@@ -204,27 +204,27 @@ Copy `.env.example` → `.env`. Highlights:
 
 ### Exposed ports (host → container)
 
-| Purpose         | Port       |
-| --------------- | ---------- |
-| admin_web       | `3000`     |
-| auth_service    | `8001`     |
-| checklists      | `8002`     |
-| knowledge       | `8003`     |
-| notification    | `8004`     |
-| escalation      | `8005`     |
-| meeting         | `8006`     |
-| feedback        | `8007`     |
-| telegram_bot    | `5670`     |
-| PostgreSQL      | `5432`     |
-| Redis           | `6379`     |
-| pgAdmin         | `5050`     |
-| RedisInsight    | `5540`     |
-| MinIO S3 API    | `9000`     |
-| MinIO console   | `9001`     |
-| Mox SMTP        | `25`       |
-| Mox SMTPS       | `465`      |
-| Mox submission  | `587`      |
-| Mox IMAPS       | `993`      |
+| Purpose         | Port                            |
+| --------------- | ----------                      |
+| admin_web       | `3000`                          |
+| auth_service    | `8001`                          |
+| checklists      | `8002`                          |
+| knowledge       | `8003`                          |
+| notification    | `8004`                          |
+| escalation      | `8005`                          |
+| meeting         | `8006`                          |
+| feedback        | `8007`                          |
+| telegram_bot    | `5670`                          |
+| PostgreSQL      | `5432`                          |
+| Redis           | `6379`                          |
+| pgAdmin         | `5050`                          |
+| RedisInsight    | `5540`                          |
+| MinIO S3 API    | `9000`                          |
+| MinIO console   | `9001`                          |
+| Mox SMTP        | `25`                            |
+| Mox SMTPS       | `465`                           |
+| Mox submission  | `587`                           |
+| Mox IMAPS       | `993`                           |
 | Debugger ports  | `5670-5678`, `9229` (admin_web) |
 
 Each FastAPI service exposes OpenAPI docs at `http://localhost:<port>/docs`.
@@ -415,6 +415,12 @@ git clone https://github.com/Roman-Andr/mentor-bot.git
 cd mentor-bot
 
 # 2. Create production .env
+# Option A: Interactive generator (recommended)
+make generate-env
+# This will prompt for domain, server IP, Telegram credentials, Google OAuth, SMTP, and Docker username,
+# and auto-generate secure secrets for passwords and API keys.
+
+# Option B: Manual
 cp .env.example .env
 # Edit: real secrets, CORS_ORIGINS, ALLOWED_HOSTS, GOOGLE_REDIRECT_URI (HTTPS),
 # DOCKER_USERNAME, IMAGE_TAG=<sha or latest>
@@ -477,11 +483,56 @@ Adjust in `docker-compose.prod.yml` per your host.
 
 ---
 
+## Mox mail server DNS configuration
+
+To enable email delivery for your domain (e.g., `example.com`), configure the following DNS records. Replace `example.com` with your actual domain and `10.0.0.1` with your server's public IP.
+
+### Required DNS records
+
+| Type  | Name               | Value / Priority                            |
+|-------|--------------------|---------------------------------------------|
+| A     | @                  | 10.0.0.1                                    |
+| A     | mail               | 10.0.0.1                                    |
+| A     | vm-xxxxxx          | 10.0.0.1                                    |
+| CAA   | @                  | 0 issue letsencrypt.org                     |
+| CNAME | autoconfig         | mail.example.com.                           |
+| CNAME | mta-sts            | mail.example.com.                           |
+| MX    | @                  | mail.example.com. (10)                      |
+| SRV   | _autodiscover._tcp | mail.example.com. (0)                       |
+| TXT   | @                  | v=spf1 ip4:10.0.0.1 ip4:172.17.0.1 ip4:172.18.0.1 mx ~all |
+| TXT   | mail               | v=spf1 a -all                               |
+| TXT   | _dmarc             | v=DMARC1; p=reject; rua=mailto:dmarc-reports@example.com!10m |
+| TXT   | mta-sts            | v=STSv1; id=20260101T000000Z                |
+| TXT   | _smtp._tls         | v=TLSRPTv1; rua=mailto:tls-reports@example.com |
+
+### DKIM records
+
+Generate two DKIM key pairs in Mox (see Mox admin UI at `http://localhost:8025`) and add the corresponding TXT records:
+
+| Type | Name                 | Value |
+|------|----------------------|-------|
+| TXT  | 2026a._domainkey    | v=DKIM1; h=sha256; p=... |
+| TXT  | 2026b._domainkey    | v=DKIM1; h=sha256; p=... |
+
+### Verification
+
+After updating DNS records, verify with:
+
+```bash
+dig A mail.example.com
+dig MX example.com
+dig TXT _dmarc.example.com
+dig TXT 2026a._domainkey.example.com
+```
+
+Test email delivery via Mox admin panel at `http://localhost:8025/mailbox`.
+
+---
+
 ## CI/CD (GitHub Actions)
 
 Located in `.github/workflows/`:
 
-- **`ci.yml`** — runs on every PR/push to `main`. Matrix lints (`ruff`), type-checks (`mypy`, non-blocking), and tests every Python service, plus lints + tests admin_web.
 - **`build-and-push.yml`** — on push to `main` or `v*` tag: re-runs the test gate, then builds + pushes every service image to Docker Hub with tags `sha-<short>`, branch/tag name, and `latest` (on `main` only). Manual runs via `workflow_dispatch` accept an extra tag.
 - **`image-retention.yml`** — manual (`workflow_dispatch`) cleanup of old SHA tags on Docker Hub. Keeps `latest`, any `v*` tag, and the `N` newest SHA tags (default 5).
 

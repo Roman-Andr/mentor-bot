@@ -13,16 +13,42 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
 from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
 
 from auth_service.api import auth, departments, invitations, password_reset, user_mentors, users
 from auth_service.config import settings
-from auth_service.database import engine, init_db
+from auth_service.core import UserRole
+from auth_service.database import AsyncSessionLocal, engine, init_db
 from auth_service.middleware.request_id import RequestIDMiddleware
-from auth_service.schemas import HealthCheck, ServiceStatus
+from auth_service.repositories.unit_of_work import SqlAlchemyUnitOfWork
+from auth_service.schemas import HealthCheck, ServiceStatus, UserCreate
+from auth_service.services.user import UserService
 from auth_service.utils.integrations import checklists_service_client, notification_service_client
 from auth_service.utils.logging import configure_logging
 
 configure_logging(service_name="auth_service", log_level=settings.LOG_LEVEL)
+
+
+async def create_default_admin_user() -> None:
+    """Create default admin user if it doesn't exist."""
+    async with SqlAlchemyUnitOfWork(AsyncSessionLocal) as uow:
+        user_service = UserService(uow)
+        existing_admin = await user_service.get_user_by_email(settings.ADMIN_EMAIL)
+
+        if not existing_admin:
+            logger.info("Creating default admin user: {}", settings.ADMIN_EMAIL)
+            admin_data = UserCreate(
+                email=settings.ADMIN_EMAIL,
+                first_name="Admin",
+                last_name="User",
+                employee_id="ADMIN001",
+                password=settings.ADMIN_PASSWORD,
+                role=UserRole.ADMIN,
+            )
+            await user_service.create_user(admin_data)
+            logger.info("Default admin user created successfully")
+        else:
+            logger.info("Default admin user already exists: {}", settings.ADMIN_EMAIL)
 
 
 @asynccontextmanager
@@ -31,6 +57,8 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     logger.info("Starting Auth Service...")
     await init_db()
     logger.info("Database initialized")
+    await create_default_admin_user()
+    logger.info("Default admin user check completed")
     yield
     logger.info("Shutting down Auth Service...")
     await checklists_service_client.aclose()
@@ -96,7 +124,7 @@ async def health_check() -> HealthCheck:
         async with engine.connect() as conn:
             await conn.execute(text("SELECT 1"))
             db_status = "connected"
-    except Exception:
+    except SQLAlchemyError:
         logger.exception("Health check: database connectivity failed")
         db_status = "disconnected"
 
