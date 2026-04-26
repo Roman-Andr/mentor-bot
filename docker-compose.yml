@@ -12,6 +12,8 @@ services:
       args:
         SERVICE_NAME: telegram_bot
     container_name: telegram_bot
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
       <<: *common-env
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/telegram_db
