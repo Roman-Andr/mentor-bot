@@ -51,12 +51,15 @@ services:
     <<: *python-defaults
     image: ${REGISTRY:-docker.io}/${DOCKER_USERNAME}/${IMAGE_PREFIX:-mentor-bot}-telegram_bot:${TELEGRAM_BOT_TAG:-latest}
     container_name: telegram_bot
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
       <<: *common-env
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/telegram_db
       REDIS_URL: ${REDIS_URL}/3
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
       TELEGRAM_API_KEY: ${TELEGRAM_API_KEY}
+      TELEGRAM_PROXY: ${TELEGRAM_PROXY:-}
       ENABLE_NOTIFICATIONS: "true"
       NOTIFICATION_HOUR: "9"
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
