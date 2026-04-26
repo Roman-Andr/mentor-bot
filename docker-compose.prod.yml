@@ -2,15 +2,23 @@
 # Do NOT combine with docker-compose.yml (which auto-loads docker-compose.override.yml for dev).
 #
 # Usage on the VPS:
-#   IMAGE_TAG=<git-sha> docker compose -f docker-compose.prod.yml pull
-#   IMAGE_TAG=<git-sha> docker compose -f docker-compose.prod.yml up -d
+#   # Deploy all services with latest tags
+#   docker compose -f docker-compose.prod.yml pull
+#   docker compose -f docker-compose.prod.yml up -d
+#
+#   # Deploy specific service with custom tag
+#   TELEGRAM_BOT_TAG=v1.2.0 docker compose -f docker-compose.prod.yml up -d telegram_bot
 #
 # Required env (in .env on the VPS):
 #   DOCKER_USERNAME   - registry namespace (e.g. Docker Hub username)
-#   IMAGE_TAG         - image tag to deploy (git sha or "latest")
 # Optional:
 #   REGISTRY          - defaults to docker.io
 #   IMAGE_PREFIX      - defaults to mentor-bot
+#   <SERVICE>_TAG    - per-service image tags (defaults to latest)
+#                      Options: TELEGRAM_BOT_TAG, ADMIN_WEB_TAG, AUTH_SERVICE_TAG,
+#                               CHECKLISTS_SERVICE_TAG, KNOWLEDGE_SERVICE_TAG,
+#                               NOTIFICATION_SERVICE_TAG, FEEDBACK_SERVICE_TAG,
+#                               ESCALATION_SERVICE_TAG, MEETING_SERVICE_TAG
 
 x-common-env: &common-env
   LOG_LEVEL: ${LOG_LEVEL:-INFO}
@@ -41,7 +49,7 @@ x-python-defaults: &python-defaults
 services:
   telegram_bot:
     <<: *python-defaults
-    image: ${REGISTRY:-docker.io}/${DOCKER_USERNAME}/${IMAGE_PREFIX:-mentor-bot}-telegram_bot:${IMAGE_TAG:-latest}
+    image: ${REGISTRY:-docker.io}/${DOCKER_USERNAME}/${IMAGE_PREFIX:-mentor-bot}-telegram_bot:${TELEGRAM_BOT_TAG:-latest}
     container_name: telegram_bot
     environment:
       <<: *common-env
@@ -62,7 +70,7 @@ services:
       start_period: 15s
 
   admin_web:
-    image: ${REGISTRY:-docker.io}/${DOCKER_USERNAME}/${IMAGE_PREFIX:-mentor-bot}-admin_web:${IMAGE_TAG:-latest}
+    image: ${REGISTRY:-docker.io}/${DOCKER_USERNAME}/${IMAGE_PREFIX:-mentor-bot}-admin_web:${ADMIN_WEB_TAG:-latest}
     container_name: admin_web
     restart: unless-stopped
     networks:
@@ -97,7 +105,7 @@ services:
 
   auth_service:
     <<: *python-defaults
-    image: ${REGISTRY:-docker.io}/${DOCKER_USERNAME}/${IMAGE_PREFIX:-mentor-bot}-auth_service:${IMAGE_TAG:-latest}
+    image: ${REGISTRY:-docker.io}/${DOCKER_USERNAME}/${IMAGE_PREFIX:-mentor-bot}-auth_service:${AUTH_SERVICE_TAG:-latest}
     container_name: auth_service
     environment:
       <<: *common-env
@@ -113,7 +121,7 @@ services:
 
   checklists_service:
     <<: *python-defaults
-    image: ${REGISTRY:-docker.io}/${DOCKER_USERNAME}/${IMAGE_PREFIX:-mentor-bot}-checklists_service:${IMAGE_TAG:-latest}
+    image: ${REGISTRY:-docker.io}/${DOCKER_USERNAME}/${IMAGE_PREFIX:-mentor-bot}-checklists_service:${CHECKLISTS_SERVICE_TAG:-latest}
     container_name: checklists_service
     depends_on:
       postgres:
@@ -136,7 +144,7 @@ services:
 
   knowledge_service:
     <<: *python-defaults
-    image: ${REGISTRY:-docker.io}/${DOCKER_USERNAME}/${IMAGE_PREFIX:-mentor-bot}-knowledge_service:${IMAGE_TAG:-latest}
+    image: ${REGISTRY:-docker.io}/${DOCKER_USERNAME}/${IMAGE_PREFIX:-mentor-bot}-knowledge_service:${KNOWLEDGE_SERVICE_TAG:-latest}
     container_name: knowledge_service
     depends_on:
       postgres:
@@ -159,7 +167,7 @@ services:
 
   notification_service:
     <<: *python-defaults
-    image: ${REGISTRY:-docker.io}/${DOCKER_USERNAME}/${IMAGE_PREFIX:-mentor-bot}-notification_service:${IMAGE_TAG:-latest}
+    image: ${REGISTRY:-docker.io}/${DOCKER_USERNAME}/${IMAGE_PREFIX:-mentor-bot}-notification_service:${NOTIFICATION_SERVICE_TAG:-latest}
     container_name: notification_service
     environment:
       <<: *common-env
@@ -174,7 +182,7 @@ services:
 
   feedback_service:
     <<: *python-defaults
-    image: ${REGISTRY:-docker.io}/${DOCKER_USERNAME}/${IMAGE_PREFIX:-mentor-bot}-feedback_service:${IMAGE_TAG:-latest}
+    image: ${REGISTRY:-docker.io}/${DOCKER_USERNAME}/${IMAGE_PREFIX:-mentor-bot}-feedback_service:${FEEDBACK_SERVICE_TAG:-latest}
     container_name: feedback_service
     environment:
       <<: *common-env
@@ -184,7 +192,7 @@ services:
 
   escalation_service:
     <<: *python-defaults
-    image: ${REGISTRY:-docker.io}/${DOCKER_USERNAME}/${IMAGE_PREFIX:-mentor-bot}-escalation_service:${IMAGE_TAG:-latest}
+    image: ${REGISTRY:-docker.io}/${DOCKER_USERNAME}/${IMAGE_PREFIX:-mentor-bot}-escalation_service:${ESCALATION_SERVICE_TAG:-latest}
     container_name: escalation_service
     environment:
       <<: *common-env
@@ -194,7 +202,7 @@ services:
 
   meeting_service:
     <<: *python-defaults
-    image: ${REGISTRY:-docker.io}/${DOCKER_USERNAME}/${IMAGE_PREFIX:-mentor-bot}-meeting_service:${IMAGE_TAG:-latest}
+    image: ${REGISTRY:-docker.io}/${DOCKER_USERNAME}/${IMAGE_PREFIX:-mentor-bot}-meeting_service:${MEETING_SERVICE_TAG:-latest}
     container_name: meeting_service
     environment:
       <<: *common-env
