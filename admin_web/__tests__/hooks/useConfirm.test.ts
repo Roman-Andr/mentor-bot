@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { renderHook, act } from '@testing-library/react'
+import { renderHook } from '@testing-library/react'
 import { ConfirmProvider, useConfirm } from '@/components/ui/confirm-dialog'
 
 // Mock next-intl

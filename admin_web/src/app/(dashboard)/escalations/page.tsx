@@ -20,6 +20,7 @@ import { CheckCircle, Trash2 } from "lucide-react";
 import { ESCALATION_STATUSES, ESCALATION_TYPES } from "@/lib/constants";
 import { formatDateTime } from "@/lib/utils";
 import { useEscalations } from "@/hooks/use-escalations";
+import { SortableTableHead } from "@/components/ui/sortable-table-head";
 
 export default function EscalationsPage() {
   const t = useTranslations();
@@ -68,14 +69,78 @@ export default function EscalationsPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>ID</TableHead>
-              <TableHead>{t("escalations.assignedTo")}</TableHead>
-              <TableHead>{t("escalations.subject")}</TableHead>
-              <TableHead>{t("escalations.description")}</TableHead>
-              <TableHead>{t("escalations.status")}</TableHead>
-              <TableHead>{t("escalations.priority")}</TableHead>
-              <TableHead>{t("escalations.createdAt")}</TableHead>
-              <TableHead>{t("escalations.resolvedAt")}</TableHead>
+              <SortableTableHead
+                field="id"
+                sortable
+                sortField={e.sortField}
+                sortDirection={e.sortDirection}
+                onSort={e.toggleSort}
+              >
+                ID
+              </SortableTableHead>
+              <SortableTableHead
+                field="userId"
+                sortable
+                sortField={e.sortField}
+                sortDirection={e.sortDirection}
+                onSort={e.toggleSort}
+              >
+                {t("escalations.assignedTo")}
+              </SortableTableHead>
+              <SortableTableHead
+                field="type"
+                sortable
+                sortField={e.sortField}
+                sortDirection={e.sortDirection}
+                onSort={e.toggleSort}
+              >
+                {t("escalations.subject")}
+              </SortableTableHead>
+              <SortableTableHead
+                field="source"
+                sortable
+                sortField={e.sortField}
+                sortDirection={e.sortDirection}
+                onSort={e.toggleSort}
+              >
+                {t("escalations.description")}
+              </SortableTableHead>
+              <SortableTableHead
+                field="status"
+                sortable
+                sortField={e.sortField}
+                sortDirection={e.sortDirection}
+                onSort={e.toggleSort}
+              >
+                {t("escalations.status")}
+              </SortableTableHead>
+              <SortableTableHead
+                field="reason"
+                sortable
+                sortField={e.sortField}
+                sortDirection={e.sortDirection}
+                onSort={e.toggleSort}
+              >
+                {t("escalations.priority")}
+              </SortableTableHead>
+              <SortableTableHead
+                field="createdAt"
+                sortable
+                sortField={e.sortField}
+                sortDirection={e.sortDirection}
+                onSort={e.toggleSort}
+              >
+                {t("escalations.createdAt")}
+              </SortableTableHead>
+              <SortableTableHead
+                field="resolvedAt"
+                sortable
+                sortField={e.sortField}
+                sortDirection={e.sortDirection}
+                onSort={e.toggleSort}
+              >
+                {t("escalations.resolvedAt")}
+              </SortableTableHead>
               <TableHead className="w-25">{t("common.actions")}</TableHead>
             </TableRow>
           </TableHeader>

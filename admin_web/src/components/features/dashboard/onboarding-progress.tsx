@@ -22,22 +22,22 @@ export function OnboardingProgress({ progress }: OnboardingProgressProps) {
                 <div className="min-w-0 flex-1">
                   <div className="mb-1 flex items-center justify-between">
                     <p className="truncate text-sm font-medium">{item.user_name}</p>
-                    <p className="text-xs text-muted-foreground">{item.completion_percentage}%</p>
+                    <p className="text-muted-foreground text-xs">{item.completion_percentage}%</p>
                   </div>
-                  <div className="h-2 w-full rounded-full bg-muted">
+                  <div className="bg-muted h-2 w-full rounded-full">
                     <div
                       className={`h-2 rounded-full ${
                         item.completion_percentage >= 80
-                          ? "bg-green-500"
+                          ? "bg-green-500 dark:bg-green-600"
                           : item.completion_percentage >= 50
-                            ? "bg-yellow-500"
-                            : "bg-red-500"
+                            ? "bg-yellow-500 dark:bg-yellow-600"
+                            : "bg-red-500 dark:bg-red-600"
                       }`}
                       style={{ width: `${item.completion_percentage}%` }}
                     />
                   </div>
                 </div>
-                 <span className="inline-block whitespace-nowrap text-xs text-muted-foreground w-[90px] overflow-hidden text-ellipsis">
+                 <span className="text-muted-foreground inline-block w-[90px] truncate text-xs">
                    {item.status === "COMPLETED"
                      ? t("common.completed")
                      : item.days_remaining > 0
@@ -47,7 +47,7 @@ export function OnboardingProgress({ progress }: OnboardingProgressProps) {
               </div>
             ))
           ) : (
-            <p className="py-4 text-center text-sm text-muted-foreground">{t("common.noData")}</p>
+            <p className="text-muted-foreground py-4 text-center text-sm">{t("common.noData")}</p>
           )}
         </div>
       </CardContent>

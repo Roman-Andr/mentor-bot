@@ -12,6 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { DataTable } from "@/components/ui/data-table";
+import { DataTableSkeleton } from "@/components/ui/table-skeleton";
 import { CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { TabSwitcher } from "@/components/ui/tab-switcher";
 import { EntityFormDialog } from "./entity-form-dialog";
@@ -311,6 +312,7 @@ export function EntityPage<TItem, TForm>({
       onPageChange={onPageChange}
       onPageSizeChange={onPageSizeChange}
       showPageSizeSelector={!!onPageSizeChange}
+      skeleton={<DataTableSkeleton columns={columns.length} rows={Math.min(pageSize, 8)} showHeader={false} />}
       header={
         <CardHeader>
           <div className="flex items-center justify-between gap-4">

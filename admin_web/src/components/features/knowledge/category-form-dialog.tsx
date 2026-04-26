@@ -12,6 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { ColorPicker } from "@/components/ui/color-picker";
 import { LEVELS_WITH_EMPTY } from "@/lib/constants";
 import type { CategoryFormData } from "@/hooks/use-categories";
 
@@ -139,19 +140,10 @@ export function CategoryFormDialog({
         </div>
         <div className="grid gap-2">
           <label className="text-sm font-medium">{t("knowledge.color")}</label>
-          <div className="flex items-center gap-2">
-            <input
-              type="color"
-              value={formData.color || "#6366f1"}
-              onChange={(e) => onFormDataChange("color", e.target.value)}
-              className="border-input h-9 w-12 cursor-pointer rounded border"
-            />
-            <Input
-              placeholder="#6366f1"
-              value={formData.color}
-              onChange={(e) => onFormDataChange("color", e.target.value)}
-            />
-          </div>
+          <ColorPicker
+            value={formData.color || "#6366f1"}
+            onChange={(val) => onFormDataChange("color", val)}
+          />
         </div>
       </div>
       <DialogFooter>

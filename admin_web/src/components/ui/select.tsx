@@ -65,7 +65,7 @@ export function Select({
       </button>
 
       {isOpen && (
-        <div className="absolute z-50 mt-1 w-auto min-w-full rounded-md border bg-popover text-popover-foreground shadow-md">
+        <div className="bg-popover text-popover-foreground absolute bottom-full z-50 mb-1 w-auto min-w-full rounded-md border shadow-md">
           <div className="max-h-60 overflow-y-auto p-1">
             {options.map((option) => (
               <button

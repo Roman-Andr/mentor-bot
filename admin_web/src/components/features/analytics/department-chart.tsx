@@ -76,7 +76,7 @@ export function DepartmentChart({ data }: DepartmentChartProps) {
               verticalAlign="bottom"
               height={36}
               formatter={(value, entry) => {
-                const data = entry.payload as any;
+                const data = entry.payload as { name: string; value: number };
                 return `${data.name}: ${data.value}`;
               }}
               wrapperStyle={{ paddingTop: "20px" }}

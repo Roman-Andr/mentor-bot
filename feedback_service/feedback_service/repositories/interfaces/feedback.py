@@ -23,8 +23,11 @@ class IPulseSurveyRepository(BaseRepository[PulseSurvey, int]):
         user_id: int | None,
         from_date: datetime | None,
         to_date: datetime | None,
+        search: str | None,
         skip: int,
         limit: int,
+        sort_by: str | None = None,
+        sort_order: str | None = None,
     ) -> tuple[Sequence[PulseSurvey], int]:
         """Get pulse surveys with optional user filter and date range."""
         raise NotImplementedError
@@ -78,6 +81,8 @@ class IExperienceRatingRepository(BaseRepository[ExperienceRating, int]):
         max_rating: int | None,
         skip: int,
         limit: int,
+        sort_by: str | None = None,
+        sort_order: str | None = None,
     ) -> tuple[Sequence[ExperienceRating], int]:
         """Get experience ratings with optional filters."""
         raise NotImplementedError
@@ -131,6 +136,8 @@ class ICommentRepository(BaseRepository[Comment, int]):
         has_reply: bool | None,
         skip: int,
         limit: int,
+        sort_by: str | None = None,
+        sort_order: str | None = None,
     ) -> tuple[Sequence[Comment], int]:
         """Get comments with optional filters."""
         raise NotImplementedError

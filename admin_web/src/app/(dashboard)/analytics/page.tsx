@@ -14,6 +14,7 @@ import { DepartmentChart } from "@/components/features/analytics/department-char
 import { CompletionTimeChart } from "@/components/features/analytics/completion-time-chart";
 import { ChecklistStatus } from "@/components/features/analytics/checklist-status";
 import { departmentsApi } from "@/lib/api/departments";
+import { AnalyticsPageSkeleton } from "@/components/ui/page-skeleton";
 
 export default function AnalyticsPage() {
   const t = useTranslations();
@@ -71,12 +72,18 @@ export default function AnalyticsPage() {
     stats?.by_department
       ? Object.entries(stats.by_department)
           .filter(([id]) => id !== "None" && id !== "null")
-          .map(([id, value]) => ({
-            name: departmentMap[id] || `Department ${id}`,
-            value,
-          }))
+          .map(([id, value], index) => {
+            const colors = [
+              "#3b82f6", "#8b5cf6", "#22c55e", "#f97316", "#ec4899", "#06b6d4", "#eab308",
+            ];
+            return {
+              name: departmentMap[id] || `Department ${id}`,
+              value,
+              color: colors[index % colors.length],
+            };
+          })
       : [],
-    [stats?.by_department, departmentMap]
+    [stats, departmentMap]
   );
 
   const handleExport = () => {
@@ -107,9 +114,7 @@ export default function AnalyticsPage() {
   if (loading) {
     return (
       <PageContent title={t("analytics.title")} subtitle={t("analytics.overview")}>
-        <div className="flex h-64 items-center justify-center">
-          <div className="text-muted-foreground">{t("common.loading")}</div>
-        </div>
+        <AnalyticsPageSkeleton />
       </PageContent>
     );
   }

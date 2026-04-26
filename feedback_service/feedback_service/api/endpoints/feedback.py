@@ -96,6 +96,8 @@ async def get_pulse_surveys(
     search: Annotated[str | None, Query(description="Search in position level")] = None,
     skip: Annotated[int, Query(ge=0)] = 0,
     limit: Annotated[int, Query(ge=1, le=100)] = 50,
+    sort_by: Annotated[str | None, Query(description="Sort by field")] = None,
+    sort_order: Annotated[str | None, Query(description="Sort order: asc or desc")] = None,
 ) -> PulseSurveyListResponse:
     """
     Get pulse surveys.
@@ -120,6 +122,8 @@ async def get_pulse_surveys(
             search=search,
             skip=skip,
             limit=limit,
+            sort_by=sort_by,
+            sort_order=sort_order,
         )
         logger.debug("Pulse surveys fetched (count={}, total={})", len(surveys), total)
 
@@ -281,6 +285,8 @@ async def get_experience_ratings(
     max_rating: Annotated[int | None, Query(ge=1, le=5)] = None,
     skip: Annotated[int, Query(ge=0)] = 0,
     limit: Annotated[int, Query(ge=1, le=100)] = 50,
+    sort_by: Annotated[str | None, Query(description="Sort by field")] = None,
+    sort_order: Annotated[str | None, Query(description="Sort order: asc or desc")] = None,
 ) -> ExperienceRatingListResponse:
     """
     Get experience ratings with filters.
@@ -306,6 +312,8 @@ async def get_experience_ratings(
             max_rating=max_rating,
             skip=skip,
             limit=limit,
+            sort_by=sort_by,
+            sort_order=sort_order,
         )
         logger.debug("Experience ratings fetched (count={}, total={})", len(ratings), total)
 
@@ -445,6 +453,8 @@ async def get_comments(
     has_reply: Annotated[bool | None, Query(description="Filter by reply status")] = None,
     skip: Annotated[int, Query(ge=0)] = 0,
     limit: Annotated[int, Query(ge=1, le=100)] = 50,
+    sort_by: Annotated[str | None, Query(description="Sort by field")] = None,
+    sort_order: Annotated[str | None, Query(description="Sort order: asc or desc")] = None,
 ) -> CommentListResponse:
     """
     Get comments with filters.
@@ -470,6 +480,8 @@ async def get_comments(
             has_reply=has_reply,
             skip=skip,
             limit=limit,
+            sort_by=sort_by,
+            sort_order=sort_order,
         )
         logger.debug("Comments fetched (count={}, total={})", len(comments), total)
 

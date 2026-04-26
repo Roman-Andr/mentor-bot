@@ -2,7 +2,7 @@
 import { StatusBadge } from "@/components/ui/status-badge";
 import { formatDate, formatDateTime } from "@/lib/utils";
 import type { LucideIcon } from "lucide-react";
-import { Calendar, Clock, User, Users } from "lucide-react";
+import { Calendar, Clock } from "lucide-react";
 
 export interface ColumnDefinition<T = any> {
   key: string;
@@ -41,7 +41,7 @@ export const buildDateColumn = <T,>(
     const formatted = options?.format === "datetime" 
       ? formatDateTime(date) 
       : formatDate(date);
-    return <span className="text-sm text-muted-foreground">{formatted}</span>;
+    return <span className="text-muted-foreground text-sm">{formatted}</span>;
   },
   sortable: options?.sortable ?? true,
   width: options?.width || "w-32",

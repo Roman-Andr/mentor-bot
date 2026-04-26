@@ -24,7 +24,7 @@ interface TableFiltersProps {
 
 export function TableFilters({ filters }: TableFiltersProps) {
   return (
-    <div className="flex items-center gap-2 flex-wrap">
+    <div className="flex flex-wrap items-center gap-2">
       {filters.map((filter, index) => {
         if (filter.type === "search") {
           return (

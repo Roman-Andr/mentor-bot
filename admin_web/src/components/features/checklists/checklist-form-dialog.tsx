@@ -70,9 +70,11 @@ export function ChecklistFormDialog({
     }
   }, []);
 
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (open) loadReferenceData();
   }, [open, loadReferenceData]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const employeeOptions: SelectOption[] = users.map((u) => ({
     value: String(u.id),

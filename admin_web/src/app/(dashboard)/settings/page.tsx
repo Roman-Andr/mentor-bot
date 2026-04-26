@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useRef, useCallback } from "react";
+import { useState, useTransition, useRef, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
 import { useTheme } from "next-themes";
@@ -30,20 +30,28 @@ export default function SettingsPage() {
   const [selectedLanguage, setSelectedLanguage] = useState(currentLocale || "ru");
 
   // Sync with external theme changes (from sidebar)
-  if (currentTheme !== prevThemeRef.current) {
-    prevThemeRef.current = currentTheme;
-    if (currentTheme && currentTheme !== selectedTheme) {
-      setSelectedTheme(currentTheme);
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
+    if (currentTheme !== prevThemeRef.current) {
+      prevThemeRef.current = currentTheme;
+      if (currentTheme && currentTheme !== selectedTheme) {
+        setSelectedTheme(currentTheme);
+      }
     }
-  }
+  }, [currentTheme]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // Sync with external locale changes (from sidebar)
-  if (currentLocale !== prevLocaleRef.current) {
-    prevLocaleRef.current = currentLocale;
-    if (currentLocale && currentLocale !== selectedLanguage) {
-      setSelectedLanguage(currentLocale);
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
+    if (currentLocale !== prevLocaleRef.current) {
+      prevLocaleRef.current = currentLocale;
+      if (currentLocale && currentLocale !== selectedLanguage) {
+        setSelectedLanguage(currentLocale);
+      }
     }
-  }
+  }, [currentLocale]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const themes = [
     { value: "light" as const, label: t("settings.themeLight") },

@@ -1,20 +1,15 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { queryKeys } from "@/lib/query-keys";
 import { feedbackApi } from "@/lib/api/feedback";
 import type {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  PulseSurvey,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  ExperienceRating,
-  Comment,
   FeedbackItem,
   PulseStats,
   ExperienceStats,
   AnonymityStats,
   FeedbackType,
-} from "@/types";
+} from "@/types/feedback";
 
 export function useFeedback() {
   const queryClient = useQueryClient();
@@ -23,9 +18,43 @@ export function useFeedback() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
 
+  // Sorting
+  const [sortField, setSortField] = useState<string>("submitted_at");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+
   // Filters
   const [typeFilter, setTypeFilter] = useState<FeedbackType | "all">("all");
   const [anonymityFilter, setAnonymityFilter] = useState<"all" | "anonymous" | "attributed">("all");
+
+  const handleTypeFilterChange = useCallback((value: FeedbackType | "all") => {
+    setTypeFilter(value);
+    setCurrentPage(1);
+  }, []);
+
+  const handleAnonymityFilterChange = useCallback((value: "all" | "anonymous" | "attributed") => {
+    setAnonymityFilter(value);
+    setCurrentPage(1);
+  }, []);
+
+  const toggleSort = useCallback((field: string) => {
+    setSortField((current) => {
+      if (current === field) {
+        setSortDirection((dir) => dir === "asc" ? "desc" : "asc");
+      } else {
+        setSortDirection("desc");
+      }
+      return field;
+    });
+    setCurrentPage(1);
+  }, []);
+
+  // Refetch queries when type filter changes
+  useEffect(() => {
+    if (typeFilter !== "all") {
+      // Invalidate queries to ensure fresh data
+      queryClient.invalidateQueries({ queryKey: queryKeys.feedback.all });
+    }
+  }, [typeFilter, queryClient]);
 
   // Modal state
   const [selectedFeedback, setSelectedFeedback] = useState<FeedbackItem | null>(null);
@@ -35,58 +64,61 @@ export function useFeedback() {
   // Calculate skip based on page
   const skip = useMemo(() => (currentPage - 1) * pageSize, [currentPage, pageSize]);
 
-  // Fetch pulse surveys (only when typeFilter is "all" or "pulse")
+  // Fetch pulse surveys (always fetch, filter on client)
   const {
     data: pulseData,
     isLoading: isPulseLoading,
     refetch: refetchPulse,
   } = useQuery({
-    queryKey: queryKeys.feedback.pulse({ skip, limit: pageSize }),
+    queryKey: queryKeys.feedback.pulse({ skip, limit: pageSize, sort_by: sortField, sort_order: sortDirection }),
     queryFn: () =>
       feedbackApi.getPulseSurveys({
         skip,
         limit: pageSize,
         from_date: undefined,
         to_date: undefined,
+        sort_by: sortField,
+        sort_order: sortDirection,
       }),
     staleTime: 60 * 1000,
-    enabled: typeFilter === "all" || typeFilter === "pulse",
   });
 
-  // Fetch experience ratings (only when typeFilter is "all" or "experience")
+  // Fetch experience ratings (always fetch, filter on client)
   const {
     data: experienceData,
     isLoading: isExperienceLoading,
     refetch: refetchExperience,
   } = useQuery({
-    queryKey: queryKeys.feedback.experience({ skip, limit: pageSize }),
+    queryKey: queryKeys.feedback.experience({ skip, limit: pageSize, sort_by: sortField, sort_order: sortDirection }),
     queryFn: () =>
       feedbackApi.getExperienceRatings({
         skip,
         limit: pageSize,
         from_date: undefined,
         to_date: undefined,
+        sort_by: sortField,
+        sort_order: sortDirection,
       }),
     staleTime: 60 * 1000,
-    enabled: typeFilter === "all" || typeFilter === "experience",
   });
 
-  // Fetch comments (only when typeFilter is "all" or "comment")
+  // Fetch comments (always fetch, filter on client)
   const {
     data: commentsData,
     isLoading: isCommentsLoading,
     refetch: refetchComments,
   } = useQuery({
-    queryKey: queryKeys.feedback.comments({ skip, limit: pageSize }),
+    queryKey: queryKeys.feedback.comments({ skip, limit: pageSize, sort_by: sortField, sort_order: sortDirection }),
     queryFn: () =>
       feedbackApi.getComments({
         skip,
         limit: pageSize,
         from_date: undefined,
         to_date: undefined,
+        sort_by: sortField,
+        sort_order: sortDirection,
       }),
     staleTime: 60 * 1000,
-    enabled: typeFilter === "all" || typeFilter === "comment",
   });
 
   // Fetch stats
@@ -142,19 +174,36 @@ export function useFeedback() {
 
     if (pulseData?.data?.items) {
       for (const item of pulseData.data.items) {
-        items.push({ ...item, type: "pulse" as FeedbackType });
+        items.push({
+          ...item,
+          type: "pulse" as FeedbackType,
+          department_id: null,
+          allow_contact: false,
+          contact_email: null,
+          reply: null,
+        } as FeedbackItem);
       }
     }
 
     if (experienceData?.data?.items) {
       for (const item of experienceData.data.items) {
-        items.push({ ...item, type: "experience" as FeedbackType });
+        items.push({
+          ...item,
+          type: "experience" as FeedbackType,
+          department_id: null,
+          allow_contact: false,
+          contact_email: null,
+          reply: null,
+        } as FeedbackItem);
       }
     }
 
     if (commentsData?.data?.items) {
       for (const item of commentsData.data.items) {
-        items.push({ ...item, type: "comment" as FeedbackType });
+        items.push({
+          ...item,
+          type: "comment" as FeedbackType,
+        } as FeedbackItem);
       }
     }
 
@@ -164,17 +213,23 @@ export function useFeedback() {
     );
   }, [pulseData, experienceData, commentsData]);
 
-  // Apply anonymity filter
+  // Apply type and anonymity filters
   const filteredItems = useMemo(() => {
     let items = feedbackItems;
 
+    // Apply type filter
+    if (typeFilter !== "all") {
+      items = items.filter((item) => item.type === typeFilter);
+    }
+
+    // Apply anonymity filter
     if (anonymityFilter !== "all") {
       const isAnonymous = anonymityFilter === "anonymous";
       items = items.filter((item) => item.is_anonymous === isAnonymous);
     }
 
     return items;
-  }, [feedbackItems, anonymityFilter]);
+  }, [feedbackItems, typeFilter, anonymityFilter]);
 
   // Calculate totals based on type filter
   const totalCount = useMemo(() => {
@@ -195,7 +250,7 @@ export function useFeedback() {
 
   const commentsWithReply = useMemo(() => {
     return (
-      commentsData?.data?.items?.filter((c: Comment) => c.reply)?.length || 0
+      commentsData?.data?.items?.filter((c) => c.reply)?.length || 0
     );
   }, [commentsData]);
 
@@ -260,11 +315,18 @@ export function useFeedback() {
     pageSize,
     setPageSize,
 
+    // Sorting
+    sortField,
+    sortDirection,
+    toggleSort,
+
     // Filters
     typeFilter,
     setTypeFilter,
+    handleTypeFilterChange,
     anonymityFilter,
     setAnonymityFilter,
+    handleAnonymityFilterChange,
 
     // Handlers
     getUserName,

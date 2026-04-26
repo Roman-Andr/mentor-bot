@@ -58,18 +58,28 @@ function mapTemplateToItem(
     status: string;
     is_default: boolean;
     task_categories: string[];
+    task_count?: number;
   },
-  taskCount: number,
+  departments: { id: number; name: string }[] = [],
 ): TemplateItem {
+  // Find department name from departments list if not provided in response
+  let departmentName = data.department?.name || "";
+  if (!departmentName && data.department_id && departments.length > 0) {
+    const dept = departments.find((d) => d.id === data.department_id);
+    if (dept) {
+      departmentName = dept.name;
+    }
+  }
+
   return {
     id: data.id,
     name: data.name,
     description: data.description || "",
     department_id: data.department_id,
-    department: data.department?.name || "",
+    department: departmentName,
     position: data.position || "",
     durationDays: data.duration_days,
-    taskCount,
+    taskCount: data.task_count ?? 0,
     status: data.status,
     isDefault: data.is_default,
   };
@@ -110,6 +120,13 @@ function toForm(template: TemplateItem): TemplateFormData {
 }
 
 export function useTemplates() {
+  // Fetch departments first
+  const { data: departmentsData } = useQuery({
+    queryKey: queryKeys.departments.all,
+    queryFn: () => api.departments.list({ limit: 1000 }),
+    select: (result) => result.data?.departments || [],
+  });
+
   const entity = useEntity<TemplateItem, TemplateFormData, ReturnType<typeof toCreatePayload>, ReturnType<typeof toUpdatePayload>>({
     entityName: "Шаблон",
     translationNamespace: "templates",
@@ -122,7 +139,7 @@ export function useTemplates() {
     defaultForm: defaultFormData,
     mapItem: (item: unknown) => {
       const t = item as Parameters<typeof mapTemplateToItem>[0];
-      return mapTemplateToItem(t, (t as { tasks?: unknown[] }).tasks?.length ?? 0);
+      return mapTemplateToItem(t, departmentsData || []);
     },
     toCreatePayload,
     toUpdatePayload,
@@ -146,14 +163,8 @@ export function useTemplates() {
     if (entity.extendedState.tasks === undefined) {
       entity.setExtendedState(() => ({ tasks: [] }));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  // Fetch departments
-  const { data: departmentsData } = useQuery({
-    queryKey: queryKeys.departments.all,
-    queryFn: () => api.departments.list({ limit: 1000 }),
-    select: (result) => result.data?.departments || [],
-  });
 
   const addTasksToTemplate = async (templateId: number, tasks: TaskTemplate[]) => {
     for (const task of tasks) {
@@ -201,14 +212,32 @@ export function useTemplates() {
     await entity.handleDelete(id);
   };
 
-  const handlePublish = (id: number) => {
-    return api.templates.publish(id);
+  const handlePublish = async (id: number) => {
+    const result = await api.templates.publish(id);
+    if (result.data) {
+      entity.invalidate();
+    }
+    return result;
   };
 
-  const openEditDialog = (template: TemplateItem) => {
+  const openEditDialog = async (template: TemplateItem) => {
     entity.setSelectedItem(template);
     entity.setFormData(toForm(template));
     entity.setExtendedState(() => defaultExtendedState as unknown as Record<string, unknown>);
+
+    // Fetch tasks for the template
+    try {
+      const response = await api.templates.get(template.id);
+      if (response.data?.tasks) {
+        entity.setExtendedState((prev) => ({
+          ...(prev as unknown as ExtendedState),
+          tasks: response.data.tasks,
+        }));
+      }
+    } catch (error) {
+      console.error("Failed to fetch template tasks:", error);
+    }
+
     entity.setIsEditDialogOpen(true);
   };
 

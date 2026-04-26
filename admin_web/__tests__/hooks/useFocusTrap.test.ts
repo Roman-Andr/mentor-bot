@@ -13,6 +13,7 @@ function FocusTrapFixture({
   children?: ReactNode
 }) {
   const ref = useFocusTrap<HTMLDivElement>(enabled)
+  // eslint-disable-next-line react-hooks/globals
   currentTrapRef = ref
   return createElement('div', { ref, id: 'focus-trap' }, children)
 }

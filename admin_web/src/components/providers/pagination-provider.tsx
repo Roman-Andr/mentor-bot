@@ -30,6 +30,7 @@ export function PaginationProvider({ children }: { children: ReactNode }) {
   const [isLoaded, setIsLoaded] = useState(false);
 
   // Load settings from localStorage on mount
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
@@ -44,6 +45,7 @@ export function PaginationProvider({ children }: { children: ReactNode }) {
     }
     setIsLoaded(true);
   }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // Save settings to localStorage when changed
   const setPageSize = useCallback((size: number) => {

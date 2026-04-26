@@ -15,9 +15,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { DataTable } from "@/components/ui/data-table";
-import { DataTableSkeleton } from "@/components/ui/table-skeleton";
 import { CardHeader, CardTitle } from "@/components/ui/card";
-import { TableActions, buildEditAction, buildDeleteAction, buildAssignAction } from "@/components/shared";
+import { TableActions, buildEditAction, buildDeleteAction } from "@/components/shared";
 import { Building, UserCheck } from "lucide-react";
 import { ROLES, ROLES_WITH_ALL } from "@/lib/constants";
 import type { UserItem } from "@/hooks/use-users";

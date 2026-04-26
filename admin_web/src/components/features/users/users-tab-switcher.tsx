@@ -1,5 +1,6 @@
 import { Building2, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "@/hooks/use-translations";
 
 type Tab = "users" | "departments";
 
@@ -9,6 +10,8 @@ interface UsersTabSwitcherProps {
 }
 
 export function UsersTabSwitcher({ activeTab, onTabChange }: UsersTabSwitcherProps) {
+  const t = useTranslations();
+
   return (
     <div className="flex rounded-md border">
       <button
@@ -21,7 +24,7 @@ export function UsersTabSwitcher({ activeTab, onTabChange }: UsersTabSwitcherPro
         onClick={() => onTabChange("users")}
       >
         <Users className="size-4" />
-        Users
+        {t("users.title")}
       </button>
       <button
         className={cn(
@@ -33,7 +36,7 @@ export function UsersTabSwitcher({ activeTab, onTabChange }: UsersTabSwitcherPro
         onClick={() => onTabChange("departments")}
       >
         <Building2 className="size-4" />
-        Departments
+        {t("departments.title")}
       </button>
     </div>
   );

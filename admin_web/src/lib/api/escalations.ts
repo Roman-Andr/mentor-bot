@@ -11,6 +11,8 @@ export const escalationsApi = {
     search?: string;
     skip?: number;
     limit?: number;
+    sort_by?: string;
+    sort_order?: "asc" | "desc";
   }) => {
     const qs = buildQueryString(params);
     return fetchApi<EscalationListResponse>(`/api/v1/escalations${qs ? `?${qs}` : ""}`);

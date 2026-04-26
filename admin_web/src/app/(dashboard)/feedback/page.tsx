@@ -36,8 +36,8 @@ export default function FeedbackPage() {
               <FeedbackFilters
                 typeFilter={f.typeFilter}
                 anonymityFilter={f.anonymityFilter}
-                onTypeFilterChange={(value) => f.setTypeFilter(value)}
-                onAnonymityFilterChange={(value) => f.setAnonymityFilter(value)}
+                onTypeFilterChange={f.handleTypeFilterChange}
+                onAnonymityFilterChange={f.handleAnonymityFilterChange}
                 onResetFilters={f.resetFilters}
               />
             </div>
@@ -49,6 +49,9 @@ export default function FeedbackPage() {
           getUserName={(userId) => f.getUserName(userId)}
           onViewDetails={(item) => f.viewDetails(item)}
           onReply={(id) => f.handleReply(id)}
+          sortField={f.sortField}
+          sortDirection={f.sortDirection}
+          onSort={f.toggleSort}
         />
       </DataTable>
     </PageContent>

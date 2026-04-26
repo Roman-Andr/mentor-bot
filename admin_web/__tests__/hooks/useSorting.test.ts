@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import { useSorting } from '@/hooks/use-sorting'
 
@@ -117,7 +117,7 @@ describe('useSorting', () => {
   })
 
   it('updates callback when sortField changes', () => {
-    const { result, rerender } = renderHook(() => useSorting())
+    const { result } = renderHook(() => useSorting())
 
     const firstToggleSort = result.current.toggleSort
 

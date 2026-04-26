@@ -172,10 +172,10 @@ export function ChecklistsTable({
                     <div
                       className={`h-full rounded-full transition-all ${
                         checklist.progressPercentage === 100
-                          ? "bg-green-500"
+                          ? "bg-green-500 dark:bg-green-600"
                           : checklist.isOverdue
-                            ? "bg-red-500"
-                            : "bg-blue-500"
+                            ? "bg-red-500 dark:bg-red-600"
+                            : "bg-blue-500 dark:bg-blue-600"
                       }`}
                       style={{ width: `${checklist.progressPercentage}%` }}
                     />

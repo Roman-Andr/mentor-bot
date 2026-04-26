@@ -24,8 +24,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // This prevents XSS attacks from stealing user data
   const [user, setUser] = useState<AuthUser | null>(null);
 
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -44,10 +42,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             last_name: userData.last_name,
           };
           setUser(validatedUser);
-          setIsAuthenticated(true);
         } else if (response.status === 401) {
           setUser(null);
-          setIsAuthenticated(false);
         }
       } catch {
         // Network errors don't clear user state - auth state is server-side
@@ -55,7 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsLoading(false);
     };
     validateSession();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
@@ -108,7 +104,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       };
 
       setUser(user);
-      setIsAuthenticated(true);
       // User data is NOT stored in localStorage (XSS prevention)
       // Auth tokens are in httpOnly cookies, user data is fetched from server
 
@@ -130,7 +125,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // ignore errors
     }
     setUser(null);
-    setIsAuthenticated(false);
     // No localStorage to clear - auth is entirely cookie-based
   };
 

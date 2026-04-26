@@ -112,6 +112,7 @@ export function useInvitations() {
     if (entity.extendedState.emailTouched === undefined) {
       entity.setExtendedState(() => ({ emailTouched: false, createdUrl: null }));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Custom mutations

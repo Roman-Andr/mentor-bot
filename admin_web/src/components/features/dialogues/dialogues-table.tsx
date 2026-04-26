@@ -187,7 +187,9 @@ export function DialoguesTable({
                 <span
                   className={cn(
                     "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium",
-                    d.isActive ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800",
+                    d.isActive
+                      ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                      : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400",
                   )}
                 >
                   {d.isActive ? t("dialogues.activeStatus") : t("dialogues.inactiveStatus")}

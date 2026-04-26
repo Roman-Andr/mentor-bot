@@ -11,6 +11,7 @@ import { InvitationLinkDialog } from "@/components/features/invitations/invitati
 import { InvitationStats } from "@/components/features/invitations/invitation-stats";
 import { useInvitationsColumns } from "@/components/features/invitations/invitations-columns";
 import { ROLES_WITH_ALL, INVITATION_STATUSES } from "@/lib/constants";
+import { Select } from "@/components/ui/select";
 
 export default function InvitationsPage() {
   const t = useTranslations();
@@ -72,7 +73,7 @@ export default function InvitationsPage() {
         currentPage={inv.currentPage}
         isLoading={inv.loading}
         onPageSizeChange={inv.setPageSize}
-        isCreateOpen={inv.isCreateDialogOpen}
+        isCreateOpen={false}
         isEditOpen={false}
         selectedItem={null}
         onCreateOpen={() => {
@@ -81,14 +82,11 @@ export default function InvitationsPage() {
         }}
         onEditOpen={() => {}}
         onDelete={inv.handleDeleteInvitation}
-        onCloseDialog={() => {
-          inv.setIsCreateDialogOpen(false);
-          inv.resetForm();
-        }}
+        onCloseDialog={() => {}}
         formData={inv.formData}
         onFormChange={(data) => inv.setFormData(data)}
-        onSubmit={inv.handleCreateInvitation}
-        isSubmitting={inv.isCreating}
+        onSubmit={() => {}}
+        isSubmitting={false}
         submitError={null}
         searchQuery={inv.searchQuery}
         onSearchChange={inv.setSearchQuery}
@@ -102,33 +100,23 @@ export default function InvitationsPage() {
         onSort={inv.toggleSort}
         filters={
           <>
-            <select
+            <Select
+              options={ROLES_WITH_ALL}
               value={inv.roleFilter}
-              onChange={(e) => inv.setRoleFilter(e.target.value)}
-              className="border-input bg-background h-9 rounded-md border px-3 text-sm"
-            >
-              {ROLES_WITH_ALL.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-            <select
+              onChange={inv.setRoleFilter}
+              className="w-[180px]"
+            />
+            <Select
+              options={INVITATION_STATUSES}
               value={inv.statusFilter}
-              onChange={(e) => inv.setStatusFilter(e.target.value)}
-              className="border-input bg-background h-9 rounded-md border px-3 text-sm"
-            >
-              {INVITATION_STATUSES.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
+              onChange={inv.setStatusFilter}
+              className="w-[180px]"
+            />
           </>
         }
         columns={columns}
         renderForm={() => null}
-        isFormValid={!!inv.formData.email && inv.emailTouched}
+        isFormValid={true}
       />
     </PageContent>
   );

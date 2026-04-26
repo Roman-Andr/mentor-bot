@@ -136,7 +136,7 @@ export function Sidebar() {
               <LogOut className="size-5 shrink-0" />
               {!collapsed && <span>{t("nav.logout")}</span>}
             </button>
-            <ThemeSwitcher collapsed={collapsed} />
+            {!collapsed && <ThemeSwitcher />}
           </div>
         </div>
       </div>

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useTranslations } from "@/hooks/use-translations";
 import { api } from "@/lib/api";
-import type { OnboardingProgress, EscalationRequest } from "@/types";
+import type { OnboardingProgress } from "@/types";
 import { useAuth } from "@/hooks/use-auth";
 
 interface Activity {
@@ -160,12 +160,13 @@ export function useDashboardData(): UseDashboardDataResult {
     } finally {
       setLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authLoading, t]);
 
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     fetchData();
-  }, [fetchData]);
+  }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   return {
     stats,

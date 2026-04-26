@@ -24,15 +24,15 @@ export function ActivityFeed({ activity }: ActivityFeedProps) {
         <div className="space-y-4">
           {activity.map((item, index) => (
             <div key={index} className="flex items-start gap-3">
-              <div className="mt-2 size-2 rounded-full bg-blue-500" />
+              <div className="mt-2 size-2 rounded-full bg-blue-500 dark:bg-blue-600" />
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium">
                   {item.user}{" "}
-                  <span className="font-normal text-muted-foreground">{item.action}</span>
+                  <span className="text-muted-foreground font-normal">{item.action}</span>
                 </p>
-                <p className="text-xs text-muted-foreground">{item.task}</p>
+                <p className="text-muted-foreground text-xs">{item.task}</p>
               </div>
-              <span className="whitespace-nowrap text-xs text-muted-foreground">{item.time}</span>
+              <span className="text-muted-foreground text-xs whitespace-nowrap">{item.time}</span>
             </div>
           ))}
         </div>

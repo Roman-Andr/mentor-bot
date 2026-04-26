@@ -1,7 +1,7 @@
 import { useEntity } from "./use-entity";
 import { api } from "@/lib/api";
 import { queryKeys } from "@/lib/query-keys";
-import type { User, UserMentor } from "@/types";
+import type { User } from "@/types";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, useCallback } from "react";
 import { useTranslations } from "@/hooks/use-translations";

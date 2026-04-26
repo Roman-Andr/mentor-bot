@@ -9,6 +9,7 @@ import { OnboardingProgress } from "@/components/features/dashboard/onboarding-p
 import { ActivityFeed } from "@/components/features/dashboard/activity-feed";
 import { DepartmentBreakdown } from "@/components/features/dashboard/department-breakdown";
 import { EscalationSummary } from "@/components/features/dashboard/escalation-summary";
+import { DashboardPageSkeleton } from "@/components/ui/page-skeleton";
 
 export default function DashboardPage() {
   const t = useTranslations();
@@ -42,28 +43,16 @@ export default function DashboardPage() {
     },
     {
       title: t("dashboard.escalations"),
-      value: stats.overdue_tasks.toString(),
+      value: escalations.inProgress.toString(),
       change: "",
-      changeType: stats.overdue_tasks > 0 ? ("negative" as const) : ("neutral" as const),
+      changeType: escalations.inProgress > 0 ? ("negative" as const) : ("neutral" as const),
       icon: AlertTriangle,
       color: "bg-red-500",
     },
   ];
 
   if (loading) {
-    return (
-      <div className="space-y-6 p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">{t("dashboard.title")}</h1>
-            <p className="text-muted-foreground">{t("dashboard.welcome")}</p>
-          </div>
-        </div>
-        <div className="flex h-64 items-center justify-center">
-          <div className="text-muted-foreground">{t("common.loading")}</div>
-        </div>
-      </div>
-    );
+    return <DashboardPageSkeleton />;
   }
 
   if (error) {
@@ -71,7 +60,7 @@ export default function DashboardPage() {
       <div className="space-y-6 p-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">{t("dashboard.title")}</h1>
+            <h1 className="text-foreground text-2xl font-bold">{t("dashboard.title")}</h1>
             <p className="text-muted-foreground">{t("dashboard.welcome")}</p>
           </div>
         </div>
@@ -88,10 +77,10 @@ export default function DashboardPage() {
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">{t("dashboard.title")}</h1>
+          <h1 className="text-foreground text-2xl font-bold">{t("dashboard.title")}</h1>
           <p className="text-muted-foreground">{t("dashboard.welcome")}</p>
         </div>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <div className="text-muted-foreground flex items-center gap-2 text-sm">
           <TrendingUp className="size-4" />
           <span>
             {t("common.refresh")}: {new Date().toLocaleDateString()}
@@ -118,7 +107,7 @@ export default function DashboardPage() {
               <div className="text-4xl font-bold text-blue-600">
                 {stats?.average_completion_days || 0}
               </div>
-              <p className="mt-2 text-sm text-muted-foreground">{t("dashboard.daysAverage")}</p>
+              <p className="text-muted-foreground mt-2 text-sm">{t("dashboard.daysAverage")}</p>
             </div>
           </CardContent>
         </Card>

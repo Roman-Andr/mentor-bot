@@ -58,11 +58,11 @@ export const CHECKLIST_STATUSES = [
 ] as const;
 
 export const DEPARTMENT_COLORS: Record<string, string> = {
-  Разработка: "bg-blue-500",
-  Дизайн: "bg-purple-500",
-  QA: "bg-green-500",
-  Маркетинг: "bg-orange-500",
-  HR: "bg-pink-500",
+  Разработка: "bg-blue-500 dark:bg-blue-600",
+  Дизайн: "bg-purple-500 dark:bg-purple-600",
+  QA: "bg-green-500 dark:bg-green-600",
+  Маркетинг: "bg-orange-500 dark:bg-orange-600",
+  HR: "bg-pink-500 dark:bg-pink-600",
 };
 
 export const ESCALATION_STATUSES = [

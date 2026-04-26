@@ -129,6 +129,7 @@ export function useDialogues() {
     if (entity.extendedState.selectedSteps === undefined) {
       entity.setExtendedState(() => ({ selectedSteps: [] }));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Fetch steps for selected dialogue

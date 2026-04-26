@@ -37,6 +37,7 @@ class TemplateRepository(SqlAlchemyBaseRepository[Template, int], ITemplateRepos
             "isDefault": Template.is_default,
             "createdAt": Template.created_at,
             "updatedAt": Template.updated_at,
+            "tasks": Template.name,  # Fallback to name for tasks sorting since task_count is calculated
         }
         return column_map.get(sort_by, Template.created_at)  # type: ignore[return-value]
 
@@ -80,8 +81,20 @@ class TemplateRepository(SqlAlchemyBaseRepository[Template, int], ITemplateRepos
         total = cast("int", (await self._session.execute(count_stmt)).scalar_one())
 
         # Apply sorting
-        sort_column = self._get_sort_column(sort_by)
-        stmt = stmt.order_by(sort_column.asc() if sort_order.lower() == "asc" else sort_column.desc())
+        if sort_by == "tasks":
+            # Sort by task count using subquery
+            task_count_subquery = (
+                select(func.count(TaskTemplate.id))
+                .where(TaskTemplate.template_id == Template.id)
+                .correlate(Template)
+                .scalar_subquery()
+            )
+            stmt = stmt.order_by(
+                task_count_subquery.asc() if sort_order.lower() == "asc" else task_count_subquery.desc()
+            )
+        else:
+            sort_column = self._get_sort_column(sort_by)
+            stmt = stmt.order_by(sort_column.asc() if sort_order.lower() == "asc" else sort_column.desc())
 
         stmt = stmt.offset(skip).limit(limit)
         result = await self._session.execute(stmt)

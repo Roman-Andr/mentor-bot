@@ -1,5 +1,3 @@
-import { USER_KEY } from "@/lib/storage-keys";
-
 function handleUnauthorized() {
   if (typeof window !== "undefined") {
     window.location.href = "/login";

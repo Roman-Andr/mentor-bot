@@ -3,13 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DEPARTMENT_COLORS } from "@/lib/constants";
 
 const FALLBACK_COLORS = [
-  "bg-blue-500",
-  "bg-purple-500",
-  "bg-green-500",
-  "bg-orange-500",
-  "bg-pink-500",
-  "bg-cyan-500",
-  "bg-red-500",
+  "bg-blue-500 dark:bg-blue-600",
+  "bg-purple-500 dark:bg-purple-600",
+  "bg-green-500 dark:bg-green-600",
+  "bg-orange-500 dark:bg-orange-600",
+  "bg-pink-500 dark:bg-pink-600",
+  "bg-cyan-500 dark:bg-cyan-600",
+  "bg-red-500 dark:bg-red-600",
 ];
 
 interface DepartmentBreakdownProps {
@@ -43,7 +43,7 @@ export function DepartmentBreakdown({ departments }: DepartmentBreakdownProps) {
               );
             })
           ) : (
-            <p className="py-4 text-center text-sm text-muted-foreground">{t("common.noData")}</p>
+            <p className="text-muted-foreground py-4 text-center text-sm">{t("common.noData")}</p>
           )}
         </div>
       </CardContent>

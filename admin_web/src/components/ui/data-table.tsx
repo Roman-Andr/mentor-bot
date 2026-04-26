@@ -4,6 +4,7 @@ import { useTranslations } from "@/hooks/use-translations";
 import type { ReactNode } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Pagination } from "@/components/ui/pagination";
+import { DataTableSkeleton } from "@/components/ui/table-skeleton";
 
 interface DataTableProps {
   loading: boolean;
@@ -20,6 +21,7 @@ interface DataTableProps {
   showPageSizeSelector?: boolean;
   showPageInput?: boolean;
   header?: ReactNode;
+  skeleton?: ReactNode;
   children: ReactNode;
 }
 
@@ -27,7 +29,6 @@ export function DataTable({
   loading,
   empty,
   emptyMessage,
-  loadingMessage,
   currentPage,
   totalPages,
   totalCount,
@@ -38,6 +39,7 @@ export function DataTable({
   showPageSizeSelector = true,
   showPageInput = true,
   header,
+  skeleton,
   children,
 }: DataTableProps) {
   const t = useTranslations();
@@ -53,11 +55,9 @@ export function DataTable({
       <CardContent className="p-0">
         {header}
         {loading ? (
-          <div className="flex items-center justify-center py-12 text-muted-foreground">
-            {loadingMessage ?? t("common.loading")}
-          </div>
+          skeleton ?? <DataTableSkeleton columns={5} rows={5} showHeader={false} />
         ) : empty ? (
-          <div className="flex items-center justify-center py-12 text-muted-foreground">
+          <div className="text-muted-foreground flex items-center justify-center py-12">
             {emptyMessage ?? t("common.noData")}
           </div>
         ) : (

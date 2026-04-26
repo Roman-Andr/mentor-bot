@@ -217,7 +217,6 @@ export function useEntity<TItem, TForm, TCreatePayload = unknown, TUpdatePayload
     toUpdatePayload,
     toForm,
     labels = {},
-    pageSize = 20,
     filters = [],
     searchable = true,
     searchParamName = "search",
@@ -523,7 +522,7 @@ export function useEntity<TItem, TForm, TCreatePayload = unknown, TUpdatePayload
         deleteMutation.mutate(id);
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
     [confirm, deleteConfirmTitle, deleteConfirmDescription, deleteMutation, tCommon],
   );
 

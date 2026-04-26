@@ -1,7 +1,6 @@
 "use client";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useTranslations } from "@/hooks/use-translations";
 import { UserFormDialog } from "@/components/features/users/user-form-dialog";
 import { UsersTable } from "@/components/features/users/users-table";
 import { AssignMentorDialog } from "@/components/features/users/assign-mentor-dialog";
@@ -85,8 +84,6 @@ export function UsersSection({
   handleUnassignMentor,
   currentMentor,
 }: UsersSectionProps) {
-  const t = useTranslations();
-
   return (
     <>
       <UserFormDialog

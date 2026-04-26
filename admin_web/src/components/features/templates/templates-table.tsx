@@ -135,7 +135,7 @@ export function TemplatesTable({
               {t("common.position")}
             </SortableTableHead>
             <SortableTableHead
-              field="duration_days"
+              field="durationDays"
               sortable={!!onSort}
               sortField={sortField ?? null}
               sortDirection={sortDirection}

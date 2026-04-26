@@ -54,12 +54,12 @@ function SortableOptionRow({ idx, opt, stepNumberOptions, onUpdate, onRemove, op
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 };
 
   return (
-    <div ref={setNodeRef} style={style} className="flex gap-2 items-center">
+    <div ref={setNodeRef} style={style} className="flex items-center gap-2">
       <button
         {...attributes}
         {...listeners}
         type="button"
-        className="text-gray-400 cursor-grab active:cursor-grabbing shrink-0"
+        className="shrink-0 cursor-grab text-gray-400 active:cursor-grabbing"
         tabIndex={-1}
       >
         <GripVertical className="size-4" />

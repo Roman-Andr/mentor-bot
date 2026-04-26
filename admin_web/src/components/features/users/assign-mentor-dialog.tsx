@@ -42,13 +42,13 @@ export function AssignMentorDialog({
   const [unassigning, setUnassigning] = useState(false);
 
   // Reset state when dialog closes
-  // eslint-disable-next-line react-hooks/set-state-in-effect
+   
   useEffect(() => {
     if (!isOpen) {
       setSelectedMentorId("");
       setSelectedMentorLabel("");
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [isOpen]);
 
   // Search for mentors (users with MENTOR role)
@@ -105,7 +105,7 @@ export function AssignMentorDialog({
 
         {/* Current Mentor Section */}
         {currentMentor && (
-          <div className="rounded-md bg-muted p-3">
+          <div className="bg-muted rounded-md p-3">
             <p className="text-sm font-medium">{t("users.currentMentor")}</p>
             <div className="mt-2 flex items-center justify-between">
               <div>

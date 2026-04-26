@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Eye, MessageSquare, UserX, User, Star } from "lucide-react";
 import { formatDateTime } from "@/lib/utils";
+import { SortableTableHead } from "@/components/ui/sortable-table-head";
 import type { FeedbackItem } from "@/types";
 
 interface FeedbackTableProps {
@@ -17,18 +18,48 @@ interface FeedbackTableProps {
   getUserName: (userId: number | null) => string;
   onViewDetails: (item: FeedbackItem) => void;
   onReply: (id: number) => void;
+  sortField: string;
+  sortDirection: "asc" | "desc";
+  onSort: (field: string) => void;
 }
 
-export function FeedbackTable({ items, getUserName, onViewDetails, onReply }: FeedbackTableProps) {
+export function FeedbackTable({ items, getUserName, onViewDetails, onReply, sortField, sortDirection, onSort }: FeedbackTableProps) {
   return (
     <Table>
       <TableHeader>
         <TableRow className="hover:bg-transparent">
-          <TableHead className="w-16">ID</TableHead>
-          <TableHead className="w-32">Type</TableHead>
+          <SortableTableHead
+            field="id"
+            sortable
+            sortField={sortField}
+            sortDirection={sortDirection}
+            onSort={onSort}
+            className="w-16"
+          >
+            ID
+          </SortableTableHead>
+          <SortableTableHead
+            field="type"
+            sortable
+            sortField={sortField}
+            sortDirection={sortDirection}
+            onSort={onSort}
+            className="w-32"
+          >
+            Type
+          </SortableTableHead>
           <TableHead className="w-48">User</TableHead>
           <TableHead>Content</TableHead>
-          <TableHead className="w-40">Submitted At</TableHead>
+          <SortableTableHead
+            field="submitted_at"
+            sortable
+            sortField={sortField}
+            sortDirection={sortDirection}
+            onSort={onSort}
+            className="w-40"
+          >
+            Submitted At
+          </SortableTableHead>
           <TableHead className="w-32">Status</TableHead>
           <TableHead className="w-32 text-right">Actions</TableHead>
         </TableRow>
@@ -43,13 +74,13 @@ export function FeedbackTable({ items, getUserName, onViewDetails, onReply }: Fe
             <TableCell>
               <div className="flex items-center gap-2">
                 {item.is_anonymous ? (
-                  <div className="flex items-center gap-2 px-2 py-1 bg-muted rounded-md">
-                    <UserX className="w-3.5 h-3.5 text-muted-foreground" />
-                    <span className="text-sm text-muted-foreground">Anonymous</span>
+                  <div className="bg-muted flex items-center gap-2 rounded-md px-2 py-1">
+                    <UserX className="text-muted-foreground h-3.5 w-3.5" />
+                    <span className="text-muted-foreground text-sm">Anonymous</span>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-2 px-2 py-1 bg-primary/10 rounded-md">
-                    <User className="w-3.5 h-3.5 text-primary" />
+                  <div className="bg-primary/10 dark:bg-primary/20 flex items-center gap-2 rounded-md px-2 py-1">
+                    <User className="text-primary h-3.5 w-3.5" />
                     <span className="text-sm font-medium">{getUserName(item.user_id)}</span>
                   </div>
                 )}
@@ -58,18 +89,18 @@ export function FeedbackTable({ items, getUserName, onViewDetails, onReply }: Fe
             <TableCell>
               {item.type === "pulse" && (
                 <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-1 px-3 py-1.5 bg-blue-500/10 text-blue-500 rounded-md">
-                    <span className="font-bold text-lg">{item.rating}</span>
+                  <div className="flex items-center gap-1 rounded-md bg-blue-500/10 px-3 py-1.5 text-blue-500 dark:bg-blue-500/20 dark:text-blue-400">
+                    <span className="text-lg font-bold">{item.rating}</span>
                     <span className="text-sm">/10</span>
                   </div>
                 </div>
               )}
               {item.type === "experience" && (
                 <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-1 px-3 py-1.5 bg-green-500/10 text-green-500 rounded-md">
-                    <span className="font-bold text-lg">{item.rating}</span>
+                  <div className="flex items-center gap-1 rounded-md bg-green-500/10 px-3 py-1.5 text-green-500 dark:bg-green-500/20 dark:text-green-400">
+                    <span className="text-lg font-bold">{item.rating}</span>
                     <span className="text-sm">/5</span>
-                    <Star className="w-4 h-4 fill-current" />
+                    <Star className="h-4 w-4 fill-current" />
                   </div>
                 </div>
               )}
@@ -77,7 +108,7 @@ export function FeedbackTable({ items, getUserName, onViewDetails, onReply }: Fe
                 <span className="line-clamp-2 max-w-64 text-sm">{item.comment || "-"}</span>
               )}
             </TableCell>
-            <TableCell className="text-sm text-muted-foreground">
+            <TableCell className="text-muted-foreground text-sm">
               {formatDateTime(item.submitted_at)}
             </TableCell>
             <TableCell>

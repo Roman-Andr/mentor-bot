@@ -20,8 +20,8 @@ function formatFileSize(bytes: number | null): string {
 
 function getFileIcon(mimeType: string | null) {
   if (!mimeType) return <FileText className="text-muted-foreground size-4" />;
-  if (mimeType.startsWith("image/")) return <FileText className="size-4 text-blue-500" />;
-  if (mimeType === "application/pdf") return <FileText className="size-4 text-red-500" />;
+  if (mimeType.startsWith("image/")) return <FileText className="size-4 text-blue-500 dark:text-blue-400" />;
+  if (mimeType === "application/pdf") return <FileText className="size-4 text-red-500 dark:text-red-400" />;
   return <FileText className="text-muted-foreground size-4" />;
 }
 
@@ -186,10 +186,10 @@ export function AttachmentManager({
       </div>
 
       {uploadErrors.length > 0 && (
-        <div className="rounded-md border border-red-200 bg-red-50 p-3">
+        <div className="rounded-md border border-red-200 bg-red-50 p-3 dark:border-red-900/50 dark:bg-red-950/50">
           <div className="mb-2 flex items-center gap-2">
-            <AlertCircle className="size-4 text-red-600" />
-            <span className="text-sm font-medium text-red-800">
+            <AlertCircle className="size-4 text-red-600 dark:text-red-400" />
+            <span className="text-sm font-medium text-red-800 dark:text-red-400">
               {uploadErrors.length === 1
                 ? t("knowledge.uploadError")
                 : t("knowledge.uploadErrors", { count: uploadErrors.length })}
@@ -197,7 +197,7 @@ export function AttachmentManager({
           </div>
           <ul className="space-y-1">
             {uploadErrors.map((err, idx) => (
-              <li key={idx} className="text-xs text-red-700">
+              <li key={idx} className="text-xs text-red-700 dark:text-red-400">
                 {err.filename ? `${err.filename}: ` : ""}
                 {err.error}
               </li>
@@ -234,7 +234,7 @@ export function AttachmentManager({
                   size="icon"
                   onClick={() => handleDelete(att.id)}
                   disabled={deletingId === att.id}
-                  className="text-red-500 hover:text-red-700"
+                  className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
                   title={t("common.delete")}
                 >
                   <Trash2 className="size-3.5" />
@@ -261,7 +261,7 @@ export function AttachmentManager({
                 variant="ghost"
                 size="icon"
                 onClick={() => handleRemovePending(index)}
-                className="text-red-500 hover:text-red-700"
+                className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
                 title={t("knowledge.remove")}
               >
                 <X className="size-3.5" />

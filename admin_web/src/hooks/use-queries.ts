@@ -67,7 +67,7 @@ export function useInfiniteListQuery<TItem, TParams extends ListParams = ListPar
     },
     getNextPageParam: (lastPage, allPages) => {
       if (!lastPage?.data) return undefined;
-      const { items, total } = lastPage.data;
+      const { total } = lastPage.data;
       const loadedCount = allPages.reduce((sum, page) => sum + (page.data?.items?.length || 0), 0);
       return loadedCount < total ? loadedCount : undefined;
     },

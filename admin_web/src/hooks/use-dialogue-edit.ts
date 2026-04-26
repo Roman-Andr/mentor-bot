@@ -72,7 +72,7 @@ export function useDialogueEdit(id: number) {
       is_active: dialogue.is_active,
       display_order: dialogue.display_order,
     };
-  }, [dialogue?.id]);
+  }, [dialogue]);
 
   // Set metaForm when initialMetaForm changes and metaForm is null
   useEffect(() => {

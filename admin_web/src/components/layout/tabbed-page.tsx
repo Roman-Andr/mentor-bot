@@ -102,7 +102,7 @@ export function TabbedPage({
                 <TabsTrigger
                   key={tab.id}
                   value={tab.id}
-                  className="flex items-center gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex items-center gap-1.5"
                 >
                   {Icon && <Icon className="size-4" />}
                   {tab.label}

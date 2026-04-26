@@ -13,7 +13,7 @@ import type {
 function buildQueryString(params?: Record<string, unknown>): string {
   if (!params) return "";
   const filtered = Object.fromEntries(
-    Object.entries(params).filter(([_, v]) => v !== undefined && v !== null)
+    Object.entries(params).filter(([, v]) => v !== undefined && v !== null)
   );
   return new URLSearchParams(filtered as Record<string, string>).toString();
 }
@@ -27,6 +27,8 @@ export const feedbackApi = {
     search?: string;
     skip?: number;
     limit?: number;
+    sort_by?: string;
+    sort_order?: "asc" | "desc";
   }) =>
     fetchApi<FeedbackListResponse<PulseSurvey>>(
       `/api/v1/feedback/pulse?${buildQueryString(params as Record<string, unknown>)}`
@@ -52,6 +54,8 @@ export const feedbackApi = {
     max_rating?: number;
     skip?: number;
     limit?: number;
+    sort_by?: string;
+    sort_order?: "asc" | "desc";
   }) =>
     fetchApi<FeedbackListResponse<ExperienceRating>>(
       `/api/v1/feedback/experience?${buildQueryString(params as Record<string, unknown>)}`
@@ -77,6 +81,8 @@ export const feedbackApi = {
     has_reply?: boolean;
     skip?: number;
     limit?: number;
+    sort_by?: string;
+    sort_order?: "asc" | "desc";
   }) =>
     fetchApi<FeedbackListResponse<Comment>>(
       `/api/v1/feedback/comments?${buildQueryString(params as Record<string, unknown>)}`

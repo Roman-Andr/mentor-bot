@@ -48,7 +48,15 @@ async def get_templates(
         sort_order=sort_order,
     )
 
-    return [TemplateResponse.model_validate(t) for t in templates]
+    # Add task count to each template
+    result = []
+    for template in templates:
+        task_count = await template_service._uow.templates.count_tasks(template.id)
+        template_dict = TemplateResponse.model_validate(template).model_dump()
+        template_dict["task_count"] = task_count
+        result.append(TemplateResponse(**template_dict))
+
+    return result
 
 
 @router.post("/")

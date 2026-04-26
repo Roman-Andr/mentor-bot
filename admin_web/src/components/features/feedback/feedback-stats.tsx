@@ -8,7 +8,7 @@ export function FeedbackStats() {
   const f = useFeedback();
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-3">
       <StatCard
         title={t("feedback.pulseSurveys")}
         value={f.pulseStats?.total_responses || 0}

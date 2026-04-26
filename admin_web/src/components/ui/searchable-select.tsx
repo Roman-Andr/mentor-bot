@@ -99,7 +99,7 @@ export function SearchableSelect({
         <div className="flex items-center gap-1">
           {selectedOption && !disabled && (
             <X
-              className="text-muted-foreground hover:text-foreground size-3.5"
+              className="text-muted-foreground hover:text-foreground/80 size-3.5"
               onClick={(e) => {
                 e.stopPropagation();
                 onChange("");
@@ -204,13 +204,15 @@ export function AsyncSearchableSelect({
     [onSearch, minSearchLength],
   );
 
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (debouncedSearch.length >= minSearchLength) {
       fetchOptions(debouncedSearch);
     } else {
       setOptions([]);
     }
-  }, [debouncedSearch, fetchOptions, minSearchLength]);
+  }, [debouncedSearch, minSearchLength]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
     if (isOpen) {
@@ -248,7 +250,7 @@ export function AsyncSearchableSelect({
         <div className="flex items-center gap-1">
           {value && !disabled && (
             <X
-              className="text-muted-foreground hover:text-foreground size-3.5"
+              className="text-muted-foreground hover:text-foreground/80 size-3.5"
               onClick={(e) => {
                 e.stopPropagation();
                 onChange("");

@@ -1,14 +1,13 @@
 "use client";
 
 import { useAuth } from "@/hooks/use-auth";
-import { useTranslations } from "@/hooks/use-translations";
+import { AppShellSkeleton } from "@/components/ui/page-skeleton";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 export function AuthCheck({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
   const router = useRouter();
-  const t = useTranslations("common");
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -17,11 +16,7 @@ export function AuthCheck({ children }: { children: React.ReactNode }) {
   }, [user, isLoading, router]);
 
   if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-muted-foreground">{t("loading")}</div>
-      </div>
-    );
+    return <AppShellSkeleton />;
   }
 
   if (!user) {

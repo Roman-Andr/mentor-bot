@@ -92,7 +92,9 @@ function SortableStepRow({ step, position, onEdit, onDelete, t }: SortableStepRo
         <span
           className={cn(
             "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium",
-            step.is_final ? "bg-blue-100 text-blue-800" : "bg-gray-100 text-gray-600",
+            step.is_final
+              ? "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400"
+              : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400",
           )}
         >
           {step.is_final ? t("common.yes") : t("common.no")}

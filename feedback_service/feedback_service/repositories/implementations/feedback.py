@@ -52,6 +52,8 @@ class PulseSurveyRepository(DateFilterMixin, SqlAlchemyBaseRepository[PulseSurve
         search: str | None = None,
         skip: int = 0,
         limit: int = 50,
+        sort_by: str | None = None,
+        sort_order: str | None = None,
     ) -> tuple[Sequence[PulseSurvey], int]:
         """Get pulse surveys with optional user filter and date range."""
         query = select(PulseSurvey)
@@ -69,8 +71,14 @@ class PulseSurveyRepository(DateFilterMixin, SqlAlchemyBaseRepository[PulseSurve
         total_result = await self._session.execute(count_query)
         total = total_result.scalar() or 0
 
+        # Apply sorting
+        sort_column = getattr(PulseSurvey, sort_by, PulseSurvey.submitted_at)
+        if sort_order == "asc":
+            query = query.order_by(sort_column.asc())
+        else:
+            query = query.order_by(sort_column.desc())
+
         # Get paginated results
-        query = query.order_by(PulseSurvey.submitted_at.desc())
         query = query.offset(skip).limit(limit)
         result = await self._session.execute(query)
 
@@ -189,6 +197,8 @@ class ExperienceRatingRepository(DateFilterMixin, SqlAlchemyBaseRepository[Exper
         max_rating: int | None = None,
         skip: int = 0,
         limit: int = 50,
+        sort_by: str | None = None,
+        sort_order: str | None = None,
     ) -> tuple[Sequence[ExperienceRating], int]:
         """Get experience ratings with optional filters."""
         query = select(ExperienceRating)
@@ -207,8 +217,14 @@ class ExperienceRatingRepository(DateFilterMixin, SqlAlchemyBaseRepository[Exper
         total_result = await self._session.execute(count_query)
         total = total_result.scalar() or 0
 
+        # Apply sorting
+        sort_column = getattr(ExperienceRating, sort_by, ExperienceRating.submitted_at)
+        if sort_order == "asc":
+            query = query.order_by(sort_column.asc())
+        else:
+            query = query.order_by(sort_column.desc())
+
         # Get paginated results
-        query = query.order_by(ExperienceRating.submitted_at.desc())
         query = query.offset(skip).limit(limit)
         result = await self._session.execute(query)
 
@@ -332,6 +348,8 @@ class CommentRepository(DateFilterMixin, SqlAlchemyBaseRepository[Comment, int],
         has_reply: bool | None = None,
         skip: int = 0,
         limit: int = 50,
+        sort_by: str | None = None,
+        sort_order: str | None = None,
     ) -> tuple[Sequence[Comment], int]:
         """Get comments with optional filters."""
         query = select(Comment)
@@ -351,8 +369,14 @@ class CommentRepository(DateFilterMixin, SqlAlchemyBaseRepository[Comment, int],
         total_result = await self._session.execute(count_query)
         total = total_result.scalar() or 0
 
+        # Apply sorting
+        sort_column = getattr(Comment, sort_by, Comment.submitted_at)
+        if sort_order == "asc":
+            query = query.order_by(sort_column.asc())
+        else:
+            query = query.order_by(sort_column.desc())
+
         # Get paginated results
-        query = query.order_by(Comment.submitted_at.desc())
         query = query.offset(skip).limit(limit)
         result = await self._session.execute(query)
 

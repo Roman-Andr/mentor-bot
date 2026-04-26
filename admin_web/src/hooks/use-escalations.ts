@@ -2,7 +2,7 @@ import { useEntity } from "./use-entity";
 import { api } from "@/lib/api";
 import { queryKeys } from "@/lib/query-keys";
 import type { EscalationRequest } from "@/types";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 
 export interface EscalationItem {
   id: number;
@@ -66,6 +66,9 @@ export function useEscalations() {
       { name: "status", defaultValue: "ALL" },
       { name: "type", defaultValue: "ALL", paramName: "escalation_type" },
     ],
+    sortable: true,
+    sortFieldParam: "sort_by",
+    sortDirectionParam: "sort_order",
     labels: {
       deletedKey: "escalations.deleted",
       deleteErrorKey: "escalations.deleteError",
@@ -93,8 +96,15 @@ export function useEscalations() {
     return usersData?.get(id) ?? String(id);
   };
 
+  const resolveMutation = useMutation({
+    mutationFn: (id: number) => api.escalations.resolve(id),
+    onSuccess: () => {
+      entity.invalidate();
+    },
+  });
+
   const handleResolve = (id: number) => {
-    return api.escalations.resolve(id);
+    resolveMutation.mutate(id);
   };
 
   return {
@@ -125,8 +135,13 @@ export function useEscalations() {
     handleDelete: entity.handleDelete,
     resetFilters: entity.resetFilters,
 
+    // Sorting
+    sortField: entity.sortField,
+    sortDirection: entity.sortDirection,
+    toggleSort: entity.toggleSort,
+
     // Loading states
-    isResolving: false, // Could track this if needed
+    isResolving: resolveMutation.isPending,
     isDeleting: entity.isDeleting,
   };
 }

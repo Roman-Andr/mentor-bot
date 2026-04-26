@@ -44,6 +44,7 @@ class TemplateResponse(TemplateBase):
     is_default: bool
     created_at: datetime
     updated_at: datetime | None = None
+    task_count: int = 0
 
     model_config = ConfigDict(from_attributes=True)
 
