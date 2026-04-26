@@ -3,13 +3,13 @@ name: Build and push images
 on:
   push:
     branches: [main]
-    tags: ['v*']
+    tags: ["v*"]
     paths-ignore:
-      - 'docs/**'
-      - '.course_work_2/**'
-      - 'README.md'
-      - 'LICENSE'
-      - 'CLAUDE.md'
+      - "docs/**"
+      - ".course_work_2/**"
+      - "README.md"
+      - "LICENSE"
+      - "CLAUDE.md"
   workflow_dispatch:
     inputs:
       tag:
@@ -27,48 +27,267 @@ env:
   PLATFORMS: linux/amd64
 
 jobs:
-  # ── Test gate: must pass before any image is built ─────────────────────────
-  test-python:
+  # ── Detect changed services ───────────────────────────────────────────────────
+  detect-changes:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        service:
-          - auth_service
-          - checklists_service
-          - knowledge_service
-          - notification_service
-          - escalation_service
-          - feedback_service
-          - meeting_service
-          - telegram_bot
+    outputs:
+      auth_service: ${{ steps.changes.outputs.auth_service }}
+      checklists_service: ${{ steps.changes.outputs.checklists_service }}
+      knowledge_service: ${{ steps.changes.outputs.knowledge_service }}
+      notification_service: ${{ steps.changes.outputs.notification_service }}
+      escalation_service: ${{ steps.changes.outputs.escalation_service }}
+      feedback_service: ${{ steps.changes.outputs.feedback_service }}
+      meeting_service: ${{ steps.changes.outputs.meeting_service }}
+      telegram_bot: ${{ steps.changes.outputs.telegram_bot }}
+      admin_web: ${{ steps.changes.outputs.admin_web }}
+      dockerfile: ${{ steps.changes.outputs.dockerfile }}
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
+      - name: Detect changes
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            auth_service:
+              - 'auth_service/**'
+            checklists_service:
+              - 'checklists_service/**'
+            knowledge_service:
+              - 'knowledge_service/**'
+            notification_service:
+              - 'notification_service/**'
+            escalation_service:
+              - 'escalation_service/**'
+            feedback_service:
+              - 'feedback_service/**'
+            meeting_service:
+              - 'meeting_service/**'
+            telegram_bot:
+              - 'telegram_bot/**'
+            admin_web:
+              - 'admin_web/**'
+            dockerfile:
+              - 'Dockerfile'
+              - 'docker-entrypoint.sh'
+
+  # ── Test gate: must pass before image is built ───────────────────────────────
+  test-python-auth:
+    needs: detect-changes
+    runs-on: ubuntu-latest
+    if: |
+      needs.detect-changes.outputs.auth_service == 'true' ||
+      needs.detect-changes.outputs.dockerfile == 'true'
+    steps:
+      - uses: actions/checkout@v5
       - name: Install uv
         uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
         with:
           enable-cache: true
-          cache-dependency-glob: "${{ matrix.service }}/uv.lock"
-
+          cache-dependency-glob: "auth_service/uv.lock"
       - name: Install dependencies
-        working-directory: ${{ matrix.service }}
+        working-directory: auth_service
         run: uv sync --frozen
-
       - name: Lint (ruff)
-        working-directory: ${{ matrix.service }}
+        working-directory: auth_service
         run: uv run ruff check . || true
-
       - name: Type check (mypy)
-        working-directory: ${{ matrix.service }}
-        run: uv run mypy . || true  # non-blocking until mypy is clean across all services
-
+        working-directory: auth_service
+        run: uv run mypy . || true
       - name: Run tests
-        working-directory: ${{ matrix.service }}
+        working-directory: auth_service
+        run: uv run pytest --tb=short -q
+
+  test-python-checklists:
+    needs: detect-changes
+    runs-on: ubuntu-latest
+    if: |
+      needs.detect-changes.outputs.checklists_service == 'true' ||
+      needs.detect-changes.outputs.dockerfile == 'true'
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          enable-cache: true
+          cache-dependency-glob: "checklists_service/uv.lock"
+      - name: Install dependencies
+        working-directory: checklists_service
+        run: uv sync --frozen
+      - name: Lint (ruff)
+        working-directory: checklists_service
+        run: uv run ruff check . || true
+      - name: Type check (mypy)
+        working-directory: checklists_service
+        run: uv run mypy . || true
+      - name: Run tests
+        working-directory: checklists_service
+        run: uv run pytest --tb=short -q
+
+  test-python-knowledge:
+    needs: detect-changes
+    runs-on: ubuntu-latest
+    if: |
+      needs.detect-changes.outputs.knowledge_service == 'true' ||
+      needs.detect-changes.outputs.dockerfile == 'true'
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          enable-cache: true
+          cache-dependency-glob: "knowledge_service/uv.lock"
+      - name: Install dependencies
+        working-directory: knowledge_service
+        run: uv sync --frozen
+      - name: Lint (ruff)
+        working-directory: knowledge_service
+        run: uv run ruff check . || true
+      - name: Type check (mypy)
+        working-directory: knowledge_service
+        run: uv run mypy . || true
+      - name: Run tests
+        working-directory: knowledge_service
+        run: uv run pytest --tb=short -q
+
+  test-python-notification:
+    needs: detect-changes
+    runs-on: ubuntu-latest
+    if: |
+      needs.detect-changes.outputs.notification_service == 'true' ||
+      needs.detect-changes.outputs.dockerfile == 'true'
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          enable-cache: true
+          cache-dependency-glob: "notification_service/uv.lock"
+      - name: Install dependencies
+        working-directory: notification_service
+        run: uv sync --frozen
+      - name: Lint (ruff)
+        working-directory: notification_service
+        run: uv run ruff check . || true
+      - name: Type check (mypy)
+        working-directory: notification_service
+        run: uv run mypy . || true
+      - name: Run tests
+        working-directory: notification_service
+        run: uv run pytest --tb=short -q
+
+  test-python-escalation:
+    needs: detect-changes
+    runs-on: ubuntu-latest
+    if: |
+      needs.detect-changes.outputs.escalation_service == 'true' ||
+      needs.detect-changes.outputs.dockerfile == 'true'
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          enable-cache: true
+          cache-dependency-glob: "escalation_service/uv.lock"
+      - name: Install dependencies
+        working-directory: escalation_service
+        run: uv sync --frozen
+      - name: Lint (ruff)
+        working-directory: escalation_service
+        run: uv run ruff check . || true
+      - name: Type check (mypy)
+        working-directory: escalation_service
+        run: uv run mypy . || true
+      - name: Run tests
+        working-directory: escalation_service
+        run: uv run pytest --tb=short -q
+
+  test-python-feedback:
+    needs: detect-changes
+    runs-on: ubuntu-latest
+    if: |
+      needs.detect-changes.outputs.feedback_service == 'true' ||
+      needs.detect-changes.outputs.dockerfile == 'true'
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          enable-cache: true
+          cache-dependency-glob: "feedback_service/uv.lock"
+      - name: Install dependencies
+        working-directory: feedback_service
+        run: uv sync --frozen
+      - name: Lint (ruff)
+        working-directory: feedback_service
+        run: uv run ruff check . || true
+      - name: Type check (mypy)
+        working-directory: feedback_service
+        run: uv run mypy . || true
+      - name: Run tests
+        working-directory: feedback_service
+        run: uv run pytest --tb=short -q
+
+  test-python-meeting:
+    needs: detect-changes
+    runs-on: ubuntu-latest
+    if: |
+      needs.detect-changes.outputs.meeting_service == 'true' ||
+      needs.detect-changes.outputs.dockerfile == 'true'
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          enable-cache: true
+          cache-dependency-glob: "meeting_service/uv.lock"
+      - name: Install dependencies
+        working-directory: meeting_service
+        run: uv sync --frozen
+      - name: Lint (ruff)
+        working-directory: meeting_service
+        run: uv run ruff check . || true
+      - name: Type check (mypy)
+        working-directory: meeting_service
+        run: uv run mypy . || true
+      - name: Run tests
+        working-directory: meeting_service
+        run: uv run pytest --tb=short -q
+
+  test-python-telegram:
+    needs: detect-changes
+    runs-on: ubuntu-latest
+    if: |
+      needs.detect-changes.outputs.telegram_bot == 'true' ||
+      needs.detect-changes.outputs.dockerfile == 'true'
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          enable-cache: true
+          cache-dependency-glob: "telegram_bot/uv.lock"
+      - name: Install dependencies
+        working-directory: telegram_bot
+        run: uv sync --frozen
+      - name: Lint (ruff)
+        working-directory: telegram_bot
+        run: uv run ruff check . || true
+      - name: Type check (mypy)
+        working-directory: telegram_bot
+        run: uv run mypy . || true
+      - name: Run tests
+        working-directory: telegram_bot
         run: uv run pytest --tb=short -q
 
   test-admin-web:
+    needs: detect-changes
     runs-on: ubuntu-latest
+    if: |
+      needs.detect-changes.outputs.admin_web == 'true' ||
+      needs.detect-changes.outputs.dockerfile == 'true'
     steps:
       - uses: actions/checkout@v5
 
@@ -88,45 +307,32 @@ jobs:
         run: bun run test
 
   # ── Build + push Python services ────────────────────────────────────────────
-  python-services:
-    needs: [test-python, test-admin-web]
+  build-auth:
+    needs: [detect-changes, test-python-auth]
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        service:
-          - auth_service
-          - checklists_service
-          - knowledge_service
-          - notification_service
-          - escalation_service
-          - feedback_service
-          - meeting_service
-          - telegram_bot
+    if: |
+      needs.detect-changes.outputs.auth_service == 'true' ||
+      needs.detect-changes.outputs.dockerfile == 'true'
     steps:
       - uses: actions/checkout@v5
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
-
       - name: Log in to Docker Hub
         uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v6
         with:
-          images: ${{ env.REGISTRY }}/${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_PREFIX }}-${{ matrix.service }}
+          images: ${{ env.REGISTRY }}/${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_PREFIX }}-auth_service
           tags: |
             type=sha,format=short
             type=ref,event=branch
             type=ref,event=tag
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
             type=raw,value=${{ github.event.inputs.tag }},enable=${{ github.event.inputs.tag != '' }}
-
       - name: Build and push
         uses: docker/build-push-action@v7
         with:
@@ -135,29 +341,316 @@ jobs:
           target: prod
           platforms: ${{ env.PLATFORMS }}
           build-args: |
-            SERVICE_NAME=${{ matrix.service }}
+            SERVICE_NAME=auth_service
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           push: true
-          cache-from: type=gha,scope=${{ matrix.service }}
-          cache-to: type=gha,mode=max,scope=${{ matrix.service }}
+          cache-from: type=gha,scope=auth_service
+          cache-to: type=gha,mode=max,scope=auth_service
 
-  # ── Build + push admin web ───────────────────────────────────────────────────
-  admin-web:
-    needs: [test-python, test-admin-web]
+  build-checklists:
+    needs: [detect-changes, test-python-checklists]
     runs-on: ubuntu-latest
+    if: |
+      needs.detect-changes.outputs.checklists_service == 'true' ||
+      needs.detect-changes.outputs.dockerfile == 'true'
     steps:
       - uses: actions/checkout@v5
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
-
       - name: Log in to Docker Hub
         uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ env.REGISTRY }}/${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_PREFIX }}-checklists_service
+          tags: |
+            type=sha,format=short
+            type=ref,event=branch
+            type=ref,event=tag
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=raw,value=${{ github.event.inputs.tag }},enable=${{ github.event.inputs.tag != '' }}
+      - name: Build and push
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ./Dockerfile
+          target: prod
+          platforms: ${{ env.PLATFORMS }}
+          build-args: |
+            SERVICE_NAME=checklists_service
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          push: true
+          cache-from: type=gha,scope=checklists_service
+          cache-to: type=gha,mode=max,scope=checklists_service
 
+  build-knowledge:
+    needs: [detect-changes, test-python-knowledge]
+    runs-on: ubuntu-latest
+    if: |
+      needs.detect-changes.outputs.knowledge_service == 'true' ||
+      needs.detect-changes.outputs.dockerfile == 'true'
+    steps:
+      - uses: actions/checkout@v5
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ env.REGISTRY }}/${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_PREFIX }}-knowledge_service
+          tags: |
+            type=sha,format=short
+            type=ref,event=branch
+            type=ref,event=tag
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=raw,value=${{ github.event.inputs.tag }},enable=${{ github.event.inputs.tag != '' }}
+      - name: Build and push
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ./Dockerfile
+          target: prod
+          platforms: ${{ env.PLATFORMS }}
+          build-args: |
+            SERVICE_NAME=knowledge_service
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          push: true
+          cache-from: type=gha,scope=knowledge_service
+          cache-to: type=gha,mode=max,scope=knowledge_service
+
+  build-notification:
+    needs: [detect-changes, test-python-notification]
+    runs-on: ubuntu-latest
+    if: |
+      needs.detect-changes.outputs.notification_service == 'true' ||
+      needs.detect-changes.outputs.dockerfile == 'true'
+    steps:
+      - uses: actions/checkout@v5
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ env.REGISTRY }}/${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_PREFIX }}-notification_service
+          tags: |
+            type=sha,format=short
+            type=ref,event=branch
+            type=ref,event=tag
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=raw,value=${{ github.event.inputs.tag }},enable=${{ github.event.inputs.tag != '' }}
+      - name: Build and push
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ./Dockerfile
+          target: prod
+          platforms: ${{ env.PLATFORMS }}
+          build-args: |
+            SERVICE_NAME=notification_service
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          push: true
+          cache-from: type=gha,scope=notification_service
+          cache-to: type=gha,mode=max,scope=notification_service
+
+  build-escalation:
+    needs: [detect-changes, test-python-escalation]
+    runs-on: ubuntu-latest
+    if: |
+      needs.detect-changes.outputs.escalation_service == 'true' ||
+      needs.detect-changes.outputs.dockerfile == 'true'
+    steps:
+      - uses: actions/checkout@v5
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ env.REGISTRY }}/${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_PREFIX }}-escalation_service
+          tags: |
+            type=sha,format=short
+            type=ref,event=branch
+            type=ref,event=tag
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=raw,value=${{ github.event.inputs.tag }},enable=${{ github.event.inputs.tag != '' }}
+      - name: Build and push
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ./Dockerfile
+          target: prod
+          platforms: ${{ env.PLATFORMS }}
+          build-args: |
+            SERVICE_NAME=escalation_service
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          push: true
+          cache-from: type=gha,scope=escalation_service
+          cache-to: type=gha,mode=max,scope=escalation_service
+
+  build-feedback:
+    needs: [detect-changes, test-python-feedback]
+    runs-on: ubuntu-latest
+    if: |
+      needs.detect-changes.outputs.feedback_service == 'true' ||
+      needs.detect-changes.outputs.dockerfile == 'true'
+    steps:
+      - uses: actions/checkout@v5
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ env.REGISTRY }}/${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_PREFIX }}-feedback_service
+          tags: |
+            type=sha,format=short
+            type=ref,event=branch
+            type=ref,event=tag
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=raw,value=${{ github.event.inputs.tag }},enable=${{ github.event.inputs.tag != '' }}
+      - name: Build and push
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ./Dockerfile
+          target: prod
+          platforms: ${{ env.PLATFORMS }}
+          build-args: |
+            SERVICE_NAME=feedback_service
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          push: true
+          cache-from: type=gha,scope=feedback_service
+          cache-to: type=gha,mode=max,scope=feedback_service
+
+  build-meeting:
+    needs: [detect-changes, test-python-meeting]
+    runs-on: ubuntu-latest
+    if: |
+      needs.detect-changes.outputs.meeting_service == 'true' ||
+      needs.detect-changes.outputs.dockerfile == 'true'
+    steps:
+      - uses: actions/checkout@v5
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ env.REGISTRY }}/${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_PREFIX }}-meeting_service
+          tags: |
+            type=sha,format=short
+            type=ref,event=branch
+            type=ref,event=tag
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=raw,value=${{ github.event.inputs.tag }},enable=${{ github.event.inputs.tag != '' }}
+      - name: Build and push
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ./Dockerfile
+          target: prod
+          platforms: ${{ env.PLATFORMS }}
+          build-args: |
+            SERVICE_NAME=meeting_service
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          push: true
+          cache-from: type=gha,scope=meeting_service
+          cache-to: type=gha,mode=max,scope=meeting_service
+
+  build-telegram:
+    needs: [detect-changes, test-python-telegram]
+    runs-on: ubuntu-latest
+    if: |
+      needs.detect-changes.outputs.telegram_bot == 'true' ||
+      needs.detect-changes.outputs.dockerfile == 'true'
+    steps:
+      - uses: actions/checkout@v5
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ env.REGISTRY }}/${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_PREFIX }}-telegram_bot
+          tags: |
+            type=sha,format=short
+            type=ref,event=branch
+            type=ref,event=tag
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=raw,value=${{ github.event.inputs.tag }},enable=${{ github.event.inputs.tag != '' }}
+      - name: Build and push
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ./Dockerfile
+          target: prod
+          platforms: ${{ env.PLATFORMS }}
+          build-args: |
+            SERVICE_NAME=telegram_bot
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          push: true
+          cache-from: type=gha,scope=telegram_bot
+          cache-to: type=gha,mode=max,scope=telegram_bot
+
+  # ── Build + push admin web ───────────────────────────────────────────────────
+  build-admin-web:
+    needs: [detect-changes, test-admin-web]
+    runs-on: ubuntu-latest
+    if: |
+      needs.detect-changes.outputs.admin_web == 'true' ||
+      needs.detect-changes.outputs.dockerfile == 'true'
+    steps:
+      - uses: actions/checkout@v5
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v6
@@ -169,7 +662,6 @@ jobs:
             type=ref,event=tag
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
             type=raw,value=${{ github.event.inputs.tag }},enable=${{ github.event.inputs.tag != '' }}
-
       - name: Build and push
         uses: docker/build-push-action@v7
         with:
