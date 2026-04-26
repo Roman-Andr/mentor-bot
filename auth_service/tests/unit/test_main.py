@@ -3,6 +3,7 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from fastapi.testclient import TestClient
+from sqlalchemy.exc import SQLAlchemyError
 
 from auth_service.main import app, lifespan
 
@@ -87,7 +88,7 @@ class TestHealthCheckEndpoint:
         """Test health check reports database as disconnected when connection fails."""
         with patch("auth_service.main.engine") as mock_engine:
             # Simulate database connection failure
-            mock_engine.connect.side_effect = Exception("Database connection failed")
+            mock_engine.connect.side_effect = SQLAlchemyError("Database connection failed")
 
             client = get_test_client()
             response = client.get("/health")
@@ -106,9 +107,10 @@ class TestLifespan:
         mock_app = MagicMock()
 
         with patch("auth_service.main.init_db", new_callable=AsyncMock) as mock_init_db:
-            with patch("auth_service.main.logger"):
-                async with lifespan(mock_app):
-                    pass
+            with patch("auth_service.main.create_default_admin_user", new_callable=AsyncMock):
+                with patch("auth_service.main.logger"):
+                    async with lifespan(mock_app):
+                        pass
 
                 mock_init_db.assert_called_once()
 
@@ -117,14 +119,15 @@ class TestLifespan:
         mock_app = MagicMock()
 
         with patch("auth_service.main.init_db", new_callable=AsyncMock):
-            with patch("auth_service.main.logger") as mock_logger:
-                async with lifespan(mock_app):
-                    pass
+            with patch("auth_service.main.create_default_admin_user", new_callable=AsyncMock):
+                with patch("auth_service.main.logger") as mock_logger:
+                    async with lifespan(mock_app):
+                        pass
 
-                # Verify startup log
-                mock_logger.info.assert_any_call("Starting Auth Service...")
-                mock_logger.info.assert_any_call("Database initialized")
-                mock_logger.info.assert_any_call("Shutting down Auth Service...")
+                    # Verify startup log
+                    mock_logger.info.assert_any_call("Starting Auth Service...")
+                    mock_logger.info.assert_any_call("Database initialized")
+                    mock_logger.info.assert_any_call("Shutting down Auth Service...")
 
 class TestRateLimiter:
     """Tests for rate limiter configuration."""

@@ -112,7 +112,8 @@ def mock_uow():
 def mock_init_db():
     """Mock database initialization for all tests."""
     with patch("auth_service.main.init_db", new_callable=AsyncMock):
-        yield
+        with patch("auth_service.main.create_default_admin_user", new_callable=AsyncMock):
+            yield
 
 
 @pytest.fixture(autouse=True)
