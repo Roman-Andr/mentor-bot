@@ -8,6 +8,7 @@ license = { text = "MIT" }
 authors = [{ name = "Andrusievich Roman", email = "andrroman07@gmail.com" }]
 dependencies = [
     "aiogram>=3.27.0",
+    "aiohttp-socks>=0.11.0",
     "apscheduler>=3.11.2",
     "asyncpg>=0.31.0",
     "debugpy>=1.8.20",

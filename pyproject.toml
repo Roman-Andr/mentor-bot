@@ -9,6 +9,7 @@ authors = [{ name = "Andrusievich Roman", email = "andrroman07@gmail.com" }]
 dependencies = [
     "aiofiles>=25.1.0",
     "aiogram>=3.27.0",
+    "aiohttp-socks>=0.11.0",
     "aiosmtplib>=5.1.0",
     "alembic>=1.18.4",
     "apscheduler>=3.11.2",
