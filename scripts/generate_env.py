@@ -138,7 +138,7 @@ def main() -> None:
             elif key == "CORS_ORIGINS":
                 output_lines.append(f'{key}=["https://{domain}"]')
             elif key == "ALLOWED_HOSTS":
-                output_lines.append(f'{key}=["{server_ip}", "{domain}", "www.{domain}"]')
+                output_lines.append(f'{key}=["{server_ip}", "{domain}", "www.{domain}", "localhost"]')
             elif key == "TELEGRAM_PROXY":
                 if telegram_proxy:
                     output_lines.append(f"{key}={telegram_proxy}")
