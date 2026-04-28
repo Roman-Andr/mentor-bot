@@ -125,8 +125,8 @@ services:
       TELEGRAM_BOT_USERNAME: ${TELEGRAM_BOT_USERNAME}
       SECRET_KEY: ${SECRET_KEY}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
-      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@example.com}
-      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-changeme_admin_password}
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
       CHECKLISTS_SERVICE_URL: http://checklists_service:8000
       KNOWLEDGE_SERVICE_URL: http://knowledge_service:8000
       MEETING_SERVICE_URL: http://meeting_service:8000

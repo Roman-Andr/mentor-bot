@@ -144,7 +144,7 @@ def main() -> None:
             elif key in ("PGADMIN_DEFAULT_EMAIL", "ADMIN_EMAIL"):
                 output_lines.append(f"{key}=admin@{domain}")
             elif key == "CORS_ORIGINS":
-                output_lines.append(f'{key}=["https://{domain}"]')
+                output_lines.append(f'{key}=["https://{domain}", "https://www.{domain}"]')
             elif key == "ALLOWED_HOSTS":
                 output_lines.append(f'{key}=["{server_ip}", "{domain}", "www.{domain}", "localhost"]')
             else:

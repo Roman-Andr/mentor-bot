@@ -32,7 +32,7 @@ help:
 	@echo "  make reset-locks       - Delete all uv.lock files and regenerate with uv sync"
 	@echo "  make update-deps       - Check PyPI and update outdated deps (uv remove/add)"
 	@echo "  make prune             - Remove dangling Docker images, containers, volumes, and build cache"
-	@echo "  make generate-secrets  - Generate .env from .env.example with secure random secrets"
+	@echo "  make generate-env      - Generate .env from .env.example with secure random secrets"
 
 	@echo ""
 	@echo "Service access:"

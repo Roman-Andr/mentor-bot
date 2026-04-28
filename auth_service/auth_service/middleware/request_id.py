@@ -23,8 +23,9 @@ class RequestIDMiddleware(BaseHTTPMiddleware):
 
         response: Response | None = None
         try:
-            with logger.contextualize(request_id=rid, method=request.method, path=request.url.path):
-                logger.debug("HTTP request received: {} {}", request.method, request.url.path)
+            host = request.headers.get("host", "unknown")
+            with logger.contextualize(request_id=rid, method=request.method, path=request.url.path, host=host):
+                logger.debug("HTTP request received: {} {} (Host: {})", request.method, request.url.path, host)
                 try:
                     result = await call_next(request)
                 except Exception:
