@@ -70,7 +70,7 @@ help:
 	@echo "  make reboot-telegram   - Quick restart telegram bot"
 	@echo ""
 	@echo "Testing:"
-	@echo "  make test              - Run all unit tests across all Python services"
+	@echo "  make test              - Run all unit tests across all python3 services"
 	@echo "  make test-admin        - Run admin_web unit tests (Vitest)"
 	@echo "  make test-admin-coverage - Run admin_web tests with coverage"
 	@echo "  make test-admin-watch  - Run admin_web tests in watch mode"
@@ -88,7 +88,7 @@ help:
 	@echo ""
 
 test:
-	@python scripts/run_tests.py
+	@python3 scripts/run_tests.py
 
 coverage:
 	@echo "Running tests with coverage across all services..."
@@ -107,10 +107,10 @@ coverage:
 		fi; \
 	done
 	@echo ""
-	@python scripts/aggregate_coverage.py
+	@python3 scripts/aggregate_coverage.py
 
 coverage-serve:
-	@python scripts/serve_coverage.py
+	@python3 scripts/serve_coverage.py
 
 coverage-html:
 	@echo "Coverage reports are served at http://localhost:8765"
@@ -149,7 +149,7 @@ prune:
 full-reboot: reset-db start mock-data
 
 mock-data: 
-	python ./scripts/setup_mock_data.py
+	python3 ./scripts/setup_mock_data.py
 stop:
 	docker compose stop
 
@@ -315,7 +315,7 @@ reset-locks:
 	@echo "All uv.lock files rebuilt"
 
 update-deps:
-	python scripts/update_deps.py
+	python3 scripts/update_deps.py
 
 generate-env:
 	@if [ -f .env ]; then \
@@ -326,7 +326,7 @@ generate-env:
 			exit 1; \
 		fi; \
 	fi
-	python scripts/generate_env.py
+	python3 scripts/generate_env.py
 
 
 
@@ -412,7 +412,7 @@ prod-logs:
 prod-deploy:
 	$(PROD_COMPOSE) down
 	$(PROD_COMPOSE) pull
-	$(PROD_COMPOSE) up -d
+	$(PROD_COMPOSE) up -d --wait
 	$(PROD_COMPOSE) ps
 
 # ─── Alembic migrations ───────────────────────────────────────────────────────
