@@ -1,5 +1,11 @@
 .PHONY: help start stop restart logs clean reset-db create-invitation shell-auth shell-checklist shell-knowledge shell-postgres shell-redis status full-reboot logs-notification logs-escalation logs-meeting shell-notification shell-escalation shell-meeting restart-notification restart-escalation restart-meeting reboot-notification reboot-escalation reboot-meeting logs-admin restart-admin restart-admin-dev reboot-admin shell-admin logs-telegram restart-telegram reboot-telegram shell-telegram dev-admin dev-meeting reset-locks update-deps mock-data prune test coverage coverage-html coverage-clean build-push docker-login prod-pull prod-up prod-down prod-logs prod-deploy up up-svc generate-secrets
 
+# Load .env file if it exists
+ifneq (,$(wildcard .env))
+include .env
+export
+endif
+
 # Docker compose project name
 PROJECT_NAME = mentor-bot
 
@@ -269,7 +275,7 @@ shell-telegram:
 	docker compose exec telegram_bot sh
 
 shell-postgres:
-	docker compose exec postgres psql -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-mentor_bot}
+	docker compose exec postgres psql -U ${POSTGRES_USER:-postgres} -d postgres
 
 shell-redis:
 	docker compose exec redis redis-cli

@@ -111,6 +111,14 @@ def main() -> None:
 
     output_lines = []
     for line in lines:
+        # Special handling for TELEGRAM_PROXY comment
+        if "# TELEGRAM_PROXY=" in line:
+            if telegram_proxy:
+                output_lines.append(f"TELEGRAM_PROXY={telegram_proxy}")
+            else:
+                output_lines.append(line)
+            continue
+
         # Skip comments and empty lines
         if line.strip().startswith("#") or not line.strip():
             output_lines.append(line)
@@ -139,11 +147,6 @@ def main() -> None:
                 output_lines.append(f'{key}=["https://{domain}"]')
             elif key == "ALLOWED_HOSTS":
                 output_lines.append(f'{key}=["{server_ip}", "{domain}", "www.{domain}", "localhost"]')
-            elif key == "TELEGRAM_PROXY":
-                if telegram_proxy:
-                    output_lines.append(f"{key}={telegram_proxy}")
-                else:
-                    output_lines.append(f"{key}=")
             else:
                 # Keep as-is
                 output_lines.append(line)
