@@ -60,11 +60,18 @@ services:
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
       TELEGRAM_API_KEY: ${TELEGRAM_API_KEY}
       TELEGRAM_PROXY: ${TELEGRAM_PROXY:-}
+      AUTH_SERVICE_URL: http://auth_service:8000
+      CHECKLISTS_SERVICE_URL: http://checklists_service:8000
+      KNOWLEDGE_SERVICE_URL: http://knowledge_service:8000
+      NOTIFICATION_SERVICE_URL: http://notification_service:8000
+      ESCALATION_SERVICE_URL: http://escalation_service:8000
+      MEETING_SERVICE_URL: http://meeting_service:8000
+      FEEDBACK_SERVICE_URL: http://feedback_service:8000
       ENABLE_NOTIFICATIONS: "true"
       NOTIFICATION_HOUR: "9"
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
-      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI}\
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI}
     healthcheck:
       test: ["CMD-SHELL", "pgrep -f 'telegram_bot\\.main' || exit 1"]
       interval: 30s
@@ -115,8 +122,11 @@ services:
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/auth_db
       REDIS_URL: ${REDIS_URL}/0
       TELEGRAM_API_KEY: ${TELEGRAM_API_KEY}
+      TELEGRAM_BOT_USERNAME: ${TELEGRAM_BOT_USERNAME}
       SECRET_KEY: ${SECRET_KEY}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@example.com}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-changeme_admin_password}
       CHECKLISTS_SERVICE_URL: http://checklists_service:8000
       KNOWLEDGE_SERVICE_URL: http://knowledge_service:8000
       MEETING_SERVICE_URL: http://meeting_service:8000
@@ -137,11 +147,13 @@ services:
       <<: *common-env
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/checklists_db
       REDIS_URL: ${REDIS_URL}/1
+      AUTH_SERVICE_URL: http://auth_service:8000
       S3_ENDPOINT: ${S3_ENDPOINT:-http://minio:9000}
       S3_ACCESS_KEY: ${S3_ACCESS_KEY}
       S3_SECRET_KEY: ${S3_SECRET_KEY}
       S3_REGION: ${S3_REGION:-us-east-1}
       S3_USE_SSL: ${S3_USE_SSL:-false}
+      S3_SECURE_MODE: ${S3_SECURE_MODE:-false}
       CHECKLISTS_S3_BUCKET: ${CHECKLISTS_S3_BUCKET:-checklists-files}
       S3_PRESIGNED_URL_EXPIRY: ${S3_PRESIGNED_URL_EXPIRY:-3600}
 
@@ -160,11 +172,13 @@ services:
       <<: *common-env
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/knowledge_db
       REDIS_URL: ${REDIS_URL}/2
+      AUTH_SERVICE_URL: http://auth_service:8000
       S3_ENDPOINT: ${S3_ENDPOINT:-http://minio:9000}
       S3_ACCESS_KEY: ${S3_ACCESS_KEY}
       S3_SECRET_KEY: ${S3_SECRET_KEY}
       S3_REGION: ${S3_REGION:-us-east-1}
       S3_USE_SSL: ${S3_USE_SSL:-false}
+      S3_SECURE_MODE: ${S3_SECURE_MODE:-false}
       KNOWLEDGE_S3_BUCKET: ${KNOWLEDGE_S3_BUCKET:-knowledge-files}
       S3_PRESIGNED_URL_EXPIRY: ${S3_PRESIGNED_URL_EXPIRY:-3600}
 
@@ -175,6 +189,8 @@ services:
     environment:
       <<: *common-env
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/notification_db
+      REDIS_URL: ${REDIS_URL}/4
+      AUTH_SERVICE_URL: http://auth_service:8000
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
       SMTP_HOST: ${SMTP_HOST}
       SMTP_PORT: ${SMTP_PORT}
@@ -190,6 +206,8 @@ services:
     environment:
       <<: *common-env
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/feedback_db
+      REDIS_URL: ${REDIS_URL}/5
+      AUTH_SERVICE_URL: http://auth_service:8000
       API_V1_PREFIX: /api/v1
       DATABASE_SCHEMA: feedback
 
@@ -200,6 +218,9 @@ services:
     environment:
       <<: *common-env
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/escalation_db
+      REDIS_URL: ${REDIS_URL}/6
+      AUTH_SERVICE_URL: http://auth_service:8000
+      NOTIFICATION_SERVICE_URL: http://notification_service:8000
       API_V1_PREFIX: /api/v1
       DATABASE_SCHEMA: escalation
 
@@ -210,7 +231,8 @@ services:
     environment:
       <<: *common-env
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/meeting_db
-      REDIS_URL: ${REDIS_URL}/4
+      REDIS_URL: ${REDIS_URL}/7
+      AUTH_SERVICE_URL: http://auth_service:8000
       DATABASE_SCHEMA: meeting
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
