@@ -40,7 +40,10 @@ async def connect_calendar(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Google Calendar integration not configured"
         )
 
-    # Create OAuth flow
+    # Create OAuth flow.
+    # autogenerate_code_verifier=False disables PKCE: the verifier would only
+    # live on this Flow instance and the /callback handler builds a fresh Flow,
+    # so Google would reject the token exchange with "Missing code verifier".
     flow = Flow.from_client_config(
         client_config={
             "web": {
@@ -52,6 +55,7 @@ async def connect_calendar(
         },
         scopes=settings.GOOGLE_CALENDAR_SCOPES,
         redirect_uri=settings.GOOGLE_REDIRECT_URI,
+        autogenerate_code_verifier=False,
     )
 
     # Generate authorization URL with state for CSRF protection
