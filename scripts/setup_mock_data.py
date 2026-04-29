@@ -267,7 +267,7 @@ async def wait_for_admin_web(url: str, max_attempts: int = 30, delay: int = 1) -
 async def get_admin_token() -> str | None:
     """Get admin authentication token."""
     log_step("Getting admin authentication token")
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(follow_redirects=True) as client:
         try:
             response = await client.post(
                 f"{ADMIN_WEB_URL}/api/v1/auth/login",
@@ -297,7 +297,7 @@ async def create_departments(token: str) -> dict[str, int]:
     dept_ids: dict[str, int] = {}
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
 
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(follow_redirects=True) as client:
         tasks = [_create_or_get_department(client, headers, dept) for dept in departments]
         results = await asyncio.gather(*tasks)
 
@@ -407,7 +407,7 @@ async def create_all_users_async(
 
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
 
-    async with httpx.AsyncClient(timeout=30.0) as client:
+    async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
         tasks = [create_user(client, token, user, dept_ids) for user in enriched_users]
         results = await asyncio.gather(*tasks)
 
@@ -438,7 +438,7 @@ async def create_checklist_templates(
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
     template_ids: list[int] = []
 
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(follow_redirects=True) as client:
         async def create_template(template: dict) -> int | None:
             tpl_name = template["name"]
             dept_name = template.get("department")
@@ -570,7 +570,7 @@ async def create_checklist_instances(
 
     start_date = datetime.now() - timedelta(days=start_days_ago)
 
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(follow_redirects=True) as client:
         try:
             checklist_data = {
                 "user_id": user_id,
@@ -665,7 +665,7 @@ async def create_knowledge_categories(
     log_step("Creating knowledge base categories")
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
 
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(follow_redirects=True) as client:
         async def create_category(cat: dict) -> tuple[str, int | None]:
             slug = cat["slug"]
             dept_name = cat.get("department")
@@ -719,7 +719,7 @@ async def create_knowledge_tags(
     log_step("Creating knowledge base tags")
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
 
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(follow_redirects=True) as client:
         async def create_tag(tag: dict) -> tuple[str, int | None]:
             slug = tag["slug"]
             try:
@@ -760,7 +760,7 @@ async def create_knowledge_articles(
     log_step("Creating knowledge base articles")
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
 
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(follow_redirects=True) as client:
         async def create_article(article: dict) -> int | None:
             cat_slug = article.get("category")
             cat_id = cat_ids.get(cat_slug) if cat_slug else None
@@ -838,7 +838,7 @@ async def create_article_views_async(
     success_count = 0
 
     # Process sequentially with delay to avoid rate limiting
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(follow_redirects=True) as client:
         for view_data in article_views:
             user_key = view_data.get("user_key")
             article_indices = view_data.get("article_indices", [])
@@ -926,7 +926,7 @@ async def create_mock_article_attachments(
     total_uploads = len(upload_tasks)
     success_count = 0
 
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(follow_redirects=True) as client:
         async def upload_file(article_id: int, filename: str, content: bytes, content_type: str, description: str, order: int) -> None:
             nonlocal success_count
             try:
@@ -1037,7 +1037,7 @@ async def create_mock_task_attachments(
         ("profile_photo.jpeg", "image/jpeg", 98304, "Employee photo"),
     ]
 
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(follow_redirects=True) as client:
         # First, get some checklists with tasks to attach files to
         try:
             response = await client.get(
@@ -1135,7 +1135,7 @@ async def create_dialogue_scenarios(
     log_step("Creating dialogue scenarios with steps")
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
 
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(follow_redirects=True) as client:
         async def create_scenario(scenario: dict) -> None:
             scenario_title = scenario["title"]
             try:
@@ -1168,7 +1168,7 @@ async def create_meeting_templates(
     log_step("Creating meeting templates")
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
 
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(follow_redirects=True) as client:
         async def create_meeting(meeting: dict) -> int | None:
             dept_name = meeting.get("department")
 
@@ -1251,7 +1251,7 @@ async def create_user_meetings(
     # Use only first 3 templates per user to avoid duplicates
     templates_to_assign = meeting_template_ids[:3]
 
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(follow_redirects=True) as client:
         for idx, meet_tpl_id in enumerate(templates_to_assign):
             # For SCHEDULED: use future date (1-7 days ahead)
             # For COMPLETED/MISSED/CANCELLED: schedule in future then update status
@@ -1304,7 +1304,7 @@ async def create_notifications_async(
     log_step("Creating notifications (async)")
     headers = {"Content-Type": "application/json", "Authorization": f"Bearer {token}"}
 
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(follow_redirects=True) as client:
 
         async def send_notification(notif: dict, user_id: int) -> None:
             notif_payload = {
@@ -1348,7 +1348,7 @@ async def create_escalations_async(
     log_step("Creating escalations (async)")
     headers = {"Content-Type": "application/json", "Authorization": f"Bearer {token}"}
 
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(follow_redirects=True) as client:
 
         async def create_single_escalation(esc: dict, idx: int) -> None:
             user_id = user_ids[idx % len(user_ids)] if user_ids else None
@@ -1403,7 +1403,7 @@ async def create_feedback_async(
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
     service_headers = {"X-Service-Api-Key": SERVICE_API_KEY, "Content-Type": "application/json"}
 
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(follow_redirects=True) as client:
         pulse_data = feedback_data.get("pulse_surveys", [])
         exp_data = feedback_data.get("experience_ratings", [])
         comment_data = feedback_data.get("comments", [])
@@ -1510,7 +1510,7 @@ async def create_pending_invitations_async(
 
     pending_invitations = load_json("pending_invitations.json")
 
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(follow_redirects=True) as client:
 
         async def create_invitation(inv: dict) -> None:
             inv_payload = {
@@ -1562,7 +1562,7 @@ async def create_user_mentors_async(
 
     user_mentors_data = load_json("user_mentors.json")
 
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(follow_redirects=True) as client:
 
         async def create_relation(rel: dict) -> None:
             user_key = rel.get("user_key")
