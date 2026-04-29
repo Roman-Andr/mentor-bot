@@ -5,8 +5,14 @@ Mock Data Setup Script for Mentor Bot.
 Creates test data across all microservices using JSON configuration files.
 Generates rich data for demonstration purposes - various statuses, roles, etc.
 
+All API calls are routed through a single admin_web entry point. The admin_web
+Next.js app exposes a catch-all proxy at /api/v1/<service>/... that forwards
+to the appropriate backend service inside the Docker network. This lets the
+script work in both dev (where ports are exposed) and prod (where only the
+admin_web is publicly reachable).
+
 Usage:
-    python scripts/setup_mock_data.py [--skip-services=SERVICES] [--dry-run]
+    python scripts/setup_mock_data.py [--admin-web-url=URL] [--skip-services=SERVICES] [--dry-run]
 """
 
 import argparse
@@ -26,9 +32,18 @@ MOCK_DATA_DIR = SCRIPT_DIR / "mock_data"
 
 
 # This script is host-side: service URLs in .env (e.g. http://auth_service:8000)
-# only resolve inside the docker network, so we ignore them here and only pick up
-# the DB credentials needed to bootstrap the admin user via psql.
-_ENV_KEYS_TO_LOAD = {"POSTGRES_USER", "POSTGRES_PASSWORD", "AUTH_DB", "ADMIN_EMAIL", "ADMIN_PASSWORD", "SERVICE_API_KEY"}
+# only resolve inside the docker network, so we ignore them here. We pick up
+# DB credentials needed to bootstrap the admin user via psql, and ADMIN_WEB_URL
+# for routing all API calls through the admin_web proxy.
+_ENV_KEYS_TO_LOAD = {
+    "POSTGRES_USER",
+    "POSTGRES_PASSWORD",
+    "AUTH_DB",
+    "ADMIN_EMAIL",
+    "ADMIN_PASSWORD",
+    "SERVICE_API_KEY",
+    "ADMIN_WEB_URL",
+}
 
 
 def _load_env_file() -> None:
@@ -49,13 +64,8 @@ def _load_env_file() -> None:
 
 _load_env_file()
 
-AUTH_SERVICE_URL = os.getenv("AUTH_SERVICE_URL", "http://localhost:8001")
-CHECKLISTS_SERVICE_URL = os.getenv("CHECKLISTS_SERVICE_URL", "http://localhost:8002")
-KNOWLEDGE_SERVICE_URL = os.getenv("KNOWLEDGE_SERVICE_URL", "http://localhost:8003")
-NOTIFICATION_SERVICE_URL = os.getenv("NOTIFICATION_SERVICE_URL", "http://localhost:8004")
-ESCALATION_SERVICE_URL = os.getenv("ESCALATION_SERVICE_URL", "http://localhost:8005")
-MEETING_SERVICE_URL = os.getenv("MEETING_SERVICE_URL", "http://localhost:8006")
-FEEDBACK_SERVICE_URL = os.getenv("FEEDBACK_SERVICE_URL", "http://localhost:8007")
+# Single entry point: admin_web proxies /api/v1/<service>/... to the right backend.
+ADMIN_WEB_URL = os.getenv("ADMIN_WEB_URL", "http://localhost:3000").rstrip("/")
 
 
 POSTGRES_USER = os.getenv("POSTGRES_USER", "postgres")
@@ -232,21 +242,25 @@ def create_admin_user_direct() -> bool:
         return False
 
 
-async def wait_for_service(url: str, name: str, max_attempts: int = 30, delay: int = 1) -> bool:
-    """Wait for a service to become available."""
-    log_step(f"Waiting for {name} to be available")
-    async with httpx.AsyncClient(timeout=5.0) as client:
+async def wait_for_admin_web(url: str, max_attempts: int = 30, delay: int = 1) -> bool:
+    """Wait for admin_web to become reachable.
+
+    Next.js doesn't ship a /health route by default; any 2xx/3xx from the root
+    means the app is up and the API proxy is ready to forward requests.
+    """
+    log_step(f"Waiting for admin_web at {url}")
+    async with httpx.AsyncClient(timeout=5.0, follow_redirects=False) as client:
         for attempt in range(1, max_attempts + 1):
             try:
-                response = await client.get(f"{url}/health")
-                if response.status_code == 200:
-                    log_success(f"{name} is available")
+                response = await client.get(f"{url}/")
+                if 200 <= response.status_code < 400:
+                    log_success("admin_web is available")
                     return True
             except Exception:
                 pass
-            log_warning(f"Attempt {attempt}/{max_attempts}: {name} not ready yet")
+            log_warning(f"Attempt {attempt}/{max_attempts}: admin_web not ready yet")
             await asyncio.sleep(delay)
-    log_error(f"{name} failed to start after {max_attempts} attempts")
+    log_error(f"admin_web failed to respond after {max_attempts} attempts")
     return False
 
 
@@ -256,7 +270,7 @@ async def get_admin_token() -> str | None:
     async with httpx.AsyncClient() as client:
         try:
             response = await client.post(
-                f"{AUTH_SERVICE_URL}/api/v1/auth/login",
+                f"{ADMIN_WEB_URL}/api/v1/auth/login",
                 data={
                     "username": ADMIN_EMAIL,
                     "password": ADMIN_PASSWORD,
@@ -300,7 +314,7 @@ async def _create_or_get_department(
     name = dept["name"]
     try:
         response = await client.get(
-            f"{AUTH_SERVICE_URL}/api/v1/departments/",
+            f"{ADMIN_WEB_URL}/api/v1/departments/",
             headers=headers,
             params={"search": name},
         )
@@ -312,7 +326,7 @@ async def _create_or_get_department(
                 return name, dept_id
 
         response = await client.post(
-            f"{AUTH_SERVICE_URL}/api/v1/departments/",
+            f"{ADMIN_WEB_URL}/api/v1/departments/",
             headers=headers,
             json=dept,
         )
@@ -353,7 +367,7 @@ async def create_user(
 
     try:
         response = await client.get(
-            f"{AUTH_SERVICE_URL}/api/v1/users/by-email/{user_data['email']}",
+            f"{ADMIN_WEB_URL}/api/v1/users/by-email/{user_data['email']}",
             headers=headers,
         )
         if response.status_code == 200:
@@ -362,7 +376,7 @@ async def create_user(
             return (user_data.get("key", ""), user_id)
 
         response = await client.post(
-            f"{AUTH_SERVICE_URL}/api/v1/users/",
+            f"{ADMIN_WEB_URL}/api/v1/users/",
             headers=headers,
             json=user_payload,
         )
@@ -447,7 +461,7 @@ async def create_checklist_templates(
 
             try:
                 response = await client.post(
-                    f"{CHECKLISTS_SERVICE_URL}/api/v1/templates/",
+                    f"{ADMIN_WEB_URL}/api/v1/templates/",
                     headers=headers,
                     json=tpl_payload,
                 )
@@ -475,7 +489,7 @@ async def create_checklist_templates(
                             "depends_on": task.get("depends_on", []),
                         }
                         await client.post(
-                            f"{CHECKLISTS_SERVICE_URL}/api/v1/templates/{tpl_id}/tasks",
+                            f"{ADMIN_WEB_URL}/api/v1/templates/{tpl_id}/tasks",
                             headers=headers,
                             json=task_payload,
                         )
@@ -568,7 +582,7 @@ async def create_checklist_instances(
             }
 
             response = await client.post(
-                f"{CHECKLISTS_SERVICE_URL}/api/v1/checklists/",
+                f"{ADMIN_WEB_URL}/api/v1/checklists/",
                 headers=headers,
                 json=checklist_data,
             )
@@ -585,7 +599,7 @@ async def create_checklist_instances(
                     # Use PUT endpoint to update status to COMPLETED
                     # The update_checklist service automatically marks all pending tasks as COMPLETED
                     complete_resp = await client.put(
-                        f"{CHECKLISTS_SERVICE_URL}/api/v1/checklists/{checklist_id}",
+                        f"{ADMIN_WEB_URL}/api/v1/checklists/{checklist_id}",
                         headers=headers,
                         json={"status": "COMPLETED"},
                     )
@@ -613,7 +627,7 @@ async def update_checklist_tasks(
     try:
         # Fetch tasks for this checklist
         response = await client.get(
-            f"{CHECKLISTS_SERVICE_URL}/api/v1/tasks/checklist/{checklist_id}",
+            f"{ADMIN_WEB_URL}/api/v1/tasks/checklist/{checklist_id}",
             headers=headers,
         )
 
@@ -635,7 +649,7 @@ async def update_checklist_tasks(
                 if i < completed_count:
                     task_id = task["id"]
                     await client.post(
-                        f"{CHECKLISTS_SERVICE_URL}/api/v1/tasks/{task_id}/complete",
+                        f"{ADMIN_WEB_URL}/api/v1/tasks/{task_id}/complete",
                         headers=headers,
                     )
     except Exception as e:
@@ -672,7 +686,7 @@ async def create_knowledge_categories(
 
             try:
                 response = await client.post(
-                    f"{KNOWLEDGE_SERVICE_URL}/api/v1/categories/",
+                    f"{ADMIN_WEB_URL}/api/v1/categories/",
                     headers=headers,
                     json=cat_payload,
                 )
@@ -710,7 +724,7 @@ async def create_knowledge_tags(
             slug = tag["slug"]
             try:
                 response = await client.post(
-                    f"{KNOWLEDGE_SERVICE_URL}/api/v1/tags/",
+                    f"{ADMIN_WEB_URL}/api/v1/tags/",
                     headers=headers,
                     json=tag,
                 )
@@ -773,7 +787,7 @@ async def create_knowledge_articles(
 
             try:
                 response = await client.post(
-                    f"{KNOWLEDGE_SERVICE_URL}/api/v1/articles/",
+                    f"{ADMIN_WEB_URL}/api/v1/articles/",
                     headers=headers,
                     json=art_payload,
                 )
@@ -844,7 +858,7 @@ async def create_article_views_async(
                 for _ in range(view_count):
                     try:
                         response = await client.get(
-                            f"{KNOWLEDGE_SERVICE_URL}/api/v1/articles/{article_id}",
+                            f"{ADMIN_WEB_URL}/api/v1/articles/{article_id}",
                             headers=headers,
                         )
                         if response.status_code in (200, 201):
@@ -917,7 +931,7 @@ async def create_mock_article_attachments(
             nonlocal success_count
             try:
                 response = await client.post(
-                    f"{KNOWLEDGE_SERVICE_URL}/api/v1/attachments/upload",
+                    f"{ADMIN_WEB_URL}/api/v1/attachments/upload",
                     headers=headers,
                     data={
                         "article_id": str(article_id),
@@ -1027,7 +1041,7 @@ async def create_mock_task_attachments(
         # First, get some checklists with tasks to attach files to
         try:
             response = await client.get(
-                f"{CHECKLISTS_SERVICE_URL}/api/v1/checklists/",
+                f"{ADMIN_WEB_URL}/api/v1/checklists/",
                 headers={**headers, "Content-Type": "application/json"},
                 params={"skip": 0, "limit": 20},
             )
@@ -1045,7 +1059,7 @@ async def create_mock_task_attachments(
             checklist_id = checklist["id"]
             try:
                 response = await client.get(
-                    f"{CHECKLISTS_SERVICE_URL}/api/v1/tasks/checklist/{checklist_id}",
+                    f"{ADMIN_WEB_URL}/api/v1/tasks/checklist/{checklist_id}",
                     headers={**headers, "Content-Type": "application/json"},
                 )
                 if response.status_code == 200:
@@ -1091,7 +1105,7 @@ async def create_mock_task_attachments(
             nonlocal success_count
             try:
                 response = await client.post(
-                    f"{CHECKLISTS_SERVICE_URL}/api/v1/tasks/{task_id}/attachments",
+                    f"{ADMIN_WEB_URL}/api/v1/tasks/{task_id}/attachments",
                     headers=headers,
                     data={"description": description},
                     files={
@@ -1126,7 +1140,7 @@ async def create_dialogue_scenarios(
             scenario_title = scenario["title"]
             try:
                 response = await client.post(
-                    f"{KNOWLEDGE_SERVICE_URL}/api/v1/dialogue-scenarios/",
+                    f"{ADMIN_WEB_URL}/api/v1/dialogue-scenarios/",
                     headers=headers,
                     json=scenario,
                 )
@@ -1174,7 +1188,7 @@ async def create_meeting_templates(
 
             try:
                 response = await client.post(
-                    f"{MEETING_SERVICE_URL}/api/v1/meetings/",
+                    f"{ADMIN_WEB_URL}/api/v1/meetings/",
                     headers=headers,
                     json=meet_payload,
                 )
@@ -1251,7 +1265,7 @@ async def create_user_meetings(
 
             try:
                 response = await client.post(
-                    f"{MEETING_SERVICE_URL}/api/v1/user-meetings/assign",
+                    f"{ADMIN_WEB_URL}/api/v1/user-meetings/assign",
                     headers=headers,
                     json={
                         "user_id": user_id,
@@ -1267,7 +1281,7 @@ async def create_user_meetings(
 
                     if status in ["COMPLETED", "MISSED", "CANCELLED"]:
                         await client.patch(
-                            f"{MEETING_SERVICE_URL}/api/v1/user-meetings/{user_meeting_id}",
+                            f"{ADMIN_WEB_URL}/api/v1/user-meetings/{user_meeting_id}",
                             headers=headers,
                             json={"status": status},
                         )
@@ -1303,7 +1317,7 @@ async def create_notifications_async(
             }
             try:
                 response = await client.post(
-                    f"{NOTIFICATION_SERVICE_URL}/api/v1/notifications/send",
+                    f"{ADMIN_WEB_URL}/api/v1/notifications/send",
                     headers=headers,
                     json=notif_payload,
                 )
@@ -1353,7 +1367,7 @@ async def create_escalations_async(
 
             try:
                 response = await client.post(
-                    f"{ESCALATION_SERVICE_URL}/api/v1/escalations/",
+                    f"{ADMIN_WEB_URL}/api/v1/escalations/",
                     headers=headers,
                     json=esc_payload,
                 )
@@ -1364,7 +1378,7 @@ async def create_escalations_async(
                     status = esc.get("status", "PENDING")
                     if status != "PENDING":
                         await client.patch(
-                            f"{ESCALATION_SERVICE_URL}/api/v1/escalations/{esc_id}",
+                            f"{ADMIN_WEB_URL}/api/v1/escalations/{esc_id}",
                             headers=headers,
                             json={"status": status},
                         )
@@ -1407,7 +1421,7 @@ async def create_feedback_async(
             
             try:
                 response = await client.post(
-                    f"{FEEDBACK_SERVICE_URL}/api/v1/feedback/pulse",
+                    f"{ADMIN_WEB_URL}/api/v1/feedback/pulse",
                     headers=service_headers,
                     json=payload,
                 )
@@ -1432,7 +1446,7 @@ async def create_feedback_async(
             
             try:
                 response = await client.post(
-                    f"{FEEDBACK_SERVICE_URL}/api/v1/feedback/experience",
+                    f"{ADMIN_WEB_URL}/api/v1/feedback/experience",
                     headers=service_headers,
                     json=payload,
                 )
@@ -1459,7 +1473,7 @@ async def create_feedback_async(
             
             try:
                 response = await client.post(
-                    f"{FEEDBACK_SERVICE_URL}/api/v1/feedback/comments",
+                    f"{ADMIN_WEB_URL}/api/v1/feedback/comments",
                     headers=service_headers,
                     json=payload,
                 )
@@ -1521,7 +1535,7 @@ async def create_pending_invitations_async(
 
             try:
                 response = await client.post(
-                    f"{AUTH_SERVICE_URL}/api/v1/invitations/",
+                    f"{ADMIN_WEB_URL}/api/v1/invitations/",
                     headers=headers,
                     json=inv_payload,
                 )
@@ -1569,7 +1583,7 @@ async def create_user_mentors_async(
 
             try:
                 response = await client.post(
-                    f"{AUTH_SERVICE_URL}/api/v1/user-mentors/",
+                    f"{ADMIN_WEB_URL}/api/v1/user-mentors/",
                     headers=headers,
                     json=payload,
                 )
@@ -1594,31 +1608,16 @@ async def main(skip_services: list[str] | None = None, dry_run: bool = False) ->
     if dry_run:
         log_warning("Running in DRY-RUN mode - no data will be created")
 
-    log_step("Checking services availability")
+    log_info(f"Routing all API calls through {ADMIN_WEB_URL}")
 
-    services = [
-        (AUTH_SERVICE_URL, "Auth Service"),
-        (CHECKLISTS_SERVICE_URL, "Checklists Service"),
-        (KNOWLEDGE_SERVICE_URL, "Knowledge Service"),
-    ]
-
-    if "notification" not in skip_services:
-        services.append((NOTIFICATION_SERVICE_URL, "Notification Service"))
-    if "escalation" not in skip_services:
-        services.append((ESCALATION_SERVICE_URL, "Escalation Service"))
-    if "meeting" not in skip_services:
-        services.append((MEETING_SERVICE_URL, "Meeting Service"))
-    if "feedback" not in skip_services:
-        services.append((FEEDBACK_SERVICE_URL, "Feedback Service"))
-
-    for url, name in services:
-        if not await wait_for_service(url, name):
-            log_error(f"{name} is not available. Exiting.")
-            sys.exit(1)
+    if not await wait_for_admin_web(ADMIN_WEB_URL):
+        log_error("admin_web is not available. Exiting.")
+        sys.exit(1)
 
     if not dry_run and not create_admin_user():
-        log_error("Failed to create admin user. Exiting.")
-        sys.exit(1)
+        # Non-fatal: in prod the admin is typically pre-seeded and the host
+        # has no docker/psql access. If login below fails, we'll exit then.
+        log_warning("Could not bootstrap admin user; assuming it already exists.")
 
     token = await get_admin_token()
     if not token:
@@ -1744,6 +1743,12 @@ async def main(skip_services: list[str] | None = None, dry_run: bool = False) ->
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Setup mock data for Mentor Bot")
     parser.add_argument(
+        "--admin-web-url",
+        type=str,
+        default=None,
+        help="Base URL of the admin_web app (default: $ADMIN_WEB_URL or http://localhost:3000)",
+    )
+    parser.add_argument(
         "--skip-services",
         type=str,
         default="",
@@ -1756,6 +1761,8 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
+    if args.admin_web_url:
+        ADMIN_WEB_URL = args.admin_web_url.rstrip("/")
     skip_list = [s.strip() for s in args.skip_services.split(",") if s.strip()]
 
     asyncio.run(main(skip_services=skip_list, dry_run=args.dry_run))
