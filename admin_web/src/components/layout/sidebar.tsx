@@ -54,6 +54,7 @@ export function Sidebar() {
     { name: t("nav.dashboard"), href: "/", icon: "LayoutDashboard" },
     { name: t("nav.users"), href: "/users", icon: "Users" },
     { name: t("nav.templates"), href: "/templates", icon: "FileText" },
+    { name: t("nav.notificationTemplates"), href: "/notification-templates", icon: "Bell" },
     { name: t("nav.checklists"), href: "/checklists", icon: "ClipboardCheck" },
     { name: t("nav.knowledgeBase"), href: "/knowledge", icon: "BookOpen" },
     { name: t("nav.dialogues"), href: "/dialogues", icon: "MessageSquare" },

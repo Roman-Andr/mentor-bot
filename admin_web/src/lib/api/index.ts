@@ -10,6 +10,7 @@ export { articlesApi, categoriesApi, attachmentsApi } from "./articles";
 export { analyticsApi } from "./analytics";
 export { escalationsApi } from "./escalations";
 export { notificationsApi } from "./notifications";
+export { notificationTemplatesApi } from "./notification-templates";
 export { meetingsApi } from "./meetings";
 export { userMeetingsApi } from "./user-meetings";
 export { feedbackApi } from "./feedback";

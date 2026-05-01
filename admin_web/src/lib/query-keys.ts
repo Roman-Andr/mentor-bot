@@ -100,6 +100,13 @@ export const queryKeys = {
     list: (params?: unknown) => [...queryKeys.notifications.all, "list", params] as const,
   },
 
+  // Notification Templates
+  notificationTemplates: {
+    all: ["notification-templates"] as const,
+    list: (params?: unknown) => [...queryKeys.notificationTemplates.all, "list", params] as const,
+    detail: (id: number) => [...queryKeys.notificationTemplates.all, "detail", id] as const,
+  },
+
   // Analytics
   analytics: {
     all: ["analytics"] as const,

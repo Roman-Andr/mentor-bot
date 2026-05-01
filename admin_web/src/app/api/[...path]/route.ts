@@ -16,6 +16,7 @@ const SERVICE_MAP: Record<string, string> = {
   checklists: process.env.CHECKLISTS_SERVICE_URL || "http://localhost:8002",
   templates: process.env.CHECKLISTS_SERVICE_URL || "http://localhost:8002",
   tasks: process.env.CHECKLISTS_SERVICE_URL || "http://localhost:8002",
+  "notification-templates": process.env.NOTIFICATION_SERVICE_URL || "http://localhost:8004",
   "dialogue-scenarios": process.env.KNOWLEDGE_SERVICE_URL || "http://localhost:8003",
   "dialogue-scenarios/active": process.env.KNOWLEDGE_SERVICE_URL || "http://localhost:8003",
   articles: process.env.KNOWLEDGE_SERVICE_URL || "http://localhost:8003",
@@ -57,7 +58,14 @@ function buildTargetUrl(
     return { error: NextResponse.json({ error: "Unknown service" }, { status: 404 }) };
   }
 
-  const targetPath = "/api/" + pathSegments.join("/");
+  let targetPath = "/api/" + pathSegments.join("/");
+
+  // Rewrite notification-templates path to templates for notification service
+  // because the backend uses /api/v1/templates but we need to avoid conflict with checklists
+  if (serviceKey === "notification-templates") {
+    targetPath = targetPath.replace("/api/v1/notification-templates", "/api/v1/templates");
+  }
+
   const url = new URL(targetPath, serviceUrl);
   url.search = search;
 

@@ -9,6 +9,7 @@ export type Namespace =
   | "knowledge"
   | "dialogues"
   | "templates"
+  | "notificationTemplates"
   | "checklists"
   | "users"
   | "departments"
