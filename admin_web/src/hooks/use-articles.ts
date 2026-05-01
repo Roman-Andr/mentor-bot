@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useEntity } from "./use-entity";
-import { api, attachmentsApi } from "@/lib/api";
+import { api } from "@/lib/api";
 import { queryKeys } from "@/lib/query-keys";
 import type { Article, Attachment } from "@/types";
 import { useQuery } from "@tanstack/react-query";
@@ -13,6 +13,7 @@ export interface ArticleRow {
   excerpt: string;
   category_id: number | null;
   category: string;
+  category_color: string | null;
   status: string;
   isPinned: boolean;
   isFeatured: boolean;
@@ -68,6 +69,7 @@ function mapArticle(a: Article): ArticleRow {
     excerpt: a.excerpt || "",
     category_id: a.category_id,
     category: a.category?.name || "Общее",
+    category_color: a.category?.color || null,
     status: a.status,
     isPinned: a.is_pinned,
     isFeatured: a.is_featured,
@@ -137,6 +139,7 @@ export function useArticles() {
     filters: [
       { name: "status", defaultValue: "ALL" },
       { name: "category", defaultValue: "ALL", paramName: "category_id", transform: (v) => parseInt(v) },
+      { name: "pinned", defaultValue: "ALL", paramName: "pinned_only", transform: (v) => v === "true" },
     ],
     sortable: true,
     labels: {
@@ -154,39 +157,7 @@ export function useArticles() {
     if (entity.extendedState.attachments === undefined) {
       entity.setExtendedState(() => ({ attachments: [], pendingFiles: [] }));
     }
-  }, [entity.extendedState.attachments, entity.setExtendedState]);
-
-  // Handle attachments on create/update with custom wrapper
-  const handleSubmit = async () => {
-    const { pendingFiles } = entity.extendedState;
-
-    if (entity.selectedItem) {
-      // Update
-      const result = await api.articles.update(entity.selectedItem.id, toPayload(entity.formData));
-      if (result.success && result.data && pendingFiles.length > 0) {
-        await attachmentsApi.uploadMultiple(result.data.id, pendingFiles);
-      }
-      if (result.success && result.data) {
-        entity.invalidate();
-        entity.setIsEditDialogOpen(false);
-        entity.setSelectedItem(null);
-        // Reset extended state
-        entity.setExtendedState(() => defaultExtendedState);
-      }
-    } else {
-      // Create
-      const result = await api.articles.create(toPayload(entity.formData));
-      if (result.success && result.data) {
-        if (pendingFiles.length > 0) {
-          await attachmentsApi.uploadMultiple(result.data.id, pendingFiles);
-        }
-        entity.invalidate();
-        entity.setIsCreateDialogOpen(false);
-        entity.resetForm();
-        entity.setExtendedState(() => defaultExtendedState);
-      }
-    }
-  };
+  }, [entity]);
 
   // Fetch categories
   const { data: categoriesData, refetch: refetchCategories } = useQuery({
@@ -216,6 +187,30 @@ export function useArticles() {
     entity.setExtendedState(() => defaultExtendedState);
   };
 
+  const handleSubmit = async () => {
+    const pendingFiles = entity.extendedState.pendingFiles ?? [];
+    const articleId = entity.selectedItem?.id;
+
+    // Call the original handleSubmit to create/update the article
+    await entity.handleSubmit();
+
+    // If there are pending files, upload them after the article is saved
+    if (pendingFiles.length > 0) {
+      const currentArticleId = articleId || entity.selectedItem?.id;
+      if (currentArticleId) {
+        const uploadResult = await api.attachments.uploadMultiple(currentArticleId, pendingFiles);
+        if (uploadResult.success && uploadResult.data) {
+          const { attachments: newAttachments } = uploadResult.data;
+          entity.setExtendedState((prev) => ({
+            ...prev,
+            attachments: [...(prev.attachments || []), ...newAttachments],
+            pendingFiles: [],
+          }));
+        }
+      }
+    }
+  };
+
   return {
     // Data
     articles: entity.items,
@@ -237,6 +232,8 @@ export function useArticles() {
     setStatusFilter: (value: string) => entity.setFilterValue("status", value),
     categoryFilter: entity.filterValues.category ?? "ALL",
     setCategoryFilter: (value: string) => entity.setFilterValue("category", value),
+    pinnedFilter: entity.filterValues.pinned ?? "ALL",
+    setPinnedFilter: (value: string) => entity.setFilterValue("pinned", value),
 
     // Dialogs
     isCreateDialogOpen: entity.isCreateDialogOpen,
@@ -261,7 +258,7 @@ export function useArticles() {
       entity.setExtendedState((prev) => ({ ...prev, pendingFiles: files })),
 
     // Handlers
-    handleSubmit: entity.handleSubmit,
+    handleSubmit,
     handleDelete: entity.handleDelete,
     handlePublish: (id: number) => api.articles.publish(id),
     openEdit,

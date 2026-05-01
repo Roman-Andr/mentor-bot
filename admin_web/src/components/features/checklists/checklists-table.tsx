@@ -19,7 +19,7 @@ import {
 import { CardHeader, CardTitle } from "@/components/ui/card";
 import { TableActions, buildEditAction, buildDeleteAction, buildCompleteAction } from "@/components/shared";
 import { AlertTriangle, Clock, Download } from "lucide-react";
-import { CHECKLIST_STATUSES } from "@/lib/constants";
+import { getChecklistStatusOptions } from "@/lib/constants";
 import { formatDate } from "@/lib/utils";
 import type { ChecklistItem } from "@/hooks/use-checklists";
 import type { SortDirection } from "@/hooks/use-sorting";
@@ -76,6 +76,8 @@ export function ChecklistsTable({
 }: ChecklistsTableProps) {
   const t = useTranslations();
 
+  const statusOptions = getChecklistStatusOptions(t, true);
+
   const columns = [
     { key: "employee", label: t("checklists.employee"), sortable: true },
     { key: "status", label: t("common.status"), sortable: true },
@@ -86,7 +88,7 @@ export function ChecklistsTable({
   ];
 
   const departmentOptions = [
-    { value: "ALL", label: t("common.all") },
+    { value: "ALL", label: t("checklists.allDepartments") },
     ...departments.map((d) => ({ value: String(d.id), label: d.name })),
   ];
 
@@ -113,7 +115,7 @@ export function ChecklistsTable({
               <Select
                 value={statusFilter}
                 onChange={onStatusFilterChange}
-                options={CHECKLIST_STATUSES}
+                options={statusOptions}
               />
               <Select
                 value={departmentFilter}
@@ -209,12 +211,12 @@ export function ChecklistsTable({
                 <div className="flex items-center gap-2">
                   <TableActions
                     actions={[
-                      buildEditAction(() => onEdit(checklist)),
+                      buildEditAction(() => onEdit(checklist), t("common.edit")),
                       ...(checklist.status !== "COMPLETED"
-                        ? [buildCompleteAction(() => onComplete(checklist.id))]
+                        ? [buildCompleteAction(() => onComplete(checklist.id), t("checklists.markComplete"))]
                         : []
                       ),
-                      buildDeleteAction(() => onDelete(checklist.id)),
+                      buildDeleteAction(() => onDelete(checklist.id), t("common.delete")),
                     ]}
                   />
                   {checklist.status === "COMPLETED" && checklist.certUid && (

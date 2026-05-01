@@ -30,7 +30,7 @@ export function SearchTopQueriesTable({ data }: SearchTopQueriesTableProps) {
           <TableBody>
             {data.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="text-center text-muted-foreground">
+                <TableCell colSpan={4} className="text-muted-foreground text-center">
                   {t("common.noData")}
                 </TableCell>
               </TableRow>

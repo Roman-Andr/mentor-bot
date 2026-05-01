@@ -1,4 +1,4 @@
-.PHONY: help start stop restart logs clean reset-db create-invitation shell-auth shell-checklist shell-knowledge shell-postgres shell-redis status full-reboot logs-notification logs-escalation logs-meeting shell-notification shell-escalation shell-meeting restart-notification restart-escalation restart-meeting reboot-notification reboot-escalation reboot-meeting logs-admin restart-admin restart-admin-dev reboot-admin shell-admin logs-telegram restart-telegram reboot-telegram shell-telegram dev-admin dev-meeting reset-locks update-deps mock-data prune test coverage coverage-html coverage-clean build-push docker-login prod-pull prod-up prod-down prod-logs prod-deploy up up-svc generate-secrets
+.PHONY: help start stop restart logs clean reset-db create-invitation shell-auth shell-checklist shell-knowledge shell-postgres shell-redis status full-reboot logs-notification logs-escalation logs-meeting shell-notification shell-escalation shell-meeting restart-notification restart-escalation restart-meeting reboot-notification reboot-escalation reboot-meeting logs-admin restart-admin restart-admin-dev reboot-admin shell-admin logs-telegram restart-telegram reboot-telegram shell-telegram dev-admin dev-meeting reset-locks update-deps mock-data prune test coverage coverage-html coverage-clean build-push docker-login prod-pull prod-up prod-down prod-logs prod-deploy up up-svc generate-secrets lint-python format-python lint-python-fix lint-admin format-admin lint-admin-check lint-all format-all
 
 # Docker compose project name
 PROJECT_NAME = mentor-bot
@@ -79,6 +79,16 @@ help:
 	@echo "  make coverage-html     - Show coverage report URL"
 	@echo "  make coverage-clean    - Remove all coverage reports"
 	@echo ""
+	@echo "Linting & formatting:"
+	@echo "  make lint-python       - Run ruff check on all Python services"
+	@echo "  make format-python     - Run ruff format on all Python services"
+	@echo "  make lint-python-fix   - Run ruff check --fix on all Python services"
+	@echo "  make lint-admin        - Run eslint on admin_web"
+	@echo "  make format-admin      - Run prettier --write on admin_web"
+	@echo "  make lint-admin-check  - Run prettier --check on admin_web"
+	@echo "  make lint-all          - Run linting on Python and admin_web"
+	@echo "  make format-all        - Run formatting on Python and admin_web"
+	@echo ""
 	@echo "Production deploy:"
 	@echo "  DOCKER_USERNAME=user make build-push [TAG=sha]  - Build & push all images"
 	@echo "  make docker-login DOCKER_USERNAME=user          - Login to Docker Hub"
@@ -128,6 +138,140 @@ test-admin-coverage:
 
 test-admin-watch:
 	cd admin_web && bun run test:watch
+
+# ─── Linting & formatting ───────────────────────────────────────────────────────
+PYTHON_SERVICES = auth_service checklists_service escalation_service feedback_service knowledge_service meeting_service notification_service telegram_bot
+
+lint-python:
+	@for svc in $(PYTHON_SERVICES); do \
+		echo "=== Checking $$svc ===" && \
+		env -u VIRTUAL_ENV uv run ruff check --config pyproject.toml $$svc || exit 1; \
+	done
+
+format-python:
+	@for svc in $(PYTHON_SERVICES); do \
+		echo "=== Formatting $$svc ===" && \
+		env -u VIRTUAL_ENV uv run ruff format --config pyproject.toml $$svc || exit 1; \
+	done
+
+lint-python-fix:
+	@for svc in $(PYTHON_SERVICES); do \
+		echo "=== Fixing $$svc ===" && \
+		env -u VIRTUAL_ENV uv run ruff check --fix --config pyproject.toml $$svc || exit 1; \
+	done
+
+lint-auth:
+	env -u VIRTUAL_ENV uv run ruff check --config pyproject.toml auth_service
+
+lint-checklists:
+	env -u VIRTUAL_ENV uv run ruff check --config pyproject.toml checklists_service
+
+lint-knowledge:
+	env -u VIRTUAL_ENV uv run ruff check --config pyproject.toml knowledge_service
+
+lint-notification:
+	env -u VIRTUAL_ENV uv run ruff check --config pyproject.toml notification_service
+
+lint-escalation:
+	env -u VIRTUAL_ENV uv run ruff check --config pyproject.toml escalation_service
+
+lint-feedback:
+	env -u VIRTUAL_ENV uv run ruff check --config pyproject.toml feedback_service
+
+lint-meeting:
+	env -u VIRTUAL_ENV uv run ruff check --config pyproject.toml meeting_service
+
+lint-telegram:
+	env -u VIRTUAL_ENV uv run ruff check --config pyproject.toml telegram_bot
+
+lint-admin:
+	cd admin_web && bun run lint
+
+format-admin:
+	cd admin_web && bun run format
+
+lint-admin-check:
+	cd admin_web && bun run format:check
+
+lint-all: lint-python lint-admin
+
+format-all: format-python format-admin
+
+# ─── Individual service commands for CI ───────────────────────────────────────────
+test-auth:
+	cd auth_service && env -u VIRTUAL_ENV uv run pytest --tb=short -q
+
+test-checklists:
+	cd checklists_service && env -u VIRTUAL_ENV uv run pytest --tb=short -q
+
+test-knowledge:
+	cd knowledge_service && env -u VIRTUAL_ENV uv run pytest --tb=short -q
+
+test-notification:
+	cd notification_service && env -u VIRTUAL_ENV uv run pytest --tb=short -q
+
+test-escalation:
+	cd escalation_service && env -u VIRTUAL_ENV uv run pytest --tb=short -q
+
+test-feedback:
+	cd feedback_service && env -u VIRTUAL_ENV uv run pytest --tb=short -q
+
+test-meeting:
+	cd meeting_service && env -u VIRTUAL_ENV uv run pytest --tb=short -q
+
+test-telegram:
+	cd telegram_bot && env -u VIRTUAL_ENV uv run pytest --tb=short -q
+
+mypy-auth:
+	cd auth_service && env -u VIRTUAL_ENV uv run mypy .
+
+mypy-checklists:
+	cd checklists_service && env -u VIRTUAL_ENV uv run mypy .
+
+mypy-knowledge:
+	cd knowledge_service && env -u VIRTUAL_ENV uv run mypy .
+
+mypy-notification:
+	cd notification_service && env -u VIRTUAL_ENV uv run mypy .
+
+mypy-escalation:
+	cd escalation_service && env -u VIRTUAL_ENV uv run mypy .
+
+mypy-feedback:
+	cd feedback_service && env -u VIRTUAL_ENV uv run mypy .
+
+mypy-meeting:
+	cd meeting_service && env -u VIRTUAL_ENV uv run mypy .
+
+mypy-telegram:
+	cd telegram_bot && env -u VIRTUAL_ENV uv run mypy .
+
+deps-auth:
+	cd auth_service && env -u VIRTUAL_ENV uv sync --frozen
+
+deps-checklists:
+	cd checklists_service && env -u VIRTUAL_ENV uv sync --frozen
+
+deps-knowledge:
+	cd knowledge_service && env -u VIRTUAL_ENV uv sync --frozen
+
+deps-notification:
+	cd notification_service && env -u VIRTUAL_ENV uv sync --frozen
+
+deps-escalation:
+	cd escalation_service && env -u VIRTUAL_ENV uv sync --frozen
+
+deps-feedback:
+	cd feedback_service && env -u VIRTUAL_ENV uv sync --frozen
+
+deps-meeting:
+	cd meeting_service && env -u VIRTUAL_ENV uv sync --frozen
+
+deps-telegram:
+	cd telegram_bot && env -u VIRTUAL_ENV uv sync --frozen
+
+deps-admin:
+	cd admin_web && bun install --frozen-lockfile
 
 start:
 	docker compose up -d --build

@@ -27,21 +27,21 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "INFO"
 
     # Redis
-    REDIS_URL: RedisDsn = Field(default="redis://localhost:6379/3")
+    REDIS_URL: RedisDsn = Field(...)
     REDIS_CACHE_TTL: int = Field(default=3600, ge=1)
 
     # Database
-    DATABASE_URL: PostgresDsn = Field(default="postgresql+asyncpg://user:password@localhost:5432/telegram_db")
+    DATABASE_URL: PostgresDsn = Field(...)
 
     # Services
-    AUTH_SERVICE_URL: str = Field(default="http://localhost:8001")
-    CHECKLISTS_SERVICE_URL: str = Field(default="http://localhost:8002")
-    KNOWLEDGE_SERVICE_URL: str = Field(default="http://localhost:8003")
-    NOTIFICATION_SERVICE_URL: str = Field(default="http://localhost:8004")
-    ESCALATION_SERVICE_URL: str = Field(default="http://localhost:8005")
-    MEETING_SERVICE_URL: str = Field(default="http://localhost:8006")
-    FEEDBACK_SERVICE_URL: str = Field(default="http://localhost:8007")
-    API_GATEWAY_URL: str = Field(default="http://localhost:8000")
+    AUTH_SERVICE_URL: str = Field(...)
+    CHECKLISTS_SERVICE_URL: str = Field(...)
+    KNOWLEDGE_SERVICE_URL: str = Field(...)
+    NOTIFICATION_SERVICE_URL: str = Field(...)
+    ESCALATION_SERVICE_URL: str = Field(...)
+    MEETING_SERVICE_URL: str = Field(...)
+    FEEDBACK_SERVICE_URL: str = Field(...)
+    API_GATEWAY_URL: str = Field(...)
     API_V1_PREFIX: str = Field(default="/api/v1")
 
     # Timeouts
@@ -49,7 +49,7 @@ class Settings(BaseSettings):
     SERVICE_RETRIES: int = Field(default=3, ge=0)
 
     # Inter-service communication
-    SERVICE_API_KEY: str = Field(default="")
+    SERVICE_API_KEY: str = Field(...)
 
     # Admin
     ADMIN_IDS: list[int] = Field(default_factory=list)
@@ -61,9 +61,9 @@ class Settings(BaseSettings):
     THROTTLING_ENABLED: bool = Field(default=False)
 
     # Google Calendar Integration
-    GOOGLE_CLIENT_ID: str = Field(default="")
-    GOOGLE_CLIENT_SECRET: str = Field(default="")
-    GOOGLE_REDIRECT_URI: str = Field(default="")
+    GOOGLE_CLIENT_ID: str = Field(...)
+    GOOGLE_CLIENT_SECRET: str = Field(...)
+    GOOGLE_REDIRECT_URI: str = Field(...)
     GOOGLE_CALENDAR_SCOPES: list[str] = Field(default=["https://www.googleapis.com/auth/calendar.events"])
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", case_sensitive=True, extra="ignore")

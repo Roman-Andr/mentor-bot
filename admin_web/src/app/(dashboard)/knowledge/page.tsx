@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useTranslations } from "@/hooks/use-translations";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
@@ -14,16 +13,24 @@ import { CategoryFormDialog } from "@/components/features/knowledge/category-for
 import { useArticles } from "@/hooks/use-articles";
 import { useCategories } from "@/hooks/use-categories";
 import { useDepartments } from "@/hooks/use-departments";
-import { cn } from "@/lib/utils";
+import { TabSwitcher } from "@/components/ui/tab-switcher";
+import type { TabItem } from "@/components/ui/tab-switcher";
+import { useSearchParams } from "next/navigation";
 
 type Tab = "articles" | "categories";
 
 export default function KnowledgePage() {
   const t = useTranslations();
-  const [activeTab, setActiveTab] = useState<Tab>("articles");
+  const searchParams = useSearchParams();
+  const activeTab = (searchParams.get("tab") as Tab) || "articles";
   const a = useArticles();
   const c = useCategories();
   const deps = useDepartments();
+
+  const tabs: TabItem[] = [
+    { id: "articles", label: t("knowledge.articles"), icon: BookOpen },
+    { id: "categories", label: t("knowledge.categories"), icon: FolderOpen },
+  ];
 
   const handleCategorySubmit = async () => {
     await c.handleSubmit();
@@ -35,57 +42,31 @@ export default function KnowledgePage() {
     a.loadCategories();
   };
 
+  const handleAddClick = () => {
+    if (activeTab === "articles") {
+      a.resetForm();
+      a.setIsCreateDialogOpen(true);
+    } else {
+      c.resetForm();
+      c.setIsCreateDialogOpen(true);
+    }
+  };
+
   return (
     <PageContent
       title={t("knowledge.title")}
       subtitle={t("knowledge.title")}
       actions={
-        <div className="flex items-center gap-2">
-          <div className="flex rounded-md border">
-            <button
-              className={cn(
-                "flex cursor-pointer items-center gap-1.5 rounded-l-md px-3 py-1.5 text-sm font-medium transition-colors",
-                activeTab === "articles"
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-background text-muted-foreground hover:bg-muted",
-              )}
-              onClick={() => setActiveTab("articles")}
-            >
-              <BookOpen className="size-4" />
-              {t("knowledge.articles")}
-            </button>
-            <button
-              className={cn(
-                "flex cursor-pointer items-center gap-1.5 rounded-r-md px-3 py-1.5 text-sm font-medium transition-colors",
-                activeTab === "categories"
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-background text-muted-foreground hover:bg-muted",
-              )}
-              onClick={() => setActiveTab("categories")}
-            >
-              <FolderOpen className="size-4" />
-              {t("knowledge.categories")}
-            </button>
-          </div>
-          <Button
-            className="gap-2"
-            onClick={() => {
-              if (activeTab === "articles") {
-                a.resetForm();
-                a.setIsCreateDialogOpen(true);
-              } else {
-                c.resetForm();
-                c.setIsCreateDialogOpen(true);
-              }
-            }}
-          >
-            <Plus className="size-4" />
-            {activeTab === "articles" ? t("knowledge.addArticle") : t("knowledge.addCategory")}
-          </Button>
-        </div>
+        <Button className="gap-2" onClick={handleAddClick}>
+          <Plus className="size-4" />
+          {activeTab === "articles" ? t("knowledge.addArticle") : t("knowledge.addCategory")}
+        </Button>
       }
     >
-      {activeTab === "articles" && (
+      <div className="space-y-6">
+        <TabSwitcher tabs={tabs} />
+
+        {activeTab === "articles" && (
         <>
           <Dialog open={a.isCreateDialogOpen} onOpenChange={a.setIsCreateDialogOpen}>
             <ArticleFormDialog
@@ -137,6 +118,8 @@ export default function KnowledgePage() {
             onCategoryFilterChange={a.setCategoryFilter}
             statusFilter={a.statusFilter}
             onStatusFilterChange={a.setStatusFilter}
+            pinnedFilter={a.pinnedFilter}
+            onPinnedFilterChange={a.setPinnedFilter}
             onReset={a.resetFilters}
             categories={a.categories}
             onEdit={a.openEdit}
@@ -206,6 +189,7 @@ export default function KnowledgePage() {
           />
         </>
       )}
+      </div>
     </PageContent>
   );
 }

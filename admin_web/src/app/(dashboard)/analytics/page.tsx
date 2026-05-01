@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useTranslations } from "@/hooks/use-translations";
-import { Download } from "lucide-react";
+import { Download, BarChart3, BookOpen, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PDFExportButton } from "@/components/features/reports/pdf-export-button";
 import { TabSwitcher } from "@/components/ui/tab-switcher";
@@ -32,10 +32,13 @@ import { SearchZeroResultsTable } from "@/components/features/analytics/search/s
 import { SearchByDepartmentChart } from "@/components/features/analytics/search/search-by-department-chart";
 import { SearchTimeseriesChart } from "@/components/features/analytics/search/search-timeseries-chart";
 import { SearchFilters } from "@/components/features/analytics/search/search-filters";
+import type { TabItem } from "@/components/ui/tab-switcher";
+import { useSearchParams } from "next/navigation";
 
 export default function AnalyticsPage() {
   const t = useTranslations();
-  const [activeTab, setActiveTab] = useState("onboarding");
+  const searchParams = useSearchParams();
+  const activeTab = searchParams.get("tab") || "onboarding";
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<ChecklistStats | null>(null);
   const [userCount, setUserCount] = useState(0);
@@ -47,10 +50,10 @@ export default function AnalyticsPage() {
   const [dateRange, setDateRange] = useState<{ from_date?: string; to_date?: string }>({});
   const [granularity, setGranularity] = useState<"day" | "week">("day");
 
-  const tabs = [
-    { id: "onboarding", label: t("analytics.onboardingTab") },
-    { id: "knowledge", label: t("analytics.knowledgeTab") },
-    { id: "search", label: t("analytics.search.title") },
+  const tabs: TabItem[] = [
+    { id: "onboarding", label: t("analytics.onboardingTab"), icon: BarChart3 },
+    { id: "knowledge", label: t("analytics.knowledgeTab"), icon: BookOpen },
+    { id: "search", label: t("analytics.search.title"), icon: Search },
   ];
 
   // Search analytics state
@@ -110,7 +113,7 @@ export default function AnalyticsPage() {
     queryKey: queryKeys.analytics.knowledge.summary(dateRange),
     queryFn: async () => {
       const searchResult = await api.analytics.knowledge.summary(dateRange);
-      return searchResult.success ? searchResult.data : undefined;
+      return searchResult.success ? searchResult.data : null;
     },
     enabled: activeTab === "knowledge",
     staleTime: 60000,
@@ -272,7 +275,7 @@ export default function AnalyticsPage() {
       }
     >
       <div className="space-y-6">
-        <TabSwitcher tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
+        <TabSwitcher tabs={tabs} />
 
         {activeTab === "onboarding" && (
           <>
@@ -301,14 +304,22 @@ export default function AnalyticsPage() {
                 <KnowledgeSummaryCards summary={knowledgeSummary || null} />
 
                 <div className="grid gap-6 lg:grid-cols-2">
-                  <TableBody>
-                    {topArticles?.map((article: any) => (
-                      <TableRow key={article.id}>
-                        <TableCell>{article.title}</TableCell>
-                        <TableCell>{article.views}</TableCell>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{t("knowledge.title")}</TableHead>
+                        <TableHead>{t("analytics.knowledge.views")}</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
+                    </TableHeader>
+                    <TableBody>
+                      {topArticles?.map((article: any) => (
+                        <TableRow key={article.article_id}>
+                          <TableCell>{article.title}</TableCell>
+                          <TableCell>{article.view_count}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
                   <KnowledgeViewsTimeseries
                     data={timeseriesData || []}
                     onGranularityChange={setGranularity}

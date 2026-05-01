@@ -1,6 +1,6 @@
 """HTTP client for checklists service integration."""
 
-import os
+from pathlib import Path
 
 import httpx
 from fastapi import status
@@ -260,7 +260,7 @@ class ChecklistsServiceClient:
         """Download a task attachment file."""
         logger.debug("Downloading task attachment (task_id={}, filename={})", task_id, filename)
         # Sanitize filename to prevent path traversal
-        filename = os.path.basename(filename)
+        filename = Path(filename).name
         filename = "".join(c for c in filename if c.isalnum() or c in "._-")
         if not filename:
             logger.warning("Invalid filename (task_id={})", task_id)

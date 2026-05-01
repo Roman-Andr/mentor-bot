@@ -46,7 +46,9 @@ type StatusKey =
   | "SENT"
   | "FAILED"
   | "RESOLVED"
-  | "CLOSED";
+  | "CLOSED"
+  | "SCHEDULED"
+  | "MISSED";
 
 interface StatusBadgeProps {
   status: string;

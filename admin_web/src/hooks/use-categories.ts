@@ -1,7 +1,9 @@
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { useEntity } from "./use-entity";
 import { api } from "@/lib/api";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Category } from "@/types";
+import { queryKeys } from "@/lib/query-keys";
 
 function slugify(text: string): string {
   return text
@@ -92,7 +94,7 @@ const DEFAULT_FORM: CategoryFormData = {
   color: "",
 };
 
-function mapCategory(c: Category): CategoryRow {
+function mapCategory(c: Category, departmentsMap: Record<number, string>): CategoryRow {
   return {
     id: c.id,
     name: c.name,
@@ -102,7 +104,7 @@ function mapCategory(c: Category): CategoryRow {
     parent_name: c.parent_name || "",
     order: c.order,
     department_id: c.department_id,
-    department: c.department?.name || "",
+    department: c.department_id ? departmentsMap[c.department_id] || "" : "",
     position: c.position || "",
     level: c.level || "",
     icon: c.icon || "",
@@ -158,17 +160,35 @@ function toForm(item: CategoryRow): CategoryFormData {
 }
 
 export function useCategories() {
+  const queryClient = useQueryClient();
+
+  // Load departments for mapping department_id to name
+  const { data: departmentsData } = useQuery({
+    queryKey: ["departments"],
+    queryFn: () => api.departments.list({ skip: 0, limit: 1000 }),
+  });
+
+  const departmentsMap = useMemo(() => {
+    const map: Record<number, string> = {};
+    if (departmentsData?.success && departmentsData.data?.departments) {
+      departmentsData.data.departments.forEach((dept: any) => {
+        map[dept.id] = dept.name;
+      });
+    }
+    return map;
+  }, [departmentsData]);
+
   const entity = useEntity<CategoryRow, CategoryFormData, ReturnType<typeof toCreatePayload>, ReturnType<typeof toUpdatePayload>, Record<string, unknown>>({
     entityName: "Категория",
     translationNamespace: "knowledge",
     queryKeyPrefix: "categories",
-    listFn: (params) => api.categories.list({ ...params, include_tree: true }),
+    listFn: (params) => api.categories.list(params),
     listDataKey: "categories",
     createFn: (data) => api.categories.create(data),
     updateFn: (id, data) => api.categories.update(id, data),
     deleteFn: (id) => api.categories.delete(id),
     defaultForm: DEFAULT_FORM,
-    mapItem: (item) => mapCategory(item as Category),
+    mapItem: (item) => mapCategory(item as Category, departmentsMap),
     toCreatePayload,
     toUpdatePayload,
     toForm,
@@ -184,6 +204,10 @@ export function useCategories() {
     searchParamName: "search",
     sortable: true,
     pageSize: 20,
+    onAfterUpdate: () => {
+      // Invalidate articles cache to update category colors in article list
+      queryClient.invalidateQueries({ queryKey: queryKeys.articles.all });
+    },
   });
 
   // Custom updateFormField that auto-generates slug from name

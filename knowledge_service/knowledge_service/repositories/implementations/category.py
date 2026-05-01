@@ -54,6 +54,8 @@ class CategoryRepository(SqlAlchemyBaseRepository[Category, int], ICategoryRepos
             "createdAt": Category.created_at,
             "updatedAt": Category.updated_at,
             "department": Category.department_id,
+            "position": Category.position,
+            "level": Category.level,
         }
         return column_map.get(sort_by, Category.order)
 
@@ -69,7 +71,7 @@ class CategoryRepository(SqlAlchemyBaseRepository[Category, int], ICategoryRepos
         sort_order: str = "asc",
     ) -> tuple[Sequence[Category], int]:
         """Find categories with filters and return total count."""
-        stmt = select(Category)
+        stmt = select(Category).options(selectinload(Category.articles), selectinload(Category.children))
         count_stmt = select(func.count(Category.id))
 
         if parent_id is not None:
@@ -95,12 +97,33 @@ class CategoryRepository(SqlAlchemyBaseRepository[Category, int], ICategoryRepos
         total = cast("int", (await self._session.execute(count_stmt)).scalar_one())
 
         # Apply sorting
-        sort_column = self._get_sort_column(sort_by)
-        stmt = stmt.order_by(sort_column.asc() if sort_order.lower() == "asc" else sort_column.desc())
+        if sort_by == "articlesCount":
+            # Sort by articles count using subquery
+            from knowledge_service.models import Article
+            articles_count_subquery = (
+                select(func.count(Article.id))
+                .where(Article.category_id == Category.id)
+                .correlate(Category)
+                .scalar_subquery()
+            )
+            stmt = stmt.order_by(
+                articles_count_subquery.asc() if sort_order.lower() == "asc" else articles_count_subquery.desc()
+            )
+        else:
+            sort_column = self._get_sort_column(sort_by)
+            stmt = stmt.order_by(sort_column.asc() if sort_order.lower() == "asc" else sort_column.desc())
 
         stmt = stmt.offset(skip).limit(limit)
         result = await self._session.execute(stmt)
-        return result.scalars().all(), total
+        categories = result.scalars().all()
+
+        # Add computed attributes for response
+        for category in categories:
+            # These are computed attributes that will be used by Pydantic
+            category.articles_count = len(category.articles) if hasattr(category, "articles") else 0
+            category.children_count = len(category.children) if hasattr(category, "children") else 0
+
+        return categories, total
 
     async def find_by_department(self, department_id: int) -> Sequence[Category]:
         """Find all categories for a department."""

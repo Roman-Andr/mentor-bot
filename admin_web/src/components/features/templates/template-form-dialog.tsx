@@ -17,7 +17,7 @@ import {
 import { GripVertical, Trash2 } from "lucide-react";
 import { Select } from "@/components/ui/select";
 import type { TaskTemplate } from "@/types";
-import { TASK_CATEGORY_MAP, TASK_CATEGORIES } from "@/lib/constants";
+import { getTaskCategoryOptions } from "@/lib/constants";
 import type { TemplateFormData } from "@/hooks/use-templates";
 
 interface TemplateFormDialogProps {
@@ -46,6 +46,8 @@ export function TemplateFormDialog({
   onCancel,
 }: TemplateFormDialogProps) {
   const t = useTranslations();
+
+  const categoryOptions = getTaskCategoryOptions(t);
 
   const [newTask, setNewTask] = useState({
     name: "",
@@ -198,7 +200,7 @@ export function TemplateFormDialog({
                     <p className="text-muted-foreground text-xs">{task.description}</p>
                     <div className="mt-1 flex gap-2">
                       <Badge variant="secondary" className="text-xs">
-                        {TASK_CATEGORY_MAP[task.category] || task.category}
+                        {categoryOptions.find((c) => c.value === task.category)?.label || task.category}
                       </Badge>
                       <span className="text-muted-foreground text-xs">{task.due_days} d.</span>
                     </div>
@@ -216,7 +218,7 @@ export function TemplateFormDialog({
               <Select
                 value={newTask.category}
                 onChange={(val) => setNewTask({ ...newTask, category: val })}
-                options={TASK_CATEGORIES}
+                options={categoryOptions}
               />
               <div className="flex gap-1">
                 <Input

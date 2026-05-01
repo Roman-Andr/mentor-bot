@@ -22,12 +22,12 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "INFO"
 
     # Database
-    DATABASE_URL: PostgresDsn = Field(default="postgresql+asyncpg://user:password@localhost:5432/knowledge_db")
+    DATABASE_URL: PostgresDsn = Field(...)
     DATABASE_POOL_SIZE: int = 5
     DATABASE_MAX_OVERFLOW: int = 10
 
     # Redis
-    REDIS_URL: RedisDsn = Field(default="redis://localhost:6379/2")
+    REDIS_URL: RedisDsn = Field(...)
     REDIS_CACHE_TTL: int = Field(default=3600, ge=1)
 
     # API
@@ -38,12 +38,12 @@ class Settings(BaseSettings):
     CORS_ORIGINS: list[str] = ["*"]
 
     # Integration with Auth Service
-    AUTH_SERVICE_URL: str = Field(default="http://localhost:8001")
+    AUTH_SERVICE_URL: str = Field(...)
     AUTH_SERVICE_TIMEOUT: int = Field(default=10, ge=1)
     AUTH_SERVICE_RETRIES: int = Field(default=3, ge=0)
 
     # Service-to-service authentication
-    SERVICE_API_KEY: str = Field(default="")
+    SERVICE_API_KEY: str = Field(...)
 
     # Circuit Breaker
     CIRCUIT_BREAKER_FAILURE_THRESHOLD: int = Field(default=3, ge=1)
@@ -54,9 +54,9 @@ class Settings(BaseSettings):
     ALLOWED_FILE_TYPES: list[str] = Field(
         default=["pdf", "jpg", "jpeg", "png", "docx", "xlsx", "txt", "md", "ics", "zip", "py", "pptx"]
     )
-    S3_ENDPOINT: str = Field(default="http://minio:9000")
-    S3_ACCESS_KEY: str = Field(default="")
-    S3_SECRET_KEY: str = Field(default="")
+    S3_ENDPOINT: str = Field(...)
+    S3_ACCESS_KEY: str = Field(...)
+    S3_SECRET_KEY: str = Field(...)
     S3_REGION: str = Field(default="us-east-1")
     S3_USE_SSL: bool = Field(default=False)
     KNOWLEDGE_S3_BUCKET: str = Field(default="knowledge-files")

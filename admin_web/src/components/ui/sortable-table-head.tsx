@@ -52,7 +52,7 @@ export function SortableTableHead({
           <span className="flex flex-col">
             <ArrowUp
               className={cn(
-                "size-3 transition-colors",
+                "size-3",
                 isActive && sortDirection === "asc"
                   ? "text-foreground"
                   : "text-muted-foreground/30"
@@ -60,7 +60,7 @@ export function SortableTableHead({
             />
             <ArrowDown
               className={cn(
-                "size-3 -mt-1 transition-colors",
+                "size-3 -mt-1",
                 isActive && sortDirection === "desc"
                   ? "text-foreground"
                   : "text-muted-foreground/30"

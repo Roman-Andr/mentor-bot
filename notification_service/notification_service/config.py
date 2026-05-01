@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "INFO"
 
     # Database
-    DATABASE_URL: PostgresDsn = Field(default="postgresql+asyncpg://user:password@localhost:5432/notification_db")
+    DATABASE_URL: PostgresDsn = Field(...)
     DATABASE_POOL_SIZE: int = 5
     DATABASE_MAX_OVERFLOW: int = 10
 
@@ -31,7 +31,7 @@ class Settings(BaseSettings):
     CORS_ORIGINS: list[str] = ["*"]
 
     # Auth service integration
-    AUTH_SERVICE_URL: str = Field(default="http://auth_service:8000")
+    AUTH_SERVICE_URL: str = Field(...)
     AUTH_SERVICE_TIMEOUT: int = Field(default=10, ge=1)
 
     # Telegram
@@ -39,12 +39,12 @@ class Settings(BaseSettings):
     TELEGRAM_API_URL: str = "https://api.telegram.org/bot"
 
     # Email SMTP
-    SMTP_HOST: str = Field(default="smtp.gmail.com")
+    SMTP_HOST: str = Field(...)
     SMTP_PORT: int = Field(default=587)
     SMTP_USER: str | None = Field(default=None)
     SMTP_PASSWORD: str | None = Field(default=None)
     SMTP_USE_TLS: bool = Field(default=True)
-    DEFAULT_FROM_EMAIL: str = Field(default="noreply@mentorbot.com")
+    DEFAULT_FROM_EMAIL: str = Field(...)
     EMAIL_DRY_RUN: bool = Field(
         default=True,
         description="Log emails instead of sending. Set EMAIL_DRY_RUN=False to enable actual email delivery",
@@ -54,7 +54,7 @@ class Settings(BaseSettings):
     SCHEDULER_POLL_INTERVAL_SECONDS: int = Field(default=60, ge=1)  # Check every minute
 
     # Inter-service communication
-    SERVICE_API_KEY: str = Field(default="")
+    SERVICE_API_KEY: str = Field(...)
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", case_sensitive=True, extra="ignore")
 

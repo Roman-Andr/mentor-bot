@@ -23,7 +23,7 @@ export function DepartmentDocumentUploadZone({
   };
 
   return (
-    <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/25 p-8 text-center hover:border-muted-foreground/50 transition-colors">
+    <div className="border-muted-foreground/25 hover:border-muted-foreground/50 flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 text-center transition-colors">
       <input
         type="file"
         id="file-upload"
@@ -33,11 +33,11 @@ export function DepartmentDocumentUploadZone({
       />
       <label
         htmlFor="file-upload"
-        className="cursor-pointer flex flex-col items-center"
+        className="flex cursor-pointer flex-col items-center"
       >
-        <Upload className="mb-4 h-10 w-10 text-muted-foreground" />
+        <Upload className="text-muted-foreground mb-4 h-10 w-10" />
         <p className="text-sm font-medium">Нажмите для выбора файла</p>
-        <p className="mt-2 text-xs text-muted-foreground">
+        <p className="text-muted-foreground mt-2 text-xs">
           PDF, DOCX, XLSX, изображения (макс. {maxSize / 1024 / 1024} МБ)
         </p>
       </label>

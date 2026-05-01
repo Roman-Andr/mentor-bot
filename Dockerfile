@@ -35,9 +35,14 @@ ENV AUTH_SERVICE_URL=http://auth_service:8000 \
 WORKDIR /app
 
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends gosu tzdata procps \
+  && apt-get install -y --no-install-recommends \
+    gosu tzdata procps \
+    libgobject-2.0-0 libglib2.0-0 libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz0b libcairo2 libpangocairo-1.0-0 \
+    libffi8 libjpeg62-turbo libopenjp2-7 libwebp7 libpixman-1-0 \
   && rm -rf /var/lib/apt/lists/* \
-  && useradd --create-home --shell /bin/sh appuser
+  && useradd --create-home --shell /bin/sh appuser \
+  && mkdir -p /var/log/app \
+  && chown -R appuser:appuser /var/log/app
 
 EXPOSE 8000
 

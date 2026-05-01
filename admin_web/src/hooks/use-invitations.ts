@@ -114,7 +114,7 @@ export function useInvitations() {
     if (entity.extendedState.emailTouched === undefined) {
       entity.setExtendedState(() => ({ emailTouched: false, createdUrl: null }));
     }
-  }, [entity.extendedState.emailTouched, entity.setExtendedState]);
+  }, [entity]);
 
   // Custom mutations
   const t = useTranslations("invitations");
@@ -126,7 +126,7 @@ export function useInvitations() {
       entity.invalidate();
       toast(t("resendSuccess"), "success");
     },
-    onError: (error) => {
+    onError: () => {
       toast(t("resendError"), "error");
     },
   });
@@ -150,26 +150,6 @@ export function useInvitations() {
     expired: entity.items.filter(i => i.status === "EXPIRED").length,
   };
 
-  const handleCreateInvitation = () => {
-    const payload = toPayload(entity.formData);
-    entity.createFn?.(payload).then((result) => {
-      if (!result?.success) {
-        // Error is already handled by entity hook's onError
-        return;
-      }
-      if (result.data) {
-        entity.setExtendedState((prev) => ({
-          ...prev,
-          createdUrl: (result.data as { invitation_url: string }).invitation_url,
-        }));
-        entity.invalidate();
-        entity.setIsCreateDialogOpen(false);
-        entity.resetForm();
-      } else {
-        throw new Error('Failed to create invitation');
-      }
-    });
-  };
 
   const resetForm = () => {
     entity.resetForm();

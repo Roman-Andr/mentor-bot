@@ -1,6 +1,3 @@
-import { logger } from "../logger";
-import { handleError, AppError } from "../error";
-
 let onUnauthorizedCallback: (() => void) | null = null;
 
 export function setUnauthorizedCallback(callback: () => void) {

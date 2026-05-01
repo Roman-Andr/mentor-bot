@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import { SearchInput } from "@/components/ui/search-input";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   Table,
   TableBody,
@@ -17,7 +18,7 @@ import { DataTable } from "@/components/ui/data-table";
 import { PageContent } from "@/components/layout/page-content";
 import { CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle, Trash2 } from "lucide-react";
-import { ESCALATION_STATUSES, ESCALATION_TYPES } from "@/lib/constants";
+import { getEscalationStatusOptions, getEscalationTypeOptions } from "@/lib/constants";
 import { formatDateTime } from "@/lib/utils";
 import { useEscalations } from "@/hooks/use-escalations";
 import { SortableTableHead } from "@/components/ui/sortable-table-head";
@@ -25,6 +26,9 @@ import { SortableTableHead } from "@/components/ui/sortable-table-head";
 export default function EscalationsPage() {
   const t = useTranslations();
   const e = useEscalations();
+
+  const statusOptions = getEscalationStatusOptions(t, true);
+  const typeOptions = getEscalationTypeOptions(t, true);
 
   return (
     <PageContent title={t("escalations.title")} subtitle={t("escalations.title")}>
@@ -51,12 +55,12 @@ export default function EscalationsPage() {
                 <Select
                   value={e.statusFilter}
                   onChange={e.setStatusFilter}
-                  options={ESCALATION_STATUSES}
+                  options={statusOptions}
                 />
                 <Select
                   value={e.typeFilter}
                   onChange={e.setTypeFilter}
-                  options={ESCALATION_TYPES}
+                  options={typeOptions}
                 />
                 <Button variant="outline" onClick={e.resetFilters}>
                   {t("common.clear")}
@@ -160,27 +164,42 @@ export default function EscalationsPage() {
                 <TableCell>{formatDateTime(esc.createdAt)}</TableCell>
                 <TableCell>{formatDateTime(esc.resolvedAt)}</TableCell>
                 <TableCell>
-                  <div className="flex gap-1">
-                    {esc.status !== "RESOLVED" && esc.status !== "CLOSED" && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-green-500"
-                        onClick={() => e.handleResolve(esc.id)}
-                        title={t("common.confirm")}
-                      >
-                        <CheckCircle className="size-4" />
-                      </Button>
-                    )}
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-red-500"
-                      onClick={() => e.handleDelete(esc.id)}
-                    >
-                      <Trash2 className="size-4" />
-                    </Button>
-                  </div>
+                  <TooltipProvider>
+                    <div className="flex gap-1">
+                      {esc.status !== "RESOLVED" && esc.status !== "CLOSED" && (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-green-500"
+                              onClick={() => e.handleResolve(esc.id)}
+                            >
+                              <CheckCircle className="size-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>{t("common.confirm")}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      )}
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-red-500"
+                            onClick={() => e.handleDelete(esc.id)}
+                          >
+                            <Trash2 className="size-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>{t("common.delete")}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                  </TooltipProvider>
                 </TableCell>
               </TableRow>
             ))}

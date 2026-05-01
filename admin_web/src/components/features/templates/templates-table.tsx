@@ -20,7 +20,7 @@ import { DataTableSkeleton } from "@/components/ui/table-skeleton";
 import { CardHeader, CardTitle } from "@/components/ui/card";
 import { TableActions, buildEditAction, buildDeleteAction } from "@/components/shared";
 import { Calendar, CheckCircle } from "lucide-react";
-import { TEMPLATE_STATUSES } from "@/lib/constants";
+import { getTemplateStatusOptions } from "@/lib/constants";
 import type { TemplateItem } from "@/hooks/use-templates";
 import type { SortDirection } from "@/hooks/use-sorting";
 
@@ -69,6 +69,8 @@ export function TemplatesTable({
 }: TemplatesTableProps) {
   const t = useTranslations();
 
+  const statusOptions = getTemplateStatusOptions(t, true);
+
   return (
     <DataTable
       loading={loading}
@@ -94,7 +96,7 @@ export function TemplatesTable({
               <Select
                 value={statusFilter}
                 onChange={onStatusFilterChange}
-                options={TEMPLATE_STATUSES}
+                options={statusOptions}
               />
               <Button variant="outline" onClick={onReset}>
                 {t("common.reset")}
@@ -199,7 +201,7 @@ export function TemplatesTable({
               <TableCell onClick={(e) => e.stopPropagation()}>
                 <TableActions
                   actions={[
-                    buildEditAction(() => onEdit(template)),
+                    buildEditAction(() => onEdit(template), t("common.edit")),
                     ...(template.status === "DRAFT"
                       ? [{
                           icon: CheckCircle,
@@ -210,7 +212,7 @@ export function TemplatesTable({
                         }]
                       : []
                     ),
-                    buildDeleteAction(() => onDelete(template.id)),
+                    buildDeleteAction(() => onDelete(template.id), t("common.delete")),
                   ]}
                 />
               </TableCell>

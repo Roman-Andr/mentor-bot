@@ -1,5 +1,5 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TabSwitcher } from "@/components/ui/tab-switcher";
 import { EntityPageHeader } from "./entity-page-header";
 import { EntityPageTable } from "./entity-page-table";
 import type { EntityPageProps } from "./entity-page-types";
@@ -28,6 +28,7 @@ export function EntityPage<TItem, TForm>(props: EntityPageProps<TItem, TForm>) {
     submitError,
     searchQuery,
     onSearchChange,
+    t,
     onPageChange,
     onPageSizeChange,
     columns,
@@ -74,21 +75,14 @@ export function EntityPage<TItem, TForm>(props: EntityPageProps<TItem, TForm>) {
           createButtonLabel={createButtonLabel ?? defaultCreateLabel}
           onCreateOpen={onCreateOpen}
         />
-        <Tabs value={activeTab ?? tabs[0].id} onValueChange={onTabChange}>
-          <TabsList>
-            {tabs.map((tab) => (
-              <TabsTrigger key={tab.id} value={tab.id}>
-                {tab.icon && <tab.icon className="mr-2 size-4" />}
-                {tab.label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
+        <TabSwitcher tabs={tabs} activeTab={activeTab ?? tabs[0].id} onTabChange={onTabChange} />
+        <div className="space-y-4">
           {tabs.map((tab) => (
-            <TabsContent key={tab.id} value={tab.id}>
+            <div key={tab.id} className={tab.id === (activeTab ?? tabs[0].id) ? "block" : "hidden"}>
               {tab.content}
-            </TabsContent>
+            </div>
           ))}
-        </Tabs>
+        </div>
         <Dialog open={isCreateOpen || isEditOpen} onOpenChange={onCloseDialog}>
           <DialogContent className={dialogMaxWidth}>
             <DialogHeader>
@@ -96,19 +90,19 @@ export function EntityPage<TItem, TForm>(props: EntityPageProps<TItem, TForm>) {
             </DialogHeader>
             {renderForm({ formData, onChange: onFormChange, mode })}
             {submitError && (
-              <div className="text-sm text-destructive mt-2">{submitError}</div>
+              <div className="text-destructive mt-2 text-sm">{submitError}</div>
             )}
-            <div className="flex justify-end gap-2 mt-4">
+            <div className="mt-4 flex justify-end gap-2">
               <button
                 onClick={onCloseDialog}
-                className="px-4 py-2 border rounded hover:bg-muted"
+                className="hover:bg-muted rounded border px-4 py-2"
               >
                 {t("cancel") ?? "Cancel"}
               </button>
               <button
                 onClick={onSubmit}
                 disabled={isSubmitting || !isFormValid}
-                className="px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90 disabled:opacity-50"
+                className="bg-primary text-primary-foreground hover:bg-primary/90 rounded px-4 py-2 disabled:opacity-50"
               >
                 {isSubmitting ? t("saving") ?? "Saving..." : (t("save") ?? "Save")}
               </button>
@@ -161,6 +155,7 @@ export function EntityPage<TItem, TForm>(props: EntityPageProps<TItem, TForm>) {
         sortDirection={sortDirection}
         onSort={onSort}
         emptyStateMessage={emptyStateMessage ?? defaultEmptyMessage}
+        t={t}
       />
       <Dialog open={isCreateOpen || isEditOpen} onOpenChange={onCloseDialog}>
         <DialogContent className={dialogMaxWidth}>
@@ -169,19 +164,19 @@ export function EntityPage<TItem, TForm>(props: EntityPageProps<TItem, TForm>) {
           </DialogHeader>
           {renderForm({ formData, onChange: onFormChange, mode })}
           {submitError && (
-            <div className="text-sm text-destructive mt-2">{submitError}</div>
+            <div className="text-destructive mt-2 text-sm">{submitError}</div>
           )}
-          <div className="flex justify-end gap-2 mt-4">
+          <div className="mt-4 flex justify-end gap-2">
             <button
               onClick={onCloseDialog}
-              className="px-4 py-2 border rounded hover:bg-muted"
+              className="hover:bg-muted rounded border px-4 py-2"
             >
               {t("cancel") ?? "Cancel"}
             </button>
             <button
               onClick={onSubmit}
               disabled={isSubmitting || !isFormValid}
-              className="px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90 disabled:opacity-50"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 rounded px-4 py-2 disabled:opacity-50"
             >
               {isSubmitting ? t("saving") ?? "Saving..." : (t("save") ?? "Save")}
             </button>

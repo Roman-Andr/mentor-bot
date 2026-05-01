@@ -24,7 +24,7 @@ class SearchHistory(Base):
     results_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     department_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
     position: Mapped[str | None] = mapped_column(String(100), nullable=True)
-    context: Mapped[dict | None] = mapped_column(Text, nullable=True)
+    context: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
 
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)

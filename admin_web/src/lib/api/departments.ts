@@ -3,7 +3,13 @@ import { buildQueryString } from "@/lib/utils/query-builder";
 import type { Department, DepartmentListResponse } from "@/types";
 
 export const departmentsApi = {
-  list: (params?: { skip?: number; limit?: number; search?: string }) => {
+  list: (params?: {
+    skip?: number;
+    limit?: number;
+    search?: string;
+    sort_by?: string;
+    sort_order?: "asc" | "desc";
+  }) => {
     const qs = buildQueryString(params);
     return fetchApi<DepartmentListResponse>(`/api/v1/departments${qs ? `?${qs}` : ""}`);
   },

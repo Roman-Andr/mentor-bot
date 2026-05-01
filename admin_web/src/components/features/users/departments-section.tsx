@@ -3,6 +3,7 @@ import { Dialog } from "@/components/ui/dialog";
 import { DepartmentsTable } from "@/components/features/users/departments-table";
 import { DepartmentFormDialog } from "@/components/features/users/department-form-dialog";
 import type { DepartmentFormData, DepartmentRow } from "@/hooks/use-departments";
+import type { SortDirection } from "@/hooks/use-sorting";
 
 interface DepartmentsSectionProps {
   isCreateDialogOpen: boolean;
@@ -28,6 +29,9 @@ interface DepartmentsSectionProps {
   setPageSize: (size: number) => void;
   openEditDialog: (item: DepartmentRow) => void;
   handleDelete: (id: number) => Promise<void>;
+  sortField?: string | null;
+  sortDirection?: SortDirection;
+  onSort?: (field: string) => void;
 }
 
 export function DepartmentsSection({
@@ -47,6 +51,9 @@ export function DepartmentsSection({
   totalPages,
   totalCount,
   pageSize,
+  sortField,
+  sortDirection,
+  onSort,
   setCurrentPage,
   setPageSize,
   openEditDialog,
@@ -88,6 +95,9 @@ export function DepartmentsSection({
         totalPages={totalPages}
         totalCount={totalCount}
         pageSize={pageSize}
+        sortField={sortField}
+        sortDirection={sortDirection}
+        onSort={onSort}
         onPageChange={setCurrentPage}
         onPageSizeChange={setPageSize}
         onEdit={openEditDialog}

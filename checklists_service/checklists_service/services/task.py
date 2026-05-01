@@ -181,6 +181,8 @@ class TaskService:
         task.updated_at = datetime.now(UTC)
         task = await self._uow.tasks.update(task)
 
+        await self._uow.commit()
+
         await self._uow.checklists.recalculate_progress(task.checklist_id)
 
         await self._unblock_dependent_tasks(task_id)

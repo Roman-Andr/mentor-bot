@@ -56,6 +56,23 @@ class AuthServiceClient:
         """Invalidate cache for specific user."""
         await cache.delete_pattern(f"auth_user:*{user_id}*")
 
+    @cached(ttl=settings.AUTH_USER_CACHE_TTL, key_prefix="auth_departments")
+    async def get_departments(self, token: str) -> list[dict[str, Any]] | None:
+        """Get all departments from auth service (cached)."""
+        try:
+            response = await self.client.get(
+                "/api/v1/departments/",
+                headers={"Authorization": f"Bearer {token}"},
+            )
+            if response.status_code == status.HTTP_200_OK:
+                data = response.json()
+                return data.get("departments", [])
+        except httpx.RequestError:
+            logger.exception("Auth service request failed")
+        except Exception:
+            logger.exception("Get departments error")
+        return None
+
 
 # Singleton instance
 auth_service_client = AuthServiceClient()

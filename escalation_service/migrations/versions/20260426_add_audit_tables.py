@@ -31,9 +31,7 @@ def upgrade() -> None:
         sa.Column("changed_at", sa.DateTime(timezone=True), server_default=sa.text("NOW()"), nullable=False),
         sa.Column("changed_by", sa.Integer(), nullable=True),
         sa.Column("metadata", sa.JSON(), nullable=True),
-        sa.ForeignKeyConstraint(["escalation_id"], ["escalations.id"]),
-        sa.ForeignKeyConstraint(["user_id"], ["users.id"]),
-        sa.ForeignKeyConstraint(["changed_by"], ["users.id"]),
+        sa.ForeignKeyConstraint(["escalation_id"], ["escalation_requests.id"]),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(
@@ -56,7 +54,7 @@ def upgrade() -> None:
         sa.Column("notes", sa.Text(), nullable=True),
         sa.Column("outcome", sa.String(length=50), nullable=True),
         sa.Column("escalation_resolved", sa.Boolean(), nullable=False, default=False),
-        sa.ForeignKeyConstraint(["escalation_id"], ["escalations.id"]),
+        sa.ForeignKeyConstraint(["escalation_id"], ["escalation_requests.id"]),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(

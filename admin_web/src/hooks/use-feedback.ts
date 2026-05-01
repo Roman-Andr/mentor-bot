@@ -11,7 +11,6 @@ import type {
   ExperienceStats,
   AnonymityStats,
   FeedbackType,
-  Comment,
 } from "@/types/feedback";
 
 export function useFeedback() {
@@ -139,10 +138,22 @@ export function useFeedback() {
     staleTime: 5 * 60 * 1000,
   });
 
-  // Fetch anonymity stats (only pulse exists in backend)
+  // Fetch anonymity stats
   const { data: pulseAnonymityStats } = useQuery({
     queryKey: queryKeys.feedback.pulseAnonymityStats(),
     queryFn: () => feedbackApi.getPulseAnonymityStats(),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const { data: experienceAnonymityStats } = useQuery({
+    queryKey: queryKeys.feedback.experienceAnonymityStats(),
+    queryFn: () => feedbackApi.getExperienceAnonymityStats(),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const { data: commentAnonymityStats } = useQuery({
+    queryKey: queryKeys.feedback.commentAnonymityStats(),
+    queryFn: () => feedbackApi.getCommentAnonymityStats(),
     staleTime: 5 * 60 * 1000,
   });
 
@@ -265,7 +276,7 @@ export function useFeedback() {
 
   const commentsWithReply = useMemo(() => {
     return (
-      commentsData?.success && commentsData.data?.items ? commentsData.data.items.filter((c: any) => c.reply).length : 0
+      commentsData?.success && commentsData.data?.items ? commentsData.data.items.filter((c) => c.reply).length : 0
     );
   }, [commentsData]);
 
@@ -322,6 +333,8 @@ export function useFeedback() {
     pulseStats: pulseStats?.success ? pulseStats.data as PulseStats | undefined : undefined,
     experienceStats: experienceStats?.success ? experienceStats.data as ExperienceStats | undefined : undefined,
     pulseAnonymityStats: pulseAnonymityStats?.success ? pulseAnonymityStats.data as AnonymityStats | undefined : undefined,
+    experienceAnonymityStats: experienceAnonymityStats?.success ? experienceAnonymityStats.data as AnonymityStats | undefined : undefined,
+    commentAnonymityStats: commentAnonymityStats?.success ? commentAnonymityStats.data as AnonymityStats | undefined : undefined,
     totalComments,
     commentsWithReply,
 

@@ -219,6 +219,7 @@ class TestUploadAttachment:
         mock_article_service: AsyncMock,
         mock_attachment_service: AsyncMock,
         mock_user: UserInfo,
+        mock_storage_service: AsyncMock,
         mock_article: Article,
     ) -> None:
         """Test upload with oversized file."""
@@ -228,15 +229,21 @@ class TestUploadAttachment:
         mock_file = MagicMock(spec=UploadFile)
         mock_file.filename = "huge.pdf"
         mock_file.size = 100 * 1024 * 1024  # 100MB
+        mock_file.content_type = "application/pdf"
+        # Mock the read() method to return content of the specified size
+        mock_file.read = AsyncMock(return_value=b"x" * (100 * 1024 * 1024))
 
-        with pytest.raises(ValidationException) as exc_info:
-            await upload_attachment(
-                article_service=mock_article_service,
-                attachment_service=mock_attachment_service,
-                current_user=mock_user,
-                article_id=1,
-                file=mock_file,
-            )
+        with patch(
+            "knowledge_service.api.endpoints.attachments.get_storage_service", return_value=mock_storage_service
+        ):
+            with pytest.raises(ValidationException) as exc_info:
+                await upload_attachment(
+                    article_service=mock_article_service,
+                    attachment_service=mock_attachment_service,
+                    current_user=mock_user,
+                    article_id=1,
+                    file=mock_file,
+                )
 
         assert "File size exceeds" in str(exc_info.value.detail)
 

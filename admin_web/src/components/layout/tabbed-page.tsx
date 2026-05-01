@@ -4,6 +4,7 @@ import * as React from "react";
 import * as TabsPrimitive from "@radix-ui/react-tabs";
 import { cn } from "@/lib/utils";
 import { PageHeader } from "./page-header";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 
 const Tabs = TabsPrimitive.Root;
 
@@ -68,6 +69,7 @@ interface TabbedPageProps {
   defaultTab?: string;
   actions?: React.ReactNode;
   searchComponent?: React.ReactNode;
+  paramName?: string;
 }
 
 export function TabbedPage({
@@ -77,8 +79,19 @@ export function TabbedPage({
   defaultTab,
   actions,
   searchComponent,
+  paramName = "tab",
 }: TabbedPageProps) {
-  const [activeTab, setActiveTab] = React.useState(defaultTab ?? tabs[0]?.id);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  
+  const activeTab = searchParams.get(paramName) || defaultTab || tabs[0]?.id;
+
+  const handleTabChange = (tabId: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set(paramName, tabId);
+    router.replace(`${pathname}?${params.toString()}`);
+  };
 
   return (
     <div className="space-y-6 p-6">
@@ -93,7 +106,7 @@ export function TabbedPage({
         }
       />
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
         <div className="flex items-center justify-between">
           <TabsList className="bg-background border p-1">
             {tabs.map((tab) => {

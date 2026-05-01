@@ -94,17 +94,20 @@ async def upload_attachment(
         msg = "Cannot attach files to other users' articles"
         raise PermissionDenied(msg)
 
-    if not validate_file_size(file.size or 0):
-        msg = f"File size exceeds {settings.MAX_FILE_SIZE_MB}MB limit"
-        raise ValidationException(msg)
     if not validate_file_type(file.filename or ""):
         msg = f"File type not allowed. Allowed: {settings.ALLOWED_FILE_TYPES}"
         raise ValidationException(msg)
 
     safe_filename = validate_filename(file.filename or "unknown")
 
-    # Read file content
+    # Read file content first to get actual size
     file_content = await file.read()
+    file_size = len(file_content)
+
+    # Validate file size based on actual content
+    if not validate_file_size(file_size):
+        msg = f"File size exceeds {settings.MAX_FILE_SIZE_MB}MB limit"
+        raise ValidationException(msg)
 
     # Upload to S3
     storage = get_storage_service()
@@ -118,7 +121,6 @@ async def upload_attachment(
             metadata={
                 "article_id": str(article_id),
                 "uploaded_by": str(current_user.id),
-                "original_filename": file.filename or "unknown",
             },
         )
         # Use presigned URL for immediate access
@@ -132,7 +134,7 @@ async def upload_attachment(
         name=safe_filename,
         attachment_type=AttachmentType.FILE,
         url=file_url,
-        file_size=file.size,
+        file_size=file_size,
         mime_type=file.content_type,
         description=description,
         order=order,
@@ -186,6 +188,7 @@ async def batch_upload_attachments(
 
         safe_filename = validate_filename(filename)
         file_content = await file.read()
+        file_size = len(file_content)
 
         object_name = _get_object_name(article_id, safe_filename)
         try:
@@ -196,7 +199,6 @@ async def batch_upload_attachments(
                 metadata={
                     "article_id": str(article_id),
                     "uploaded_by": str(current_user.id),
-                    "original_filename": filename,
                 },
             )
             file_url = storage.get_presigned_url(object_name, expires=settings.S3_PRESIGNED_URL_EXPIRY)
@@ -214,7 +216,7 @@ async def batch_upload_attachments(
             name=safe_filename,
             attachment_type=AttachmentType.FILE,
             url=file_url,
-            file_size=file.size,
+            file_size=file_size,
             mime_type=file.content_type,
             description=None,
             order=0,

@@ -186,23 +186,81 @@ export function useChecklists() {
     });
   };
 
-  const handleUpdate = () => {
+  const handleUpdate = async (tasksToComplete?: Set<number>) => {
     if (!entity.selectedItem) return;
     const payload = toUpdatePayload(entity.formData);
-    entity.updateFn?.(entity.selectedItem.id, payload).then((result) => {
+    const result = await entity.updateFn?.(entity.selectedItem.id, payload);
+    if (!result?.success) {
+      // Error is already handled by entity hook's onError
+      return;
+    }
+    // Complete tasks if any were marked
+    if (tasksToComplete && tasksToComplete.size > 0) {
+      const failedTasks: { taskId: number; error: string }[] = [];
+      for (const taskId of tasksToComplete) {
+        try {
+          const taskResult = await api.checklists.completeTask(taskId);
+          if (!taskResult?.success) {
+            failedTasks.push({ taskId, error: taskResult.error || "Unknown error" });
+          }
+        } catch (error: any) {
+          failedTasks.push({ taskId, error: error.message || "Failed to complete task" });
+        }
+      }
+      if (failedTasks.length > 0) {
+        const errorMsg = failedTasks.map(t => `- Task ID ${t.taskId}: ${t.error}`).join("\n");
+        alert(`Failed to complete some tasks:\n${errorMsg}`);
+      }
+    }
+    entity.invalidate();
+    entity.setIsEditDialogOpen(false);
+    entity.setSelectedItem(null);
+    entity.resetForm();
+  };
+
+  const handleComplete = async (id: number) => {
+    try {
+      // Get all tasks for the checklist
+      const tasksResult = await api.checklists.getTasks(id);
+      if (!tasksResult?.success || !tasksResult.data) {
+        return;
+      }
+
+      const tasks = tasksResult.data;
+      const failedTasks: { title: string; error: string }[] = [];
+
+      // Complete all pending tasks
+      for (const task of tasks) {
+        if (task.status !== "COMPLETED") {
+          try {
+            const result = await api.checklists.completeTask(task.id);
+            if (!result?.success) {
+              failedTasks.push({ title: task.title, error: result.error || "Unknown error" });
+            }
+          } catch (error: any) {
+            failedTasks.push({ title: task.title, error: error.message || "Failed to complete task" });
+          }
+        }
+      }
+
+      // If any tasks failed, show error and don't complete checklist
+      if (failedTasks.length > 0) {
+        const errorMsg = failedTasks.map(t => `- ${t.title}: ${t.error}`).join("\n");
+        alert(`Cannot complete checklist. Failed to complete tasks:\n${errorMsg}`);
+        return;
+      }
+
+      // Now complete the checklist
+      const result = await api.checklists.complete(id);
       if (!result?.success) {
-        // Error is already handled by entity hook's onError
+        alert(`Failed to complete checklist: ${result.error || "Unknown error"}`);
         return;
       }
       entity.invalidate();
-      entity.setIsEditDialogOpen(false);
-      entity.setSelectedItem(null);
-      entity.resetForm();
-    });
-  };
-
-  const handleComplete = (id: number) => {
-    return api.checklists.complete(id);
+    } catch (error: any) {
+      console.error("Failed to complete checklist:", error);
+      alert(`Failed to complete checklist: ${error.message || "Unknown error"}`);
+    }
   };
 
   return {

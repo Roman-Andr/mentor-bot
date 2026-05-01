@@ -7,6 +7,7 @@ import { SearchInput } from "@/components/ui/search-input";
 import { Select } from "@/components/ui/select";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { SortableTableHead } from "@/components/ui/sortable-table-head";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   Table,
   TableBody,
@@ -20,7 +21,7 @@ import { DataTableSkeleton } from "@/components/ui/table-skeleton";
 import { CardHeader, CardTitle } from "@/components/ui/card";
 import { Mail, Trash2, RefreshCw, Ban, Copy, Check } from "lucide-react";
 import { useState } from "react";
-import { ROLES, ROLES_WITH_ALL, INVITATION_STATUSES } from "@/lib/constants";
+import { getRoleOptions, getInvitationStatusOptions } from "@/lib/constants";
 import type { InvitationItem } from "@/hooks/use-invitations";
 import type { SortDirection } from "@/hooks/use-sorting";
 
@@ -74,6 +75,9 @@ export function InvitationsTable({
   const t = useTranslations();
   const [copiedId, setCopiedId] = useState<number | null>(null);
 
+  const roleOptions = getRoleOptions(t, true);
+  const statusOptions = getInvitationStatusOptions(t, true);
+
   const handleCopy = async (url: string, id: number) => {
     await navigator.clipboard.writeText(url);
     setCopiedId(id);
@@ -102,15 +106,22 @@ export function InvitationsTable({
                 value={searchQuery}
                 onChange={onSearchChange}
               />
-              <Select value={roleFilter} onChange={onRoleFilterChange} options={ROLES_WITH_ALL} />
+              <Select value={roleFilter} onChange={onRoleFilterChange} options={roleOptions} />
               <Select
                 value={statusFilter}
                 onChange={onStatusFilterChange}
-                options={INVITATION_STATUSES}
+                options={statusOptions}
               />
-              <Button variant="outline" onClick={onReset}>
-                {t("common.reset")}
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="outline" onClick={onReset}>
+                    {t("common.reset")}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{t("common.reset")}</p>
+                </TooltipContent>
+              </Tooltip>
             </div>
           </div>
         </CardHeader>
@@ -187,7 +198,7 @@ export function InvitationsTable({
               </TableCell>
               <TableCell>
                 <Badge variant="outline">
-                  {ROLES.find((r) => r.value === invitation.role)?.label}
+                  {t(`statuses.${invitation.role}`)}
                 </Badge>
               </TableCell>
               <TableCell>{invitation.department}</TableCell>
@@ -197,56 +208,82 @@ export function InvitationsTable({
               <TableCell>{new Date(invitation.createdAt).toLocaleDateString()}</TableCell>
               <TableCell>{new Date(invitation.expiresAt).toLocaleDateString()}</TableCell>
               <TableCell>
-                <div className="flex gap-1">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-muted-foreground"
-                    onClick={() => handleCopy(invitation.invitationUrl, invitation.id)}
-                    title={t("invitations.copyLink")}
-                    aria-label={t("invitations.copyLink")}
-                  >
-                    {copiedId === invitation.id ? (
-                      <Check className="size-4 text-green-600" />
-                    ) : (
-                      <Copy className="size-4" />
+                <TooltipProvider>
+                  <div className="flex gap-1">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-muted-foreground"
+                          onClick={() => handleCopy(invitation.invitationUrl, invitation.id)}
+                          aria-label={t("invitations.copyLink")}
+                        >
+                          {copiedId === invitation.id ? (
+                            <Check className="size-4 text-green-600" />
+                          ) : (
+                            <Copy className="size-4" />
+                          )}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{t("invitations.copyLink")}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                    {invitation.status === "PENDING" && (
+                      <>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-blue-500"
+                              onClick={() => onResend(invitation.id)}
+                              aria-label={t("invitations.resend")}
+                            >
+                              <RefreshCw className="size-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>{t("invitations.resend")}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-orange-500"
+                              onClick={() => onRevoke(invitation.id)}
+                              aria-label={t("invitations.revoke")}
+                            >
+                              <Ban className="size-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>{t("invitations.revoke")}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </>
                     )}
-                  </Button>
-                  {invitation.status === "PENDING" && (
-                    <>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-blue-500"
-                        onClick={() => onResend(invitation.id)}
-                        title={t("invitations.resend")}
-                        aria-label={t("invitations.resend")}
-                      >
-                        <RefreshCw className="size-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-orange-500"
-                        onClick={() => onRevoke(invitation.id)}
-                        title={t("invitations.revoke")}
-                        aria-label={t("invitations.revoke")}
-                      >
-                        <Ban className="size-4" />
-                      </Button>
-                    </>
-                  )}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-red-500"
-                    onClick={() => onDelete(invitation.id)}
-                    title={t("common.delete")}
-                    aria-label={t("common.delete")}
-                  >
-                    <Trash2 className="size-4" />
-                  </Button>
-                </div>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-red-500"
+                          onClick={() => onDelete(invitation.id)}
+                          aria-label={t("common.delete")}
+                        >
+                          <Trash2 className="size-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{t("common.delete")}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                </TooltipProvider>
               </TableCell>
             </TableRow>
           ))}

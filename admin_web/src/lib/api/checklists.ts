@@ -51,6 +51,10 @@ export const checklistsApi = {
     }),
   complete: (id: number) =>
     fetchApi<Checklist>(`/api/v1/checklists/${id}/complete`, { method: "POST" }),
+  getTasks: (id: number) =>
+    fetchApi<any[]>(`/api/v1/tasks/checklist/${id}`),
+  completeTask: (taskId: number) =>
+    fetchApi<any>(`/api/v1/tasks/${taskId}/complete`, { method: "POST" }),
   getProgress: (id: number) =>
     fetchApi<Record<string, unknown>>(`/api/v1/checklists/${id}/progress`),
   stats: (params?: { user_id?: number; department_id?: number }) => {

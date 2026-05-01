@@ -8,6 +8,8 @@ export const dialoguesApi = {
     search?: string;
     skip?: number;
     limit?: number;
+    sort_by?: string;
+    sort_order?: string;
   }) => {
     const searchParams = new URLSearchParams();
     if (params?.category) searchParams.set("category", params.category);
@@ -15,6 +17,8 @@ export const dialoguesApi = {
     if (params?.search) searchParams.set("search", params.search);
     if (params?.skip !== undefined) searchParams.set("skip", String(params.skip));
     if (params?.limit) searchParams.set("limit", String(params.limit));
+    if (params?.sort_by) searchParams.set("sort_by", params.sort_by);
+    if (params?.sort_order) searchParams.set("sort_order", params.sort_order);
     return fetchApi<DialogueScenarioListResponse>(
       `/api/v1/dialogue-scenarios?${searchParams.toString()}`,
     );

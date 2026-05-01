@@ -21,11 +21,11 @@
 #                               ESCALATION_SERVICE_TAG, MEETING_SERVICE_TAG
 
 x-common-env: &common-env
-  LOG_LEVEL: ${LOG_LEVEL:-INFO}
+  LOG_LEVEL: ${LOG_LEVEL}
   SERVICE_API_KEY: ${SERVICE_API_KEY}
-  TZ: ${TZ:-UTC}
-  CORS_ORIGINS: ${CORS_ORIGINS:-'["*"]'}
-  ALLOWED_HOSTS: ${ALLOWED_HOSTS:-'["*"]'}
+  TZ: ${TZ}
+  CORS_ORIGINS: ${CORS_ORIGINS}
+  ALLOWED_HOSTS: ${ALLOWED_HOSTS}
 
 x-logging: &default-logging
   driver: json-file
@@ -59,7 +59,7 @@ services:
       REDIS_URL: ${REDIS_URL}/3
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
       TELEGRAM_API_KEY: ${TELEGRAM_API_KEY}
-      TELEGRAM_PROXY: ${TELEGRAM_PROXY:-}
+      TELEGRAM_PROXY: ${TELEGRAM_PROXY}
       AUTH_SERVICE_URL: http://auth_service:8000
       CHECKLISTS_SERVICE_URL: http://checklists_service:8000
       KNOWLEDGE_SERVICE_URL: http://knowledge_service:8000
@@ -67,6 +67,7 @@ services:
       ESCALATION_SERVICE_URL: http://escalation_service:8000
       MEETING_SERVICE_URL: http://meeting_service:8000
       FEEDBACK_SERVICE_URL: http://feedback_service:8000
+      API_GATEWAY_URL: ${API_GATEWAY_URL}
       ENABLE_NOTIFICATIONS: "true"
       NOTIFICATION_HOUR: "9"
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
@@ -131,6 +132,7 @@ services:
       KNOWLEDGE_SERVICE_URL: http://knowledge_service:8000
       MEETING_SERVICE_URL: http://meeting_service:8000
       NOTIFICATION_SERVICE_URL: http://notification_service:8000
+      ADMIN_WEB_URL: ${ADMIN_WEB_URL}
 
   checklists_service:
     <<: *python-defaults
@@ -148,9 +150,9 @@ services:
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/checklists_db
       REDIS_URL: ${REDIS_URL}/1
       AUTH_SERVICE_URL: http://auth_service:8000
-      S3_ENDPOINT: ${S3_ENDPOINT:-http://minio:9000}
-      S3_ACCESS_KEY: ${S3_ACCESS_KEY}
-      S3_SECRET_KEY: ${S3_SECRET_KEY}
+      S3_ENDPOINT: ${S3_ENDPOINT}
+      S3_ACCESS_KEY: ${MINIO_ROOT_USER}
+      S3_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
       S3_REGION: ${S3_REGION:-us-east-1}
       S3_USE_SSL: ${S3_USE_SSL:-false}
       S3_SECURE_MODE: ${S3_SECURE_MODE:-false}
@@ -173,9 +175,9 @@ services:
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/knowledge_db
       REDIS_URL: ${REDIS_URL}/2
       AUTH_SERVICE_URL: http://auth_service:8000
-      S3_ENDPOINT: ${S3_ENDPOINT:-http://minio:9000}
-      S3_ACCESS_KEY: ${S3_ACCESS_KEY}
-      S3_SECRET_KEY: ${S3_SECRET_KEY}
+      S3_ENDPOINT: ${S3_ENDPOINT}
+      S3_ACCESS_KEY: ${MINIO_ROOT_USER}
+      S3_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
       S3_REGION: ${S3_REGION:-us-east-1}
       S3_USE_SSL: ${S3_USE_SSL:-false}
       S3_SECURE_MODE: ${S3_SECURE_MODE:-false}

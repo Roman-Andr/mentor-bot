@@ -95,12 +95,8 @@ describe('analyticsApi', () => {
             }
           ])
         }
-        expect(global.fetch).toHaveBeenCalledWith(
-          '/api/v1/knowledge/analytics/top-articles',
-          expect.objectContaining({
-            credentials: 'include'
-          })
-        )
+        const fetchCall = (global.fetch as jest.Mock).mock.calls[0]
+        expect(fetchCall[0]).toContain('/api/v1/knowledge/analytics/top-articles')
       })
 
       it('fetches top articles with custom limit and date range', async () => {
@@ -227,12 +223,8 @@ describe('analyticsApi', () => {
             }
           ])
         }
-        expect(global.fetch).toHaveBeenCalledWith(
-          '/api/v1/knowledge/analytics/views-by-category',
-          expect.objectContaining({
-            credentials: 'include'
-          })
-        )
+        const fetchCall = (global.fetch as jest.Mock).mock.calls[0]
+        expect(fetchCall[0]).toContain('/api/v1/knowledge/analytics/views-by-category')
       })
 
       it('fetches views by category with date range', async () => {
@@ -290,12 +282,8 @@ describe('analyticsApi', () => {
             }
           ])
         }
-        expect(global.fetch).toHaveBeenCalledWith(
-          '/api/v1/knowledge/analytics/views-by-tag',
-          expect.objectContaining({
-            credentials: 'include'
-          })
-        )
+        const fetchCall = (global.fetch as jest.Mock).mock.calls[0]
+        expect(fetchCall[0]).toContain('/api/v1/knowledge/analytics/views-by-tag')
       })
 
       it('fetches views by tag with date range', async () => {

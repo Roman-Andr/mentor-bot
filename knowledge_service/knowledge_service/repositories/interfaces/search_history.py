@@ -70,6 +70,7 @@ class ISearchHistoryRepository(BaseRepository["SearchHistory", int]):
         self,
         from_date: datetime | None = None,
         to_date: datetime | None = None,
+        token: str | None = None,
     ) -> list[dict[str, Any]]:
         """Get search statistics grouped by department."""
 

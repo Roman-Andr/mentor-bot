@@ -63,16 +63,16 @@ export function FeedbackDetailsDialog({ item, open, getUserName, onOpenChange }:
           {item.comment && (
             <div className="rounded-md border p-3">
               <div className="text-sm font-medium">{t("feedback.comment")}</div>
-              <p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground">{item.comment}</p>
+              <p className="text-muted-foreground mt-2 text-sm whitespace-pre-wrap">{item.comment}</p>
             </div>
           )}
 
           {item.reply && (
             <div className="rounded-md border border-green-200 bg-green-50 p-3 dark:border-green-900/50 dark:bg-green-950/20">
               <div className="text-sm font-medium">{t("feedback.reply")}</div>
-              <p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground">{item.reply}</p>
+              <p className="text-muted-foreground mt-2 text-sm whitespace-pre-wrap">{item.reply}</p>
               {item.replied_at && (
-                <div className="mt-2 text-xs text-muted-foreground">
+                <div className="text-muted-foreground mt-2 text-xs">
                   {t("feedback.repliedAt")}: {formatDateTime(item.replied_at)}
                 </div>
               )}
@@ -87,7 +87,7 @@ export function FeedbackDetailsDialog({ item, open, getUserName, onOpenChange }:
 function Detail({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div className="rounded-md border p-3">
-      <div className="text-xs font-medium uppercase text-muted-foreground">{label}</div>
+      <div className="text-muted-foreground text-xs font-medium uppercase">{label}</div>
       <div className="mt-1 text-sm">{value}</div>
     </div>
   );

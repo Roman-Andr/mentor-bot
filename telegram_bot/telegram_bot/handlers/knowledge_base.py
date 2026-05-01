@@ -32,7 +32,7 @@ from telegram_bot.states.auth_states import (
 )
 from telegram_bot.utils.cache import cache, cached
 from telegram_bot.utils.file_rate_limiter import file_upload_rate_limit
-from telegram_bot.utils.formatters import format_search_results
+from telegram_bot.utils.formatters import escape_markdown, format_search_results
 
 logger = logging.getLogger(__name__)
 
@@ -444,7 +444,7 @@ async def view_search_result(
     excerpt = article.get("excerpt", "")
     attachments = article.get("attachments", [])
 
-    text = f"\U0001f4c4 *{title}*\n\n"
+    text = f"\U0001f4c4 *{escape_markdown(title)}*\n\n"
     if excerpt:
         text += f"{excerpt}\n\n"
     elif content:
@@ -459,7 +459,7 @@ async def view_search_result(
             name = att.get("name", "file")
             size = att.get("file_size")
             size_str = f" ({_format_file_size(size)})" if size else ""
-            text += f"  \u2022 {name}{size_str}\n"
+            text += f"  \u2022 {escape_markdown(name)}{size_str}\n"
 
     await callback.message.edit_text(
         text,
@@ -521,7 +521,7 @@ async def download_kb_attachment(
         await bot.send_document(
             chat_id=callback.message.chat.id,
             document=input_file,
-            caption=f"\U0001f4c4 {filename}",
+            caption=f"\U0001f4c4 {escape_markdown(filename)}",
         )
     except Exception:
         logger.exception("Failed to send file")
@@ -726,7 +726,7 @@ async def view_category_article(
     excerpt = article.get("excerpt", "")
     attachments = article.get("attachments", [])
 
-    text = f"\U0001f4c4 *{title}*\n\n"
+    text = f"\U0001f4c4 *{escape_markdown(title)}*\n\n"
     if excerpt:
         text += f"{excerpt}\n\n"
     elif content:
@@ -741,7 +741,7 @@ async def view_category_article(
             name = att.get("name", "file")
             size = att.get("file_size")
             size_str = f" ({_format_file_size(size)})" if size else ""
-            text += f"  \u2022 {name}{size_str}\n"
+            text += f"  \u2022 {escape_markdown(name)}{size_str}\n"
 
     await callback.message.edit_text(
         text,

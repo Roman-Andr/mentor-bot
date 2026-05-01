@@ -2,18 +2,19 @@
 
 import asyncio
 import os
-from logging.config import fileConfig
 
 from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import create_async_engine
 
+from knowledge_service.config import settings as _settings
+from knowledge_service.utils.logging import configure_logging
+
+configure_logging(service_name="knowledge_service", log_level=_settings.LOG_LEVEL)
+
 config = context.config
-if config.config_file_name is not None:
-    fileConfig(config.config_file_name)
 
 import knowledge_service.models  # noqa: F401, E402 — registers all ORM models with Base.metadata
-from knowledge_service.config import settings as _settings  # noqa: E402
 from knowledge_service.database.base import Base  # noqa: E402
 
 target_metadata = Base.metadata

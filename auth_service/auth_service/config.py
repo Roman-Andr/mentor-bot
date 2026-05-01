@@ -22,12 +22,12 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "INFO"
 
     # Database
-    DATABASE_URL: PostgresDsn = Field(default="postgresql+asyncpg://user:password@localhost:5432/auth_db")
+    DATABASE_URL: PostgresDsn = Field(...)
     DATABASE_POOL_SIZE: int = 5
     DATABASE_MAX_OVERFLOW: int = 10
 
     # Redis
-    REDIS_URL: RedisDsn = Field(default="redis://localhost:6379/0")
+    REDIS_URL: RedisDsn = Field(...)
 
     # Security - MUST be set via environment variables
     SECRET_KEY: str = Field(min_length=32)
@@ -49,22 +49,22 @@ class Settings(BaseSettings):
     CORS_ORIGINS: list[str] = ["*"]
 
     # Telegram
-    TELEGRAM_API_KEY: str = Field(default="TELEGRAM_API_KEY")
-    TELEGRAM_BOT_USERNAME: str = Field(default="company_hr_mentor_bot")
+    TELEGRAM_API_KEY: str = Field(...)
+    TELEGRAM_BOT_USERNAME: str = Field(...)
 
     # Inter-service communication
-    CHECKLISTS_SERVICE_URL: str = Field(default="http://localhost:8002")
-    KNOWLEDGE_SERVICE_URL: str = Field(default="http://localhost:8003")
-    MEETING_SERVICE_URL: str = Field(default="http://localhost:8006")
-    NOTIFICATION_SERVICE_URL: str = Field(default="http://localhost:8004")
-    SERVICE_API_KEY: str = Field(default="")
+    CHECKLISTS_SERVICE_URL: str = Field(...)
+    KNOWLEDGE_SERVICE_URL: str = Field(...)
+    MEETING_SERVICE_URL: str = Field(...)
+    NOTIFICATION_SERVICE_URL: str = Field(...)
+    SERVICE_API_KEY: str = Field(...)
 
     # Password reset
-    ADMIN_WEB_URL: str = Field(default="http://localhost:3000")
+    ADMIN_WEB_URL: str = Field(...)
 
     # Default admin user
-    ADMIN_EMAIL: str = Field(default="admin@example.com")
-    ADMIN_PASSWORD: str = Field(default="changeme_admin_password")
+    ADMIN_EMAIL: str = Field(...)
+    ADMIN_PASSWORD: str = Field(...)
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", case_sensitive=True, extra="ignore")
 

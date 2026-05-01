@@ -1,5 +1,6 @@
 "use client";
 
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useTranslations } from "@/hooks/use-translations";
 import { Search, ChevronDown, X } from "lucide-react";

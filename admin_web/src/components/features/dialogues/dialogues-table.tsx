@@ -95,7 +95,7 @@ export function DialoguesTable({
   const columns = [
     { key: "title", label: t("dialogues.name"), sortable: true },
     { key: "category", label: t("dialogues.category"), sortable: true },
-    { key: "stepsCount", label: t("dialogues.stepsCount"), sortable: true },
+    { key: "stepsCount", label: t("dialogues.stepsCount"), sortable: false },
     { key: "isActive", label: t("common.status"), sortable: true },
   ];
 
@@ -198,7 +198,7 @@ export function DialoguesTable({
               <TableCell onClick={(e) => e.stopPropagation()}>
                 <TableActions
                   actions={[
-                    buildEditAction(() => handleEdit(d)),
+                    buildEditAction(() => handleEdit(d), t("common.edit")),
                     {
                       icon: Power,
                       label: d.isActive ? t("common.deactivate") : t("common.activate"),
@@ -206,7 +206,7 @@ export function DialoguesTable({
                       variant: "ghost" as const,
                       color: d.isActive ? "text-orange-500" : "text-green-500",
                     },
-                    buildDeleteAction(() => handleDelete(d.id, d.title)),
+                    buildDeleteAction(() => handleDelete(d.id, d.title), t("common.delete")),
                   ]}
                 />
               </TableCell>

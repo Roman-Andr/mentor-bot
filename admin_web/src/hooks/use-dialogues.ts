@@ -3,7 +3,9 @@ import { useEntity } from "./use-entity";
 import { api } from "@/lib/api";
 import { queryKeys } from "@/lib/query-keys";
 import type { DialogueScenario, DialogueCategory, DialogueAnswerType } from "@/types";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { handleError } from "@/lib/error";
+import { useToast } from "@/hooks/use-toast";
 
 export interface DialogueRow {
   id: number;
@@ -96,6 +98,9 @@ function toForm(dialogue: DialogueRow): DialogueFormData {
 }
 
 export function useDialogues() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
   const entity = useEntity<DialogueRow, DialogueFormData, ReturnType<typeof toPayload>, ReturnType<typeof toPayload>, Record<string, unknown>>({
     entityName: "Диалог",
     translationNamespace: "dialogues",
@@ -129,7 +134,7 @@ export function useDialogues() {
     if (entity.extendedState.selectedSteps === undefined) {
       entity.setExtendedState(() => ({ selectedSteps: [] }));
     }
-  }, [entity.extendedState.selectedSteps, entity.setExtendedState]);
+  }, [entity]);
 
   // Fetch steps for selected dialogue
   const { data: stepsData } = useQuery({
@@ -153,8 +158,16 @@ export function useDialogues() {
     },
   });
 
-  const handleToggleActive = (id: number, isActive: boolean) => {
-    return api.dialogues.update(id, { is_active: isActive });
+  const handleToggleActive = async (id: number, isActive: boolean) => {
+    try {
+      const result = await api.dialogues.update(id, { is_active: isActive });
+      if (!result.success) {
+        throw handleError(result.error, { action: "update", id });
+      }
+      queryClient.invalidateQueries({ queryKey: ["dialogues"] });
+    } catch (error) {
+      toast("dialogues.updateError", "error");
+    }
   };
 
   const openEdit = (dialogue: DialogueRow) => {

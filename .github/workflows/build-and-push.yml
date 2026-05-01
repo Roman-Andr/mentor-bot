@@ -6,10 +6,8 @@ on:
     tags: ["v*"]
     paths-ignore:
       - "docs/**"
-      - ".course_work_2/**"
       - "README.md"
       - "LICENSE"
-      - "CLAUDE.md"
   workflow_dispatch:
     inputs:
       tag:
@@ -94,17 +92,13 @@ jobs:
           enable-cache: true
           cache-dependency-glob: "auth_service/uv.lock"
       - name: Install dependencies
-        working-directory: auth_service
-        run: uv sync --frozen
+        run: make deps-auth
       - name: Lint (ruff)
-        working-directory: auth_service
-        run: uv run ruff check . || true
+        run: make lint-auth || true
       - name: Type check (mypy)
-        working-directory: auth_service
-        run: uv run mypy . || true
+        run: make mypy-auth || true
       - name: Run tests
-        working-directory: auth_service
-        run: uv run pytest --tb=short -q
+        run: make test-auth
 
   test-python-checklists:
     needs: detect-changes
@@ -121,17 +115,13 @@ jobs:
           enable-cache: true
           cache-dependency-glob: "checklists_service/uv.lock"
       - name: Install dependencies
-        working-directory: checklists_service
-        run: uv sync --frozen
+        run: make deps-checklists
       - name: Lint (ruff)
-        working-directory: checklists_service
-        run: uv run ruff check . || true
+        run: make lint-checklists || true
       - name: Type check (mypy)
-        working-directory: checklists_service
-        run: uv run mypy . || true
+        run: make mypy-checklists || true
       - name: Run tests
-        working-directory: checklists_service
-        run: uv run pytest --tb=short -q
+        run: make test-checklists
 
   test-python-knowledge:
     needs: detect-changes
@@ -148,17 +138,13 @@ jobs:
           enable-cache: true
           cache-dependency-glob: "knowledge_service/uv.lock"
       - name: Install dependencies
-        working-directory: knowledge_service
-        run: uv sync --frozen
+        run: make deps-knowledge
       - name: Lint (ruff)
-        working-directory: knowledge_service
-        run: uv run ruff check . || true
+        run: make lint-knowledge || true
       - name: Type check (mypy)
-        working-directory: knowledge_service
-        run: uv run mypy . || true
+        run: make mypy-knowledge || true
       - name: Run tests
-        working-directory: knowledge_service
-        run: uv run pytest --tb=short -q
+        run: make test-knowledge
 
   test-python-notification:
     needs: detect-changes
@@ -175,17 +161,13 @@ jobs:
           enable-cache: true
           cache-dependency-glob: "notification_service/uv.lock"
       - name: Install dependencies
-        working-directory: notification_service
-        run: uv sync --frozen
+        run: make deps-notification
       - name: Lint (ruff)
-        working-directory: notification_service
-        run: uv run ruff check . || true
+        run: make lint-notification || true
       - name: Type check (mypy)
-        working-directory: notification_service
-        run: uv run mypy . || true
+        run: make mypy-notification || true
       - name: Run tests
-        working-directory: notification_service
-        run: uv run pytest --tb=short -q
+        run: make test-notification
 
   test-python-escalation:
     needs: detect-changes
@@ -202,17 +184,13 @@ jobs:
           enable-cache: true
           cache-dependency-glob: "escalation_service/uv.lock"
       - name: Install dependencies
-        working-directory: escalation_service
-        run: uv sync --frozen
+        run: make deps-escalation
       - name: Lint (ruff)
-        working-directory: escalation_service
-        run: uv run ruff check . || true
+        run: make lint-escalation || true
       - name: Type check (mypy)
-        working-directory: escalation_service
-        run: uv run mypy . || true
+        run: make mypy-escalation || true
       - name: Run tests
-        working-directory: escalation_service
-        run: uv run pytest --tb=short -q
+        run: make test-escalation
 
   test-python-feedback:
     needs: detect-changes
@@ -229,17 +207,13 @@ jobs:
           enable-cache: true
           cache-dependency-glob: "feedback_service/uv.lock"
       - name: Install dependencies
-        working-directory: feedback_service
-        run: uv sync --frozen
+        run: make deps-feedback
       - name: Lint (ruff)
-        working-directory: feedback_service
-        run: uv run ruff check . || true
+        run: make lint-feedback || true
       - name: Type check (mypy)
-        working-directory: feedback_service
-        run: uv run mypy . || true
+        run: make mypy-feedback || true
       - name: Run tests
-        working-directory: feedback_service
-        run: uv run pytest --tb=short -q
+        run: make test-feedback
 
   test-python-meeting:
     needs: detect-changes
@@ -256,17 +230,13 @@ jobs:
           enable-cache: true
           cache-dependency-glob: "meeting_service/uv.lock"
       - name: Install dependencies
-        working-directory: meeting_service
-        run: uv sync --frozen
+        run: make deps-meeting
       - name: Lint (ruff)
-        working-directory: meeting_service
-        run: uv run ruff check . || true
+        run: make lint-meeting || true
       - name: Type check (mypy)
-        working-directory: meeting_service
-        run: uv run mypy . || true
+        run: make mypy-meeting || true
       - name: Run tests
-        working-directory: meeting_service
-        run: uv run pytest --tb=short -q
+        run: make test-meeting
 
   test-python-telegram:
     needs: detect-changes
@@ -283,17 +253,13 @@ jobs:
           enable-cache: true
           cache-dependency-glob: "telegram_bot/uv.lock"
       - name: Install dependencies
-        working-directory: telegram_bot
-        run: uv sync --frozen
+        run: make deps-telegram
       - name: Lint (ruff)
-        working-directory: telegram_bot
-        run: uv run ruff check . || true
+        run: make lint-telegram || true
       - name: Type check (mypy)
-        working-directory: telegram_bot
-        run: uv run mypy . || true
+        run: make mypy-telegram || true
       - name: Run tests
-        working-directory: telegram_bot
-        run: uv run pytest --tb=short -q
+        run: make test-telegram
 
   test-admin-web:
     needs: detect-changes
@@ -309,16 +275,13 @@ jobs:
         uses: oven-sh/setup-bun@v2
 
       - name: Install dependencies
-        working-directory: admin_web
-        run: bun install --frozen-lockfile
+        run: make deps-admin
 
       - name: Lint
-        working-directory: admin_web
-        run: bun lint || true
+        run: make lint-admin || true
 
       - name: Run tests
-        working-directory: admin_web
-        run: bun run test
+        run: make test-admin
 
   # ── Build + push Python services ────────────────────────────────────────────
   build-auth:

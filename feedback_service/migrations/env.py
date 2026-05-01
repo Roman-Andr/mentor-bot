@@ -2,18 +2,19 @@
 
 import asyncio
 import os
-from logging.config import fileConfig
 
 from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import create_async_engine
 
+from feedback_service.config import settings as _settings
+from feedback_service.utils.logging import configure_logging
+
+configure_logging(service_name="feedback_service", log_level=_settings.LOG_LEVEL)
+
 config = context.config
-if config.config_file_name is not None:
-    fileConfig(config.config_file_name)
 
 import feedback_service.models  # noqa: F401, E402 — registers all ORM models with Base.metadata
-from feedback_service.config import settings as _settings  # noqa: E402
 from feedback_service.database import Base  # noqa: E402
 
 target_metadata = Base.metadata

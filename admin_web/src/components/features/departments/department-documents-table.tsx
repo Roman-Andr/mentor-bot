@@ -16,7 +16,7 @@ import { DataTable } from "@/components/ui/data-table";
 import { CardHeader, CardTitle } from "@/components/ui/card";
 import { TableActions, buildEditAction, buildDeleteAction } from "@/components/shared";
 import { DepartmentDocumentDownloadButton } from "./department-document-download-button";
-import { DOCUMENT_CATEGORIES } from "@/lib/constants";
+import { getDocumentCategoryOptions } from "@/lib/constants";
 import type { DepartmentDocument } from "@/types/department-document";
 import { useDepartments } from "@/hooks/use-departments";
 
@@ -48,25 +48,24 @@ export function DepartmentDocumentsTable({
   const t = useTranslations();
   const { items: departments } = useDepartments();
 
+  const categoryOptions = getDocumentCategoryOptions(t);
+  const categoryOptionsWithAll = [
+    { value: "all", label: t("departmentDocuments.allCategories") },
+    ...categoryOptions,
+  ];
+
   const getCategoryLabel = (category: string) => {
-    return DOCUMENT_CATEGORIES.find((c) => c.value === category)?.label || category;
+    return categoryOptions.find((c) => c.value === category)?.label || category;
   };
 
   const departmentOptions = [
-    { value: "all", label: "Все департаменты" },
+    { value: "all", label: t("departmentDocuments.allDepartments") },
     ...departments.map((dept) => ({
       value: dept.id.toString(),
       label: dept.name,
     })),
   ];
 
-  const categoryOptions = [
-    { value: "all", label: "Все категории" },
-    ...DOCUMENT_CATEGORIES.map((cat) => ({
-      value: cat.value,
-      label: cat.label,
-    })),
-  ];
 
   const getDepartmentName = (departmentId: number) => {
     return departments.find((d) => d.id === departmentId)?.name || "Неизвестно";
@@ -92,7 +91,7 @@ export function DepartmentDocumentsTable({
               onChange={(value) => onDepartmentFilterChange(value === "all" ? undefined : parseInt(value, 10))}
             />
             <Select
-              options={categoryOptions}
+              options={categoryOptionsWithAll}
               value={categoryFilter || "all"}
               onChange={(value) => onCategoryFilterChange(value === "all" ? undefined : value)}
             />
@@ -120,7 +119,7 @@ export function DepartmentDocumentsTable({
               <TableCell>
                 <span className="font-medium">{document.title}</span>
                 {document.description && (
-                  <p className="text-sm text-muted-foreground max-w-75 truncate">{document.description}</p>
+                  <p className="text-muted-foreground max-w-75 truncate text-sm">{document.description}</p>
                 )}
               </TableCell>
               <TableCell>{getCategoryLabel(document.category)}</TableCell>
@@ -135,16 +134,16 @@ export function DepartmentDocumentsTable({
               <TableCell>{new Date(document.created_at).toLocaleDateString()}</TableCell>
               <TableCell>
                 {document.is_public ? (
-                  <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Публичный</span>
+                  <span className="rounded bg-green-100 px-2 py-1 text-xs text-green-800">Публичный</span>
                 ) : (
-                  <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Только отдел</span>
+                  <span className="rounded bg-blue-100 px-2 py-1 text-xs text-blue-800">Только отдел</span>
                 )}
               </TableCell>
               <TableCell>
                 <TableActions
                   actions={[
-                    buildEditAction(() => onEdit(document)),
-                    buildDeleteAction(() => onDelete(document.id)),
+                    buildEditAction(() => onEdit(document), t("common.edit")),
+                    buildDeleteAction(() => onDelete(document.id), t("common.delete")),
                   ]}
                 />
               </TableCell>

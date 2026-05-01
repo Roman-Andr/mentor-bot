@@ -3,7 +3,7 @@
 from datetime import datetime
 from typing import Annotated
 
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, HTTPException, Query, Request, status
 
 from knowledge_service.api.deps import CurrentUser, SearchHistoryRepositoryDep
 from knowledge_service.schemas import (
@@ -91,6 +91,7 @@ async def get_search_by_department(
     search_history_repo: SearchHistoryRepositoryDep,
     from_date: Annotated[datetime | None, Query()] = None,
     to_date: Annotated[datetime | None, Query()] = None,
+    request: Request = None,
 ) -> list[DepartmentSearchStats]:
     """Get search statistics grouped by department (HR only)."""
     if not current_user.has_role(["HR", "ADMIN"]):
@@ -99,9 +100,13 @@ async def get_search_by_department(
             detail="HR access required",
         )
 
+    # Get token from request
+    token = request.headers.get("authorization", "").replace("Bearer ", "") if request else None
+
     results = await search_history_repo.get_by_department(
         from_date=from_date,
         to_date=to_date,
+        token=token,
     )
 
     return [

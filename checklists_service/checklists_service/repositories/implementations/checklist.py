@@ -282,6 +282,8 @@ class ChecklistRepository(SqlAlchemyBaseRepository[Checklist, int], IChecklistRe
             checklist.status = ChecklistStatus.COMPLETED
             checklist.completed_at = datetime.now(UTC)
 
+        await self._session.flush()
+
     async def get_by_user_and_template(self, user_id: int, template_id: int) -> Checklist | None:
         """Get checklist by user and template ID."""
         stmt = select(Checklist).where(

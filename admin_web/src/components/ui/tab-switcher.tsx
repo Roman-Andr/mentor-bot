@@ -1,6 +1,9 @@
-import { cn } from "@/lib/utils";
+"use client";
 
-interface TabItem {
+import { cn } from "@/lib/utils";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
+
+export interface TabItem {
   id: string;
   label: string;
   icon?: React.ComponentType<{ className?: string }>;
@@ -8,11 +11,22 @@ interface TabItem {
 
 interface TabSwitcherProps {
   tabs: TabItem[];
-  activeTab: string;
-  onTabChange: (id: string) => void;
+  paramName?: string;
 }
 
-export function TabSwitcher({ tabs, activeTab, onTabChange }: TabSwitcherProps) {
+export function TabSwitcher({ tabs, paramName = "tab" }: TabSwitcherProps) {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  
+  const activeTab = searchParams.get(paramName) || tabs[0]?.id;
+
+  const handleTabChange = (tabId: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set(paramName, tabId);
+    router.replace(`${pathname}?${params.toString()}`);
+  };
+
   return (
     <div className="flex rounded-md border">
       {tabs.map((tab, i) => {
@@ -30,7 +44,7 @@ export function TabSwitcher({ tabs, activeTab, onTabChange }: TabSwitcherProps) 
                 ? "bg-primary text-primary-foreground"
                 : "bg-background text-muted-foreground hover:bg-muted",
             )}
-            onClick={() => onTabChange(tab.id)}
+            onClick={() => handleTabChange(tab.id)}
           >
             {Icon && <Icon className="size-4" />}
             {tab.label}

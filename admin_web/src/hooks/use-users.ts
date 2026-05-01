@@ -172,7 +172,7 @@ export function useUsers() {
   const [selectedUserForMentor, setSelectedUserForMentor] = useState<UserItem | null>(null);
 
   // Fetch current mentor for selected user
-  const { data: userMentorsData, refetch: refetchUserMentors } = useQuery({
+  const { data: userMentorsData } = useQuery({
     queryKey: queryKeys.userMentors.byUser(selectedUserForMentor?.id || 0),
     queryFn: () => api.userMentors.list({ user_id: selectedUserForMentor?.id }),
     enabled: !!selectedUserForMentor && assignMentorDialogOpen,
@@ -186,9 +186,8 @@ export function useUsers() {
     setAssignMentorDialogOpen(true);
   }, []);
 
-  const handleAssignMentor = useCallback(async (userId: number, mentorId: number) => {
+  const handleAssignMentor = useCallback(async () => {
     // TODO: Implement assignMentor API when available
-    console.warn('assignMentor API not yet implemented');
   }, []);
 
   const handleUnassignMentor = useCallback(async (mentorRelationId: number) => {

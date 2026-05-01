@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "INFO"
 
     # Database
-    DATABASE_URL: PostgresDsn = Field(default="postgresql+asyncpg://user:password@localhost:5432/escalation_db")
+    DATABASE_URL: PostgresDsn = Field(...)
     DATABASE_POOL_SIZE: int = 5
     DATABASE_MAX_OVERFLOW: int = 10
 
@@ -31,14 +31,14 @@ class Settings(BaseSettings):
     CORS_ORIGINS: list[str] = ["*"]
 
     # Auth service integration
-    AUTH_SERVICE_URL: str = Field(default="http://auth_service:8000")
+    AUTH_SERVICE_URL: str = Field(...)
     AUTH_SERVICE_TIMEOUT: int = Field(default=10, ge=1)
 
     # Notification service integration (optional, for sending notifications)
-    NOTIFICATION_SERVICE_URL: str = Field(default="http://notification_service:8000")
+    NOTIFICATION_SERVICE_URL: str = Field(...)
 
     # Inter-service communication
-    SERVICE_API_KEY: str = Field(default="")
+    SERVICE_API_KEY: str = Field(...)
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", case_sensitive=True, extra="ignore")
 

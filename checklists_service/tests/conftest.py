@@ -15,6 +15,11 @@ import pytest
 os.environ.setdefault("DATABASE_URL", "postgresql+asyncpg://user:password@localhost:5432/checklists_db")
 os.environ.setdefault("REDIS_URL", "redis://localhost:6379/1")
 os.environ.setdefault("SERVICE_API_KEY", "test-api-key")
+os.environ.setdefault("AUTH_SERVICE_URL", "http://localhost:8001")
+os.environ.setdefault("NOTIFICATION_SERVICE_URL", "http://localhost:8004")
+os.environ.setdefault("S3_ENDPOINT", "http://localhost:9000")
+os.environ.setdefault("S3_ACCESS_KEY", "test-access-key")
+os.environ.setdefault("S3_SECRET_KEY", "test-secret-key")
 
 from checklists_service.core.enums import (
     ChecklistStatus,
@@ -218,6 +223,33 @@ def sample_task(sample_datetime: datetime) -> Task:
         template_task_id=1,
         title="Complete Documentation",
         description="Read and sign all documentation",
+        category="DOCUMENTATION",
+        status=TaskStatus.PENDING,
+        order=0,
+        assignee_id=2,
+        assignee_role="MENTOR",
+        due_date=sample_datetime + timedelta(days=3),
+        started_at=None,
+        completed_at=None,
+        completed_by=None,
+        completion_notes=None,
+        attachments=[],
+        depends_on=[],
+        blocks=[],
+        created_at=sample_datetime,
+        updated_at=None,
+    )
+
+
+@pytest.fixture
+def sample_pending_task(sample_datetime: datetime) -> Task:
+    """Create a sample pending task for testing (alias for sample_task)."""
+    return Task(
+        id=5,
+        checklist_id=1,
+        template_task_id=1,
+        title="Pending Task",
+        description="A pending task",
         category="DOCUMENTATION",
         status=TaskStatus.PENDING,
         order=0,

@@ -1,23 +1,30 @@
 "use client";
 
-import { useState } from "react";
 import { useTranslations } from "@/hooks/use-translations";
 import { Button } from "@/components/ui/button";
 import { PageContent } from "@/components/layout/page-content";
-import { UserPlus, Building2 } from "lucide-react";
+import { UserPlus, Building2, Users } from "lucide-react";
 import { useUsers } from "@/hooks/use-users";
 import { useDepartments } from "@/hooks/use-departments";
-import { UsersTabSwitcher } from "@/components/features/users/users-tab-switcher";
+import { TabSwitcher } from "@/components/ui/tab-switcher";
 import { UsersSection } from "@/components/features/users/users-section";
 import { DepartmentsSection } from "@/components/features/users/departments-section";
+import type { TabItem } from "@/components/ui/tab-switcher";
+import { useSearchParams } from "next/navigation";
 
 type Tab = "users" | "departments";
 
 export default function UsersPage() {
   const t = useTranslations();
-  const [activeTab, setActiveTab] = useState<Tab>("users");
+  const searchParams = useSearchParams();
+  const activeTab = (searchParams.get("tab") as Tab) || "users";
   const u = useUsers();
   const d = useDepartments();
+
+  const tabs: TabItem[] = [
+    { id: "users", label: t("users.title"), icon: Users },
+    { id: "departments", label: t("departments.title"), icon: Building2 },
+  ];
 
   const handleDepartmentSubmit = async () => {
     await d.handleSubmit();
@@ -44,25 +51,25 @@ export default function UsersPage() {
       title={t("users.title")}
       subtitle={t("users.title")}
       actions={
-        <div className="flex items-center gap-2">
-          <UsersTabSwitcher activeTab={activeTab} onTabChange={setActiveTab} />
-          <Button className="gap-2" onClick={handleAddClick}>
-            {activeTab === "users" ? (
-              <>
-                <UserPlus className="size-4" />
-                {t("users.addUser")}
-              </>
-            ) : (
-              <>
-                <Building2 className="size-4" />
-                {t("common.create")}
-              </>
-            )}
-          </Button>
-        </div>
+        <Button className="gap-2" onClick={handleAddClick}>
+          {activeTab === "users" ? (
+            <>
+              <UserPlus className="size-4" />
+              {t("users.addUser")}
+            </>
+          ) : (
+            <>
+              <Building2 className="size-4" />
+              {t("common.create")}
+            </>
+          )}
+        </Button>
       }
     >
-      {activeTab === "users" && (
+      <div className="space-y-6">
+        <TabSwitcher tabs={tabs} />
+
+        {activeTab === "users" && (
         <UsersSection
           isCreateDialogOpen={u.isCreateDialogOpen}
           setIsCreateDialogOpen={u.setIsCreateDialogOpen}
@@ -131,8 +138,12 @@ export default function UsersPage() {
           setPageSize={d.setPageSize}
           openEditDialog={d.openEditDialog}
           handleDelete={handleDepartmentDelete}
+          sortField={d.sortField}
+          sortDirection={d.sortDirection}
+          onSort={d.toggleSort}
         />
       )}
+      </div>
     </PageContent>
   );
 }

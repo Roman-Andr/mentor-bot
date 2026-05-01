@@ -1,8 +1,9 @@
 import type { ColumnDef } from "@/components/entity/entity-page-types";
-import { MEETING_TYPES } from "@/lib/constants";
+import { getMeetingTypeOptions } from "@/lib/constants";
 import { formatDate } from "@/lib/utils";
 import { Calendar, Clock, Users, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import type { MeetingItem } from "@/hooks/use-meetings";
 
 interface MeetingsColumnsProps {
@@ -13,6 +14,8 @@ interface MeetingsColumnsProps {
 }
 
 export function useMeetingsColumns({ departments, onOpenAssignDialog, onOpenAssignmentsDialog, t }: MeetingsColumnsProps) {
+  const meetingTypeOptions = getMeetingTypeOptions(t);
+
   return [
     {
       key: "title",
@@ -32,7 +35,7 @@ export function useMeetingsColumns({ departments, onOpenAssignDialog, onOpenAssi
     {
       key: "type",
       header: t("meetings.type"),
-      cell: (item: MeetingItem) => MEETING_TYPES.find((type) => type.value === item.type)?.label || item.type,
+      cell: (item: MeetingItem) => meetingTypeOptions.find((type) => type.value === item.type)?.label || item.type,
       sortable: true,
     },
     {
@@ -94,24 +97,38 @@ export function useMeetingsColumns({ departments, onOpenAssignDialog, onOpenAssi
       key: "assignments",
       header: "",
       cell: (item: MeetingItem) => (
-        <div className="flex gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            title={t("meetings.assignedUsers")}
-            onClick={() => onOpenAssignmentsDialog(item.id, item.title)}
-          >
-            <Users className="size-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            title={t("meetings.assignMeeting")}
-            onClick={() => onOpenAssignDialog(item.id, item.title)}
-          >
-            <UserPlus className="size-4" />
-          </Button>
-        </div>
+        <TooltipProvider>
+          <div className="flex gap-1">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onOpenAssignmentsDialog(item.id, item.title)}
+                >
+                  <Users className="size-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{t("meetings.assignedUsers")}</p>
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onOpenAssignDialog(item.id, item.title)}
+                >
+                  <UserPlus className="size-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{t("meetings.assignMeeting")}</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        </TooltipProvider>
       ),
       width: "w-24",
     },

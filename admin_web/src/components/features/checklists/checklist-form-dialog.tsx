@@ -1,5 +1,6 @@
 "use client";
 
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useEffect, useCallback } from "react";
 import { useTranslations } from "@/hooks/use-translations";
 import { Button } from "@/components/ui/button";
@@ -16,7 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { SearchableSelect, type SelectOption } from "@/components/ui/searchable-select";
 import { api } from "@/lib/api";
-import type { User, Template } from "@/types";
+import type { User, Template, Task } from "@/types";
 import type { ChecklistFormData } from "@/hooks/use-checklists";
 
 interface ChecklistFormDialogProps {
@@ -25,8 +26,9 @@ interface ChecklistFormDialogProps {
   mode: "create" | "edit";
   formData: ChecklistFormData;
   onFormDataChange: (data: ChecklistFormData) => void;
-  onSubmit: () => void;
+  onSubmit: (tasksToComplete?: Set<number>) => void;
   onCancel: () => void;
+  checklistId?: number;
 }
 
 function formatUserLabel(user: User): string {
@@ -46,6 +48,7 @@ export function ChecklistFormDialog({
   onFormDataChange,
   onSubmit,
   onCancel,
+  checklistId,
 }: ChecklistFormDialogProps) {
   const t = useTranslations();
 
@@ -53,7 +56,10 @@ export function ChecklistFormDialog({
 
   const [users, setUsers] = useState<User[]>([]);
   const [templates, setTemplates] = useState<Template[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [tasksToComplete, setTasksToComplete] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(false);
+  const [tasksLoading, setTasksLoading] = useState(false);
 
   const loadReferenceData = useCallback(async () => {
     setLoading(true);
@@ -71,9 +77,40 @@ export function ChecklistFormDialog({
     }
   }, []);
 
+  const loadTasks = useCallback(async () => {
+    if (!checklistId || isCreate) return;
+    setTasksLoading(true);
+    try {
+      const tasksRes = await api.checklists.getTasks(checklistId);
+      if (tasksRes?.success && tasksRes?.data) {
+        setTasks(tasksRes.data);
+        setTasksToComplete(new Set());
+      }
+    } catch (err) {
+      logger.error("Failed to load tasks", { error: err });
+    } finally {
+      setTasksLoading(false);
+    }
+  }, [checklistId, isCreate]);
+
+  const toggleTaskComplete = (taskId: number) => {
+    setTasksToComplete((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(taskId)) {
+        newSet.delete(taskId);
+      } else {
+        newSet.add(taskId);
+      }
+      return newSet;
+    });
+  };
+
   useEffect(() => {
-    if (open) loadReferenceData();
-  }, [open, loadReferenceData]);
+    if (open) {
+      loadReferenceData();
+      loadTasks();
+    }
+  }, [open, loadReferenceData, loadTasks]);
 
   const employeeOptions: SelectOption[] = users.map((u) => ({
     value: String(u.id),
@@ -184,7 +221,7 @@ export function ChecklistFormDialog({
               />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-6">
             <div className="grid gap-2">
               <label className="text-sm font-medium">{t("checklists.mentor")}</label>
               <SearchableSelect
@@ -231,13 +268,57 @@ export function ChecklistFormDialog({
               }
             />
           </div>
+          {!isCreate && (
+            <div className="grid gap-2">
+              <label className="text-sm font-medium">Tasks</label>
+              {tasksLoading ? (
+                <p className="text-muted-foreground text-sm">{t("common.loading")}</p>
+              ) : tasks.length === 0 ? (
+                <p className="text-muted-foreground text-sm">No tasks found</p>
+              ) : (
+                <div className="max-h-60 space-y-2 overflow-y-auto rounded-md border p-3">
+                  {tasks
+                    .sort((a, b) => a.order - b.order)
+                    .map((task) => (
+                      <div key={task.id} className="flex items-start gap-2 rounded border bg-card p-2 text-sm">
+                        {task.status !== "COMPLETED" && task.can_complete && (
+                          <input
+                            type="checkbox"
+                            checked={tasksToComplete.has(task.id)}
+                            onChange={() => toggleTaskComplete(task.id)}
+                            className="mt-0.5 size-4 shrink-0 cursor-pointer rounded border border-input bg-background ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                          />
+                        )}
+                        {task.status === "COMPLETED" && (
+                          <div className="mt-0.5 size-4 shrink-0 rounded-full bg-green-500" />
+                        )}
+                        {task.status !== "COMPLETED" && !task.can_complete && (
+                          <div className="mt-0.5 size-4 shrink-0 rounded-full bg-gray-300" title="Cannot complete: dependencies not met" />
+                        )}
+                        <div className="flex-1">
+                          <p className="font-medium">{task.title}</p>
+                          {task.description && <p className="text-muted-foreground text-xs">{task.description}</p>}
+                          <div className="mt-1 flex gap-2 text-xs text-muted-foreground">
+                            <span>{t("common.status")}: {task.status}</span>
+                            {task.category && <span>{t("common.category")}: {task.category}</span>}
+                            {task.status !== "COMPLETED" && !task.can_complete && task.depends_on && task.depends_on.length > 0 && (
+                              <span className="text-amber-600">⚠️ Depends on {task.depends_on.length} task(s)</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onCancel}>
             {t("common.cancel")}
           </Button>
           <Button
-            onClick={onSubmit}
+            onClick={() => onSubmit(isCreate ? undefined : tasksToComplete)}
             disabled={
               !formData.user_id ||
               !formData.employee_id ||

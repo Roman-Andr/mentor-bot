@@ -15,7 +15,7 @@ import {
 import { Select } from "@/components/ui/select";
 import { SearchableSelect, type SelectOption } from "@/components/ui/searchable-select";
 import { Send } from "lucide-react";
-import { ROLES, LEVELS } from "@/lib/constants";
+import { getRoleOptions, getLevelOptions } from "@/lib/constants";
 import { useState, useEffect, useCallback } from "react";
 import { api } from "@/lib/api";
 import type { User } from "@/types";
@@ -55,6 +55,9 @@ export function CreateInvitationDialog({
   onCancel,
 }: CreateInvitationDialogProps) {
   const t = useTranslations();
+
+  const roleOptions = getRoleOptions(t);
+  const levelOptions = getLevelOptions(t);
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const isEmailValid = !formData.email || emailRegex.test(formData.email);
@@ -149,7 +152,7 @@ export function CreateInvitationDialog({
             <Label htmlFor="level">{t("invitations.level")}</Label>
             <Select
               id="level"
-              options={[...LEVELS]}
+              options={levelOptions}
               placeholder={t("common.notSelected")}
               value={formData.level || ""}
               onChange={(val) => onFormDataChange({ ...formData, level: val })}
@@ -159,7 +162,7 @@ export function CreateInvitationDialog({
             <Label htmlFor="role">{t("common.role")}</Label>
             <Select
               id="role"
-              options={ROLES}
+              options={roleOptions}
               value={formData.role}
               onChange={(val) => onFormDataChange({ ...formData, role: val })}
             />

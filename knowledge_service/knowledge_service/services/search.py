@@ -58,8 +58,17 @@ class SearchService:
 
         if query.strip():
             ts_query = func.plainto_tsquery("russian", query)
-            where_conditions.append(Article.search_vector.op("@@")(ts_query))
-            rank_column = func.ts_rank(Article.search_vector, ts_query).label("relevance")
+            logger.info("Search query: {}, ts_query: {}", query, ts_query)
+            # Fall back to simple LIKE if tsquery is empty (stop words only)
+            where_conditions.append(
+                or_(
+                    Article.search_vector.op("@@")(ts_query),
+                    Article.title.ilike(f"%{query}%"),
+                    Article.excerpt.ilike(f"%{query}%"),
+                    Article.content.ilike(f"%{query}%"),
+                )
+            )
+            rank_column = literal(1.0).label("relevance")
         else:
             rank_column = literal(1.0).label("relevance")
 
@@ -76,7 +85,8 @@ class SearchService:
         if filters.get("only_published", True):
             where_conditions.append(Article.status == ArticleStatus.PUBLISHED)
 
-        if user_filters:
+        logger.info("User filters: {}, any values: {}", user_filters, any(user_filters.values()) if user_filters else False)
+        if user_filters and any(user_filters.values()):
             user_filter_conditions = []
             if user_filters.get("department_id"):
                 user_filter_conditions.append(Article.department_id == user_filters["department_id"])
@@ -89,11 +99,13 @@ class SearchService:
 
         session = self._uow.session
 
+        logger.info("Where conditions count: {}", len(where_conditions))
         count_stmt = select(func.count(Article.id))
         if where_conditions:
             count_stmt = count_stmt.where(and_(*where_conditions))
         result = await session.execute(count_stmt)
         total = result.scalar_one()
+        logger.info("Search total: {}", total)
 
         id_stmt = select(Article.id, rank_column).where(and_(*where_conditions))
 

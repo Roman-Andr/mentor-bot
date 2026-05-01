@@ -8,6 +8,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import BufferedInputFile, CallbackQuery, Message
 
 from telegram_bot.i18n import t
+from telegram_bot.utils.formatters import escape_markdown
 from telegram_bot.keyboards.documents_kb import (
     get_article_detail_keyboard,
     get_article_list_keyboard,
@@ -361,7 +362,7 @@ async def download_attachment(
         await bot.send_document(
             chat_id=callback.message.chat.id,
             document=input_file,
-            caption=f"\U0001f4c4 {filename}",
+            caption=f"\U0001f4c4 {escape_markdown(filename)}",
         )
     except Exception:
         logger.exception("Failed to send file to user")

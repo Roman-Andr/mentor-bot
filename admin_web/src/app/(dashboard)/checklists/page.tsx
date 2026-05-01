@@ -53,11 +53,12 @@ export default function ChecklistsPage() {
         mode="edit"
         formData={c.formData}
         onFormDataChange={c.setFormData}
-        onSubmit={c.handleUpdate}
+        onSubmit={(tasksToComplete) => c.handleUpdate(tasksToComplete)}
         onCancel={() => {
           c.setIsEditDialogOpen(false);
           c.setSelectedChecklist(null);
         }}
+        checklistId={c.selectedChecklist?.id}
       />
 
       {/* Stats */}

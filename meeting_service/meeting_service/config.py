@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "INFO"
 
     # Database
-    DATABASE_URL: PostgresDsn = Field(default="postgresql+asyncpg://user:password@localhost:5432/meeting_db")
+    DATABASE_URL: PostgresDsn = Field(...)
     DATABASE_POOL_SIZE: int = 5
     DATABASE_MAX_OVERFLOW: int = 10
 
@@ -31,16 +31,16 @@ class Settings(BaseSettings):
     CORS_ORIGINS: list[str] = ["*"]
 
     # Auth service integration
-    AUTH_SERVICE_URL: str = Field(default="http://auth_service:8000")
+    AUTH_SERVICE_URL: str = Field(...)
     AUTH_SERVICE_TIMEOUT: int = Field(default=10, ge=1)
 
     # Service-to-service authentication
-    SERVICE_API_KEY: str = Field(default="")
+    SERVICE_API_KEY: str = Field(...)
 
     # Google Calendar Integration
-    GOOGLE_CLIENT_ID: str = Field(default="")
-    GOOGLE_CLIENT_SECRET: str = Field(default="")
-    GOOGLE_REDIRECT_URI: str = Field(default="")
+    GOOGLE_CLIENT_ID: str = Field(...)
+    GOOGLE_CLIENT_SECRET: str = Field(...)
+    GOOGLE_REDIRECT_URI: str = Field(...)
     GOOGLE_TOKEN_URI: str = Field(default="https://oauth2.googleapis.com/token")
     GOOGLE_CALENDAR_SCOPES: list[str] = Field(default=["https://www.googleapis.com/auth/calendar.events"])
 

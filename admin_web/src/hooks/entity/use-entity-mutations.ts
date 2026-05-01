@@ -1,7 +1,6 @@
-import { useMutation, useQueryClient, type UseMutationResult } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { handleError } from "@/lib/error";
 import { useCallback } from "react";
-import { getEntityListKey } from "@/lib/query-keys";
 import type { UseEntityContext, UseEntityOptions } from "./types";
 
 export function useEntityMutations<TItem, TForm, TCreatePayload, TUpdatePayload, TExtendedState>(
@@ -27,8 +26,7 @@ export function useEntityMutations<TItem, TForm, TCreatePayload, TUpdatePayload,
   setSelectedItem: (item: TItem | null) => void,
   toUpdatePayload: (form: TForm) => TUpdatePayload,
 ) {
-  const queryClient = useQueryClient();
-  const { createFn, updateFn, deleteFn, queryKeyPrefix } = options;
+  const { createFn, updateFn, deleteFn } = options;
   const { toast, invalidate } = context;
 
   const createMutation = useMutation<unknown, Error, TCreatePayload>({

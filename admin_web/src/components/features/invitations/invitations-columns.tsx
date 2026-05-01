@@ -1,6 +1,7 @@
- 
+
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { RefreshCw, XCircle, Copy, Check } from "lucide-react";
 import { ROLES, INVITATION_STATUSES } from "@/lib/constants";
 import type { InvitationItem } from "@/hooks/use-invitations";
@@ -55,43 +56,63 @@ export function useInvitationsColumns({ copiedId, onCopy, onResend, onRevoke, t 
       key: "actions",
       header: "",
       cell: (item: InvitationItem) => (
-        <div className="flex gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-muted-foreground"
-            onClick={() => onCopy(item.invitationUrl, item.id)}
-            title={t("invitations.copyLink")}
-          >
-            {copiedId === item.id ? (
-              <Check className="size-4 text-green-600" />
-            ) : (
-              <Copy className="size-4" />
+        <TooltipProvider>
+          <div className="flex gap-1">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-muted-foreground"
+                  onClick={() => onCopy(item.invitationUrl, item.id)}
+                >
+                  {copiedId === item.id ? (
+                    <Check className="size-4 text-green-600" />
+                  ) : (
+                    <Copy className="size-4" />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{t("invitations.copyLink")}</p>
+              </TooltipContent>
+            </Tooltip>
+            {item.status === "PENDING" && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-blue-500"
+                    onClick={() => onResend(item.id)}
+                  >
+                    <RefreshCw className="size-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{t("invitations.resend")}</p>
+                </TooltipContent>
+              </Tooltip>
             )}
-          </Button>
-          {item.status === "PENDING" && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-blue-500"
-              title={t("invitations.resend")}
-              onClick={() => onResend(item.id)}
-            >
-              <RefreshCw className="size-4" />
-            </Button>
-          )}
-          {item.status === "PENDING" && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-orange-500"
-              title={t("invitations.revoke")}
-              onClick={() => onRevoke(item.id)}
-            >
-              <XCircle className="size-4" />
-            </Button>
-          )}
-        </div>
+            {item.status === "PENDING" && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-orange-500"
+                    onClick={() => onRevoke(item.id)}
+                  >
+                    <XCircle className="size-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{t("invitations.revoke")}</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+          </div>
+        </TooltipProvider>
       ),
       width: "w-40",
     },

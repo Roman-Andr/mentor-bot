@@ -8,20 +8,36 @@ import { useMeetings } from "@/hooks/use-meetings";
 import { useDepartments } from "@/hooks/use-departments";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/lib/api";
-import { EntityPage } from "@/components/entity";
 import { MeetingFormDialog } from "@/components/meetings/meeting-form-dialog";
 import { AssignDialog, AssignmentsDialog } from "@/components/meetings";
 import type { User, UserMeeting } from "@/types";
 import type { MeetingItem, MeetingFormData } from "@/hooks/use-meetings";
 import { Select } from "@/components/ui/select";
-import { MEETING_TYPES } from "@/lib/constants";
+import { Button } from "@/components/ui/button";
+import { SearchInput } from "@/components/ui/search-input";
+import { CardHeader, CardTitle } from "@/components/ui/card";
+import { Plus } from "lucide-react";
+import { getMeetingTypeOptions } from "@/lib/constants";
 import { useMeetingsColumns } from "@/components/features/meetings/meetings-columns";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { DataTable } from "@/components/ui/data-table";
+import { DataTableSkeleton } from "@/components/ui/table-skeleton";
+import { SortableTableHead } from "@/components/ui/sortable-table-head";
 
 export default function MeetingsPage() {
   const t = useTranslations();
   const m = useMeetings();
   const d = useDepartments();
   const { toast } = useToast();
+
+  const typeOptions = getMeetingTypeOptions(t, true);
 
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
   const [assignMeetingId, setAssignMeetingId] = useState<number | null>(null);
@@ -94,6 +110,11 @@ export default function MeetingsPage() {
     t,
   });
 
+  const handleCreateMeeting = () => {
+    m.resetForm();
+    m.setIsCreateDialogOpen(true);
+  };
+
   return (
     <PageContent title={t("meetings.title")} subtitle={t("meetings.title")}>
       <Dialog open={m.isCreateDialogOpen} onOpenChange={m.setIsCreateDialogOpen}>
@@ -143,69 +164,132 @@ export default function MeetingsPage() {
         onRemoveAssignment={handleRemoveAssignment}
       />
 
-      <EntityPage<MeetingItem, MeetingFormData>
-        title={t("meetings.meetings")}
-        items={m.meetings}
-        totalItems={m.totalCount}
-        pageSize={m.pageSize}
+      <DataTable
+        loading={m.loading}
+        empty={m.meetings.length === 0}
         currentPage={m.currentPage}
-        isLoading={m.loading}
-        onPageSizeChange={m.setPageSize}
-        isCreateOpen={m.isCreateDialogOpen}
-        isEditOpen={m.isEditDialogOpen}
-        selectedItem={m.selectedMeeting}
-        onCreateOpen={() => {
-          m.resetForm();
-          m.setIsCreateDialogOpen(true);
-        }}
-        onEditOpen={m.openEditDialog}
-        onDelete={m.handleDelete}
-        onCloseDialog={() => {
-          m.setIsCreateDialogOpen(false);
-          m.setIsEditDialogOpen(false);
-          m.resetForm();
-        }}
-        formData={m.formData}
-        onFormChange={(data: MeetingFormData) => m.setFormData(data)}
-        onSubmit={m.handleCreate}
-        isSubmitting={m.isCreating}
-        submitError={null}
-        searchQuery={m.searchQuery}
-        onSearchChange={m.setSearchQuery}
+        totalPages={Math.ceil(m.totalCount / m.pageSize)}
+        totalCount={m.totalCount}
+        pageSize={m.pageSize}
         onPageChange={m.setCurrentPage}
-        createButtonLabel={t("meetings.scheduleMeeting")}
-        emptyStateMessage={t("meetings.noMeetings")}
-        searchPlaceholder={t("common.searchPlaceholder")}
-        getItemKey={(item: MeetingItem) => item.id}
-        sortField={m.sortField}
-        sortDirection={m.sortDirection}
-        onSort={m.toggleSort}
-        filters={
-          <Select
-            value={m.typeFilter}
-            onChange={m.setTypeFilter}
-            options={MEETING_TYPES}
-          />
+        onPageSizeChange={m.setPageSize}
+        showPageSizeSelector={true}
+        skeleton={<DataTableSkeleton columns={9} rows={5} showHeader={false} />}
+        header={
+          <CardHeader>
+            <div className="flex items-center justify-between gap-4">
+              <CardTitle>{t("meetings.meetings")}</CardTitle>
+              <div className="flex items-center gap-2">
+                <SearchInput
+                  placeholder={t("common.searchPlaceholder")}
+                  value={m.searchQuery}
+                  onChange={m.setSearchQuery}
+                />
+                <Select
+                  value={m.typeFilter}
+                  onChange={m.setTypeFilter}
+                  options={typeOptions}
+                  className="w-[180px]"
+                />
+                <Button onClick={handleCreateMeeting} className="gap-2">
+                  <Plus className="size-4" />
+                  {t("meetings.scheduleMeeting")}
+                </Button>
+              </div>
+            </div>
+          </CardHeader>
         }
-        columns={columns}
-        renderForm={({ formData, onChange }: { formData: MeetingFormData; onChange: (data: MeetingFormData) => void }) => (
-          <MeetingFormDialog
-            mode="create"
-            formData={formData}
-            departments={d.items}
-            onFormDataChange={(value) => {
-              if (typeof value === "function") {
-                onChange(value(formData));
-              } else {
-                onChange(value);
-              }
-            }}
-            onSubmit={() => {}}
-            onCancel={() => {}}
-          />
-        )}
-        isFormValid={!!m.formData.title}
-      />
+        emptyStateMessage={t("meetings.noMeetings")}
+      >
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <SortableTableHead
+                field="title"
+                sortable={true}
+                sortField={m.sortField ?? null}
+                sortDirection={m.sortDirection}
+                onSort={m.toggleSort}
+              >
+                {t("meetings.name")}
+              </SortableTableHead>
+              <SortableTableHead
+                field="type"
+                sortable={true}
+                sortField={m.sortField ?? null}
+                sortDirection={m.sortDirection}
+                onSort={m.toggleSort}
+              >
+                {t("meetings.type")}
+              </SortableTableHead>
+              <SortableTableHead
+                field="department"
+                sortable={true}
+                sortField={m.sortField ?? null}
+                sortDirection={m.sortDirection}
+                onSort={m.toggleSort}
+              >
+                {t("meetings.department")}
+              </SortableTableHead>
+              <SortableTableHead
+                field="deadlineDays"
+                sortable={true}
+                sortField={m.sortField ?? null}
+                sortDirection={m.sortDirection}
+                onSort={m.toggleSort}
+              >
+                {t("meetings.deadlineDays")}
+              </SortableTableHead>
+              <SortableTableHead
+                field="durationMinutes"
+                sortable={true}
+                sortField={m.sortField ?? null}
+                sortDirection={m.sortDirection}
+                onSort={m.toggleSort}
+              >
+                {t("meetings.durationMinutes")}
+              </SortableTableHead>
+              <SortableTableHead
+                field="isMandatory"
+                sortable={true}
+                sortField={m.sortField ?? null}
+                sortDirection={m.sortDirection}
+                onSort={m.toggleSort}
+              >
+                {t("meetings.isMandatory")}
+              </SortableTableHead>
+              <SortableTableHead
+                field="order"
+                sortable={true}
+                sortField={m.sortField ?? null}
+                sortDirection={m.sortDirection}
+                onSort={m.toggleSort}
+              >
+                {t("meetings.order")}
+              </SortableTableHead>
+              <SortableTableHead
+                field="createdAt"
+                sortable={true}
+                sortField={m.sortField ?? null}
+                sortDirection={m.sortDirection}
+                onSort={m.toggleSort}
+              >
+                {t("common.created")}
+              </SortableTableHead>
+              <TableHead className="w-24">{t("common.actions")}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {m.meetings.map((meeting) => (
+              <TableRow key={meeting.id}>
+                {columns.map((column, idx) => (
+                  <TableCell key={idx}>{column.cell(meeting)}</TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </DataTable>
     </PageContent>
   );
 }

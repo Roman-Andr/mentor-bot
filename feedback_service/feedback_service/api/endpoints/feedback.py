@@ -4,10 +4,18 @@ import asyncio
 from datetime import datetime
 from typing import Annotated
 
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from loguru import logger
 
-from feedback_service.api.deps import AuthUser, CurrentUser, HRAdminUser, ServiceAuth, UOWDep, check_user_access
+from feedback_service.api.deps import (
+    CurrentUser,
+    HRAdminUser,
+    UOWDep,
+    UserInfo,
+    check_user_access,
+    get_current_user_optional,
+    verify_service_api_key,
+)
 from feedback_service.models import Comment, ExperienceRating, PulseSurvey
 from feedback_service.schemas import (
     CommentCreate,
@@ -37,8 +45,8 @@ router = APIRouter()
 async def submit_pulse_survey(
     data: PulseSurveyCreate,
     uow: UOWDep,
-    service_auth: ServiceAuth = False,
-    current_user: AuthUser = None,
+    service_auth: Annotated[bool, Depends(verify_service_api_key)] = False,
+    current_user: Annotated[UserInfo | None, Depends(get_current_user_optional)] = None,
 ) -> PulseSurveyResponse:
     """Submit a daily pulse survey rating. Can be anonymous."""
     try:
@@ -232,8 +240,8 @@ async def get_pulse_anonymity_stats(
 async def submit_experience_rating(
     data: ExperienceRatingCreate,
     uow: UOWDep,
-    service_auth: ServiceAuth = False,
-    current_user: AuthUser = None,
+    service_auth: Annotated[bool, Depends(verify_service_api_key)] = False,
+    current_user: Annotated[UserInfo | None, Depends(get_current_user_optional)] = None,
 ) -> ExperienceRatingResponse:
     """Submit an experience rating. Can be anonymous."""
     try:
@@ -397,8 +405,8 @@ async def get_experience_stats(
 async def submit_comment(
     data: CommentCreate,
     uow: UOWDep,
-    service_auth: ServiceAuth = False,
-    current_user: AuthUser = None,
+    service_auth: Annotated[bool, Depends(verify_service_api_key)] = False,
+    current_user: Annotated[UserInfo | None, Depends(get_current_user_optional)] = None,
 ) -> CommentResponse:
     """Submit a comment or suggestion. Can be anonymous."""
     try:

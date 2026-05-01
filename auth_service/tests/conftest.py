@@ -19,6 +19,15 @@ os.environ.setdefault("REDIS_URL", "redis://localhost:6379/0")
 os.environ.setdefault("SECRET_KEY", "test-secret-key-for-unit-tests-only-123456")
 os.environ.setdefault("JWT_SECRET_KEY", "test-jwt-secret-key-for-unit-tests-only-12345")
 os.environ.setdefault("SERVICE_API_KEY", "test-service-api-key")
+os.environ.setdefault("TELEGRAM_API_KEY", "test-telegram-api-key")
+os.environ.setdefault("TELEGRAM_BOT_USERNAME", "test_bot")
+os.environ.setdefault("CHECKLISTS_SERVICE_URL", "http://localhost:8002")
+os.environ.setdefault("KNOWLEDGE_SERVICE_URL", "http://localhost:8003")
+os.environ.setdefault("MEETING_SERVICE_URL", "http://localhost:8006")
+os.environ.setdefault("NOTIFICATION_SERVICE_URL", "http://localhost:8004")
+os.environ.setdefault("ADMIN_WEB_URL", "http://localhost:3000")
+os.environ.setdefault("ADMIN_EMAIL", "admin@example.com")
+os.environ.setdefault("ADMIN_PASSWORD", "admin123")
 
 from collections.abc import AsyncGenerator
 

@@ -136,4 +136,6 @@ export interface EntityPageProps<TItem, TForm> {
   sortDirection?: import("@/hooks/use-sorting").SortDirection;
   /** Callback when a column header is clicked for sorting */
   onSort?: (field: string) => void;
+  /** Translation function for i18n */
+  t: (key: string) => string;
 }

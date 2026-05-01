@@ -2,7 +2,6 @@ import { fetchApi } from "./client";
 import { buildQueryString } from "@/lib/utils/query-builder";
 import type {
   DepartmentDocument,
-  DepartmentDocumentCreate,
   DepartmentDocumentListResponse,
   DepartmentDocumentUpdate,
 } from "@/types/department-document";

@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useEntity } from "./use-entity";
 import { api } from "@/lib/api";
 import { queryKeys } from "@/lib/query-keys";
-import type { TaskTemplate, Template } from "@/types";
+import type { TaskTemplate } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 import { logger } from "@/lib/logger";
 
@@ -164,61 +164,8 @@ export function useTemplates() {
     if (entity.extendedState.tasks === undefined) {
       entity.setExtendedState(() => ({ tasks: [] }));
     }
-  }, [entity.extendedState.tasks, entity.setExtendedState]);
+  }, [entity]);
 
-  const addTasksToTemplate = async (templateId: number, tasks: TaskTemplate[]) => {
-    for (const task of tasks) {
-      const result = await api.templates.addTask(templateId, {
-        template_id: templateId,
-        title: task.title,
-        description: task.description,
-        instructions: task.instructions,
-        category: task.category,
-        order: task.order,
-        due_days: task.due_days,
-        estimated_minutes: task.estimated_minutes,
-      });
-    }
-    throw new Error('Failed to add task');
-  };
-
-  const handleDeleteTask = async (templateId: number, task: TaskTemplate) => {
-    // TODO: Implement deleteTask API when available
-    console.warn('deleteTask API not yet implemented');
-  };
-
-  const syncTasks = async (templateId: number, tasks: TaskTemplate[]) => {
-    const toAdd = tasks.filter((t) => !t.id || t.id === 0);
-    const addedTasks = await Promise.all(toAdd.map((task) => addTasksToTemplate(templateId, [task])));
-    entity.setExtendedState((prev) => ({ ...prev, tasks: [...prev.tasks, ...addedTasks] }));
-  };
-
-  const handleCreate = async () => {
-    const { tasks } = entity.extendedState;
-    const result = await api.templates.create(toCreatePayload(entity.formData));
-    if (result.success && result.data) {
-      await addTasksToTemplate(result.data.id, tasks);
-      entity.invalidate();
-      entity.setIsCreateDialogOpen(false);
-      entity.resetForm();
-      entity.setExtendedState(() => defaultExtendedState);
-    }
-  };
-
-  const handleUpdate = async () => {
-    if (!entity.selectedItem) return;
-    const { tasks } = entity.extendedState;
-    const result = await api.templates.update(entity.selectedItem.id, toUpdatePayload(entity.formData));
-    if (result.success && result.data) {
-      const newTasks = tasks.filter((t) => !t.id || t.id === 0);
-      await addTasksToTemplate(entity.selectedItem.id, newTasks);
-      entity.invalidate();
-      entity.setIsEditDialogOpen(false);
-      entity.setSelectedItem(null);
-      entity.resetForm();
-      entity.setExtendedState(() => defaultExtendedState);
-    }
-  };
 
   const handleDelete = async (id: number) => {
     await entity.handleDelete(id);

@@ -1,13 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { departmentDocumentsApi } from "@/lib/api/department-documents";
-import type { DepartmentDocument, DepartmentDocumentCreate, DepartmentDocumentUpdate } from "@/types/department-document";
-import { useToast } from "@/hooks/use-toast";
-import { useTranslations } from "@/hooks/use-translations";
+import type { DepartmentDocumentUpdate } from "@/types/department-document";
 
 export function useDepartmentDocuments(params?: { department_id?: number; category?: string; is_public?: boolean }) {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
-  const t = useTranslations("common");
 
   const listQuery = useQuery({
     queryKey: ["department-documents", params],

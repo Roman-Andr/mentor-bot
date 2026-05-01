@@ -16,7 +16,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { DepartmentDocumentUploadZone } from "./department-document-upload-zone";
-import { DOCUMENT_CATEGORIES } from "@/lib/constants";
+import { getDocumentCategoryOptions } from "@/lib/constants";
 import { useDepartments } from "@/hooks/use-departments";
 
 interface DepartmentDocumentFormDialogProps {
@@ -29,7 +29,7 @@ interface DepartmentDocumentFormDialogProps {
     is_public: boolean;
     file?: File;
   };
-  onFormDataChange: (field: string, value: any) => void;
+  onFormDataChange: (field: string, value: string | number | boolean | File) => void;
   onSubmit: () => void;
   onCancel: () => void;
   isSubmitting: boolean;
@@ -47,6 +47,8 @@ export function DepartmentDocumentFormDialog({
   const isEdit = mode === "edit";
   const { items: departments } = useDepartments();
 
+  const categoryOptions = getDocumentCategoryOptions(t);
+
   return (
     <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
       <DialogHeader>
@@ -63,7 +65,7 @@ export function DepartmentDocumentFormDialog({
               onFileSelect={(file) => onFormDataChange("file", file)}
             />
             {formData.file && (
-              <p className="text-sm text-muted-foreground">Выбран: {formData.file.name}</p>
+              <p className="text-muted-foreground text-sm">Выбран: {formData.file.name}</p>
             )}
           </div>
         )}
@@ -91,7 +93,7 @@ export function DepartmentDocumentFormDialog({
           <Label htmlFor="category">Категория *</Label>
           <Select
             id="category"
-            options={DOCUMENT_CATEGORIES}
+            options={categoryOptions}
             value={formData.category}
             onChange={(value) => onFormDataChange("category", value)}
             placeholder="Выберите категорию"

@@ -1,5 +1,6 @@
 "use client";
 
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useEffect } from "react";
 import { useTranslations } from "@/hooks/use-translations";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -177,7 +178,7 @@ export function NotificationTemplateFormDialog({ open, onOpenChange, template }:
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isEdit ? t("editTemplate") : isClone ? t("cloneTemplate") : t("createTemplate")}</DialogTitle>
         </DialogHeader>
@@ -267,14 +268,14 @@ export function NotificationTemplateFormDialog({ open, onOpenChange, template }:
               </Button>
             </div>
             {variables.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-2">
+              <div className="mt-2 flex flex-wrap gap-2">
                 {variables.map((variable) => (
                   <Badge key={variable} variant="secondary" className="gap-1">
                     {variable}
                     <button
                       type="button"
                       onClick={() => handleRemoveVariable(variable)}
-                      className="ml-1 hover:text-destructive"
+                      className="hover:text-destructive ml-1"
                     >
                       <X className="size-3" />
                     </button>
@@ -300,7 +301,7 @@ export function NotificationTemplateFormDialog({ open, onOpenChange, template }:
           )}
 
           {previewData && (
-            <div className="space-y-2 border rounded-md p-4">
+            <div className="space-y-2 rounded-md border p-4">
               <div className="flex items-center justify-between">
                 <Label className="font-semibold">{t("previewResult")}</Label>
                 <Button
@@ -314,13 +315,13 @@ export function NotificationTemplateFormDialog({ open, onOpenChange, template }:
               </div>
               {previewData.subject && (
                 <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">{t("subject")}:</Label>
-                  <div className="text-sm bg-muted p-2 rounded">{previewData.subject}</div>
+                  <Label className="text-muted-foreground text-xs">{t("subject")}:</Label>
+                  <div className="bg-muted rounded p-2 text-sm">{previewData.subject}</div>
                 </div>
               )}
               <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">{t("body")}:</Label>
-                <div className="text-sm bg-muted p-2 rounded whitespace-pre-wrap">{previewData.body}</div>
+                <Label className="text-muted-foreground text-xs">{t("body")}:</Label>
+                <div className="bg-muted rounded p-2 text-sm whitespace-pre-wrap">{previewData.body}</div>
               </div>
             </div>
           )}

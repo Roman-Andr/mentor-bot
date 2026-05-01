@@ -1,5 +1,6 @@
 "use client";
 
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "@/hooks/use-translations";
@@ -83,14 +84,14 @@ export function useDialogueEdit(id: number) {
   const serverOrderedSteps = useMemo(() => {
     if (!dialogue?.steps) return [];
     return [...dialogue.steps].sort((a, b) => a.step_number - b.step_number);
-  }, [dialogue?.steps]);
+  }, [dialogue]);
 
-  // Sync localOrderedSteps when serverOrderedSteps changes
+  // Initialize localOrderedSteps with server data on first load
   useEffect(() => {
-    if (serverOrderedSteps.length > 0) {
+    if (localOrderedSteps.length === 0 && serverOrderedSteps.length > 0) {
       setLocalOrderedSteps(serverOrderedSteps);
     }
-  }, [serverOrderedSteps]);
+  }, [serverOrderedSteps, localOrderedSteps.length]);
 
   // Use localOrderedSteps for UI, fall back to serverOrderedSteps
   const orderedSteps = localOrderedSteps.length > 0 ? localOrderedSteps : serverOrderedSteps;

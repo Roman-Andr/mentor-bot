@@ -92,6 +92,7 @@ class DialogueScenarioRepository(SqlAlchemyBaseRepository[DialogueScenario, int]
             "title": DialogueScenario.title,
             "category": DialogueScenario.category,
             "isActive": DialogueScenario.is_active,
+            "stepsCount": DialogueScenario.display_order,
             "displayOrder": DialogueScenario.display_order,
             "createdAt": DialogueScenario.created_at,
             "updatedAt": DialogueScenario.updated_at,

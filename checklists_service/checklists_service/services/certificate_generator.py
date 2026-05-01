@@ -9,7 +9,6 @@ from jinja2 import Environment, FileSystemLoader
 from weasyprint import HTML
 
 from checklists_service.models import Certificate
-from checklists_service.utils import auth_service_client
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +32,7 @@ class CertificateGenerator:
             logger.warning("_get_user_data called without auth token")
             return None
 
+        from checklists_service.utils import auth_service_client
         return await auth_service_client.get_user(user_id, self.auth_token)
 
     def _format_date(self, date: datetime | None, locale: str = "en") -> str:

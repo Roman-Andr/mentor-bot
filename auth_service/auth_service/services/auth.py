@@ -42,15 +42,6 @@ class AuthService:
         user = await self._uow.users.get_by_email(login_data.email)
 
         if not user:
-            # Record failed login attempt
-            await self._record_login(
-                user_id=0,  # Unknown user
-                success=False,
-                failure_reason="User not found",
-                method="password",
-                ip_address=self._get_client_ip(request),
-                user_agent=request.headers.get("user-agent") if request else None,
-            )
             logger.warning("Authentication failed: user not found for email={}", login_data.email)
             msg = "Invalid email or password"
             raise AuthException(msg)
@@ -131,15 +122,6 @@ class AuthService:
         user = await self._uow.users.get_by_telegram_id(telegram_data.telegram_id)
 
         if not user:
-            # Record failed login attempt
-            await self._record_login(
-                user_id=0,  # Unknown user
-                success=False,
-                failure_reason="User not found",
-                method="telegram",
-                ip_address=self._get_client_ip(request),
-                user_agent=request.headers.get("user-agent") if request else None,
-            )
             logger.warning(
                 "Telegram authentication failed: no user for telegram_id={}",
                 telegram_data.telegram_id,

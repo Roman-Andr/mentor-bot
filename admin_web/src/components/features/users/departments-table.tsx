@@ -16,6 +16,8 @@ import { DataTableSkeleton } from "@/components/ui/table-skeleton";
 import { CardHeader, CardTitle } from "@/components/ui/card";
 import { TableActions, buildEditAction, buildDeleteAction } from "@/components/shared";
 import type { DepartmentRow } from "@/hooks/use-departments";
+import { SortableTableHead } from "@/components/ui/sortable-table-head";
+import type { SortDirection } from "@/hooks/use-sorting";
 
 interface DepartmentsTableProps {
   departments: DepartmentRow[];
@@ -30,6 +32,9 @@ interface DepartmentsTableProps {
   onPageSizeChange?: (size: number) => void;
   onEdit: (department: DepartmentRow) => void;
   onDelete: (id: number) => void;
+  sortField?: string | null;
+  sortDirection?: SortDirection;
+  onSort?: (field: string) => void;
 }
 
 export function DepartmentsTable({
@@ -40,6 +45,9 @@ export function DepartmentsTable({
   currentPage,
   totalPages,
   totalCount,
+  sortField,
+  sortDirection = "asc",
+  onSort,
   pageSize,
   onPageChange,
   onPageSizeChange,
@@ -50,7 +58,7 @@ export function DepartmentsTable({
 
   return (
     <DataTable
-      loading={loading}
+      loading={false}
       empty={departments.length === 0}
       currentPage={currentPage}
       totalPages={totalPages}
@@ -71,9 +79,25 @@ export function DepartmentsTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>{t("departments.name")}</TableHead>
+            <SortableTableHead
+              field="name"
+              sortable={!!onSort}
+              sortField={sortField}
+              sortDirection={sortDirection}
+              onSort={onSort ?? (() => {})}
+            >
+              {t("departments.name")}
+            </SortableTableHead>
             <TableHead>{t("common.description")}</TableHead>
-            <TableHead>{t("common.created")}</TableHead>
+            <SortableTableHead
+              field="createdAt"
+              sortable={!!onSort}
+              sortField={sortField}
+              sortDirection={sortDirection}
+              onSort={onSort ?? (() => {})}
+            >
+              {t("common.created")}
+            </SortableTableHead>
             <TableHead className="w-25">{t("common.actions")}</TableHead>
           </TableRow>
         </TableHeader>
@@ -81,7 +105,7 @@ export function DepartmentsTable({
           {departments.map((department) => (
             <TableRow
               key={department.id}
-              className="hover:bg-muted cursor-pointer"
+              className="hover:bg-muted cursor-pointer transition-none"
               onClick={() => onEdit(department)}
             >
               <TableCell>
@@ -94,8 +118,8 @@ export function DepartmentsTable({
               <TableCell onClick={(e) => e.stopPropagation()}>
                 <TableActions
                   actions={[
-                    buildEditAction(() => onEdit(department)),
-                    buildDeleteAction(() => onDelete(department.id)),
+                    buildEditAction(() => onEdit(department), t("common.edit")),
+                    buildDeleteAction(() => onDelete(department.id), t("common.delete")),
                   ]}
                 />
               </TableCell>

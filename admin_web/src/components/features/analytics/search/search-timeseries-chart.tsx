@@ -11,14 +11,14 @@ interface SearchTimeseriesChartProps {
   data: SearchTimeseriesPoint[];
 }
 
-const CustomTooltip = ({ active, payload }: any) => {
+const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload as SearchTimeseriesPoint;
     const date = new Date(data.bucket).toLocaleDateString();
     return (
       <div className="rounded-lg border border-gray-200 bg-white/95 px-3 py-2 text-sm font-medium text-gray-900 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100" style={{ pointerEvents: "none" }}>
         <div>{date}</div>
-        {payload.map((entry: any) => (
+        {payload.map((entry) => (
           <div key={entry.name}>
             {entry.name}: {entry.value}
           </div>

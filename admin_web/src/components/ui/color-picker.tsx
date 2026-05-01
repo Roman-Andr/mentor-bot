@@ -17,7 +17,6 @@ const PRESET_COLORS = [
   "#14b8a6", // Teal
   "#06b6d4", // Cyan
   "#3b82f6", // Blue
-  "#6366f1", // Indigo
   "#64748b", // Slate
 ];
 
@@ -174,15 +173,19 @@ export function ColorPicker({ value, onChange, className }: ColorPickerProps) {
       const svWidth = svCanvas.width;
       const svHeight = svCanvas.height;
 
-      // Create gradient for hue
-      const hueGradient = svCtx.createLinearGradient(0, 0, svWidth, 0);
-      hueGradient.addColorStop(0, `hsl(${hsv.h}, 100%, 50%)`);
-      hueGradient.addColorStop(1, "white");
-
-      svCtx.fillStyle = hueGradient;
+      // Fill with current hue (pure color at max saturation and value)
+      svCtx.fillStyle = `hsl(${hsv.h}, 100%, 50%)`;
       svCtx.fillRect(0, 0, svWidth, svHeight);
 
-      // Create gradient for value
+      // Create gradient for saturation (horizontal: white to color)
+      const saturationGradient = svCtx.createLinearGradient(0, 0, svWidth, 0);
+      saturationGradient.addColorStop(0, "white");
+      saturationGradient.addColorStop(1, `hsl(${hsv.h}, 100%, 50%)`);
+
+      svCtx.fillStyle = saturationGradient;
+      svCtx.fillRect(0, 0, svWidth, svHeight);
+
+      // Create gradient for value (vertical: transparent to black)
       const valueGradient = svCtx.createLinearGradient(0, 0, 0, svHeight);
       valueGradient.addColorStop(0, "transparent");
       valueGradient.addColorStop(1, "black");

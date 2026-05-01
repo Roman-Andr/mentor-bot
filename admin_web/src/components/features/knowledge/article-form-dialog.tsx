@@ -14,7 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import type { Category, Attachment } from "@/types";
-import { ARTICLE_STATUSES, LEVELS } from "@/lib/constants";
+import { ARTICLE_STATUSES, getLevelOptions } from "@/lib/constants";
 import type { ArticleFormData } from "@/hooks/use-articles";
 import { AttachmentManager } from "./attachment-manager";
 
@@ -52,6 +52,7 @@ export function ArticleFormDialog({
   const t = useTranslations();
 
   const isEdit = mode === "edit";
+  const levelOptions = getLevelOptions(t);
 
   const articleStatuses = useMemo(() => {
     const statusLabels: Record<string, string> = {
@@ -147,8 +148,8 @@ export function ArticleFormDialog({
             <Select
               value={formData.level || ""}
               onChange={(val) => update("level", val)}
-              placeholder={t("common.all")}
-              options={LEVELS}
+              placeholder={t("common.notSpecified")}
+              options={levelOptions}
             />
           </div>
         </div>
@@ -183,7 +184,7 @@ export function ArticleFormDialog({
         <div className="grid gap-3 rounded-md border p-3">
           <label className="text-sm font-medium">{t("knowledge.attachments")}</label>
           <AttachmentManager
-            articleId={articleId}
+            articleId={null}
             attachments={attachments}
             onAttachmentsChange={onAttachmentsChange}
             pendingFiles={pendingFiles}

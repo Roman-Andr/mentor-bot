@@ -42,6 +42,8 @@ RUN bun run build && \
   cp -r .next/standalone/. /build/runner/ && \
   cp -r .next/static        /build/runner/.next/static && \
   cp -r public              /build/runner/public && \
+  mkdir -p /build/runner/scripts && \
+  cp scripts/log-wrap.mjs   /build/runner/scripts/log-wrap.mjs && \
   cp docker-entrypoint.sh   /build/runner/docker-entrypoint.sh && \
   chmod +x /build/runner/docker-entrypoint.sh
 

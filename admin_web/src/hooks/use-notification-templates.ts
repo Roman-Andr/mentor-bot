@@ -3,14 +3,10 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { notificationTemplatesApi } from "@/lib/api/notification-templates";
 import { queryKeys } from "@/lib/query-keys";
-import { useToast } from "@/hooks/use-toast";
-import { useTranslations } from "@/hooks/use-translations";
 import type {
-  NotificationTemplate,
   NotificationTemplateCreate,
   NotificationTemplateUpdate,
   NotificationTemplateRenderRequest,
-  NotificationTemplateRenderResponse,
 } from "@/types/notification";
 
 export function useNotificationTemplates(params?: {
@@ -49,8 +45,6 @@ export function useCreateNotificationTemplate() {
 
 export function useUpdateNotificationTemplate() {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
-  const t = useTranslations("notificationTemplates");
 
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: NotificationTemplateUpdate }) =>

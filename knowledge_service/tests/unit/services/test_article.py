@@ -356,6 +356,28 @@ class TestUpdateArticle:
         mock_uow.tags.update.assert_called()
         mock_uow.commit.assert_called_once()
 
+    async def test_update_article_meta_fields(self, mock_uow, sample_article):
+        """Test updating article meta fields (meta_title, meta_description, keywords)."""
+        mock_uow.articles.get_by_id_with_relations.return_value = sample_article
+        mock_uow.articles.update.return_value = sample_article
+        mock_uow.articles.update_search_vector.return_value = None
+
+        service = ArticleService(mock_uow)
+        update_data = ArticleUpdate(
+            meta_title="Test Meta Title",
+            meta_description="Test Meta Description",
+            keywords=["test", "keyword"],
+        )
+
+        result = await service.update_article(1, update_data)
+
+        assert result == sample_article
+        assert sample_article.meta_title == "Test Meta Title"
+        assert sample_article.meta_description == "Test Meta Description"
+        assert sample_article.keywords == ["test", "keyword"]
+        mock_uow.articles.update.assert_called_once()
+        mock_uow.commit.assert_called_once()
+
 
 class TestDeleteArticle:
     """Tests for deleting articles."""

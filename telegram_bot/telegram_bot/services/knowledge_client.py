@@ -15,7 +15,7 @@ class KnowledgeServiceClient:
     def __init__(self, base_url: str | None = None) -> None:
         """Initialize knowledge service HTTP client."""
         self.base_url = base_url or settings.KNOWLEDGE_SERVICE_URL
-        self.client = httpx.AsyncClient(base_url=self.base_url, timeout=settings.SERVICE_TIMEOUT)
+        self.client = httpx.AsyncClient(base_url=self.base_url, timeout=settings.SERVICE_TIMEOUT, follow_redirects=True)
 
     @cached(ttl=30, key_prefix="kb_search")
     async def search_articles(self, query: str, auth_token: str, page: int = 1, size: int = 5) -> SearchResponse:

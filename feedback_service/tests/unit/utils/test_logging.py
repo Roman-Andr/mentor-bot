@@ -81,6 +81,29 @@ class TestInterceptHandlerEmit:
 
         handler.handleError.assert_called_once_with(record)
 
+    def test_emit_with_logging_module_frame(self) -> None:
+        """Covers the while loop when frame is from logging module (lines 36-37)."""
+        from unittest.mock import patch
+
+        handler = InterceptHandler()
+        record = logging.LogRecord(
+            name="test",
+            level=logging.INFO,
+            pathname=__file__,
+            lineno=1,
+            msg="test",
+            args=None,
+            exc_info=None,
+        )
+
+        # Mock currentframe to return a frame that appears to be from logging module
+        mock_frame = MagicMock()
+        mock_frame.f_code.co_filename = logging.__file__
+        mock_frame.f_back = None  # This will exit the while loop after one iteration
+
+        with patch.object(logging, "currentframe", return_value=mock_frame):
+            handler.emit(record)
+
 
 class TestConfigureLogging:
     """Tests for configure_logging()."""
@@ -89,6 +112,20 @@ class TestConfigureLogging:
         """Replaces existing root handlers with InterceptHandler."""
         configure_logging("feedback_service", "INFO")
         assert any(isinstance(h, InterceptHandler) for h in logging.root.handlers)
+
+    def test_configure_logging_handles_os_error(self) -> None:
+        """Covers OSError exception handling when LOG_DIR.mkdir() fails (lines 73-74)."""
+        from unittest.mock import MagicMock, patch
+
+        from feedback_service.utils import logging as logging_module
+
+        # Create a mock LOG_DIR that raises OSError on mkdir
+        mock_log_dir = MagicMock()
+        mock_log_dir.mkdir.side_effect = OSError("Permission denied")
+
+        with patch.object(logging_module, "LOG_DIR", mock_log_dir):
+            configure_logging("feedback_service", "INFO")
+        # Should not raise, just pass
 
 
 class TestInjectRequestId:

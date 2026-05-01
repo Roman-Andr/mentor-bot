@@ -18,7 +18,7 @@ import { DataTable } from "@/components/ui/data-table";
 import { CardHeader, CardTitle } from "@/components/ui/card";
 import { TableActions, buildEditAction, buildDeleteAction } from "@/components/shared";
 import { Building, UserCheck } from "lucide-react";
-import { ROLES, ROLES_WITH_ALL } from "@/lib/constants";
+import { getRoleOptions } from "@/lib/constants";
 import type { UserItem } from "@/hooks/use-users";
 import { SortableTableHead } from "@/components/ui/sortable-table-head";
 import type { SortDirection } from "@/hooks/use-sorting";
@@ -80,6 +80,7 @@ export function UsersTable({
 }: UsersTableProps) {
   const t = useTranslations();
 
+  const roleOptions = getRoleOptions(t, true);
   const departmentOptions = [
     { value: "ALL", label: t("users.allDepartments") },
     ...departments.map((d) => ({ value: String(d.id), label: d.name })),
@@ -110,7 +111,7 @@ export function UsersTable({
                 value={searchQuery}
                 onChange={onSearchChange}
               />
-              <Select value={roleFilter} onChange={onRoleFilterChange} options={ROLES_WITH_ALL} />
+              <Select value={roleFilter} onChange={onRoleFilterChange} options={roleOptions} />
               <Select
                 value={departmentFilter}
                 onChange={onDepartmentFilterChange}
@@ -216,7 +217,7 @@ export function UsersTable({
               <TableCell>{user.position}</TableCell>
               <TableCell>
                 <Badge variant={ROLE_VARIANTS[user.role] ?? "outline"}>
-                  {ROLES.find((r) => r.value === user.role)?.label || user.role}
+                  {t(`statuses.${user.role}`)}
                 </Badge>
               </TableCell>
               <TableCell>
@@ -228,7 +229,7 @@ export function UsersTable({
               <TableCell onClick={(e) => e.stopPropagation()}>
                 <TableActions
                   actions={[
-                    buildEditAction(() => onEdit(user)),
+                    buildEditAction(() => onEdit(user), t("common.edit")),
                     ...(onAssignMentor && user.role === "NEWBIE"
                       ? [{
                           icon: UserCheck,
@@ -238,7 +239,7 @@ export function UsersTable({
                         }]
                       : []
                     ),
-                    buildDeleteAction(() => onDelete(user.id)),
+                    buildDeleteAction(() => onDelete(user.id), t("common.delete")),
                   ]}
                 />
               </TableCell>

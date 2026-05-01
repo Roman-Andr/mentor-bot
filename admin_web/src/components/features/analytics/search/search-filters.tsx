@@ -5,6 +5,8 @@ import { useTranslations } from "@/hooks/use-translations";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
+import { Select, SelectOption } from "@/components/ui/select";
 import { departmentsApi } from "@/lib/api/departments";
 import { useEffect } from "react";
 import { logger } from "@/lib/logger";
@@ -18,14 +20,18 @@ export function SearchFilters({ onFiltersChange }: SearchFiltersProps) {
   const [fromDate, setFromDate] = useState<string>("");
   const [toDate, setToDate] = useState<string>("");
   const [departmentId, setDepartmentId] = useState<string>("");
-  const [departments, setDepartments] = useState<Array<{ id: number; name: string }>>([]);
+  const [departmentOptions, setDepartmentOptions] = useState<SelectOption[]>([]);
 
   useEffect(() => {
     async function loadDepartments() {
       try {
         const result = await departmentsApi.list({ limit: 1000 });
         if (result.success && result.data?.departments) {
-          setDepartments(result.data.departments);
+          const options: SelectOption[] = result.data.departments.map((dept: { id: number; name: string }) => ({
+            value: dept.id.toString(),
+            label: dept.name,
+          }));
+          setDepartmentOptions(options);
         }
       } catch (error) {
         logger.error("Failed to load departments", { error });
@@ -54,40 +60,32 @@ export function SearchFilters({ onFiltersChange }: SearchFiltersProps) {
       <CardContent className="pt-6">
         <div className="grid gap-4 md:grid-cols-4">
           <div className="space-y-2">
-            <Label htmlFor="from-date">{t("analytics.search.fromDate")}</Label>
-            <input
-              id="from-date"
-              type="date"
+            <Label>{t("analytics.search.fromDate")}</Label>
+            <DatePicker
               value={fromDate}
-              onChange={(e) => setFromDate(e.target.value)}
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              onChange={setFromDate}
+              placeholder={t("analytics.search.fromDate")}
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="to-date">{t("analytics.search.toDate")}</Label>
-            <input
-              id="to-date"
-              type="date"
+            <Label>{t("analytics.search.toDate")}</Label>
+            <DatePicker
               value={toDate}
-              onChange={(e) => setToDate(e.target.value)}
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              onChange={setToDate}
+              placeholder={t("analytics.search.toDate")}
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="department">{t("analytics.search.department")}</Label>
-            <select
-              id="department"
+            <Label>{t("analytics.search.department")}</Label>
+            <Select
               value={departmentId}
-              onChange={(e) => setDepartmentId(e.target.value)}
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-            >
-              <option value="">{t("analytics.search.allDepartments")}</option>
-              {departments.map((dept) => (
-                <option key={dept.id} value={dept.id}>
-                  {dept.name}
-                </option>
-              ))}
-            </select>
+              onChange={setDepartmentId}
+              options={[
+                { value: "", label: t("analytics.search.allDepartments") },
+                ...departmentOptions,
+              ]}
+              placeholder={t("analytics.search.allDepartments")}
+            />
           </div>
           <div className="flex items-end gap-2">
             <Button onClick={handleApply} className="flex-1">

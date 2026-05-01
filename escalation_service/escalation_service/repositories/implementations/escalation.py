@@ -22,9 +22,12 @@ class EscalationRepository(SqlAlchemyBaseRepository[EscalationRequest, int], IEs
     def _get_sort_column(self, sort_by: str | None) -> Column:
         """Get SQLAlchemy column for sorting."""
         column_map = {
+            "id": EscalationRequest.id,
+            "userId": EscalationRequest.user_id,
             "type": EscalationRequest.type,
+            "source": EscalationRequest.source,
             "status": EscalationRequest.status,
-            "user": EscalationRequest.user_id,
+            "reason": EscalationRequest.reason,
             "assignedTo": EscalationRequest.assigned_to,
             "createdAt": EscalationRequest.created_at,
             "updatedAt": EscalationRequest.updated_at,

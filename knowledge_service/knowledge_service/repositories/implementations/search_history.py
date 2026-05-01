@@ -255,6 +255,7 @@ class SearchHistoryRepository(SqlAlchemyBaseRepository[SearchHistory, int], ISea
         self,
         from_date: datetime | None = None,
         to_date: datetime | None = None,
+        token: str | None = None,
     ) -> list[dict[str, Any]]:
         """Get search statistics grouped by department."""
         conditions = []
@@ -274,10 +275,19 @@ class SearchHistoryRepository(SqlAlchemyBaseRepository[SearchHistory, int], ISea
             .order_by(func.count(SearchHistory.id).desc())
         )
         result = await self._session.execute(stmt)
+        
+        # Fetch department names from auth service
+        department_map = {}
+        if token:
+            from knowledge_service.utils import auth_service_client
+            departments = await auth_service_client.get_departments(token)
+            if departments:
+                department_map = {dept["id"]: dept["name"] for dept in departments}
+        
         return [
             {
                 "department_id": row[0],
-                "department_name": f"Department {row[0]}" if row[0] else "Unknown",
+                "department_name": department_map.get(row[0], f"Department {row[0]}") if row[0] else "Unknown",
                 "search_count": row[1],
                 "unique_users": row[2],
             }

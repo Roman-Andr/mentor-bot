@@ -289,7 +289,7 @@ class TestDownloadCertificate:
                     )
 
                 assert exc_info.value.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
-                mock_logger.error.assert_called_once()
+                mock_logger.exception.assert_called_once()
 
     async def test_download_certificate_russian_locale(self, sample_user, sample_certificate) -> None:
         """Test certificate download with Russian locale."""

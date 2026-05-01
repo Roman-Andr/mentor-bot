@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useEffect, useCallback } from "react";
 import { useTranslations } from "@/hooks/use-translations";
 import { api } from "@/lib/api";
@@ -165,7 +166,7 @@ export function useDashboardData(): UseDashboardDataResult {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
   return {
     stats,

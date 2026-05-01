@@ -78,6 +78,8 @@ class SqlAlchemyUnitOfWork(IUnitOfWork):
         if self._session:
             if args and args[0]:
                 await self._session.rollback()
+            else:
+                await self._session.commit()
             await self._session.close()
             self._session = None
 

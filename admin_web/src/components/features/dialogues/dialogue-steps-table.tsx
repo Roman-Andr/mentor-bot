@@ -103,8 +103,8 @@ function SortableStepRow({ step, position, onEdit, onDelete, t }: SortableStepRo
       <TableCell className="w-20">
         <TableActions
           actions={[
-            buildEditAction(() => onEdit(step.id)),
-            buildDeleteAction(() => onDelete(step.id, step.question)),
+            buildEditAction(() => onEdit(step.id), t("common.edit")),
+            buildDeleteAction(() => onDelete(step.id, step.question), t("common.delete")),
           ]}
         />
       </TableCell>

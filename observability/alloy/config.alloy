@@ -1,46 +1,24 @@
-// Discover all running Docker containers
-discovery.docker "containers" {
-  host = "unix:///var/run/docker.sock"
+// Discover JSON log files written by Python services to /var/log/app.
+// The shared `service_logs` Docker volume mounts that path here read-only.
+local.file_match "service_logs" {
+  path_targets = [{__path__ = "/var/log/app/*.log"}]
+  sync_period  = "5s"
 }
 
-// Relabel: extract container name and log stream
-discovery.relabel "containers" {
-  targets = discovery.docker.containers.targets
-
-  rule {
-    source_labels = ["__meta_docker_container_name"]
-    regex         = "/(.*)"
-    target_label  = "container"
-  }
-
-  rule {
-    source_labels = ["__meta_docker_container_log_stream"]
-    target_label  = "stream"
-  }
-
-  rule {
-    source_labels = ["container"]
-    regex         = "(.*)"
-    target_label  = "job"
-  }
+// Tail the matched files and forward to the JSON parsing pipeline.
+loki.source.file "service_logs" {
+  targets    = local.file_match.service_logs.targets
+  forward_to = [loki.process.json_logs.receiver]
 }
 
-// Collect logs from Docker API
-loki.source.docker "containers" {
-  host          = "unix:///var/run/docker.sock"
-  targets       = discovery.relabel.containers.output
-  relabel_rules = discovery.relabel.containers.rules
-  forward_to    = [loki.process.json_logs.receiver]
-}
-
-// Parse JSON log lines and promote service/level as Loki labels
+// Parse loguru-serialized JSON. Loguru nests fields under `record`, so we
+// reach into record.level.name, record.message, and record.extra.service.
 loki.process "json_logs" {
-  // Try to parse the log line as JSON
   stage.json {
     expressions = {
-      level   = "level",
-      message = "message",
-      service = "service",
+      level   = "record.level.name",
+      message = "record.message",
+      service = "record.extra.service",
     }
   }
 
@@ -51,7 +29,7 @@ loki.process "json_logs" {
     }
   }
 
-  // Use the parsed message as the log line (falls back to raw if empty)
+  // Use the parsed message as the log line (falls back to raw if empty).
   stage.output {
     source = "message"
   }
@@ -59,7 +37,7 @@ loki.process "json_logs" {
   forward_to = [loki.write.default.receiver]
 }
 
-// Push to Loki
+// Push to Loki.
 loki.write "default" {
   endpoint {
     url = "http://loki:3100/loki/api/v1/push"

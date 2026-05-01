@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SearchInput } from "@/components/ui/search-input";
 import { Select } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { SortableTableHead } from "@/components/ui/sortable-table-head";
 import { StatusBadge } from "@/components/ui/status-badge";
 import {
@@ -21,7 +22,7 @@ import { CardHeader, CardTitle } from "@/components/ui/card";
 import { TableActions, buildEditAction, buildDeleteAction } from "@/components/shared";
 import { BookOpen, Eye, Pin, Star } from "lucide-react";
 import type { Category } from "@/types";
-import { ARTICLE_STATUSES } from "@/lib/constants";
+import { getArticleStatusOptions } from "@/lib/constants";
 import type { ArticleRow } from "@/hooks/use-articles";
 import type { SortDirection } from "@/hooks/use-sorting";
 
@@ -36,6 +37,8 @@ interface ArticlesTableProps {
   onCategoryFilterChange: (value: string) => void;
   statusFilter: string;
   onStatusFilterChange: (value: string) => void;
+  pinnedFilter: string;
+  onPinnedFilterChange: (value: string) => void;
   onReset: () => void;
   categories: Category[];
   onEdit: (article: ArticleRow) => void;
@@ -61,6 +64,8 @@ export function ArticlesTable({
   onCategoryFilterChange,
   statusFilter,
   onStatusFilterChange,
+  pinnedFilter,
+  onPinnedFilterChange,
   onReset,
   categories,
   onEdit,
@@ -88,19 +93,11 @@ export function ArticlesTable({
   ];
 
   const categoryOptions = [
-    { value: "ALL", label: t("common.all") },
+    { value: "ALL", label: t("knowledge.allCategories") },
     ...categories.map((cat) => ({ value: String(cat.id), label: cat.name })),
   ];
 
-  const statusLabels: Record<string, string> = {
-    ALL: t("common.all"),
-    PUBLISHED: t("knowledge.published"),
-    DRAFT: t("knowledge.draft"),
-  };
-  const statusOptions = ARTICLE_STATUSES.map((s) => ({
-    value: s.value,
-    label: statusLabels[s.value] ?? s.label,
-  }));
+  const statusOptions = getArticleStatusOptions(t, true);
 
   return (
     <DataTable
@@ -129,6 +126,16 @@ export function ArticlesTable({
                 onChange={onStatusFilterChange}
                 options={statusOptions}
               />
+              <div className="flex items-center gap-2 px-3">
+                <Checkbox
+                  id="pinned-filter"
+                  checked={pinnedFilter === "true"}
+                  onCheckedChange={(checked) => onPinnedFilterChange(checked ? "true" : "ALL")}
+                />
+                <label htmlFor="pinned-filter" className="text-sm cursor-pointer">
+                  {t("knowledge.pinnedOnly")}
+                </label>
+              </div>
               <Button variant="outline" onClick={onReset}>
                 {t("common.reset")}
               </Button>
@@ -173,7 +180,15 @@ export function ArticlesTable({
                 </div>
               </TableCell>
               <TableCell>
-                <Badge variant="secondary">{article.category}</Badge>
+                <Badge
+                  variant="secondary"
+                  style={{
+                    backgroundColor: article.category_color || undefined,
+                    color: article.category_color ? '#fff' : undefined,
+                  }}
+                >
+                  {article.category}
+                </Badge>
               </TableCell>
               <TableCell>{article.author}</TableCell>
               <TableCell>
@@ -189,7 +204,7 @@ export function ArticlesTable({
               <TableCell onClick={(e) => e.stopPropagation()}>
                 <TableActions
                   actions={[
-                    buildEditAction(() => onEdit(article)),
+                    buildEditAction(() => onEdit(article), t("common.edit")),
                     ...(article.status === "DRAFT"
                       ? [{
                           icon: BookOpen,
@@ -200,7 +215,7 @@ export function ArticlesTable({
                         }]
                       : []
                     ),
-                    buildDeleteAction(() => onDelete(article.id)),
+                    buildDeleteAction(() => onDelete(article.id), t("common.delete")),
                   ]}
                 />
               </TableCell>

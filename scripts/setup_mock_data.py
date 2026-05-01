@@ -38,15 +38,15 @@ MOCK_DATA_DIR = SCRIPT_DIR / "mock_data"
 # only resolve inside the docker network, so we ignore them here. We pick up
 # DB credentials needed to bootstrap the admin user via psql, and ADMIN_WEB_URL
 # for routing all API calls through the admin_web proxy.
-_ENV_KEYS_TO_LOAD = {
+_REQUIRED_ENV_VARS = [
     "POSTGRES_USER",
     "POSTGRES_PASSWORD",
-    "AUTH_DB",
     "ADMIN_EMAIL",
     "ADMIN_PASSWORD",
     "SERVICE_API_KEY",
     "ADMIN_WEB_URL",
-}
+    "AUTH_SERVICE_URL",
+]
 
 
 def _load_env_file() -> None:
@@ -60,7 +60,7 @@ def _load_env_file() -> None:
             continue
         key, _, value = line.partition("=")
         key = key.strip()
-        if key not in _ENV_KEYS_TO_LOAD:
+        if key not in _REQUIRED_ENV_VARS:
             continue
         os.environ.setdefault(key, value.strip().strip('"').strip("'"))
 
@@ -250,17 +250,16 @@ async def wait_for_admin_web(url: str, max_attempts: int = 30, delay: int = 1) -
     """
     Wait for admin_web to become reachable.
 
-    Next.js doesn't ship a /health route by default; any 2xx/3xx from the root
-    means the app is up and the API proxy is ready to forward requests.
+    Check if admin_web responds at all (any status code means the app is up).
     """
     log_step(f"Waiting for admin_web at {url}")
     async with httpx.AsyncClient(timeout=5.0, follow_redirects=False) as client:
         for attempt in range(1, max_attempts + 1):
             try:
-                response = await client.get(f"{url}/")
-                if 200 <= response.status_code < 400:
-                    log_success("admin_web is available")
-                    return True
+                response = await client.get(f"{url}/api")
+                # Any response (even 404) means the app is up and proxy is working
+                log_success("admin_web is available")
+                return True
             except Exception as e:
                 logger.debug("Admin_web not ready yet: %s", e)
             log_warning(f"Attempt {attempt}/{max_attempts}: admin_web not ready yet")
@@ -318,18 +317,6 @@ async def _create_or_get_department(
     """Create a department via auth API or return existing ID. Auth service syncs to other services."""
     name = dept["name"]
     try:
-        response = await client.get(
-            f"{ADMIN_WEB_URL}/api/v1/departments/",
-            headers=headers,
-            params={"search": name},
-        )
-        if response.status_code == 200:
-            existing = response.json().get("departments", [])
-            if existing:
-                dept_id = existing[0]["id"]
-                log_success(f"  Department '{name}' already exists (ID: {dept_id})")
-                return name, dept_id
-
         response = await client.post(
             f"{ADMIN_WEB_URL}/api/v1/departments/",
             headers=headers,
@@ -339,6 +326,19 @@ async def _create_or_get_department(
             dept_id = response.json()["id"]
             log_success(f"  Department '{name}' created (ID: {dept_id})")
             return name, dept_id
+        if response.status_code == 409:
+            # Department already exists, try to get its ID
+            response = await client.get(
+                f"{ADMIN_WEB_URL}/api/v1/departments/",
+                headers=headers,
+                params={"search": name},
+            )
+            if response.status_code == 200:
+                existing = response.json().get("departments", [])
+                if existing:
+                    dept_id = existing[0]["id"]
+                    log_warning(f"  Failed to create department '{name}': 409 - {response.text}")
+                    return name, dept_id
         log_warning(f"  Failed to create department '{name}': {response.status_code} - {response.text}")
     except Exception as e:
         log_warning(f"  Error creating department '{name}': {e}")

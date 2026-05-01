@@ -40,6 +40,7 @@ interface EntityPageTableProps<TItem, TForm> extends Pick<
   | "sortDirection"
   | "onSort"
   | "emptyStateMessage"
+  | "t"
 > {}
 
 export function EntityPageTable<TItem, TForm>({
@@ -69,6 +70,7 @@ export function EntityPageTable<TItem, TForm>({
   sortDirection,
   onSort,
   emptyStateMessage,
+  t,
 }: EntityPageTableProps<TItem, TForm>) {
   const totalPages = Math.ceil(totalItems / pageSize) || 1;
 
@@ -100,14 +102,14 @@ export function EntityPageTable<TItem, TForm>({
                 placeholder={searchPlaceholder}
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
-                className="border rounded px-3 py-2"
+                className="rounded border px-3 py-2"
               />
             )}
             {filters}
             {additionalActions}
             <button
               onClick={onCreateOpen}
-              className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-2 rounded px-4 py-2"
             >
               <span className="size-4">+</span>
               {createButtonLabel}
@@ -151,7 +153,7 @@ export function EntityPageTable<TItem, TForm>({
                   className={column.cellClassName}
                 >
                   {column.key === "actions"
-                    ? <EntityPageActions item={item} onEdit={onEditOpen} onDelete={onDelete} />
+                    ? <EntityPageActions item={item} onEdit={onEditOpen} onDelete={onDelete} t={t} />
                     : column.cell(item)}
                 </TableCell>
               ))}

@@ -11,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { MEETING_TYPES, LEVELS_WITH_EMPTY } from "@/lib/constants";
+import { getMeetingTypeOptions, getLevelOptions } from "@/lib/constants";
 
 interface MeetingFormData {
   title: string;
@@ -49,6 +49,9 @@ export function MeetingFormDialog({
   onCancel,
 }: MeetingFormDialogProps) {
   const t = useTranslations();
+
+  const meetingTypeOptions = getMeetingTypeOptions(t);
+  const levelOptions = getLevelOptions(t, true);
 
   const departmentOptions = [
     { value: "", label: t("common.notSpecified") },
@@ -88,7 +91,7 @@ export function MeetingFormDialog({
           <Select
             value={formData.type}
             onChange={(val) => onFormDataChange((prev) => ({ ...prev, type: val }))}
-            options={MEETING_TYPES.filter((t) => t.value !== "ALL")}
+            options={meetingTypeOptions}
           />
         </div>
         <div>
@@ -114,7 +117,7 @@ export function MeetingFormDialog({
           <Select
             value={formData.level}
             onChange={(val) => onFormDataChange((prev) => ({ ...prev, level: val }))}
-            options={LEVELS_WITH_EMPTY}
+            options={levelOptions}
           />
         </div>
         <div>

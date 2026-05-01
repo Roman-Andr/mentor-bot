@@ -8,6 +8,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Eye, MessageSquare, UserX, User, Star } from "lucide-react";
 import { formatDateTime } from "@/lib/utils";
 import { SortableTableHead } from "@/components/ui/sortable-table-head";
@@ -21,9 +22,10 @@ interface FeedbackTableProps {
   sortField: string;
   sortDirection: "asc" | "desc";
   onSort: (field: string) => void;
+  t: (key: string) => string;
 }
 
-export function FeedbackTable({ items, getUserName, onViewDetails, onReply, sortField, sortDirection, onSort }: FeedbackTableProps) {
+export function FeedbackTable({ items, getUserName, onViewDetails, onReply, sortField, sortDirection, onSort, t }: FeedbackTableProps) {
   return (
     <Table>
       <TableHeader>
@@ -121,28 +123,42 @@ export function FeedbackTable({ items, getUserName, onViewDetails, onReply, sort
               )}
             </TableCell>
             <TableCell className="text-right">
-              <div className="flex items-center justify-end gap-1">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => onViewDetails(item)}
-                  title="View Details"
-                  className="hover:bg-primary/10 hover:text-primary"
-                >
-                  <Eye className="size-4" />
-                </Button>
-                {item.type === "comment" && (!item.is_anonymous || item.allow_contact) && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => onReply(item.id)}
-                    title="Reply"
-                    className="hover:bg-primary/10 hover:text-primary"
-                  >
-                    <MessageSquare className="size-4" />
-                  </Button>
-                )}
-              </div>
+              <TooltipProvider>
+                <div className="flex items-center justify-end gap-1">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => onViewDetails(item)}
+                        className="hover:bg-primary/10 hover:text-primary"
+                      >
+                        <Eye className="size-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{t("feedback.viewDetails")}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                  {item.type === "comment" && (!item.is_anonymous || item.allow_contact) && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => onReply(item.id)}
+                          className="hover:bg-primary/10 hover:text-primary"
+                        >
+                          <MessageSquare className="size-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{t("feedback.reply")}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
+                </div>
+              </TooltipProvider>
             </TableCell>
           </TableRow>
         ))}

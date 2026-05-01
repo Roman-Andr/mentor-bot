@@ -13,7 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ColorPicker } from "@/components/ui/color-picker";
-import { LEVELS_WITH_EMPTY } from "@/lib/constants";
+import { getLevelOptions } from "@/lib/constants";
 import type { CategoryFormData } from "@/hooks/use-categories";
 
 interface CategoryFormDialogProps {
@@ -38,6 +38,7 @@ export function CategoryFormDialog({
   const t = useTranslations();
 
   const isEdit = mode === "edit";
+  const levelOptions = getLevelOptions(t, true);
 
   return (
     <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto">
@@ -103,9 +104,9 @@ export function CategoryFormDialog({
             <Select
               value={formData.department_id ? String(formData.department_id) : ""}
               onChange={(val) => onFormDataChange("department_id", parseInt(val) || 0)}
-              placeholder={t("common.all")}
+              placeholder={t("knowledge.allDepartments")}
               options={[
-                { value: "0", label: t("common.all") },
+                { value: "0", label: t("knowledge.allDepartments") },
                 ...departments.map((d) => ({ value: String(d.id), label: d.name })),
               ]}
             />
@@ -125,8 +126,8 @@ export function CategoryFormDialog({
             <Select
               value={formData.level || ""}
               onChange={(val) => onFormDataChange("level", val)}
-              placeholder={t("common.all")}
-              options={LEVELS_WITH_EMPTY.map((l) => ({ value: l.value, label: l.label }))}
+              placeholder={t("common.notSpecified")}
+              options={levelOptions}
             />
           </div>
           <div className="grid gap-2">

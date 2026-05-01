@@ -57,9 +57,9 @@ export function FeedbackReplyDialog({
           </DialogHeader>
 
           {item?.comment && (
-            <div className="rounded-md border bg-muted/40 p-3 text-sm">
+            <div className="bg-muted/40 rounded-md border p-3 text-sm">
               <div className="mb-1 font-medium">{t("feedback.originalComment")}</div>
-              <p className="whitespace-pre-wrap text-muted-foreground">{item.comment}</p>
+              <p className="text-muted-foreground whitespace-pre-wrap">{item.comment}</p>
             </div>
           )}
 

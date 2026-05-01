@@ -35,17 +35,23 @@ export class ErrorBoundary extends Component<Props, State> {
       return (
         <div className="flex min-h-screen items-center justify-center p-4">
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-red-600 mb-2">Something went wrong</h1>
-            <p className="text-gray-600 mb-4">An unexpected error occurred</p>
+            <h1 className="mb-2 text-2xl font-bold text-red-600 dark:text-red-400">
+              Something went wrong
+            </h1>
+            <p className="mb-4 text-gray-600 dark:text-gray-400">
+              An unexpected error occurred
+            </p>
             {process.env.NODE_ENV === "development" && this.state.error && (
-              <details className="text-left bg-gray-100 p-4 rounded text-sm">
-                <summary className="cursor-pointer font-semibold mb-2">Error details</summary>
+              <details className="rounded bg-gray-100 p-4 text-left text-sm dark:bg-gray-800">
+                <summary className="mb-2 cursor-pointer font-semibold">
+                  Error details
+                </summary>
                 <pre className="whitespace-pre-wrap">{this.state.error.stack}</pre>
               </details>
             )}
             <button
               onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 dark:hover:bg-blue-700"
             >
               Refresh
             </button>

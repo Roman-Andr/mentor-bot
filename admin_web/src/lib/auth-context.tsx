@@ -87,7 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        logger.error("Login failed", { status: response.status, errorData });
+        logger.warn("Login failed", { status: response.status, errorData });
         return false;
       }
 
@@ -127,36 +127,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const refresh = async () => {
-    try {
-      logger.debug("Fetching /me with cookies");
-      const userResponse = await fetch("/api/v1/auth/me", {
-        credentials: "include",
-      });
-
-      logger.debug("/me response status", { status: userResponse.status });
-
-      if (!userResponse.ok) {
-        logger.error("Failed to fetch user", { status: userResponse.status });
-        return false;
-      }
-
-      const userData = await userResponse.json();
-      const user: AuthUser = {
-        id: userData.id,
-        email: userData.email,
-        role: userData.role,
-        first_name: userData.first_name,
-        last_name: userData.last_name,
-      };
-
-      setUser(user);
-      return true;
-    } catch (error) {
-      logger.error("Failed to refresh user data", { error });
-      return false;
-    }
-  };
 
   const logout = async () => {
     // Call logout endpoint to clear httpOnly cookies

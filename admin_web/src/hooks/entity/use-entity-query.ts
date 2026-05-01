@@ -1,6 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { queryKeys, getEntityListKey } from "@/lib/query-keys";
+import { queryKeys } from "@/lib/query-keys";
 import type { ListParams } from "../use-queries";
 import type { UseEntityOptions } from "./types";
 
@@ -24,6 +24,7 @@ export function useEntityQuery<TItem>(
   const { data: listData, isLoading: loading } = useQuery({
     queryKey: listQueryKey,
     queryFn: () => listFn(queryParams),
+    placeholderData: keepPreviousData,
     select: (result) => {
       if (!result.success || !result.data) return undefined;
 

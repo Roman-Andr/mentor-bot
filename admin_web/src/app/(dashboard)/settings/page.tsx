@@ -1,7 +1,8 @@
 "use client";
 
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useTransition, useRef, useCallback, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useLocale } from "next-intl";
 import { useTheme } from "next-themes";
 import { useTranslations } from "@/hooks/use-translations";
@@ -17,11 +18,13 @@ import { Bell, Globe, Palette, Save } from "lucide-react";
 export default function SettingsPage() {
   const t = useTranslations();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
   const { theme: currentTheme, setTheme } = useTheme();
   const currentLocale = useLocale();
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
-  const [activeSection, setActiveSection] = useState<"appearance" | "language" | "notifications">("appearance");
+  const activeSection = (searchParams.get("tab") as "appearance" | "language" | "notifications") || "appearance";
 
   // Preferences hook
   const { preferences, isLoading: prefsLoading, updatePreferences, isUpdating: prefsUpdating } = usePreferences();
@@ -109,16 +112,22 @@ export default function SettingsPage() {
     }
   }, [currentTheme, currentLocale, preferences]);
 
+  const handleSectionChange = useCallback((section: "appearance" | "language" | "notifications") => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("tab", section);
+    router.replace(`${pathname}?${params.toString()}`);
+  }, [searchParams, pathname, router]);
+
   return (
     <div className="space-y-6 p-6">
       <PageHeader title={t("settings.title")} subtitle={t("settings.subtitle")} />
 
-      <div className="grid gap-6 md:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-4 items-start">
         <Card className="md:col-span-1">
           <CardContent className="p-4">
             <nav className="space-y-1">
               <button
-                onClick={() => setActiveSection("appearance")}
+                onClick={() => handleSectionChange("appearance")}
                 className={`flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm ${
                   activeSection === "appearance"
                     ? "bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
@@ -129,7 +138,7 @@ export default function SettingsPage() {
                 {t("settings.appearance")}
               </button>
               <button
-                onClick={() => setActiveSection("language")}
+                onClick={() => handleSectionChange("language")}
                 className={`flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm ${
                   activeSection === "language"
                     ? "bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
@@ -140,7 +149,7 @@ export default function SettingsPage() {
                 {t("settings.language")}
               </button>
               <button
-                onClick={() => setActiveSection("notifications")}
+                onClick={() => handleSectionChange("notifications")}
                 className={`flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm ${
                   activeSection === "notifications"
                     ? "bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
@@ -190,7 +199,7 @@ export default function SettingsPage() {
                 <CardTitle>{t("settings.language")}</CardTitle>
                 <CardDescription>{t("settings.languageDescription")}</CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-6">
                 <div>
                   <Label>{t("settings.selectLanguage")}</Label>
                   <div className="mt-2 flex gap-4">

@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback } from "react";
 import type { FilterConfig } from "./types";
 
 export function useEntityFilters(filters: FilterConfig[] = [], setCurrentPage: (page: number) => void) {
@@ -29,13 +29,9 @@ export function useEntityFilters(filters: FilterConfig[] = [], setCurrentPage: (
   }, [filters]);
 
   const toggleSort = useCallback((field: string) => {
-    if (sortField === field) {
-      setSortDirection((currentDir) => (currentDir === "asc" ? "desc" : "asc"));
-    } else {
-      setSortField(field);
-      setSortDirection("asc");
-    }
-  }, [sortField]);
+    setSortField(field);
+    setSortDirection((currentDir) => (currentDir === "asc" ? "desc" : "asc"));
+  }, []);
 
   const setSort = useCallback((field: string, direction: "asc" | "desc") => {
     setSortField(field);

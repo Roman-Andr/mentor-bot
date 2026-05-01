@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { SquarePen, Trash2, Power, CheckCircle, RefreshCw, XCircle, Copy, Check, Eye, MessageSquare, Users, UserPlus } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -16,113 +17,167 @@ interface TableActionsProps {
 }
 
 export function TableActions({ actions }: TableActionsProps) {
+  const visibleActions = actions.filter((a) => a && a.show !== false);
+
+  // Grid with fixed positions: Edit | Middle | Delete
+  const editAction = visibleActions.find(a => a.icon === SquarePen);
+  const deleteAction = visibleActions.find(a => a.icon === Trash2);
+  const middleActions = visibleActions.filter(a => a.icon !== SquarePen && a.icon !== Trash2);
+
   return (
-    <div className="flex gap-1">
-      {actions.filter((a) => a.show !== false).map((action, index) => (
-        <Button
-          key={index}
-          variant={action.variant || "ghost"}
-          size="icon"
-          onClick={action.onClick}
-          title={action.label}
-          className={action.color ? action.color : "text-muted-foreground"}
-        >
-          <action.icon className="size-4" />
-        </Button>
-      ))}
-    </div>
+    <TooltipProvider>
+      <div className="grid grid-cols-3 gap-1 w-24">
+        <div className="justify-self-start">
+          {editAction && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant={editAction.variant || "ghost"}
+                  size="icon"
+                  onClick={editAction.onClick}
+                  className={`${editAction.color ? editAction.color : "text-muted-foreground"} cursor-pointer`}
+                >
+                  <editAction.icon className="size-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{editAction.label}</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
+        </div>
+        <div className="justify-self-center">
+          {middleActions.map((action, index) => (
+            <Tooltip key={index}>
+              <TooltipTrigger asChild>
+                <Button
+                  variant={action.variant || "ghost"}
+                  size="icon"
+                  onClick={action.onClick}
+                  className={`${action.color ? action.color : "text-muted-foreground"} cursor-pointer`}
+                >
+                  <action.icon className="size-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{action.label}</p>
+              </TooltipContent>
+            </Tooltip>
+          ))}
+        </div>
+        <div className="justify-self-end">
+          {deleteAction && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant={deleteAction.variant || "ghost"}
+                  size="icon"
+                  onClick={deleteAction.onClick}
+                  className={`${deleteAction.color ? deleteAction.color : "text-muted-foreground"} cursor-pointer`}
+                >
+                  <deleteAction.icon className="size-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{deleteAction.label}</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
+        </div>
+      </div>
+    </TooltipProvider>
   );
 }
 
 // Predefined action builders
-export const buildEditAction = (onClick: () => void, show = true): ActionDefinition => ({
+export const buildEditAction = (onClick: () => void, label: string, show = true): ActionDefinition => ({
   icon: SquarePen,
-  label: "Edit",
+  label,
   onClick,
   variant: "ghost",
   show,
 });
 
-export const buildDeleteAction = (onClick: () => void, show = true): ActionDefinition => ({
+export const buildDeleteAction = (onClick: () => void, label: string, show = true): ActionDefinition => ({
   icon: Trash2,
-  label: "Delete",
+  label,
   onClick,
   variant: "ghost",
   color: "text-red-500",
   show,
 });
 
-export const buildToggleAction = (onClick: () => void, show = true): ActionDefinition => ({
+export const buildToggleAction = (onClick: () => void, label: string, show = true): ActionDefinition => ({
   icon: Power,
-  label: "Toggle",
+  label,
   onClick,
   variant: "ghost",
   show,
 });
 
-export const buildCompleteAction = (onClick: () => void, show = true): ActionDefinition => ({
+export const buildCompleteAction = (onClick: () => void, label: string, show = true): ActionDefinition => ({
   icon: CheckCircle,
-  label: "Complete",
+  label,
   onClick,
   variant: "ghost",
   color: "text-green-500",
   show,
 });
 
-export const buildResendAction = (onClick: () => void, show = true): ActionDefinition => ({
+export const buildResendAction = (onClick: () => void, label: string, show = true): ActionDefinition => ({
   icon: RefreshCw,
-  label: "Resend",
+  label,
   onClick,
   variant: "ghost",
   color: "text-blue-500",
   show,
 });
 
-export const buildRevokeAction = (onClick: () => void, show = true): ActionDefinition => ({
+export const buildRevokeAction = (onClick: () => void, label: string, show = true): ActionDefinition => ({
   icon: XCircle,
-  label: "Revoke",
+  label,
   onClick,
   variant: "ghost",
   color: "text-orange-500",
   show,
 });
 
-export const buildCopyAction = (onClick: () => void, show = true, isCopied = false): ActionDefinition => ({
+export const buildCopyAction = (onClick: () => void, label: string, show = true, isCopied = false): ActionDefinition => ({
   icon: isCopied ? Check : Copy,
-  label: "Copy",
+  label,
   onClick,
   variant: "ghost",
   color: isCopied ? "text-green-600" : "text-muted-foreground",
   show,
 });
 
-export const buildViewAction = (onClick: () => void, show = true): ActionDefinition => ({
+export const buildViewAction = (onClick: () => void, label: string, show = true): ActionDefinition => ({
   icon: Eye,
-  label: "View",
+  label,
   onClick,
   variant: "ghost",
   show,
 });
 
-export const buildReplyAction = (onClick: () => void, show = true): ActionDefinition => ({
+export const buildReplyAction = (onClick: () => void, label: string, show = true): ActionDefinition => ({
   icon: MessageSquare,
-  label: "Reply",
+  label,
   onClick,
   variant: "ghost",
   show,
 });
 
-export const buildViewUsersAction = (onClick: () => void, show = true): ActionDefinition => ({
+export const buildViewUsersAction = (onClick: () => void, label: string, show = true): ActionDefinition => ({
   icon: Users,
-  label: "View Users",
+  label,
   onClick,
   variant: "ghost",
   show,
 });
 
-export const buildAssignAction = (onClick: () => void, show = true): ActionDefinition => ({
+export const buildAssignAction = (onClick: () => void, label: string, show = true): ActionDefinition => ({
   icon: UserPlus,
-  label: "Assign",
+  label,
   onClick,
   variant: "ghost",
   show,

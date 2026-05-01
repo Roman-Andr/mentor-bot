@@ -15,8 +15,8 @@ class MentorInterventionHistory(Base):
     __tablename__ = "mentor_intervention_history"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    escalation_id: Mapped[int] = mapped_column(ForeignKey("escalations.id"), nullable=False, index=True)
-    mentor_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
+    escalation_id: Mapped[int] = mapped_column(ForeignKey("escalation_requests.id"), nullable=False, index=True)
+    mentor_id: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
     intervention_type: Mapped[str] = mapped_column(String(50), nullable=False)
     intervention_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False, index=True

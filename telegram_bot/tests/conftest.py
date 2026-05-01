@@ -28,6 +28,10 @@ os.environ.setdefault("NOTIFICATION_SERVICE_URL", "http://notification:8004")
 os.environ.setdefault("ESCALATION_SERVICE_URL", "http://escalation:8005")
 os.environ.setdefault("MEETING_SERVICE_URL", "http://meeting:8006")
 os.environ.setdefault("FEEDBACK_SERVICE_URL", "http://feedback:8007")
+os.environ.setdefault("API_GATEWAY_URL", "http://localhost:8080")
+os.environ.setdefault("GOOGLE_CLIENT_ID", "test-google-client-id")
+os.environ.setdefault("GOOGLE_CLIENT_SECRET", "test-google-client-secret")
+os.environ.setdefault("GOOGLE_REDIRECT_URI", "http://localhost:8000/callback")
 
 # Patch service clients BEFORE any handler modules import them
 # This prevents real HTTP requests during tests (SERVICE_TIMEOUT = 10s)

@@ -18,6 +18,7 @@ os.environ.setdefault("DATABASE_URL", "postgresql+asyncpg://test:test@localhost:
 os.environ.setdefault("REDIS_URL", "redis://localhost:6379/4")
 os.environ.setdefault("SERVICE_API_KEY", "test_service_api_key")
 os.environ.setdefault("AUTH_SERVICE_URL", "http://localhost:8001")
+os.environ.setdefault("NOTIFICATION_SERVICE_URL", "http://localhost:8004")
 
 # Now we can import from the service
 from collections.abc import AsyncGenerator, Callable, Coroutine

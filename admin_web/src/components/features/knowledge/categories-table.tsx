@@ -15,6 +15,7 @@ import { DataTable } from "@/components/ui/data-table";
 import { CardHeader, CardTitle } from "@/components/ui/card";
 import { TableActions, buildEditAction, buildDeleteAction } from "@/components/shared";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "@/hooks/use-translations";
 import type { CategoryRow } from "@/hooks/use-categories";
 import type { SortDirection } from "@/hooks/use-sorting";
 import { useCategoriesColumns } from "./categories-table-columns";
@@ -58,8 +59,8 @@ export function CategoriesTable({
   onSort,
   totalCountLabel,
 }: CategoriesTableProps) {
-  const tCommon = (key: string) => key; // Simplified, should use useTranslations
-  const tKnowledge = (key: string) => key; // Simplified, should use useTranslations
+  const tCommon = useTranslations();
+  const tKnowledge = useTranslations("knowledge");
 
   const columns = useCategoriesColumns(tCommon, tKnowledge);
 
@@ -78,7 +79,7 @@ export function CategoriesTable({
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>
-              {totalCountLabel ?? "Categories"}{" "}
+              {totalCountLabel ?? tKnowledge("categories")}{" "}
               <span className="text-muted-foreground text-sm font-normal">
                 ({totalCount ?? categories.length})
               </span>
@@ -86,7 +87,7 @@ export function CategoriesTable({
             <div className="flex gap-2">
               <SearchInput value={searchQuery} onChange={onSearchChange} />
               <Button variant="outline" onClick={onResetFilters}>
-                Reset
+                {tCommon("common.reset")}
               </Button>
             </div>
           </div>
@@ -130,8 +131,8 @@ export function CategoriesTable({
                     >
                       <TableActions
                         actions={[
-                          buildEditAction(() => onEdit(category)),
-                          buildDeleteAction(() => onDelete(category.id)),
+                          buildEditAction(() => onEdit(category), tCommon("common.edit")),
+                          buildDeleteAction(() => onDelete(category.id), tCommon("common.delete")),
                         ]}
                       />
                     </div>

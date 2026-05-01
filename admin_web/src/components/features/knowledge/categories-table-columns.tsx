@@ -15,7 +15,7 @@ export function useCategoriesColumns(
   return [
     {
       key: "name",
-      title: tCommon("name") ?? "Name",
+      title: tCommon("common.name") ?? "Name",
       sortable: true,
       render: (item: CategoryRow) => (
         <div>
@@ -35,39 +35,31 @@ export function useCategoriesColumns(
       ),
     },
     {
-      key: "slug",
-      title: tKnowledge("slug") ?? "Slug",
-      sortable: true,
-      render: (item: CategoryRow) => <span className="text-muted-foreground text-sm">{item.slug}</span>,
-    },
-    {
-      key: "parent",
-      title: tKnowledge("parentCategory") ?? "Parent Category",
-      render: (item: CategoryRow) => item.parent_name || "—",
-    },
-    {
       key: "department",
-      title: tCommon("department") ?? "Department",
+      title: tCommon("common.department") ?? "Department",
+      sortable: true,
       render: (item: CategoryRow) => item.department || "—",
     },
     {
       key: "position",
-      title: tCommon("position") ?? "Position",
+      title: tCommon("common.position") ?? "Position",
+      sortable: true,
       render: (item: CategoryRow) => item.position || "—",
     },
     {
       key: "level",
       title: tKnowledge("level") ?? "Level",
+      sortable: true,
       render: (item: CategoryRow) => item.level || "—",
     },
     {
-      key: "stats",
+      key: "articlesCount",
       title: tKnowledge("articles") ?? "Articles",
       width: "w-24",
       sortable: true,
       render: (item: CategoryRow) => (
         <div className="flex flex-col gap-1 text-sm">
-          <span>{item.articles_count} {tKnowledge("articlesShort") ?? "art."}</span>
+          <span>{item.articles_count}</span>
           {item.children_count > 0 && (
             <span className="text-muted-foreground text-xs">{item.children_count} {tKnowledge("subcategories") ?? "subcat."}</span>
           )}
@@ -83,7 +75,7 @@ export function useCategoriesColumns(
     },
     {
       key: "actions",
-      title: tCommon("actions") ?? "Actions",
+      title: tCommon("common.actions") ?? "Actions",
       width: "w-24",
       render: (_item: CategoryRow) => null,
     },

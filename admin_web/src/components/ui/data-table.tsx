@@ -23,6 +23,7 @@ interface DataTableProps {
   header?: ReactNode;
   skeleton?: ReactNode;
   children: ReactNode;
+  showLoadingSkeleton?: boolean;
 }
 
 export function DataTable({
@@ -41,6 +42,7 @@ export function DataTable({
   header,
   skeleton,
   children,
+  showLoadingSkeleton = true,
 }: DataTableProps) {
   const t = useTranslations();
 
@@ -52,9 +54,9 @@ export function DataTable({
 
   return (
     <Card>
-      <CardContent className="p-0">
+      <CardContent className="p-0 transition-none">
         {header}
-        {loading ? (
+        {loading && showLoadingSkeleton ? (
           skeleton ?? <DataTableSkeleton columns={5} rows={5} showHeader={false} />
         ) : empty ? (
           <div className="text-muted-foreground flex items-center justify-center py-12">

@@ -7,6 +7,14 @@ from aiogram.types import User as TgUser
 
 from telegram_bot.i18n import t
 
+
+def escape_markdown(text: str) -> str:
+    """Escape special markdown characters."""
+    special_chars = r"_*[]()~`>#+-=|{}.!"
+    for char in special_chars:
+        text = text.replace(char, f"\\{char}")
+    return text
+
 MAX_DISPLAYED_TASKS = 10
 MAX_SEARCH_RESULTS_DISPLAY = 5
 DAYS_THRESHOLD_OLD = 7

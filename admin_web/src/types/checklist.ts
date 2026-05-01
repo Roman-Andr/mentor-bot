@@ -30,6 +30,32 @@ export interface ChecklistStats {
   by_department: Record<string, number>;
 }
 
+export interface Task {
+  id: number;
+  checklist_id: number;
+  template_task_id: number | null;
+  title: string;
+  description: string | null;
+  category: string;
+  order: number;
+  assignee_id: number | null;
+  assignee_role: string | null;
+  due_date: string;
+  depends_on: number[];
+  status: string;
+  started_at: string | null;
+  completed_at: string | null;
+  completed_by: number | null;
+  completion_notes: string | null;
+  attachments: any[];
+  blocks: number[];
+  created_at: string;
+  updated_at: string | null;
+  is_overdue: boolean;
+  can_start: boolean;
+  can_complete: boolean;
+}
+
 export interface ChecklistListResponse {
   total: number;
   checklists: Checklist[];

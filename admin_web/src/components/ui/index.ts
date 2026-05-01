@@ -1,7 +1,6 @@
 export * from "./button";
 export * from "./checkbox";
 export * from "./switch";
-export * from "./tabs";
 export * from "./card";
 export * from "./dialog";
 export * from "./input";
@@ -20,3 +19,5 @@ export * from "./searchable-select";
 export * from "./tab-switcher";
 export * from "./form-dialog";
 export * from "./stat-card";
+export * from "./date-picker";
+export * from "./tooltip";

@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { useTranslations } from "@/hooks/use-translations";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
 
 interface DateRange {
   from_date?: string;
@@ -35,23 +35,19 @@ export function KnowledgeDateRangePicker({ onChange, defaultFrom, defaultTo }: K
   return (
     <div className="flex items-end gap-4">
       <div className="flex flex-col gap-2">
-        <Label htmlFor="from-date">{t("analytics.knowledge.fromDate")}</Label>
-        <Input
-          id="from-date"
-          type="date"
+        <Label>{t("analytics.knowledge.fromDate")}</Label>
+        <DatePicker
           value={fromDate}
-          onChange={(e) => setFromDate(e.target.value)}
-          className="w-40"
+          onChange={setFromDate}
+          placeholder={t("analytics.knowledge.fromDate")}
         />
       </div>
       <div className="flex flex-col gap-2">
-        <Label htmlFor="to-date">{t("analytics.knowledge.toDate")}</Label>
-        <Input
-          id="to-date"
-          type="date"
+        <Label>{t("analytics.knowledge.toDate")}</Label>
+        <DatePicker
           value={toDate}
-          onChange={(e) => setToDate(e.target.value)}
-          className="w-40"
+          onChange={setToDate}
+          placeholder={t("analytics.knowledge.toDate")}
         />
       </div>
       <Button onClick={handleApply} size="default">

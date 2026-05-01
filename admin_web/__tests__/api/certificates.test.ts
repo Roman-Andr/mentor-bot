@@ -28,7 +28,7 @@ describe("certificatesApi", () => {
       const result = await certificatesApi.getMyCertificates();
 
       expect(fetchApi).toHaveBeenCalledWith("/certificates/my");
-      expect(result).toEqual(mockCertificates);
+      expect(result).toEqual({ data: mockCertificates });
     });
 
     it("should handle API errors", async () => {
@@ -45,33 +45,32 @@ describe("certificatesApi", () => {
   describe("downloadCertificate", () => {
     it("should download certificate PDF", async () => {
       const mockBlob = new Blob(["PDF content"], { type: "application/pdf" });
-
-      (fetchApi as ReturnType<typeof vi.fn>).mockResolvedValue({
-        data: mockBlob,
-      });
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+        ok: true,
+        blob: async () => mockBlob,
+      }));
 
       const result = await certificatesApi.downloadCertificate("cert-123", "en");
 
-      expect(fetchApi).toHaveBeenCalledWith("/certificates/cert-123/download", {
-        params: { locale: "en" },
-        responseType: "blob",
-      });
+      expect(global.fetch).toHaveBeenCalledWith(
+        "/certificates/cert-123/download?locale=en",
+      );
       expect(result).toBe(mockBlob);
     });
 
     it("should use default locale if not provided", async () => {
       const mockBlob = new Blob(["PDF content"], { type: "application/pdf" });
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+        ok: true,
+        blob: async () => mockBlob,
+      }));
 
-      (fetchApi as ReturnType<typeof vi.fn>).mockResolvedValue({
-        data: mockBlob,
-      });
+      const result = await certificatesApi.downloadCertificate("cert-123");
 
-      await certificatesApi.downloadCertificate("cert-123");
-
-      expect(fetchApi).toHaveBeenCalledWith("/certificates/cert-123/download", {
-        params: { locale: "en" },
-        responseType: "blob",
-      });
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining("/certificates/cert-123/download?locale=en"),
+      );
+      expect(result).toBe(mockBlob);
     });
   });
 
@@ -83,15 +82,17 @@ describe("certificatesApi", () => {
       };
 
       (fetchApi as ReturnType<typeof vi.fn>).mockResolvedValue({
+        success: true,
         data: mockResponse,
       });
 
       const result = await certificatesApi.issueCertificate(123);
 
       expect(fetchApi).toHaveBeenCalledWith("/certificates/issue", {
-        checklist_id: 123,
+        method: "POST",
+        body: JSON.stringify({ checklist_id: 123 }),
       });
-      expect(result).toEqual(mockResponse);
+      expect(result).toEqual({ success: true, data: mockResponse });
     });
 
     it("should handle validation errors", async () => {
@@ -118,9 +119,11 @@ describe("certificatesApi", () => {
         total: 1,
         page: 1,
         size: 50,
+        pages: 1,
       };
 
       (fetchApi as ReturnType<typeof vi.fn>).mockResolvedValue({
+        success: true,
         data: mockResponse,
       });
 
@@ -130,10 +133,12 @@ describe("certificatesApi", () => {
         user_id: 10,
       });
 
-      expect(fetchApi).toHaveBeenCalledWith("/certificates/list", {
-        params: { skip: 0, limit: 50, user_id: 10 },
-      });
-      expect(result).toEqual(mockResponse);
+      const fetchCall = (fetchApi as ReturnType<typeof vi.fn>).mock.calls[0];
+      expect(fetchCall[0]).toContain("/certificates/list");
+      expect(fetchCall[0]).toContain("skip=0");
+      expect(fetchCall[0]).toContain("limit=50");
+      expect(fetchCall[0]).toContain("user_id=10");
+      expect(result).toEqual({ success: true, data: mockResponse });
     });
 
     it("should list certificates without filters", async () => {
@@ -142,18 +147,19 @@ describe("certificatesApi", () => {
         total: 0,
         page: 1,
         size: 50,
+        pages: 0,
       };
 
       (fetchApi as ReturnType<typeof vi.fn>).mockResolvedValue({
+        success: true,
         data: mockResponse,
       });
 
       const result = await certificatesApi.listCertificates();
 
-      expect(fetchApi).toHaveBeenCalledWith("/certificates/list", {
-        params: {},
-      });
-      expect(result).toEqual(mockResponse);
+      const fetchCall = (fetchApi as ReturnType<typeof vi.fn>).mock.calls[0];
+      expect(fetchCall[0]).toContain("/certificates/list");
+      expect(result).toEqual({ success: true, data: mockResponse });
     });
   });
 });

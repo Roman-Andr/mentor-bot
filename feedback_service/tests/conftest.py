@@ -22,6 +22,8 @@ os.environ.pop("ALL_PROXY", None)
 os.environ.setdefault("DATABASE_URL", "postgresql+asyncpg://test:test@localhost:5432/test_feedback_db")
 os.environ.setdefault("REDIS_URL", "redis://localhost:6379/0")
 os.environ.setdefault("SERVICE_API_KEY", "test-service-api-key")
+os.environ.setdefault("AUTH_SERVICE_URL", "http://localhost:8001")
+os.environ.setdefault("NOTIFICATION_SERVICE_URL", "http://localhost:8004")
 
 # Now we can import from the application
 from feedback_service.models import Comment, ExperienceRating, PulseSurvey

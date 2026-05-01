@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { useTranslations } from "@/hooks/use-translations";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useConfirm } from "@/hooks/use-confirm";
 import { attachmentsApi } from "@/lib/api";
 import type { Attachment, FileUploadError } from "@/types";
@@ -157,7 +158,6 @@ export function AttachmentManager({
   return (
     <div className="grid gap-3">
       <div className="flex items-center justify-between">
-        <label className="text-sm font-medium">{t("knowledge.files")}</label>
         {canAddFiles && (
           <Button
             type="button"
@@ -218,28 +218,42 @@ export function AttachmentManager({
                   {att.description && ` — ${att.description}`}
                 </p>
               </div>
-              <div className="flex gap-1">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handleDownload(att)}
-                  title={t("common.download")}
-                >
-                  <Download className="size-3.5" />
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handleDelete(att.id)}
-                  disabled={deletingId === att.id}
-                  className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
-                  title={t("common.delete")}
-                >
-                  <Trash2 className="size-3.5" />
-                </Button>
-              </div>
+              <TooltipProvider>
+                <div className="flex gap-1">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDownload(att)}
+                      >
+                        <Download className="size-3.5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{t("common.download")}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDelete(att.id)}
+                        disabled={deletingId === att.id}
+                        className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                      >
+                        <Trash2 className="size-3.5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{t("common.delete")}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+              </TooltipProvider>
             </div>
           ))}
         </div>
@@ -256,16 +270,24 @@ export function AttachmentManager({
                   {formatFileSize(file.size)} — {t("knowledge.willUploadAfterSave")}
                 </p>
               </div>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={() => handleRemovePending(index)}
-                className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
-                title={t("knowledge.remove")}
-              >
-                <X className="size-3.5" />
-              </Button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleRemovePending(index)}
+                      className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                    >
+                      <X className="size-3.5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{t("knowledge.remove")}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           ))}
         </div>

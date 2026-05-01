@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 import { LanguageSwitcher } from "./language-switcher";
 import { ThemeSwitcher } from "./theme-switcher";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   LayoutDashboard,
   Users,
@@ -56,7 +57,6 @@ export function Sidebar() {
     { name: t("nav.dashboard"), href: "/", icon: "LayoutDashboard" },
     { name: t("nav.users"), href: "/users", icon: "Users" },
     { name: t("nav.templates"), href: "/templates", icon: "FileText" },
-    { name: t("nav.notificationTemplates"), href: "/notification-templates", icon: "Bell" },
     { name: t("nav.checklists"), href: "/checklists", icon: "ClipboardCheck" },
     { name: t("nav.knowledgeBase"), href: "/knowledge", icon: "BookOpen" },
     { name: t("nav.dialogues"), href: "/dialogues", icon: "MessageSquare" },
@@ -101,47 +101,66 @@ export function Sidebar() {
           </div>
         )}
 
-        <nav className="flex-1 space-y-1 px-2 py-4">
-          {navigation.map((item) => {
-            const isActive =
-              pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
-            const IconComponent = iconMap[item.icon as keyof typeof iconMap];
-            return (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors",
-                  isActive
-                    ? "bg-blue-600 text-white"
-                    : "text-slate-400 hover:bg-slate-800 hover:text-white",
-                  collapsed && "justify-center",
-                )}
-                title={collapsed ? item.name : undefined}
-              >
-                {IconComponent && <IconComponent className="size-5 shrink-0" />}
-                {!collapsed && <span>{item.name}</span>}
-              </Link>
-            );
-          })}
-        </nav>
+        <TooltipProvider>
+          <nav className="flex-1 space-y-1 px-2 py-4">
+            {navigation.map((item) => {
+              const isActive =
+                pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
+              const IconComponent = iconMap[item.icon as keyof typeof iconMap];
+              return (
+                <Tooltip key={item.name}>
+                  <TooltipTrigger asChild>
+                    <Link
+                      href={item.href}
+                      className={cn(
+                        "flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors",
+                        isActive
+                          ? "bg-blue-600 text-white"
+                          : "text-slate-400 hover:bg-slate-800 hover:text-white",
+                        collapsed && "justify-center",
+                      )}
+                    >
+                      {IconComponent && <IconComponent className="size-5 shrink-0" />}
+                      {!collapsed && <span>{item.name}</span>}
+                    </Link>
+                  </TooltipTrigger>
+                  {collapsed && (
+                    <TooltipContent>
+                      <p>{item.name}</p>
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+              );
+            })}
+          </nav>
+        </TooltipProvider>
 
-        <div className="border-t border-slate-800 p-4">
-          <div className={cn("flex items-center", collapsed ? "justify-center" : "gap-2")}>
-            <button
-              onClick={handleLogout}
-              className={cn(
-                "flex flex-1 items-center gap-3 rounded-lg px-3 py-2.5 text-slate-400 transition-colors hover:bg-slate-800 hover:text-white",
-                collapsed && "flex-none justify-center",
-              )}
-              title={collapsed ? t("nav.logout") : undefined}
-            >
-              <LogOut className="size-5 shrink-0" />
-              {!collapsed && <span>{t("nav.logout")}</span>}
-            </button>
-            {!collapsed && <ThemeSwitcher />}
+        <TooltipProvider>
+          <div className="border-t border-slate-800 p-4">
+            <div className={cn("flex items-center", collapsed ? "justify-center" : "gap-2")}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={handleLogout}
+                    className={cn(
+                      "flex flex-1 items-center gap-3 rounded-lg px-3 py-2.5 text-slate-400 transition-colors hover:bg-slate-800 hover:text-white",
+                      collapsed && "flex-none justify-center",
+                    )}
+                  >
+                    <LogOut className="size-5 shrink-0" />
+                    {!collapsed && <span>{t("nav.logout")}</span>}
+                  </button>
+                </TooltipTrigger>
+                {collapsed && (
+                  <TooltipContent>
+                    <p>{t("nav.logout")}</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+              {!collapsed && <ThemeSwitcher />}
+            </div>
           </div>
-        </div>
+        </TooltipProvider>
       </div>
     </>
   );

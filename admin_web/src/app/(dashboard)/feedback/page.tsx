@@ -19,8 +19,8 @@ export default function FeedbackPage() {
   const f = useFeedback();
 
   return (
-    <>
-      <PageContent title={t("feedback.title")} subtitle={t("feedback.subtitle")}>
+    <PageContent title={t("feedback.title")} subtitle={t("feedback.subtitle")}>
+      <div className="space-y-6">
         <FeedbackStats />
         <FeedbackAnonymityStats />
         <DataTable
@@ -35,9 +35,9 @@ export default function FeedbackPage() {
           onPageSizeChange={f.setPageSize}
           showPageSizeSelector={true}
           header={
-            <CardHeader className="pb-4">
+            <CardHeader>
               <div className="flex items-center justify-between gap-4">
-                <CardTitle className="text-xl">
+                <CardTitle>
                   {t("feedback.title")}{" "}
                   <span className="text-muted-foreground text-base font-normal">({f.totalCount})</span>
                 </CardTitle>
@@ -60,9 +60,10 @@ export default function FeedbackPage() {
             sortField={f.sortField}
             sortDirection={f.sortDirection}
             onSort={f.toggleSort}
+            t={t}
           />
         </DataTable>
-      </PageContent>
+      </div>
       <FeedbackDetailsDialog
         item={f.selectedFeedback}
         open={f.selectedFeedback !== null && !f.isReplyModalOpen}
@@ -80,6 +81,6 @@ export default function FeedbackPage() {
         }}
         onSubmit={f.submitReply}
       />
-    </>
+    </PageContent>
   );
 }
