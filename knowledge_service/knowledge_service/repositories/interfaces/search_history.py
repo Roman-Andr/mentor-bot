@@ -2,6 +2,7 @@
 
 from abc import abstractmethod
 from collections.abc import Sequence
+from datetime import datetime
 from typing import Any
 
 from knowledge_service.models import SearchHistory
@@ -43,3 +44,52 @@ class ISearchHistoryRepository(BaseRepository["SearchHistory", int]):
     @abstractmethod
     async def get_search_stats(self) -> dict[str, Any]:
         """Get comprehensive search statistics."""
+
+    @abstractmethod
+    async def get_top_queries(
+        self,
+        from_date: datetime | None = None,
+        to_date: datetime | None = None,
+        limit: int = 20,
+        department_id: int | None = None,
+    ) -> list[dict[str, Any]]:
+        """Get top search queries with statistics."""
+
+    @abstractmethod
+    async def get_zero_results_queries(
+        self,
+        from_date: datetime | None = None,
+        to_date: datetime | None = None,
+        limit: int = 20,
+        department_id: int | None = None,
+    ) -> list[dict[str, Any]]:
+        """Get queries that returned zero results."""
+
+    @abstractmethod
+    async def get_by_department(
+        self,
+        from_date: datetime | None = None,
+        to_date: datetime | None = None,
+    ) -> list[dict[str, Any]]:
+        """Get search statistics grouped by department."""
+
+    @abstractmethod
+    async def get_search_timeseries(
+        self,
+        from_date: datetime | None = None,
+        to_date: datetime | None = None,
+        granularity: str = "day",
+    ) -> list[dict[str, Any]]:
+        """Get search timeseries data with specified granularity."""
+
+    @abstractmethod
+    async def get_search_summary(
+        self,
+        from_date: datetime | None = None,
+        to_date: datetime | None = None,
+    ) -> dict[str, Any]:
+        """Get overall search summary statistics."""
+
+    @abstractmethod
+    async def delete_old_search_history(self, retention_days: int) -> int:
+        """Delete search history entries older than retention period."""

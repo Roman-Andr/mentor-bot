@@ -8,7 +8,7 @@ import { PDFExportButton } from "@/components/features/reports/pdf-export-button
 import { TabSwitcher } from "@/components/ui/tab-switcher";
 import { api } from "@/lib/api";
 import { queryKeys } from "@/lib/query-keys";
-import type { ChecklistStats } from "@/types";
+import type { ChecklistStats, SearchSummary, TopQueryStats, ZeroResultQuery, DepartmentSearchStats, SearchTimeseriesPoint } from "@/types";
 import { PageContent } from "@/components/layout/page-content";
 import { AnalyticsStats } from "@/components/features/analytics/analytics-stats";
 import { MonthlyChart } from "@/components/features/analytics/monthly-chart";
@@ -24,38 +24,12 @@ import { KnowledgeDateRangePicker } from "@/components/features/analytics/knowle
 import { departmentsApi } from "@/lib/api/departments";
 import { AnalyticsPageSkeleton } from "@/components/ui/page-skeleton";
 import { useQuery } from "@tanstack/react-query";
-
-interface KnowledgeSummary {
-  total_views: number;
-  unique_viewers: number;
-  total_articles: number;
-  avg_views_per_article: number;
-}
-
-interface TopArticleStats {
-  article_id: number;
-  title: string;
-  view_count: number;
-  unique_viewers: number;
-}
-
-interface TimeseriesPoint {
-  bucket: string;
-  views: number;
-  unique_viewers: number;
-}
-
-interface CategoryStats {
-  category_id: number;
-  category_name: string;
-  view_count: number;
-}
-
-interface TagStats {
-  tag_id: number;
-  tag_name: string;
-  view_count: number;
-}
+import { SearchSummaryCards } from "@/components/features/analytics/search/search-summary-cards";
+import { SearchTopQueriesTable } from "@/components/features/analytics/search/search-top-queries-table";
+import { SearchZeroResultsTable } from "@/components/features/analytics/search/search-zero-results-table";
+import { SearchByDepartmentChart } from "@/components/features/analytics/search/search-by-department-chart";
+import { SearchTimeseriesChart } from "@/components/features/analytics/search/search-timeseries-chart";
+import { SearchFilters } from "@/components/features/analytics/search/search-filters";
 
 export default function AnalyticsPage() {
   const t = useTranslations();
@@ -74,7 +48,17 @@ export default function AnalyticsPage() {
   const tabs = [
     { id: "onboarding", label: t("analytics.onboardingTab") },
     { id: "knowledge", label: t("analytics.knowledgeTab") },
+    { id: "search", label: t("analytics.search.title") },
   ];
+
+  // Search analytics state
+  const [searchSummary, setSearchSummary] = useState<SearchSummary | null>(null);
+  const [searchTopQueries, setSearchTopQueries] = useState<TopQueryStats[]>([]);
+  const [searchZeroResults, setSearchZeroResults] = useState<ZeroResultQuery[]>([]);
+  const [searchByDepartment, setSearchByDepartment] = useState<DepartmentSearchStats[]>([]);
+  const [searchTimeseries, setSearchTimeseries] = useState<SearchTimeseriesPoint[]>([]);
+  const [searchFilters, setSearchFilters] = useState<{ from_date?: string; to_date?: string; department_id?: number }>({});
+  const [searchLoading, setSearchLoading] = useState(false);
 
   useEffect(() => {
     async function loadOnboardingData() {
@@ -124,38 +108,76 @@ export default function AnalyticsPage() {
     queryKey: queryKeys.analytics.knowledge.summary(dateRange),
     queryFn: () => api.analytics.knowledge.summary(dateRange),
     enabled: activeTab === "knowledge",
-    staleTime: 60000, // 60 seconds
+    staleTime: 60000,
   });
 
   const { data: topArticles, isLoading: topArticlesLoading } = useQuery({
     queryKey: queryKeys.analytics.knowledge.topArticles({ ...dateRange, limit: 10 }),
     queryFn: () => api.analytics.knowledge.topArticles({ ...dateRange, limit: 10 }),
     enabled: activeTab === "knowledge",
-    staleTime: 60000, // 60 seconds
+    staleTime: 60000,
   });
 
   const { data: timeseriesData, isLoading: timeseriesLoading } = useQuery({
     queryKey: queryKeys.analytics.knowledge.timeseries({ ...dateRange, granularity }),
     queryFn: () => api.analytics.knowledge.timeseries({ ...dateRange, granularity }),
     enabled: activeTab === "knowledge",
-    staleTime: 60000, // 60 seconds
+    staleTime: 60000,
   });
 
   const { data: categoryData, isLoading: categoryLoading } = useQuery({
     queryKey: queryKeys.analytics.knowledge.byCategory(dateRange),
     queryFn: () => api.analytics.knowledge.byCategory(dateRange),
     enabled: activeTab === "knowledge",
-    staleTime: 60000, // 60 seconds
+    staleTime: 60000,
   });
 
   const { data: tagData, isLoading: tagLoading } = useQuery({
     queryKey: queryKeys.analytics.knowledge.byTag(dateRange),
     queryFn: () => api.analytics.knowledge.byTag(dateRange),
     enabled: activeTab === "knowledge",
-    staleTime: 60000, // 60 seconds
+    staleTime: 60000,
   });
 
   const knowledgeLoading = summaryLoading || topArticlesLoading || timeseriesLoading || categoryLoading || tagLoading;
+
+  useEffect(() => {
+    async function loadSearchData() {
+      if (activeTab !== "search") return;
+
+      setSearchLoading(true);
+      try {
+        const [summaryResult, topQueriesResult, zeroResultsResult, byDepartmentResult, timeseriesResult] = await Promise.all([
+          api.analytics.search.summary(searchFilters),
+          api.analytics.search.topQueries({ ...searchFilters, limit: 20 }),
+          api.analytics.search.zeroResults({ ...searchFilters, limit: 20 }),
+          api.analytics.search.byDepartment(searchFilters),
+          api.analytics.search.timeseries({ ...searchFilters, granularity: "day" }),
+        ]);
+
+        if (summaryResult.data) {
+          setSearchSummary(summaryResult.data);
+        }
+        if (topQueriesResult.data) {
+          setSearchTopQueries(topQueriesResult.data);
+        }
+        if (zeroResultsResult.data) {
+          setSearchZeroResults(zeroResultsResult.data);
+        }
+        if (byDepartmentResult.data) {
+          setSearchByDepartment(byDepartmentResult.data);
+        }
+        if (timeseriesResult.data) {
+          setSearchTimeseries(timeseriesResult.data);
+        }
+      } catch (err) {
+        console.error("Failed to load search analytics:", err);
+      } finally {
+        setSearchLoading(false);
+      }
+    }
+    loadSearchData();
+  }, [activeTab, searchFilters]);
 
   const departmentData = useMemo(() =>
     stats?.by_department
@@ -263,8 +285,8 @@ export default function AnalyticsPage() {
 
                 <div className="grid gap-6 lg:grid-cols-2">
                   <KnowledgeTopArticlesChart data={topArticles?.data || []} />
-                  <KnowledgeViewsTimeseries 
-                    data={timeseriesData?.data || []} 
+                  <KnowledgeViewsTimeseries
+                    data={timeseriesData?.data || []}
                     onGranularityChange={setGranularity}
                     currentGranularity={granularity}
                   />
@@ -273,6 +295,30 @@ export default function AnalyticsPage() {
                 <div className="grid gap-6 lg:grid-cols-2">
                   <KnowledgeViewsByCategory data={categoryData?.data || []} />
                   <KnowledgeViewsByTag data={tagData?.data || []} />
+                </div>
+              </>
+            )}
+          </>
+        )}
+
+        {activeTab === "search" && (
+          <>
+            <SearchFilters onFiltersChange={setSearchFilters} />
+
+            {searchLoading ? (
+              <AnalyticsPageSkeleton />
+            ) : (
+              <>
+                <SearchSummaryCards summary={searchSummary} />
+
+                <div className="grid gap-6 lg:grid-cols-2">
+                  <SearchTopQueriesTable data={searchTopQueries} />
+                  <SearchZeroResultsTable data={searchZeroResults} />
+                </div>
+
+                <div className="grid gap-6 lg:grid-cols-2">
+                  <SearchTimeseriesChart data={searchTimeseries} />
+                  <SearchByDepartmentChart data={searchByDepartment} />
                 </div>
               </>
             )}

@@ -8,6 +8,7 @@
     "completionTimeChart": "Onboarding Completion Time",
     "inProgressStatus": "In Progress",
     "newUsers": "New",
+    "onboarding": "Onboarding",
     "onboardingDynamics": "Onboarding Dynamics by Months",
     "overdue": "Overdue",
     "overview": "Overview",
@@ -41,6 +42,29 @@
       "day": "Day",
       "week": "Week",
       "views": "Views"
+    },
+    "search": {
+      "title": "Search",
+      "totalSearches": "Total Searches",
+      "uniqueUsers": "Unique Users",
+      "uniqueQueries": "Unique Queries",
+      "avgResults": "Avg Results",
+      "zeroResultsPercent": "Zero-Results %",
+      "topQueries": "Top Queries",
+      "zeroResults": "Zero Results (Content Gaps)",
+      "byDepartment": "By Department",
+      "searchTrend": "Search Trend",
+      "query": "Query",
+      "count": "Count",
+      "lastSearched": "Last Searched",
+      "zeroResultsCount": "Zero Results Count",
+      "searchCount": "Search Count",
+      "fromDate": "From Date",
+      "toDate": "To Date",
+      "department": "Department",
+      "allDepartments": "All Departments",
+      "day": "Day",
+      "week": "Week"
     }
   },
   "auth": {

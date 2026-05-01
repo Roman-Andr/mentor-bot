@@ -229,6 +229,13 @@ async def get_dialogue_service(
     return DialogueService(uow)
 
 
+async def get_search_history_repository(
+    uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_uow)],
+):
+    """Get SearchHistoryRepository instance with dependency injection."""
+    return uow.search_history
+
+
 # Type aliases for dependencies
 CurrentUser = Annotated[UserInfo, Depends(get_current_active_user)]
 AdminUser = Annotated[UserInfo, Depends(require_admin)]
@@ -242,4 +249,5 @@ TagServiceDep = Annotated[TagService, Depends(get_tag_service)]
 AttachmentServiceDep = Annotated[AttachmentService, Depends(get_attachment_service)]
 SearchServiceDep = Annotated[SearchService, Depends(get_search_service)]
 DialogueServiceDep = Annotated[DialogueService, Depends(get_dialogue_service)]
+SearchHistoryRepositoryDep = Annotated[object, Depends(get_search_history_repository)]
 

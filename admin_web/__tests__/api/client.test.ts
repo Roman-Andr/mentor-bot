@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { fetchApi, fetchUpload, fetchApiNew } from '@/lib/api/client'
+import { analyticsApi } from '@/lib/api/analytics'
 import { mockFetchResponse, mockFetchError, mockFetchNetworkError } from '../setup'
 
 describe('fetchApi', () => {
@@ -263,5 +264,146 @@ describe('fetchApiNew', () => {
 
     expect(result.success).toBe(true)
     expect(result.data).toBeUndefined()
+  })
+})
+
+describe('analyticsApi.search', () => {
+  beforeEach(() => {
+    vi.stubGlobal('window', { location: { href: '' } })
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('calls summary endpoint with correct URL', async () => {
+    mockFetchResponse({
+      total_searches: 1000,
+      unique_users: 50,
+      unique_queries: 200,
+      avg_results_per_search: 8.5,
+      zero_results_percentage: 10.0
+    })
+
+    await analyticsApi.search.summary()
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/api/v1/knowledge/search-analytics/summary',
+      expect.objectContaining({
+        credentials: 'include'
+      })
+    )
+  })
+
+  it('calls summary endpoint with date filters', async () => {
+    mockFetchResponse({
+      total_searches: 500,
+      unique_users: 25,
+      unique_queries: 100,
+      avg_results_per_search: 7.0,
+      zero_results_percentage: 5.0
+    })
+
+    await analyticsApi.search.summary({ from_date: '2024-01-01', to_date: '2024-12-31', department_id: 1 })
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/api/v1/knowledge/search-analytics/summary?from_date=2024-01-01&to_date=2024-12-31&department_id=1',
+      expect.any(Object)
+    )
+  })
+
+  it('calls topQueries endpoint with default limit', async () => {
+    mockFetchResponse([
+      { query: 'test', count: 50, avg_results_count: 8.5, zero_results_count: 5 }
+    ])
+
+    await analyticsApi.search.topQueries()
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/api/v1/knowledge/search-analytics/top-queries',
+      expect.any(Object)
+    )
+  })
+
+  it('calls topQueries endpoint with custom limit and filters', async () => {
+    mockFetchResponse([])
+
+    await analyticsApi.search.topQueries({ from_date: '2024-01-01', limit: 10, department_id: 2 })
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/api/v1/knowledge/search-analytics/top-queries?from_date=2024-01-01&limit=10&department_id=2',
+      expect.any(Object)
+    )
+  })
+
+  it('calls zeroResults endpoint', async () => {
+    mockFetchResponse([
+      { query: 'no result', count: 10, last_searched_at: '2024-01-01T00:00:00Z' }
+    ])
+
+    await analyticsApi.search.zeroResults()
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/api/v1/knowledge/search-analytics/zero-results',
+      expect.any(Object)
+    )
+  })
+
+  it('calls byDepartment endpoint', async () => {
+    mockFetchResponse([
+      { department_id: 1, department_name: 'Engineering', search_count: 100, unique_users: 20 }
+    ])
+
+    await analyticsApi.search.byDepartment()
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/api/v1/knowledge/search-analytics/by-department',
+      expect.any(Object)
+    )
+  })
+
+  it('calls byDepartment endpoint with date filters', async () => {
+    mockFetchResponse([])
+
+    await analyticsApi.search.byDepartment({ from_date: '2024-01-01', to_date: '2024-12-31' })
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/api/v1/knowledge/search-analytics/by-department?from_date=2024-01-01&to_date=2024-12-31',
+      expect.any(Object)
+    )
+  })
+
+  it('calls timeseries endpoint with day granularity', async () => {
+    mockFetchResponse([
+      { bucket: '2024-01-01T00:00:00Z', search_count: 50, unique_users: 10 }
+    ])
+
+    await analyticsApi.search.timeseries({ granularity: 'day' })
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/api/v1/knowledge/search-analytics/timeseries?granularity=day',
+      expect.any(Object)
+    )
+  })
+
+  it('calls timeseries endpoint with week granularity', async () => {
+    mockFetchResponse([
+      { bucket: '2024-01-01T00:00:00Z', search_count: 400, unique_users: 100 }
+    ])
+
+    await analyticsApi.search.timeseries({ granularity: 'week' })
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/api/v1/knowledge/search-analytics/timeseries?granularity=week',
+      expect.any(Object)
+    )
+  })
+
+  it('handles search API errors', async () => {
+    mockFetchError(403, 'HR access required')
+
+    const result = await analyticsApi.search.summary()
+
+    expect(result.error).toBe('HR access required')
   })
 })

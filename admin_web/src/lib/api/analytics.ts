@@ -1,5 +1,5 @@
 import { fetchApi } from "./client";
-import type { ChecklistStats } from "@/types";
+import type { ChecklistStats, DepartmentSearchStats, SearchSummary, SearchTimeseriesPoint, TopQueryStats, ZeroResultQuery } from "@/types";
 
 interface MonthlyStats {
   month: string;
@@ -106,6 +106,45 @@ export const analyticsApi = {
       if (params?.from_date) searchParams.set("from_date", params.from_date);
       if (params?.to_date) searchParams.set("to_date", params.to_date);
       return fetchApi<TagStats[]>(`/api/v1/knowledge/analytics/views-by-tag?${searchParams.toString()}`);
+    },
+  },
+  search: {
+    summary: (params?: DateRange & { department_id?: number }) => {
+      const searchParams = new URLSearchParams();
+      if (params?.from_date) searchParams.set("from_date", params.from_date);
+      if (params?.to_date) searchParams.set("to_date", params.to_date);
+      return fetchApi<SearchSummary>(`/api/v1/knowledge/search-analytics/summary?${searchParams.toString()}`);
+    },
+    topQueries: (params?: DateRange & { department_id?: number; limit?: number }) => {
+      const searchParams = new URLSearchParams();
+      if (params?.from_date) searchParams.set("from_date", params.from_date);
+      if (params?.to_date) searchParams.set("to_date", params.to_date);
+      if (params?.department_id !== undefined)
+        searchParams.set("department_id", String(params.department_id));
+      if (params?.limit) searchParams.set("limit", String(params.limit));
+      return fetchApi<TopQueryStats[]>(`/api/v1/knowledge/search-analytics/top-queries?${searchParams.toString()}`);
+    },
+    zeroResults: (params?: DateRange & { department_id?: number; limit?: number }) => {
+      const searchParams = new URLSearchParams();
+      if (params?.from_date) searchParams.set("from_date", params.from_date);
+      if (params?.to_date) searchParams.set("to_date", params.to_date);
+      if (params?.department_id !== undefined)
+        searchParams.set("department_id", String(params.department_id));
+      if (params?.limit) searchParams.set("limit", String(params.limit));
+      return fetchApi<ZeroResultQuery[]>(`/api/v1/knowledge/search-analytics/zero-results?${searchParams.toString()}`);
+    },
+    byDepartment: (params?: DateRange) => {
+      const searchParams = new URLSearchParams();
+      if (params?.from_date) searchParams.set("from_date", params.from_date);
+      if (params?.to_date) searchParams.set("to_date", params.to_date);
+      return fetchApi<DepartmentSearchStats[]>(`/api/v1/knowledge/search-analytics/by-department?${searchParams.toString()}`);
+    },
+    timeseries: (params?: DateRange & { granularity?: "day" | "week" }) => {
+      const searchParams = new URLSearchParams();
+      if (params?.from_date) searchParams.set("from_date", params.from_date);
+      if (params?.to_date) searchParams.set("to_date", params.to_date);
+      if (params?.granularity) searchParams.set("granularity", params.granularity);
+      return fetchApi<SearchTimeseriesPoint[]>(`/api/v1/knowledge/search-analytics/timeseries?${searchParams.toString()}`);
     },
   },
 };

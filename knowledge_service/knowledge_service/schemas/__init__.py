@@ -52,6 +52,13 @@ from knowledge_service.schemas.search import (
     SearchResponse,
     SearchStats,
 )
+from knowledge_service.schemas.search_analytics import (
+    DepartmentSearchStats,
+    SearchSummary,
+    SearchTimeseriesPoint,
+    TopQueryStats,
+    ZeroResultQuery,
+)
 from knowledge_service.schemas.tag import TagBase, TagCreate, TagResponse, TagUpdate
 
 __all__ = [
@@ -73,6 +80,7 @@ __all__ = [
     "CategoryStats",
     "CategoryUpdate",
     "CategoryWithArticles",
+    "DepartmentSearchStats",
     "DialogueScenarioCreate",
     "DialogueScenarioListResponse",
     "DialogueScenarioResponse",
@@ -89,6 +97,8 @@ __all__ = [
     "SearchQuery",
     "SearchResponse",
     "SearchStats",
+    "SearchSummary",
+    "SearchTimeseriesPoint",
     "ServiceStatus",
     "TagBase",
     "TagCreate",
@@ -97,4 +107,6 @@ __all__ = [
     "TagUpdate",
     "TimeseriesPoint",
     "TopArticleStats",
+    "TopQueryStats",
+    "ZeroResultQuery",
 ]

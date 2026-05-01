@@ -14,12 +14,13 @@ from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
 from sqlalchemy import text
 
-from knowledge_service.api import analytics, articles, attachments, categories, dialogues, search, tags
+from knowledge_service.api import analytics, articles, attachments, categories, dialogues, search, search_analytics, tags
 from knowledge_service.config import settings
 from knowledge_service.database import engine, init_db
 from knowledge_service.middleware.auth import AuthTokenMiddleware
 from knowledge_service.middleware.request_id import RequestIDMiddleware
 from knowledge_service.schemas import HealthCheck, ServiceStatus
+from knowledge_service.services.cleanup import cleanup_old_search_history
 from knowledge_service.utils import cache
 from knowledge_service.utils.logging import configure_logging
 
@@ -34,6 +35,13 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
 
     # Connect to cache
     await cache.connect()
+
+    # Cleanup old search history on startup
+    try:
+        deleted_count = await cleanup_old_search_history()
+        logger.info(f"Cleaned up {deleted_count} old search history records on startup")
+    except Exception as e:
+        logger.warning(f"Failed to cleanup old search history on startup: {e}")
 
     logger.info("Database initialized")
     yield
@@ -78,6 +86,7 @@ app.add_middleware(RequestIDMiddleware)
 app.include_router(categories.router, prefix=f"{settings.API_V1_PREFIX}/categories", tags=["categories"])
 app.include_router(articles.router, prefix=f"{settings.API_V1_PREFIX}/articles", tags=["articles"])
 app.include_router(search.router, prefix=f"{settings.API_V1_PREFIX}/search", tags=["search"])
+app.include_router(search_analytics.router, prefix=f"{settings.API_V1_PREFIX}/knowledge/search-analytics", tags=["search-analytics"])
 app.include_router(tags.router, prefix=f"{settings.API_V1_PREFIX}/tags", tags=["tags"])
 app.include_router(attachments.router, prefix=f"{settings.API_V1_PREFIX}", tags=["attachments"])
 app.include_router(dialogues.router, prefix=f"{settings.API_V1_PREFIX}/dialogue-scenarios", tags=["dialogues"])

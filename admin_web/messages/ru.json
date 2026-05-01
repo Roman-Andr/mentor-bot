@@ -8,6 +8,7 @@
     "completionTimeChart": "Время завершения онбординга",
     "inProgressStatus": "В процессе",
     "newUsers": "Новые",
+    "onboarding": "Онбординг",
     "onboardingDynamics": "Динамика онбординга по месяцам",
     "overdue": "Просрочено",
     "overview": "Обзор",
@@ -41,6 +42,29 @@
       "day": "День",
       "week": "Неделя",
       "views": "Просмотры"
+    },
+    "search": {
+      "title": "Поиск",
+      "totalSearches": "Всего поисков",
+      "uniqueUsers": "Уникальные пользователи",
+      "uniqueQueries": "Уникальные запросы",
+      "avgResults": "Средн. результатов",
+      "zeroResultsPercent": "Без результатов %",
+      "topQueries": "Топ запросов",
+      "zeroResults": "Без результатов (пробелы в контенте)",
+      "byDepartment": "По отделам",
+      "searchTrend": "Тренд поисков",
+      "query": "Запрос",
+      "count": "Количество",
+      "lastSearched": "Последний поиск",
+      "zeroResultsCount": "Без результатов",
+      "searchCount": "Кол-во поисков",
+      "fromDate": "От даты",
+      "toDate": "До даты",
+      "department": "Отдел",
+      "allDepartments": "Все отделы",
+      "day": "День",
+      "week": "Неделя"
     }
   },
   "auth": {

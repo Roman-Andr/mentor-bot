@@ -37,3 +37,43 @@ export interface Comment {
   comment: string;
   submitted_at: string;
 }
+
+// Search Analytics types
+export interface TopQueryStats {
+  query: string;
+  count: number;
+  avg_results_count: number;
+  zero_results_count: number;
+}
+
+export interface ZeroResultQuery {
+  query: string;
+  count: number;
+  last_searched_at: string;
+}
+
+export interface DepartmentSearchStats {
+  department_id: number | null;
+  department_name: string;
+  search_count: number;
+  unique_users: number;
+}
+
+export interface SearchTimeseriesPoint {
+  bucket: string;
+  search_count: number;
+  unique_users: number;
+}
+
+export interface SearchSummary {
+  total_searches: number;
+  unique_users: number;
+  unique_queries: number;
+  avg_results_per_search: number;
+  zero_results_percentage: number;
+}
+
+export interface DateRange {
+  from_date?: string;
+  to_date?: string;
+}

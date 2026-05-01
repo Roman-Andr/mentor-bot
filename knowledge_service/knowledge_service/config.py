@@ -68,6 +68,7 @@ class Settings(BaseSettings):
     SEARCH_CACHE_TTL: int = Field(default=300, ge=1)
     SEARCH_SUGGESTIONS_CACHE_TTL: int = Field(default=300, ge=1)
     POPULAR_SEARCHES_CACHE_TTL: int = Field(default=3600, ge=1)
+    SEARCH_HISTORY_RETENTION_DAYS: int = Field(default=180, ge=1)
 
     # Integration Cache TTLs
     AUTH_TOKEN_CACHE_TTL: int = Field(default=300, ge=1)

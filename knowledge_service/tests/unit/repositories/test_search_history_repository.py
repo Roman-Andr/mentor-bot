@@ -302,3 +302,213 @@ class TestSearchHistoryRepository:
 
         assert result["total_searches"] == 0
         assert result["avg_results_per_search"] == 0.0
+
+    async def test_get_top_queries(self, mock_session):
+        """Test getting top search queries with statistics."""
+        mock_result = MagicMock()
+        mock_result.all.return_value = [
+            ("popular query", 50, 8.5, 5),
+            ("another query", 30, 10.0, 0),
+        ]
+        mock_session.execute.return_value = mock_result
+
+        repo = SearchHistoryRepository(mock_session)
+        result = await repo.get_top_queries()
+
+        assert len(result) == 2
+        assert result[0]["query"] == "popular query"
+        assert result[0]["count"] == 50
+        assert result[0]["avg_results_count"] == 8.5
+        assert result[0]["zero_results_count"] == 5
+
+    async def test_get_top_queries_with_filters(self, mock_session):
+        """Test getting top queries with date and department filters."""
+        mock_result = MagicMock()
+        mock_result.all.return_value = [("filtered query", 20, 5.0, 2)]
+        mock_session.execute.return_value = mock_result
+
+        repo = SearchHistoryRepository(mock_session)
+        from_date = datetime.now(UTC) - timedelta(days=7)
+        to_date = datetime.now(UTC)
+
+        result = await repo.get_top_queries(
+            from_date=from_date,
+            to_date=to_date,
+            department_id=1,
+            limit=10,
+        )
+
+        assert len(result) == 1
+        assert result[0]["query"] == "filtered query"
+
+    async def test_get_zero_results_queries(self, mock_session):
+        """Test getting queries with zero results."""
+        mock_result = MagicMock()
+        mock_result.all.return_value = [
+            ("no result 1", 10, datetime.now(UTC) - timedelta(hours=1)),
+            ("no result 2", 5, datetime.now(UTC)),
+        ]
+        mock_session.execute.return_value = mock_result
+
+        repo = SearchHistoryRepository(mock_session)
+        result = await repo.get_zero_results_queries()
+
+        assert len(result) == 2
+        assert result[0]["query"] == "no result 1"
+        assert result[0]["count"] == 10
+        assert result[0]["last_searched_at"] is not None
+
+    async def test_get_zero_results_queries_with_filters(self, mock_session):
+        """Test getting zero results queries with filters."""
+        mock_result = MagicMock()
+        mock_result.all.return_value = [("filtered no result", 3, datetime.now(UTC))]
+        mock_session.execute.return_value = mock_result
+
+        repo = SearchHistoryRepository(mock_session)
+        result = await repo.get_zero_results_queries(department_id=1, limit=5)
+
+        assert len(result) == 1
+
+    async def test_get_by_department(self, mock_session):
+        """Test getting search statistics grouped by department."""
+        mock_result = MagicMock()
+        mock_result.all.return_value = [
+            (1, 100, 50),
+            (2, 75, 30),
+            (None, 25, 10),
+        ]
+        mock_session.execute.return_value = mock_result
+
+        repo = SearchHistoryRepository(mock_session)
+        result = await repo.get_by_department()
+
+        assert len(result) == 3
+        assert result[0]["department_id"] == 1
+        assert result[0]["search_count"] == 100
+        assert result[0]["unique_users"] == 50
+        assert result[2]["department_name"] == "Unknown"
+
+    async def test_get_by_department_with_date_range(self, mock_session):
+        """Test getting department stats with date range."""
+        mock_result = MagicMock()
+        mock_result.all.return_value = [(1, 50, 25)]
+        mock_session.execute.return_value = mock_result
+
+        repo = SearchHistoryRepository(mock_session)
+        from_date = datetime.now(UTC) - timedelta(days=30)
+        result = await repo.get_by_department(from_date=from_date)
+
+        assert len(result) == 1
+
+    async def test_get_search_timeseries(self, mock_session):
+        """Test getting search timeseries data."""
+        mock_result = MagicMock()
+        mock_result.all.return_value = [
+            (datetime.now(UTC) - timedelta(days=2), 50, 20),
+            (datetime.now(UTC) - timedelta(days=1), 60, 25),
+            (datetime.now(UTC), 70, 30),
+        ]
+        mock_session.execute.return_value = mock_result
+
+        repo = SearchHistoryRepository(mock_session)
+        result = await repo.get_search_timeseries(granularity="day")
+
+        assert len(result) == 3
+        assert result[0]["search_count"] == 50
+        assert result[0]["unique_users"] == 20
+
+    async def test_get_search_timeseries_week_granularity(self, mock_session):
+        """Test getting timeseries with week granularity."""
+        mock_result = MagicMock()
+        mock_result.all.return_value = [(datetime.now(UTC), 400, 100)]
+        mock_session.execute.return_value = mock_result
+
+        repo = SearchHistoryRepository(mock_session)
+        result = await repo.get_search_timeseries(granularity="week")
+
+        assert len(result) == 1
+
+    async def test_get_search_summary(self, mock_session):
+        """Test getting overall search summary."""
+        # Total searches
+        total_result = MagicMock()
+        total_result.scalar_one.return_value = 500
+
+        # Unique users
+        users_result = MagicMock()
+        users_result.scalar_one.return_value = 50
+
+        # Unique queries
+        queries_result = MagicMock()
+        queries_result.scalar_one.return_value = 200
+
+        # Avg results
+        avg_result = MagicMock()
+        avg_result.scalar_one.return_value = 8.5
+
+        # Zero results
+        zero_result = MagicMock()
+        zero_result.scalar_one.return_value = 50
+
+        mock_session.execute = AsyncMock(
+            side_effect=[total_result, users_result, queries_result, avg_result, zero_result]
+        )
+
+        repo = SearchHistoryRepository(mock_session)
+        result = await repo.get_search_summary()
+
+        assert result["total_searches"] == 500
+        assert result["unique_users"] == 50
+        assert result["unique_queries"] == 200
+        assert result["avg_results_per_search"] == 8.5
+        assert result["zero_results_percentage"] == 10.0
+
+    async def test_get_search_summary_with_date_range(self, mock_session):
+        """Test getting summary with date range."""
+        total_result = MagicMock()
+        total_result.scalar_one.return_value = 100
+
+        users_result = MagicMock()
+        users_result.scalar_one.return_value = 10
+
+        queries_result = MagicMock()
+        queries_result.scalar_one.return_value = 50
+
+        avg_result = MagicMock()
+        avg_result.scalar_one.return_value = 5.0
+
+        zero_result = MagicMock()
+        zero_result.scalar_one.return_value = 10
+
+        mock_session.execute = AsyncMock(
+            side_effect=[total_result, users_result, queries_result, avg_result, zero_result]
+        )
+
+        repo = SearchHistoryRepository(mock_session)
+        from_date = datetime.now(UTC) - timedelta(days=7)
+        result = await repo.get_search_summary(from_date=from_date)
+
+        assert result["total_searches"] == 100
+
+    async def test_delete_old_search_history(self, mock_session):
+        """Test deleting old search history entries."""
+        mock_result = MagicMock()
+        mock_result.rowcount = 50
+        mock_session.execute.return_value = mock_result
+
+        repo = SearchHistoryRepository(mock_session)
+        result = await repo.delete_old_search_history(retention_days=180)
+
+        assert result == 50
+        mock_session.flush.assert_called_once()
+
+    async def test_delete_old_search_history_no_entries(self, mock_session):
+        """Test deleting when no old entries exist."""
+        mock_result = MagicMock()
+        mock_result.rowcount = 0
+        mock_session.execute.return_value = mock_result
+
+        repo = SearchHistoryRepository(mock_session)
+        result = await repo.delete_old_search_history(retention_days=90)
+
+        assert result == 0
