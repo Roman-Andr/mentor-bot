@@ -8,6 +8,7 @@ from knowledge_service.models.association import article_tags
 from knowledge_service.models.attachment import Attachment
 from knowledge_service.models.category import Category
 from knowledge_service.models.category_change_history import CategoryChangeHistory
+from knowledge_service.models.department_document import DepartmentDocument
 from knowledge_service.models.dialogue import DialogueScenario, DialogueStep
 from knowledge_service.models.dialogue_scenario_change_history import DialogueScenarioChangeHistory
 from knowledge_service.models.search_history import SearchHistory
@@ -21,6 +22,7 @@ __all__ = [
     "Attachment",
     "Category",
     "CategoryChangeHistory",
+    "DepartmentDocument",
     "DialogueScenario",
     "DialogueScenarioChangeHistory",
     "DialogueStep",

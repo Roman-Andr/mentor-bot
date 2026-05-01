@@ -208,6 +208,7 @@
     "title": "Documents & Resources",
     "description": "Access documents relevant to your role and department:",
     "btn_dept": "My Department Docs",
+    "btn_dept_docs": "Department Documents",
     "btn_policies": "Company Policies",
     "btn_training": "Training Materials",
     "dept_title": "Department Documents",
@@ -217,7 +218,8 @@
     "training_title": "Training Materials",
     "training_empty": "No training materials found.",
     "tap_to_view": "Tap a document to view details and download files:",
-    "no_dept": "Department not found for user"
+    "no_dept": "Department not found for user",
+    "download_link": "Download link:"
   },
   "meetings": {
     "title": "Meetings",

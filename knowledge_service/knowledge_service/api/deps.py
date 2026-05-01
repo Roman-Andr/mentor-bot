@@ -17,6 +17,7 @@ from knowledge_service.services import (
     ArticleService,
     AttachmentService,
     CategoryService,
+    DepartmentDocumentService,
     DialogueService,
     SearchService,
     TagService,
@@ -236,6 +237,13 @@ async def get_search_history_repository(
     return uow.search_history
 
 
+async def get_department_document_service(
+    uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_uow)],
+) -> DepartmentDocumentService:
+    """Get DepartmentDocumentService instance with dependency injection."""
+    return DepartmentDocumentService(uow)
+
+
 # Type aliases for dependencies
 CurrentUser = Annotated[UserInfo, Depends(get_current_active_user)]
 AdminUser = Annotated[UserInfo, Depends(require_admin)]
@@ -250,4 +258,4 @@ AttachmentServiceDep = Annotated[AttachmentService, Depends(get_attachment_servi
 SearchServiceDep = Annotated[SearchService, Depends(get_search_service)]
 DialogueServiceDep = Annotated[DialogueService, Depends(get_dialogue_service)]
 SearchHistoryRepositoryDep = Annotated[object, Depends(get_search_history_repository)]
-
+DepartmentDocumentServiceDep = Annotated[DepartmentDocumentService, Depends(get_department_document_service)]

@@ -18,6 +18,11 @@ def get_documents_menu_keyboard(*, locale: str = "en") -> InlineKeyboardMarkup:
             style=ButtonStyle.PRIMARY,
         ),
         create_inline_button(
+            f"\U0001f4c1 {t('documents.btn_dept_docs', locale=locale)}",
+            callback_data="department_docs_list",
+            style=ButtonStyle.PRIMARY,
+        ),
+        create_inline_button(
             f"\U0001f4cb {t('documents.btn_policies', locale=locale)}",
             callback_data="company_policies",
             style=ButtonStyle.PRIMARY,
@@ -36,21 +41,32 @@ def get_documents_menu_keyboard(*, locale: str = "en") -> InlineKeyboardMarkup:
 
 
 def get_article_list_keyboard(
-    articles: list[dict], back_callback: str, *, locale: str = "en"
+    articles: list[dict], back_callback: str, *, locale: str = "en", is_department_docs: bool = False
 ) -> InlineKeyboardMarkup:
     """Build keyboard with article buttons."""
     builder = InlineKeyboardBuilder()
     for article in articles[:10]:
         article_id = article.get("id")
         title = article.get("title", "Untitled")
-        attachments = article.get("attachments", [])
-        icon = "\U0001f4ce" if attachments else "\U0001f4c4"
-        builder.add(
-            create_inline_button(
-                f"{icon} {title[:50]}",
-                callback_data=f"view_article_{article_id}",
+        if is_department_docs:
+            # For department documents, use download button
+            file_name = article.get("file_name", "file")
+            emoji = _get_file_emoji(article.get("mime_type"))
+            builder.add(
+                create_inline_button(
+                    f"{emoji} {title[:40]}",
+                    callback_data=f"download_dept_doc_{article_id}",
+                )
             )
-        )
+        else:
+            attachments = article.get("attachments", [])
+            icon = "\U0001f4ce" if attachments else "\U0001f4c4"
+            builder.add(
+                create_inline_button(
+                    f"{icon} {title[:50]}",
+                    callback_data=f"view_article_{article_id}",
+                )
+            )
     builder.add(
         create_inline_button(
             f"\u2190 {t('common.back_button', locale=locale)}",

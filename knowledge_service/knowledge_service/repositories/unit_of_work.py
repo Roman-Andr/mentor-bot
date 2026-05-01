@@ -14,6 +14,7 @@ from knowledge_service.repositories.implementations.article_view_history import 
 from knowledge_service.repositories.implementations.attachment import AttachmentRepository
 from knowledge_service.repositories.implementations.category import CategoryRepository
 from knowledge_service.repositories.implementations.category_change_history import CategoryChangeHistoryRepository
+from knowledge_service.repositories.implementations.department_document import DepartmentDocumentRepository
 from knowledge_service.repositories.implementations.dialogue import DialogueScenarioRepository, DialogueStepRepository
 from knowledge_service.repositories.implementations.dialogue_scenario_change_history import DialogueScenarioChangeHistoryRepository
 from knowledge_service.repositories.implementations.search_history import SearchHistoryRepository
@@ -25,6 +26,7 @@ from knowledge_service.repositories.interfaces.article_view_history import IArti
 from knowledge_service.repositories.interfaces.attachment import IAttachmentRepository
 from knowledge_service.repositories.interfaces.category import ICategoryRepository
 from knowledge_service.repositories.interfaces.category_change_history import ICategoryChangeHistoryRepository
+from knowledge_service.repositories.interfaces.department_document import IDepartmentDocumentRepository
 from knowledge_service.repositories.interfaces.dialogue import IDialogueScenarioRepository, IDialogueStepRepository
 from knowledge_service.repositories.interfaces.dialogue_scenario_change_history import IDialogueScenarioChangeHistoryRepository
 from knowledge_service.repositories.interfaces.search_history import ISearchHistoryRepository
@@ -39,6 +41,7 @@ class IUnitOfWork(Protocol):
     article_views: IArticleViewRepository
     attachments: IAttachmentRepository
     categories: ICategoryRepository
+    department_documents: IDepartmentDocumentRepository
     dialogue_scenarios: IDialogueScenarioRepository
     dialogue_steps: IDialogueStepRepository
     search_history: ISearchHistoryRepository
@@ -93,6 +96,7 @@ class SqlAlchemyUnitOfWork(IUnitOfWork):
         self.article_views = ArticleViewRepository(self._session)
         self.attachments = AttachmentRepository(self._session)
         self.categories = CategoryRepository(self._session)
+        self.department_documents = DepartmentDocumentRepository(self._session)
         self.dialogue_scenarios = DialogueScenarioRepository(self._session)
         self.dialogue_steps = DialogueStepRepository(self._session)
         self.search_history = SearchHistoryRepository(self._session)

@@ -697,5 +697,33 @@
     "issueConfirm": "Are you sure you want to issue a certificate for this completed checklist?",
     "issued": "Certificate issued",
     "notIssued": "Certificate not issued"
+  },
+  "departmentDocuments": {
+    "title": "Department Documents",
+    "subtitle": "Manage department documents",
+    "addDocument": "Add Document",
+    "editDocument": "Edit Document",
+    "title_field": "Title",
+    "description": "Description",
+    "category": "Category",
+    "department": "Department",
+    "file": "File",
+    "isPublic": "Public document",
+    "upload": "Upload",
+    "download": "Download",
+    "delete": "Delete",
+    "confirmDelete": "Are you sure you want to delete this document?",
+    "noDocuments": "No documents found",
+    "categories": "Categories",
+    "regulations": "Regulations",
+    "templates": "Templates",
+    "resources": "Resources",
+    "policies": "Corporate Policies",
+    "created": "Document created",
+    "updated": "Document updated",
+    "deleted": "Document deleted",
+    "createError": "Error creating document",
+    "updateError": "Error updating document",
+    "deleteError": "Error deleting document"
   }
 }

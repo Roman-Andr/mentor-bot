@@ -108,3 +108,10 @@ export const ANONYMITY_OPTIONS = [
   { value: "anonymous", label: "Анонимные" },
   { value: "attributed", label: "Именные" },
 ] as const;
+
+export const DOCUMENT_CATEGORIES = [
+  { value: "regulations", label: "Регламенты" },
+  { value: "templates", label: "Шаблоны" },
+  { value: "resources", label: "Полезные ресурсы" },
+  { value: "policies", label: "Корпоративные политики" },
+] as const;

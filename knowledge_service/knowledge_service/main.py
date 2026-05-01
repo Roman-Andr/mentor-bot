@@ -14,7 +14,7 @@ from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
 from sqlalchemy import text
 
-from knowledge_service.api import analytics, articles, attachments, audit, categories, dialogues, search, search_analytics, tags
+from knowledge_service.api import analytics, articles, attachments, audit, categories, department_documents, dialogues, search, search_analytics, tags
 from knowledge_service.config import settings
 from knowledge_service.database import engine, init_db
 from knowledge_service.middleware.auth import AuthTokenMiddleware
@@ -92,6 +92,7 @@ app.include_router(attachments.router, prefix=f"{settings.API_V1_PREFIX}", tags=
 app.include_router(dialogues.router, prefix=f"{settings.API_V1_PREFIX}/dialogue-scenarios", tags=["dialogues"])
 app.include_router(analytics.router, prefix=f"{settings.API_V1_PREFIX}/knowledge/analytics", tags=["analytics"])
 app.include_router(audit.router, prefix=f"{settings.API_V1_PREFIX}/knowledge/audit", tags=["audit"])
+app.include_router(department_documents.router, prefix=f"{settings.API_V1_PREFIX}", tags=["department-documents"])
 
 
 @app.get("/")

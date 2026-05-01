@@ -134,6 +134,85 @@ async def department_docs(
     await callback.answer()
 
 
+@router.callback_query(F.data == "department_docs_list")
+async def department_docs_list(
+    callback: CallbackQuery, user: dict, auth_token: str, *, locale: str = "en"
+) -> None:
+    """Show department documents list from new API."""
+    if callback.message is None or not isinstance(callback.message, Message):
+        await callback.answer(t("common.error_generic", locale=locale))
+        return
+
+    msg = callback.message
+
+    if not user or not auth_token:
+        await callback.answer(t("common.auth_required_short", locale=locale))
+        return
+
+    department_id = user.get("department_id")
+    docs = await document_client.get_department_documents_list(department_id, auth_token)
+
+    text = f"\U0001f4c4 *{t('documents.title', locale=locale)}*\n\n"
+    if docs:
+        text += t("documents.tap_to_view", locale=locale)
+    else:
+        text += t("documents.dept_empty", locale=locale)
+
+    await msg.edit_text(
+        text,
+        reply_markup=get_article_list_keyboard(
+            docs, "documents_menu", locale=locale, is_department_docs=True
+        ),
+        parse_mode="Markdown",
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("download_dept_doc_"))
+async def download_department_document(
+    callback: CallbackQuery,
+    bot: Bot,
+    user: dict,
+    auth_token: str,
+    *,
+    locale: str = "en",
+) -> None:
+    """Download and send a department document file."""
+    if callback.message is None:
+        await callback.answer(t("common.error_generic", locale=locale))
+        return
+
+    if not user or not auth_token:
+        await callback.answer(t("common.auth_required_short", locale=locale))
+        return
+
+    parts = callback.data.split("_")
+    try:
+        document_id = int(parts[-1])
+    except (ValueError, IndexError):
+        await callback.answer(t("common.error_generic", locale=locale))
+        return
+
+    await callback.answer(t("common.loading", locale=locale))
+
+    download_url = await document_client.get_department_document_download_url(document_id, auth_token)
+
+    if not download_url:
+        await callback.answer(t("common.failed", locale=locale), show_alert=True)
+        return
+
+    # Send the download URL as a link since we can't directly send the file
+    try:
+        await bot.send_message(
+            chat_id=callback.message.chat.id,
+            text=f"\U0001f4ce {t('documents.download_link', locale=locale)}\n\n{download_url}",
+            disable_web_page_preview=True,
+        )
+    except Exception:
+        logger.exception("Failed to send download link to user")
+        await callback.answer(t("common.failed", locale=locale), show_alert=True)
+
+
 @router.callback_query(F.data == "company_policies")
 async def company_policies(
     callback: CallbackQuery, user: dict, auth_token: str, *, locale: str = "en"
