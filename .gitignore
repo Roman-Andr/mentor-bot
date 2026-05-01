@@ -39,6 +39,9 @@ MANIFEST
 pip-log.txt
 pip-delete-this-directory.txt
 
+# Playwright
+.playwright
+
 # Unit test / coverage reports
 htmlcov/
 .tox/
