@@ -22,7 +22,26 @@
     "completionTimeDistribution": "Распределение по времени завершения",
     "range": "Диапазон",
     "count": "Количество",
-    "month": "Месяц"
+    "month": "Месяц",
+    "onboardingTab": "Онбординг",
+    "knowledgeTab": "База знаний",
+    "knowledge": {
+      "totalViews": "Всего просмотров",
+      "uniqueViewers": "Уникальные зрители",
+      "totalArticles": "Всего статей",
+      "avgViewsPerArticle": "Средн. просмотров на статью",
+      "topArticles": "Топ статей",
+      "viewsOverTime": "Просмотры во времени",
+      "byCategory": "По категориям",
+      "byTag": "По тегам",
+      "fromDate": "От даты",
+      "toDate": "До даты",
+      "apply": "Применить",
+      "reset": "Сбросить",
+      "day": "День",
+      "week": "Неделя",
+      "views": "Просмотры"
+    }
   },
   "auth": {
     "email": "Email",

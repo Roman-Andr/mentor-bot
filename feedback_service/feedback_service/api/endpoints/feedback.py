@@ -1,5 +1,6 @@
 """Feedback API endpoints."""
 
+import asyncio
 from datetime import datetime
 from typing import Annotated
 
@@ -8,6 +9,7 @@ from loguru import logger
 
 from feedback_service.api.deps import AuthUser, CurrentUser, HRAdminUser, ServiceAuth, UOWDep, check_user_access
 from feedback_service.models import Comment, ExperienceRating, PulseSurvey
+from feedback_service.services.notification_client import NotificationClient
 from feedback_service.schemas import (
     CommentCreate,
     CommentListResponse,
@@ -541,6 +543,19 @@ async def reply_to_comment(
 
         await uow.commit()
         logger.info("Comment reply added (comment_id={}, replied_by={})", comment_id, current_user.id)
+
+        # Send notification to comment author (fire-and-forget)
+        notification_client = NotificationClient()
+        asyncio.create_task(
+            notification_client.notify_comment_reply(
+                comment_id=comment_id,
+                original_comment_preview=comment.comment,
+                reply_text=data.reply,
+                replied_by_name=current_user.full_name or current_user.email,
+                user_id=comment.user_id if not comment.is_anonymous else None,
+            )
+        )
+
         return CommentResponse.model_validate(comment)
     except HTTPException:
         raise

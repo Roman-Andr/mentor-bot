@@ -1,5 +1,12 @@
 """Pydantic schemas for request/response validation."""
 
+from knowledge_service.schemas.analytics import (
+    CategoryStats,
+    KnowledgeSummary,
+    TagStats,
+    TimeseriesPoint,
+    TopArticleStats,
+)
 from knowledge_service.schemas.article import (
     ArticleBase,
     ArticleCreate,
@@ -63,6 +70,7 @@ __all__ = [
     "CategoryCreate",
     "CategoryListResponse",
     "CategoryResponse",
+    "CategoryStats",
     "CategoryUpdate",
     "CategoryWithArticles",
     "DialogueScenarioCreate",
@@ -75,6 +83,7 @@ __all__ = [
     "DialogueStepUpdate",
     "FileUploadError",
     "HealthCheck",
+    "KnowledgeSummary",
     "MessageResponse",
     "SearchHistoryResponse",
     "SearchQuery",
@@ -84,5 +93,8 @@ __all__ = [
     "TagBase",
     "TagCreate",
     "TagResponse",
+    "TagStats",
     "TagUpdate",
+    "TimeseriesPoint",
+    "TopArticleStats",
 ]

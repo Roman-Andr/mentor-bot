@@ -181,6 +181,48 @@ See you there!""",
             "body_text": "📝 Feedback Request\n\nHi {{ user_name }}, please share your feedback about {{ topic }}.",
             "variables": ["user_name", "topic"],
         },
+        ("comment_reply", "telegram", "en"): {
+            "subject": None,
+            "body_text": "💬 Reply to your comment\n\nYour comment: \"{{ original_comment_preview }}\"\n\nReply from {{ replied_by_name }}:\n{{ reply_text }}",
+            "variables": ["original_comment_preview", "reply_text", "replied_by_name"],
+        },
+        ("comment_reply", "telegram", "ru"): {
+            "subject": None,
+            "body_text": "💬 Ответ на ваш комментарий\n\nВаш комментарий: \"{{ original_comment_preview }}\"\n\nОтвет от {{ replied_by_name }}:\n{{ reply_text }}",
+            "variables": ["original_comment_preview", "reply_text", "replied_by_name"],
+        },
+        ("comment_reply", "email", "en"): {
+            "subject": "Reply to your comment",
+            "body_text": """Hi,
+
+You received a reply to your comment:
+
+Your comment: "{{ original_comment_preview }}"
+
+Reply from {{ replied_by_name }}:
+{{ reply_text }}
+
+---
+This is an automated message from Mentor Bot.""",
+            "body_html": "<h1>Reply to your comment</h1><p>You received a reply to your comment:</p><p><strong>Your comment:</strong> "{{ original_comment_preview }}"</p><p><strong>Reply from {{ replied_by_name }}:</strong></p><p>{{ reply_text }}</p><hr><p><em>This is an automated message from Mentor Bot.</em></p>",
+            "variables": ["original_comment_preview", "reply_text", "replied_by_name"],
+        },
+        ("comment_reply", "email", "ru"): {
+            "subject": "Ответ на ваш комментарий",
+            "body_text": """Здравствуйте,
+
+Вы получили ответ на ваш комментарий:
+
+Ваш комментарий: "{{ original_comment_preview }}"
+
+Ответ от {{ replied_by_name }}:
+{{ reply_text }}
+
+---
+Это автоматическое сообщение от Mentor Bot.""",
+            "body_html": "<h1>Ответ на ваш комментарий</h1><p>Вы получили ответ на ваш комментарий:</p><p><strong>Ваш комментарий:</strong> "{{ original_comment_preview }}"</p><p><strong>Ответ от {{ replied_by_name }}:</strong></p><p>{{ reply_text }}</p><hr><p><em>Это автоматическое сообщение от Mentor Bot.</em></p>",
+            "variables": ["original_comment_preview", "reply_text", "replied_by_name"],
+        },
         # Onboarding templates
         ("onboarding_day1", "telegram", "en"): {
             "subject": None,

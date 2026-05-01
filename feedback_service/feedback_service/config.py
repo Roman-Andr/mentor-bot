@@ -34,6 +34,9 @@ class Settings(BaseSettings):
     AUTH_SERVICE_URL: str = Field(default="http://auth_service:8000")
     AUTH_SERVICE_TIMEOUT: int = Field(default=10, ge=1)
 
+    # Notification service integration
+    NOTIFICATION_SERVICE_URL: str = Field(default="http://notification_service:8000")
+
     # Service-to-service authentication
     SERVICE_API_KEY: str | None = Field(default=None)
 

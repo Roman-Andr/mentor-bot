@@ -113,6 +113,13 @@ export const queryKeys = {
     overview: () => [...queryKeys.analytics.all, "overview"] as const,
     department: (deptId: number) => [...queryKeys.analytics.all, "department", deptId] as const,
     checklist: (checklistId: number) => [...queryKeys.analytics.all, "checklist", checklistId] as const,
+    knowledge: {
+      summary: (params?: { from_date?: string; to_date?: string }) => [...queryKeys.analytics.all, "knowledge", "summary", params] as const,
+      topArticles: (params?: { from_date?: string; to_date?: string; limit?: number }) => [...queryKeys.analytics.all, "knowledge", "top-articles", params] as const,
+      timeseries: (params?: { from_date?: string; to_date?: string; granularity?: string; article_id?: number }) => [...queryKeys.analytics.all, "knowledge", "timeseries", params] as const,
+      byCategory: (params?: { from_date?: string; to_date?: string }) => [...queryKeys.analytics.all, "knowledge", "by-category", params] as const,
+      byTag: (params?: { from_date?: string; to_date?: string }) => [...queryKeys.analytics.all, "knowledge", "by-tag", params] as const,
+    },
   },
 
   // Dashboard

@@ -22,7 +22,7 @@ from knowledge_service.api.deps import (
     require_hr,
     require_mentor_or_above,
 )
-from knowledge_service.api.endpoints import articles, attachments, categories, dialogues, search, tags
+from knowledge_service.api.endpoints import analytics, articles, attachments, categories, dialogues, search, tags
 
 __all__ = [
     "AdminUser",
@@ -38,6 +38,7 @@ __all__ = [
     "TagServiceDep",
     "UOWDep",
     "UserInfo",
+    "analytics",
     "articles",
     "attachments",
     "categories",

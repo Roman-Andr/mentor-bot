@@ -12,6 +12,43 @@ interface CompletionTimeStats {
   count: number;
 }
 
+interface DateRange {
+  from_date?: string;
+  to_date?: string;
+}
+
+interface TopArticleStats {
+  article_id: number;
+  title: string;
+  view_count: number;
+  unique_viewers: number;
+}
+
+interface TimeseriesPoint {
+  bucket: string;
+  views: number;
+  unique_viewers: number;
+}
+
+interface CategoryStats {
+  category_id: number;
+  category_name: string;
+  view_count: number;
+}
+
+interface TagStats {
+  tag_id: number;
+  tag_name: string;
+  view_count: number;
+}
+
+interface KnowledgeSummary {
+  total_views: number;
+  unique_viewers: number;
+  total_articles: number;
+  avg_views_per_article: number;
+}
+
 export const analyticsApi = {
   checklistStats: (params?: { department_id?: number }) => {
     const searchParams = new URLSearchParams();
@@ -37,4 +74,38 @@ export const analyticsApi = {
         status: string;
       }>;
     }>("/api/v1/checklists?overdue_only=false&limit=50"),
+  knowledge: {
+    summary: (params?: DateRange) => {
+      const searchParams = new URLSearchParams();
+      if (params?.from_date) searchParams.set("from_date", params.from_date);
+      if (params?.to_date) searchParams.set("to_date", params.to_date);
+      return fetchApi<KnowledgeSummary>(`/api/v1/knowledge/analytics/summary?${searchParams.toString()}`);
+    },
+    topArticles: (params?: DateRange & { limit?: number }) => {
+      const searchParams = new URLSearchParams();
+      if (params?.from_date) searchParams.set("from_date", params.from_date);
+      if (params?.to_date) searchParams.set("to_date", params.to_date);
+      if (params?.limit) searchParams.set("limit", String(params.limit));
+      return fetchApi<TopArticleStats[]>(`/api/v1/knowledge/analytics/top-articles?${searchParams.toString()}`);
+    },
+    timeseries: (params?: DateRange & { granularity?: "day" | "week" }) => {
+      const searchParams = new URLSearchParams();
+      if (params?.from_date) searchParams.set("from_date", params.from_date);
+      if (params?.to_date) searchParams.set("to_date", params.to_date);
+      if (params?.granularity) searchParams.set("granularity", params.granularity);
+      return fetchApi<TimeseriesPoint[]>(`/api/v1/knowledge/analytics/views-timeseries?${searchParams.toString()}`);
+    },
+    byCategory: (params?: DateRange) => {
+      const searchParams = new URLSearchParams();
+      if (params?.from_date) searchParams.set("from_date", params.from_date);
+      if (params?.to_date) searchParams.set("to_date", params.to_date);
+      return fetchApi<CategoryStats[]>(`/api/v1/knowledge/analytics/views-by-category?${searchParams.toString()}`);
+    },
+    byTag: (params?: DateRange) => {
+      const searchParams = new URLSearchParams();
+      if (params?.from_date) searchParams.set("from_date", params.from_date);
+      if (params?.to_date) searchParams.set("to_date", params.to_date);
+      return fetchApi<TagStats[]>(`/api/v1/knowledge/analytics/views-by-tag?${searchParams.toString()}`);
+    },
+  },
 };

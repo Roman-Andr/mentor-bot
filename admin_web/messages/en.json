@@ -22,7 +22,26 @@
     "completionTimeDistribution": "Completion Time Distribution",
     "range": "Range",
     "count": "Count",
-    "month": "Month"
+    "month": "Month",
+    "onboardingTab": "Onboarding",
+    "knowledgeTab": "Knowledge Base",
+    "knowledge": {
+      "totalViews": "Total Views",
+      "uniqueViewers": "Unique Viewers",
+      "totalArticles": "Total Articles",
+      "avgViewsPerArticle": "Avg Views per Article",
+      "topArticles": "Top Articles",
+      "viewsOverTime": "Views Over Time",
+      "byCategory": "Views by Category",
+      "byTag": "Views by Tag",
+      "fromDate": "From Date",
+      "toDate": "To Date",
+      "apply": "Apply",
+      "reset": "Reset",
+      "day": "Day",
+      "week": "Week",
+      "views": "Views"
+    }
   },
   "auth": {
     "email": "Email",
@@ -277,7 +296,20 @@
     "status": "Status",
     "anonymous": "Anonymous",
     "viewDetails": "View Details",
-    "reply": "Reply"
+    "reply": "Reply",
+    "replyTitle": "Reply to feedback",
+    "replyDescription": "Send an HR/Admin response to this comment.",
+    "originalComment": "Original comment",
+    "replyText": "Reply text",
+    "replyPlaceholder": "Write your reply...",
+    "sendReply": "Send reply",
+    "sendingReply": "Sending...",
+    "detailsTitle": "Feedback details",
+    "detailsDescription": "{type} #{id}",
+    "contactEmail": "Contact email",
+    "rating": "Rating",
+    "comment": "Comment",
+    "repliedAt": "Replied at"
   },
   "invitations": {
     "accepted": "Accepted",

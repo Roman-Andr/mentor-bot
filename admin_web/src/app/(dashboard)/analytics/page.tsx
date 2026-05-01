@@ -5,7 +5,9 @@ import { useTranslations } from "@/hooks/use-translations";
 import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PDFExportButton } from "@/components/features/reports/pdf-export-button";
+import { TabSwitcher } from "@/components/ui/tab-switcher";
 import { api } from "@/lib/api";
+import { queryKeys } from "@/lib/query-keys";
 import type { ChecklistStats } from "@/types";
 import { PageContent } from "@/components/layout/page-content";
 import { AnalyticsStats } from "@/components/features/analytics/analytics-stats";
@@ -13,20 +15,69 @@ import { MonthlyChart } from "@/components/features/analytics/monthly-chart";
 import { DepartmentChart } from "@/components/features/analytics/department-chart";
 import { CompletionTimeChart } from "@/components/features/analytics/completion-time-chart";
 import { ChecklistStatus } from "@/components/features/analytics/checklist-status";
+import { KnowledgeSummaryCards } from "@/components/features/analytics/knowledge/knowledge-summary-cards";
+import { KnowledgeTopArticlesChart } from "@/components/features/analytics/knowledge/knowledge-top-articles-chart";
+import { KnowledgeViewsTimeseries } from "@/components/features/analytics/knowledge/knowledge-views-timeseries";
+import { KnowledgeViewsByCategory } from "@/components/features/analytics/knowledge/knowledge-views-by-category";
+import { KnowledgeViewsByTag } from "@/components/features/analytics/knowledge/knowledge-views-by-tag";
+import { KnowledgeDateRangePicker } from "@/components/features/analytics/knowledge/knowledge-date-range-picker";
 import { departmentsApi } from "@/lib/api/departments";
 import { AnalyticsPageSkeleton } from "@/components/ui/page-skeleton";
+import { useQuery } from "@tanstack/react-query";
+
+interface KnowledgeSummary {
+  total_views: number;
+  unique_viewers: number;
+  total_articles: number;
+  avg_views_per_article: number;
+}
+
+interface TopArticleStats {
+  article_id: number;
+  title: string;
+  view_count: number;
+  unique_viewers: number;
+}
+
+interface TimeseriesPoint {
+  bucket: string;
+  views: number;
+  unique_viewers: number;
+}
+
+interface CategoryStats {
+  category_id: number;
+  category_name: string;
+  view_count: number;
+}
+
+interface TagStats {
+  tag_id: number;
+  tag_name: string;
+  view_count: number;
+}
 
 export default function AnalyticsPage() {
   const t = useTranslations();
+  const [activeTab, setActiveTab] = useState("onboarding");
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<ChecklistStats | null>(null);
   const [userCount, setUserCount] = useState(0);
   const [monthlyData, setMonthlyData] = useState<Array<{ month: string; newUsers: number; completed: number }>>([]);
   const [completionTimeData, setCompletionTimeData] = useState<Array<{ range: string; count: number }>>([]);
   const [departmentMap, setDepartmentMap] = useState<Record<string, string>>({});
+  
+  // Knowledge analytics state
+  const [dateRange, setDateRange] = useState<{ from_date?: string; to_date?: string }>({});
+  const [granularity, setGranularity] = useState<"day" | "week">("day");
+
+  const tabs = [
+    { id: "onboarding", label: t("analytics.onboardingTab") },
+    { id: "knowledge", label: t("analytics.knowledgeTab") },
+  ];
 
   useEffect(() => {
-    async function loadData() {
+    async function loadOnboardingData() {
       try {
         const [statsResult, usersResult, monthlyResult, completionResult, deptResult] = await Promise.all([
           api.analytics.checklistStats(),
@@ -65,8 +116,46 @@ export default function AnalyticsPage() {
         setLoading(false);
       }
     }
-    loadData();
+    loadOnboardingData();
   }, []);
+
+  // Knowledge analytics queries with React Query caching
+  const { data: knowledgeSummary, isLoading: summaryLoading } = useQuery({
+    queryKey: queryKeys.analytics.knowledge.summary(dateRange),
+    queryFn: () => api.analytics.knowledge.summary(dateRange),
+    enabled: activeTab === "knowledge",
+    staleTime: 60000, // 60 seconds
+  });
+
+  const { data: topArticles, isLoading: topArticlesLoading } = useQuery({
+    queryKey: queryKeys.analytics.knowledge.topArticles({ ...dateRange, limit: 10 }),
+    queryFn: () => api.analytics.knowledge.topArticles({ ...dateRange, limit: 10 }),
+    enabled: activeTab === "knowledge",
+    staleTime: 60000, // 60 seconds
+  });
+
+  const { data: timeseriesData, isLoading: timeseriesLoading } = useQuery({
+    queryKey: queryKeys.analytics.knowledge.timeseries({ ...dateRange, granularity }),
+    queryFn: () => api.analytics.knowledge.timeseries({ ...dateRange, granularity }),
+    enabled: activeTab === "knowledge",
+    staleTime: 60000, // 60 seconds
+  });
+
+  const { data: categoryData, isLoading: categoryLoading } = useQuery({
+    queryKey: queryKeys.analytics.knowledge.byCategory(dateRange),
+    queryFn: () => api.analytics.knowledge.byCategory(dateRange),
+    enabled: activeTab === "knowledge",
+    staleTime: 60000, // 60 seconds
+  });
+
+  const { data: tagData, isLoading: tagLoading } = useQuery({
+    queryKey: queryKeys.analytics.knowledge.byTag(dateRange),
+    queryFn: () => api.analytics.knowledge.byTag(dateRange),
+    enabled: activeTab === "knowledge",
+    staleTime: 60000, // 60 seconds
+  });
+
+  const knowledgeLoading = summaryLoading || topArticlesLoading || timeseriesLoading || categoryLoading || tagLoading;
 
   const departmentData = useMemo(() =>
     stats?.by_department
@@ -144,17 +233,51 @@ export default function AnalyticsPage() {
       }
     >
       <div className="space-y-6">
-        <AnalyticsStats stats={stats} userCount={userCount} />
+        <TabSwitcher tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
 
-        <div className="grid gap-6 lg:grid-cols-2">
-          <MonthlyChart data={monthlyData} />
-          <DepartmentChart data={departmentData} />
-        </div>
+        {activeTab === "onboarding" && (
+          <>
+            <AnalyticsStats stats={stats} userCount={userCount} />
 
-        <div className="grid gap-6 lg:grid-cols-2">
-          <CompletionTimeChart data={completionTimeData} />
-          <ChecklistStatus stats={stats} />
-        </div>
+            <div className="grid gap-6 lg:grid-cols-2">
+              <MonthlyChart data={monthlyData} />
+              <DepartmentChart data={departmentData} />
+            </div>
+
+            <div className="grid gap-6 lg:grid-cols-2">
+              <CompletionTimeChart data={completionTimeData} />
+              <ChecklistStatus stats={stats} />
+            </div>
+          </>
+        )}
+
+        {activeTab === "knowledge" && (
+          <>
+            <KnowledgeDateRangePicker onChange={setDateRange} />
+
+            {knowledgeLoading ? (
+              <AnalyticsPageSkeleton />
+            ) : (
+              <>
+                <KnowledgeSummaryCards summary={knowledgeSummary?.data || null} />
+
+                <div className="grid gap-6 lg:grid-cols-2">
+                  <KnowledgeTopArticlesChart data={topArticles?.data || []} />
+                  <KnowledgeViewsTimeseries 
+                    data={timeseriesData?.data || []} 
+                    onGranularityChange={setGranularity}
+                    currentGranularity={granularity}
+                  />
+                </div>
+
+                <div className="grid gap-6 lg:grid-cols-2">
+                  <KnowledgeViewsByCategory data={categoryData?.data || []} />
+                  <KnowledgeViewsByTag data={tagData?.data || []} />
+                </div>
+              </>
+            )}
+          </>
+        )}
       </div>
     </PageContent>
   );

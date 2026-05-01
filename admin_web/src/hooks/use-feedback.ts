@@ -1,5 +1,7 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
+import { useTranslations } from "@/hooks/use-translations";
 import { api } from "@/lib/api";
 import { queryKeys } from "@/lib/query-keys";
 import { feedbackApi } from "@/lib/api/feedback";
@@ -14,6 +16,8 @@ import type {
 
 export function useFeedback() {
   const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const t = useTranslations();
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -160,12 +164,22 @@ export function useFeedback() {
 
   // Reply mutation
   const replyMutation = useMutation({
-    mutationFn: ({ commentId, reply }: { commentId: number; reply: string }) =>
-      feedbackApi.replyToComment(commentId, reply),
+    mutationFn: async ({ commentId, reply }: { commentId: number; reply: string }) => {
+      const result = await feedbackApi.replyToComment(commentId, reply);
+      if (result.error) {
+        throw new Error(result.error);
+      }
+      return result.data;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.feedback.all });
       setIsReplyModalOpen(false);
       setReplyingToId(null);
+      setSelectedFeedback(null);
+      toast(t("feedback.replySent"), "success");
+    },
+    onError: (error) => {
+      toast(error instanceof Error ? error.message : t("feedback.replyError"), "error");
     },
   });
 
@@ -269,9 +283,11 @@ export function useFeedback() {
   }, []);
 
   const handleReply = useCallback((commentId: number) => {
+    const item = feedbackItems.find((feedbackItem) => feedbackItem.type === "comment" && feedbackItem.id === commentId);
+    setSelectedFeedback(item ?? null);
     setReplyingToId(commentId);
     setIsReplyModalOpen(true);
-  }, []);
+  }, [feedbackItems]);
 
   const submitReply = useCallback(
     async (reply: string) => {
@@ -300,6 +316,7 @@ export function useFeedback() {
     selectedFeedback,
     isReplyModalOpen,
     replyingToId,
+    replySubmitting: replyMutation.isPending,
 
     // Stats
     pulseStats: pulseStats?.data as PulseStats | undefined,
@@ -336,7 +353,11 @@ export function useFeedback() {
     submitReply,
     resetFilters,
     invalidate,
-    closeReplyModal: () => setIsReplyModalOpen(false),
+    closeReplyModal: () => {
+      setIsReplyModalOpen(false);
+      setReplyingToId(null);
+      setSelectedFeedback(null);
+    },
     closeDetails: () => setSelectedFeedback(null),
   };
 }
