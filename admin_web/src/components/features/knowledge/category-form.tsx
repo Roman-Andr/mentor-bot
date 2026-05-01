@@ -18,7 +18,7 @@ export function CategoryForm({ formData, onChange, categories, departments, isEd
 
   // Filter out the current category and its children to prevent circular references
   const availableParents = isEdit
-    ? categories.filter((c) => c.id !== (formData as unknown as { id: number }).id)
+    ? categories.filter((c) => c.id !== (formData as { id?: number }).id)
     : categories;
 
   const parentOptions = [

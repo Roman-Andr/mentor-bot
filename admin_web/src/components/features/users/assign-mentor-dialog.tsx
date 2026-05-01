@@ -1,7 +1,6 @@
 "use client";
 
-/* eslint-disable react-hooks/set-state-in-effect */
-import { useState, useCallback, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useTranslations } from "@/hooks/use-translations";
 import { Button } from "@/components/ui/button";
 import {
@@ -42,19 +41,21 @@ export function AssignMentorDialog({
   const [unassigning, setUnassigning] = useState(false);
 
   // Reset state when dialog closes
-   
+  const resetState = useCallback(() => {
+    setSelectedMentorId("");
+    setSelectedMentorLabel("");
+  }, [setSelectedMentorId, setSelectedMentorLabel]);
+
   useEffect(() => {
     if (!isOpen) {
-      setSelectedMentorId("");
-      setSelectedMentorLabel("");
+      resetState();
     }
-     
-  }, [isOpen]);
+  }, [isOpen, resetState]);
 
   // Search for mentors (users with MENTOR role)
   const searchMentors = useCallback(async (query: string): Promise<SelectOption[]> => {
     const resp = await api.users.list({ search: query, role: "MENTOR", limit: 20 });
-    if (!resp.data) return [];
+    if (!resp.success || !resp.data) return [];
     return resp.data.users.map((u) => ({
       value: String(u.id),
       label: `${u.first_name} ${u.last_name || ""}`.trim(),

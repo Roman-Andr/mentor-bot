@@ -59,6 +59,7 @@ const eslintConfig = defineConfig([
   // Whitelist shadcn/ui custom CSS variable classes
   {
     rules: {
+      "no-console": "error",
       "tailwindcss/no-custom-classname": [
         "warn",
         {

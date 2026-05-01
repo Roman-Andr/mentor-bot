@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { DepartmentDocumentsTable } from "./department-documents-table";
 import { DepartmentDocumentFormDialog } from "./department-document-form-dialog";
-import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useDepartmentDocuments } from "@/hooks/use-department-documents";
 import type { DepartmentDocument, DepartmentDocumentUpdate } from "@/types/department-document";
 
@@ -81,13 +80,7 @@ export function DepartmentDocumentsTab() {
       is_public: formData.is_public,
     };
 
-    updateDocument(selectedDocument.id, updateData, {
-      onSuccess: () => {
-        setIsEditDialogOpen(false);
-        setSelectedDocument(null);
-        resetForm();
-      },
-    });
+    updateDocument(selectedDocument.id, updateData);
   };
 
   const handleDeleteClick = (id: number) => {
@@ -169,17 +162,6 @@ export function DepartmentDocumentsTab() {
           isSubmitting={isUpdating}
         />
       )}
-
-      <ConfirmDialog
-        open={deleteConfirmOpen}
-        onOpenChange={setDeleteConfirmOpen}
-        onConfirm={handleDeleteConfirm}
-        title="Удалить документ"
-        description="Вы уверены, что хотите удалить этот документ? Это действие нельзя отменить."
-        confirmLabel="Удалить"
-        cancelLabel="Отмена"
-        isSubmitting={isDeleting}
-      />
     </div>
   );
 }

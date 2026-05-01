@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+import type { ColumnDef } from "@/components/entity/entity-page-types";
 import { MEETING_TYPES } from "@/lib/constants";
 import { formatDate } from "@/lib/utils";
 import { Calendar, Clock, Users, UserPlus } from "lucide-react";
@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import type { MeetingItem } from "@/hooks/use-meetings";
 
 interface MeetingsColumnsProps {
-  departments: any[];
+  departments: { id: number; name: string }[];
   onOpenAssignDialog: (meetingId: number, title: string) => void;
   onOpenAssignmentsDialog: (meetingId: number, title: string) => void;
   t: (key: string) => string;

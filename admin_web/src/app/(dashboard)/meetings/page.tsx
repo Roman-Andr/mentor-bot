@@ -45,18 +45,16 @@ export default function MeetingsPage() {
     setAssignmentsLoading(true);
     try {
       const resp = await api.userMeetings.listByMeeting(meetingId, { limit: 100 });
-      if (resp.data) {
+      if (resp.success && resp.data) {
         setAssignments(resp.data.items);
         const userIds = [...new Set(resp.data.items.map((a) => a.user_id))];
-        if (userIds.length > 0) {
-          const usersResp = await api.users.list({ limit: 100 });
-          if (usersResp.data) {
-            const map: Record<number, User> = {};
-            for (const u of usersResp.data.users) {
-              if (userIds.includes(u.id)) map[u.id] = u;
-            }
-            setAssignmentsUsers(map);
+        const usersResp = await api.users.list({ limit: 100 });
+        if (usersResp.success && usersResp.data) {
+          const map: Record<number, User> = {};
+          for (const u of usersResp.data.users) {
+            if (userIds.includes(u.id)) map[u.id] = u;
           }
+          setAssignmentsUsers(map);
         }
       }
     } catch {
@@ -81,11 +79,11 @@ export default function MeetingsPage() {
       user_id: userId,
       meeting_id: meetingId,
     });
-    if (resp.data) {
+    if (resp.success && resp.data) {
       toast(t("meetings.meetingAssigned"), "success");
       setIsAssignDialogOpen(false);
     } else {
-      toast(resp.error || t("meetings.errorAssigning"), "error");
+      toast(!resp.success && resp.error ? resp.error.message : t("meetings.errorAssigning"), "error");
     }
   };
 
@@ -168,7 +166,7 @@ export default function MeetingsPage() {
           m.resetForm();
         }}
         formData={m.formData}
-        onFormChange={(data) => m.setFormData(data)}
+        onFormChange={(data: MeetingFormData) => m.setFormData(data)}
         onSubmit={m.handleCreate}
         isSubmitting={m.isCreating}
         submitError={null}
@@ -178,7 +176,7 @@ export default function MeetingsPage() {
         createButtonLabel={t("meetings.scheduleMeeting")}
         emptyStateMessage={t("meetings.noMeetings")}
         searchPlaceholder={t("common.searchPlaceholder")}
-        getItemKey={(item) => item.id}
+        getItemKey={(item: MeetingItem) => item.id}
         sortField={m.sortField}
         sortDirection={m.sortDirection}
         onSort={m.toggleSort}
@@ -190,7 +188,7 @@ export default function MeetingsPage() {
           />
         }
         columns={columns}
-        renderForm={({ formData, onChange }) => (
+        renderForm={({ formData, onChange }: { formData: MeetingFormData; onChange: (data: MeetingFormData) => void }) => (
           <MeetingFormDialog
             mode="create"
             formData={formData}

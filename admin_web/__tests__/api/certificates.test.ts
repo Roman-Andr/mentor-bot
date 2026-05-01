@@ -2,16 +2,12 @@
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { certificatesApi } from "@/lib/api/certificates";
+import { fetchApi } from "@/lib/api/client";
 
-// Mock the apiClient
-vi.mock("@/lib/api", () => ({
-  apiClient: {
-    get: vi.fn(),
-    post: vi.fn(),
-  },
+// Mock the fetchApi function
+vi.mock("@/lib/api/client", () => ({
+  fetchApi: vi.fn(),
 }));
-
-import { apiClient } from "@/lib/api";
 
 describe("certificatesApi", () => {
   beforeEach(() => {
@@ -25,18 +21,18 @@ describe("certificatesApi", () => {
         { cert_uid: "cert-2", issued_at: "2024-02-20T00:00:00Z" },
       ];
 
-      (apiClient.get as ReturnType<typeof vi.fn>).mockResolvedValue({
+      (fetchApi as ReturnType<typeof vi.fn>).mockResolvedValue({
         data: mockCertificates,
       });
 
       const result = await certificatesApi.getMyCertificates();
 
-      expect(apiClient.get).toHaveBeenCalledWith("/certificates/my");
+      expect(fetchApi).toHaveBeenCalledWith("/certificates/my");
       expect(result).toEqual(mockCertificates);
     });
 
     it("should handle API errors", async () => {
-      (apiClient.get as ReturnType<typeof vi.fn>).mockRejectedValue(
+      (fetchApi as ReturnType<typeof vi.fn>).mockRejectedValue(
         new Error("Network error")
       );
 
@@ -50,13 +46,13 @@ describe("certificatesApi", () => {
     it("should download certificate PDF", async () => {
       const mockBlob = new Blob(["PDF content"], { type: "application/pdf" });
 
-      (apiClient.get as ReturnType<typeof vi.fn>).mockResolvedValue({
+      (fetchApi as ReturnType<typeof vi.fn>).mockResolvedValue({
         data: mockBlob,
       });
 
       const result = await certificatesApi.downloadCertificate("cert-123", "en");
 
-      expect(apiClient.get).toHaveBeenCalledWith("/certificates/cert-123/download", {
+      expect(fetchApi).toHaveBeenCalledWith("/certificates/cert-123/download", {
         params: { locale: "en" },
         responseType: "blob",
       });
@@ -66,13 +62,13 @@ describe("certificatesApi", () => {
     it("should use default locale if not provided", async () => {
       const mockBlob = new Blob(["PDF content"], { type: "application/pdf" });
 
-      (apiClient.get as ReturnType<typeof vi.fn>).mockResolvedValue({
+      (fetchApi as ReturnType<typeof vi.fn>).mockResolvedValue({
         data: mockBlob,
       });
 
       await certificatesApi.downloadCertificate("cert-123");
 
-      expect(apiClient.get).toHaveBeenCalledWith("/certificates/cert-123/download", {
+      expect(fetchApi).toHaveBeenCalledWith("/certificates/cert-123/download", {
         params: { locale: "en" },
         responseType: "blob",
       });
@@ -86,20 +82,20 @@ describe("certificatesApi", () => {
         message: "Certificate issued successfully",
       };
 
-      (apiClient.post as ReturnType<typeof vi.fn>).mockResolvedValue({
+      (fetchApi as ReturnType<typeof vi.fn>).mockResolvedValue({
         data: mockResponse,
       });
 
       const result = await certificatesApi.issueCertificate(123);
 
-      expect(apiClient.post).toHaveBeenCalledWith("/certificates/issue", {
+      expect(fetchApi).toHaveBeenCalledWith("/certificates/issue", {
         checklist_id: 123,
       });
       expect(result).toEqual(mockResponse);
     });
 
     it("should handle validation errors", async () => {
-      (apiClient.post as ReturnType<typeof vi.fn>).mockRejectedValue({
+      (fetchApi as ReturnType<typeof vi.fn>).mockRejectedValue({
         response: { status: 400, data: { detail: "Checklist must be completed" } },
       });
 
@@ -124,7 +120,7 @@ describe("certificatesApi", () => {
         size: 50,
       };
 
-      (apiClient.get as ReturnType<typeof vi.fn>).mockResolvedValue({
+      (fetchApi as ReturnType<typeof vi.fn>).mockResolvedValue({
         data: mockResponse,
       });
 
@@ -134,7 +130,7 @@ describe("certificatesApi", () => {
         user_id: 10,
       });
 
-      expect(apiClient.get).toHaveBeenCalledWith("/certificates/list", {
+      expect(fetchApi).toHaveBeenCalledWith("/certificates/list", {
         params: { skip: 0, limit: 50, user_id: 10 },
       });
       expect(result).toEqual(mockResponse);
@@ -148,13 +144,13 @@ describe("certificatesApi", () => {
         size: 50,
       };
 
-      (apiClient.get as ReturnType<typeof vi.fn>).mockResolvedValue({
+      (fetchApi as ReturnType<typeof vi.fn>).mockResolvedValue({
         data: mockResponse,
       });
 
       const result = await certificatesApi.listCertificates();
 
-      expect(apiClient.get).toHaveBeenCalledWith("/certificates/list", {
+      expect(fetchApi).toHaveBeenCalledWith("/certificates/list", {
         params: {},
       });
       expect(result).toEqual(mockResponse);

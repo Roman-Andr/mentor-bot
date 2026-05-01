@@ -34,11 +34,10 @@ export default function SettingsPage() {
   // User selections (synced with external values when they change)
   const [selectedTheme, setSelectedTheme] = useState(currentTheme || "system");
   const [selectedLanguage, setSelectedLanguage] = useState(currentLocale || "ru");
-  const [telegramEnabled, setTelegramEnabled] = useState(preferences?.notification_telegram_enabled ?? true);
-  const [emailEnabled, setEmailEnabled] = useState(preferences?.notification_email_enabled ?? true);
+  const [telegramEnabled, setTelegramEnabled] = useState(preferences?.success && preferences.data ? preferences.data.notification_telegram_enabled ?? true : true);
+  const [emailEnabled, setEmailEnabled] = useState(preferences?.success && preferences.data ? preferences.data.notification_email_enabled ?? true : true);
 
   // Sync with external theme changes (from sidebar)
-  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (currentTheme !== prevThemeRef.current) {
       prevThemeRef.current = currentTheme;
@@ -46,11 +45,9 @@ export default function SettingsPage() {
         setSelectedTheme(currentTheme);
       }
     }
-  }, [currentTheme]);
-  /* eslint-enable react-hooks/set-state-in-effect */
+  }, [currentTheme, selectedTheme]);
 
   // Sync with external locale changes (from sidebar)
-  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (currentLocale !== prevLocaleRef.current) {
       prevLocaleRef.current = currentLocale;
@@ -58,20 +55,19 @@ export default function SettingsPage() {
         setSelectedLanguage(currentLocale);
       }
     }
-  }, [currentLocale]);
-  /* eslint-enable react-hooks/set-state-in-effect */
+  }, [currentLocale, selectedLanguage]);
 
   // Sync with preferences changes
-  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (preferences && preferences !== prevPrefsRef.current) {
       prevPrefsRef.current = preferences;
-      setTelegramEnabled(preferences.notification_telegram_enabled);
-      setEmailEnabled(preferences.notification_email_enabled);
-      setSelectedLanguage(preferences.language);
+      if (preferences.success && preferences.data) {
+        setEmailEnabled(preferences.data.notification_email_enabled ?? true);
+        setTelegramEnabled(preferences.data.notification_telegram_enabled ?? true);
+        setSelectedLanguage(preferences.data.language);
+      }
     }
   }, [preferences]);
-  /* eslint-enable react-hooks/set-state-in-effect */
 
   const themes = [
     { value: "light" as const, label: t("settings.themeLight") },
@@ -107,9 +103,9 @@ export default function SettingsPage() {
   const handleCancel = useCallback(() => {
     setSelectedTheme(currentTheme || "system");
     setSelectedLanguage(currentLocale || "ru");
-    if (preferences) {
-      setTelegramEnabled(preferences.notification_telegram_enabled);
-      setEmailEnabled(preferences.notification_email_enabled);
+    if (preferences && preferences.success && preferences.data) {
+      setTelegramEnabled(preferences.data.notification_telegram_enabled);
+      setEmailEnabled(preferences.data.notification_email_enabled);
     }
   }, [currentTheme, currentLocale, preferences]);
 

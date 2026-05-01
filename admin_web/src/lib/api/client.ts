@@ -1,6 +1,15 @@
+import { logger } from "../logger";
+import { handleError, AppError } from "../error";
+
+let onUnauthorizedCallback: (() => void) | null = null;
+
+export function setUnauthorizedCallback(callback: () => void) {
+  onUnauthorizedCallback = callback;
+}
+
 function handleUnauthorized() {
-  if (typeof window !== "undefined") {
-    window.location.href = "/login";
+  if (onUnauthorizedCallback) {
+    onUnauthorizedCallback();
   }
 }
 
@@ -9,11 +18,6 @@ export type ApiError = {
   status?: number;
   code?: string;
 };
-
-export interface ApiResponse<T> {
-  data?: T;
-  error?: string;
-}
 
 export type ApiResult<T> =
   | { success: true; data: T }
@@ -49,54 +53,6 @@ async function handleResponse<T>(response: Response): Promise<ApiResult<T>> {
 export async function fetchApi<T>(
   endpoint: string,
   options?: RequestInit,
-): Promise<ApiResponse<T>> {
-  try {
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-      ...(options?.headers as Record<string, string>),
-    };
-
-    const response = await fetch(endpoint, {
-      ...options,
-      headers,
-      credentials: "include",  // Send httpOnly cookies automatically
-    });
-    const result = await handleResponse<T>(response);
-
-    if (result.success) {
-      return { data: result.data };
-    }
-    return { error: result.error.message };
-  } catch (error) {
-    return { error: error instanceof Error ? error.message : "Network error" };
-  }
-}
-
-export async function fetchUpload<T>(
-  endpoint: string,
-  formData: FormData,
-  method: string = "POST",
-): Promise<ApiResponse<T>> {
-  try {
-    const response = await fetch(endpoint, {
-      method,
-      body: formData,
-      credentials: "include",  // Send httpOnly cookies automatically
-    });
-    const result = await handleResponse<T>(response);
-
-    if (result.success) {
-      return { data: result.data };
-    }
-    return { error: result.error.message };
-  } catch (error) {
-    return { error: error instanceof Error ? error.message : "Network error" };
-  }
-}
-
-export async function fetchApiNew<T>(
-  endpoint: string,
-  options?: RequestInit,
 ): Promise<ApiResult<T>> {
   try {
     const headers: Record<string, string> = {
@@ -107,7 +63,28 @@ export async function fetchApiNew<T>(
     const response = await fetch(endpoint, {
       ...options,
       headers,
-      credentials: "include",  // Send httpOnly cookies automatically
+      credentials: "include",
+    });
+    return handleResponse<T>(response);
+  } catch (error) {
+    return {
+      success: false,
+      error: {
+        message: error instanceof Error ? error.message : "Network error",
+      },
+    };
+  }
+}
+
+export async function fetchUpload<T>(
+  endpoint: string,
+  formData: FormData,
+): Promise<ApiResult<T>> {
+  try {
+    const response = await fetch(endpoint, {
+      method: "POST",
+      body: formData,
+      credentials: "include",
     });
     return handleResponse<T>(response);
   } catch (error) {

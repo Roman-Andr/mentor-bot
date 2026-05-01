@@ -725,5 +725,55 @@
     "createError": "Error creating document",
     "updateError": "Error updating document",
     "deleteError": "Error deleting document"
+  },
+  "entities": {
+    "departments": {
+      "singular": "Department",
+      "plural": "Departments"
+    },
+    "checklists": {
+      "singular": "Checklist",
+      "plural": "Checklists"
+    },
+    "templates": {
+      "singular": "Template",
+      "plural": "Templates"
+    },
+    "categories": {
+      "singular": "Category",
+      "plural": "Categories"
+    },
+    "invitations": {
+      "singular": "Invitation",
+      "plural": "Invitations"
+    },
+    "escalations": {
+      "singular": "Escalation",
+      "plural": "Escalations"
+    },
+    "meetings": {
+      "singular": "Meeting",
+      "plural": "Meetings"
+    },
+    "dialogues": {
+      "singular": "Dialogue",
+      "plural": "Dialogues"
+    },
+    "articles": {
+      "singular": "Article",
+      "plural": "Articles"
+    },
+    "feedback": {
+      "singular": "Feedback",
+      "plural": "Feedback"
+    },
+    "users": {
+      "singular": "User",
+      "plural": "Users"
+    },
+    "notificationTemplates": {
+      "singular": "Notification Template",
+      "plural": "Notification Templates"
+    }
   }
 }

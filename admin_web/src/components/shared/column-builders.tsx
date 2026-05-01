@@ -1,10 +1,9 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { StatusBadge } from "@/components/ui/status-badge";
 import { formatDate, formatDateTime } from "@/lib/utils";
 import type { LucideIcon } from "lucide-react";
 import { Calendar, Clock } from "lucide-react";
 
-export interface ColumnDefinition<T = any> {
+export interface ColumnDefinition<T = unknown> {
   key: string;
   header: string;
   cell: (item: T) => React.ReactNode;

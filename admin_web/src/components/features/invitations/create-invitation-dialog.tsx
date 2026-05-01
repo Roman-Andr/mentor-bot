@@ -1,6 +1,5 @@
 "use client";
 
-/* eslint-disable react-hooks/set-state-in-effect */
 import { useTranslations } from "@/hooks/use-translations";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -68,14 +67,17 @@ export function CreateInvitationDialog({
     setLoading(true);
     try {
       const res = await api.users.list({ role: "MENTOR", limit: 100 });
-      if (res.data) setUsers(res.data.users);
+      if (res.success && res.data) setUsers(res.data.users);
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    if (open) loadMentors();
+    const loadMentorsCallback = async () => {
+      if (open) await loadMentors();
+    };
+    loadMentorsCallback();
   }, [open, loadMentors]);
 
   const mentorOptions: SelectOption[] = users.map((u) => ({

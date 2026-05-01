@@ -4,6 +4,7 @@ import { getMessages } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import { Providers } from "./providers";
+import { ErrorBoundary } from "@/components/error-boundary";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -26,9 +27,11 @@ export default async function RootLayout({
   return (
     <html lang={locale} suppressHydrationWarning>
       <body>
-        <NextIntlClientProvider messages={messages}>
-          <Providers>{children}</Providers>
-        </NextIntlClientProvider>
+        <ErrorBoundary>
+          <NextIntlClientProvider messages={messages}>
+            <Providers>{children}</Providers>
+          </NextIntlClientProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );

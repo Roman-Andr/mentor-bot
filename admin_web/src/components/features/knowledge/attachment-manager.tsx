@@ -87,7 +87,7 @@ export function AttachmentManager({
         setUploading(true);
         const response = await attachmentsApi.uploadMultiple(articleId, filesToUpload);
 
-        if (response.data) {
+        if (response.success && response.data) {
           const { attachments: newAttachments, errors: serverErrors } = response.data;
           const allErrors = [...clientErrors, ...serverErrors];
           setUploadErrors(allErrors);
@@ -96,7 +96,7 @@ export function AttachmentManager({
             onAttachmentsChange([...attachments, ...newAttachments]);
           }
         } else {
-          setUploadErrors([...clientErrors, { filename: null, error: response.error || t("common.error") }]);
+          setUploadErrors([...clientErrors, { filename: null, error: !response.success && response.error ? response.error.message : t("common.error") }]);
         }
         setUploading(false);
       }
@@ -135,7 +135,7 @@ export function AttachmentManager({
       return;
     setDeletingId(attachmentId);
     const response = await attachmentsApi.delete(attachmentId);
-    if (!response.error) {
+    if (response.success) {
       onAttachmentsChange(attachments.filter((a) => a.id !== attachmentId));
     }
     setDeletingId(null);

@@ -3,6 +3,8 @@ import { useEntity } from "./use-entity";
 import { api } from "@/lib/api";
 import type { Invitation } from "@/types";
 import { useMutation } from "@tanstack/react-query";
+import { useTranslations } from "@/hooks/use-translations";
+import { useToast } from "@/hooks/use-toast";
 
 export interface InvitationItem {
   id: number;
@@ -79,7 +81,7 @@ function toPayload(form: InvitationFormData) {
 }
 
 export function useInvitations() {
-  const entity = useEntity<InvitationItem, InvitationFormData, ReturnType<typeof toPayload>, ReturnType<typeof toPayload>>({
+  const entity = useEntity<InvitationItem, InvitationFormData, ReturnType<typeof toPayload>, ReturnType<typeof toPayload>, ExtendedState>({
     entityName: "Приглашение",
     translationNamespace: "invitations",
     queryKeyPrefix: "invitations",
@@ -112,14 +114,20 @@ export function useInvitations() {
     if (entity.extendedState.emailTouched === undefined) {
       entity.setExtendedState(() => ({ emailTouched: false, createdUrl: null }));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [entity.extendedState.emailTouched, entity.setExtendedState]);
 
   // Custom mutations
+  const t = useTranslations("invitations");
+  const { toast } = useToast();
+
   const resendMutation = useMutation({
     mutationFn: (id: number) => api.invitations.resend(id),
     onSuccess: () => {
       entity.invalidate();
+      toast(t("resendSuccess"), "success");
+    },
+    onError: (error) => {
+      toast(t("resendError"), "error");
     },
   });
 
@@ -127,6 +135,10 @@ export function useInvitations() {
     mutationFn: (id: number) => api.invitations.revoke(id),
     onSuccess: () => {
       entity.invalidate();
+      toast(t("revokeSuccess"), "success");
+    },
+    onError: () => {
+      toast(t("revokeError"), "error");
     },
   });
 
@@ -141,25 +153,27 @@ export function useInvitations() {
   const handleCreateInvitation = () => {
     const payload = toPayload(entity.formData);
     entity.createFn?.(payload).then((result) => {
-      if (result?.error) {
+      if (!result?.success) {
         // Error is already handled by entity hook's onError
         return;
       }
-      if (result?.data) {
+      if (result.data) {
         entity.setExtendedState((prev) => ({
-          ...(prev as unknown as ExtendedState),
+          ...prev,
           createdUrl: (result.data as { invitation_url: string }).invitation_url,
         }));
         entity.invalidate();
         entity.setIsCreateDialogOpen(false);
         entity.resetForm();
+      } else {
+        throw new Error('Failed to create invitation');
       }
     });
   };
 
   const resetForm = () => {
     entity.resetForm();
-    entity.setExtendedState(() => defaultExtendedState as unknown as Record<string, unknown>);
+    entity.setExtendedState(() => defaultExtendedState);
   };
 
   return {
@@ -191,15 +205,15 @@ export function useInvitations() {
     // Form
     formData: entity.formData,
     setFormData: entity.setFormData,
-    emailTouched: (entity.extendedState as unknown as ExtendedState).emailTouched ?? false,
+    emailTouched: entity.extendedState.emailTouched ?? false,
     setEmailTouched: (touched: boolean) =>
-      entity.setExtendedState((prev) => ({ ...(prev as unknown as ExtendedState), emailTouched: touched })),
-    createdUrl: (entity.extendedState as unknown as ExtendedState).createdUrl ?? null,
+      entity.setExtendedState((prev) => ({ ...prev, emailTouched: touched })),
+    createdUrl: entity.extendedState.createdUrl ?? null,
     setCreatedUrl: (url: string | null) =>
-      entity.setExtendedState((prev) => ({ ...(prev as unknown as ExtendedState), createdUrl: url })),
+      entity.setExtendedState((prev) => ({ ...prev, createdUrl: url })),
 
     // Handlers
-    handleCreateInvitation,
+    handleCreateInvitation: entity.handleSubmit,
     handleResendInvitation: (id: number) => resendMutation.mutate(id),
     handleRevokeInvitation: (id: number) => revokeMutation.mutate(id),
     handleDeleteInvitation: entity.handleDelete,

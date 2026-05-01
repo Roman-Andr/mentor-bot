@@ -115,7 +115,7 @@ function toForm(article: ArticleRow): ArticleFormData {
 }
 
 export function useArticles() {
-  const entity = useEntity<ArticleRow, ArticleFormData, ReturnType<typeof toPayload>, ReturnType<typeof toPayload>>({
+  const entity = useEntity<ArticleRow, ArticleFormData, ReturnType<typeof toPayload>, ReturnType<typeof toPayload>, ExtendedState>({
     entityName: "Статья",
     translationNamespace: "knowledge",
     queryKeyPrefix: "articles",
@@ -154,37 +154,36 @@ export function useArticles() {
     if (entity.extendedState.attachments === undefined) {
       entity.setExtendedState(() => ({ attachments: [], pendingFiles: [] }));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [entity.extendedState.attachments, entity.setExtendedState]);
 
   // Handle attachments on create/update with custom wrapper
   const handleSubmit = async () => {
-    const { pendingFiles } = entity.extendedState as unknown as ExtendedState;
+    const { pendingFiles } = entity.extendedState;
 
     if (entity.selectedItem) {
       // Update
       const result = await api.articles.update(entity.selectedItem.id, toPayload(entity.formData));
-      if (result.data && pendingFiles.length > 0) {
+      if (result.success && result.data && pendingFiles.length > 0) {
         await attachmentsApi.uploadMultiple(result.data.id, pendingFiles);
       }
-      if (result.data) {
+      if (result.success && result.data) {
         entity.invalidate();
         entity.setIsEditDialogOpen(false);
         entity.setSelectedItem(null);
         // Reset extended state
-        entity.setExtendedState(() => defaultExtendedState as unknown as Record<string, unknown>);
+        entity.setExtendedState(() => defaultExtendedState);
       }
     } else {
       // Create
       const result = await api.articles.create(toPayload(entity.formData));
-      if (result.data) {
+      if (result.success && result.data) {
         if (pendingFiles.length > 0) {
           await attachmentsApi.uploadMultiple(result.data.id, pendingFiles);
         }
         entity.invalidate();
         entity.setIsCreateDialogOpen(false);
         entity.resetForm();
-        entity.setExtendedState(() => defaultExtendedState as unknown as Record<string, unknown>);
+        entity.setExtendedState(() => defaultExtendedState);
       }
     }
   };
@@ -193,7 +192,7 @@ export function useArticles() {
   const { data: categoriesData, refetch: refetchCategories } = useQuery({
     queryKey: queryKeys.categories.all,
     queryFn: () => api.categories.list({ limit: 100, include_tree: true }),
-    select: (result) => result.data?.categories || [],
+    select: (result) => result.success ? result.data?.categories || [] : [],
   });
 
   // Custom openEdit that loads attachments
@@ -204,8 +203,8 @@ export function useArticles() {
     // Load attachments
     const attResponse = await api.attachments.listByArticle(article.id);
     entity.setExtendedState((prev) => ({
-      ...(prev as unknown as ExtendedState),
-      attachments: attResponse.data?.attachments || [],
+      ...prev,
+      attachments: (attResponse.success && attResponse.data?.attachments) || [],
       pendingFiles: [],
     }));
 
@@ -214,7 +213,7 @@ export function useArticles() {
 
   const resetForm = () => {
     entity.resetForm();
-    entity.setExtendedState(() => defaultExtendedState as unknown as Record<string, unknown>);
+    entity.setExtendedState(() => defaultExtendedState);
   };
 
   return {
@@ -254,15 +253,15 @@ export function useArticles() {
     setFormData: entity.setFormData,
 
     // Attachments
-    attachments: (entity.extendedState as unknown as ExtendedState).attachments ?? [],
+    attachments: entity.extendedState.attachments ?? [],
     setAttachments: (attachments: Attachment[]) =>
-      entity.setExtendedState((prev) => ({ ...(prev as unknown as ExtendedState), attachments })),
-    pendingFiles: (entity.extendedState as unknown as ExtendedState).pendingFiles ?? [],
+      entity.setExtendedState((prev) => ({ ...prev, attachments })),
+    pendingFiles: entity.extendedState.pendingFiles ?? [],
     setPendingFiles: (files: File[]) =>
-      entity.setExtendedState((prev) => ({ ...(prev as unknown as ExtendedState), pendingFiles: files })),
+      entity.setExtendedState((prev) => ({ ...prev, pendingFiles: files })),
 
     // Handlers
-    handleSubmit,
+    handleSubmit: entity.handleSubmit,
     handleDelete: entity.handleDelete,
     handlePublish: (id: number) => api.articles.publish(id),
     openEdit,

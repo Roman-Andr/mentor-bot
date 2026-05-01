@@ -136,7 +136,7 @@ export function useChecklists() {
   });
 
   const usersMap = new Map<number, string>();
-  if (usersData?.data?.users) {
+  if (usersData?.success && usersData.data?.users) {
     for (const user of usersData.data.users) {
       usersMap.set(user.id, `${user.first_name}${user.last_name ? ` ${user.last_name}` : ""}`);
     }
@@ -176,7 +176,7 @@ export function useChecklists() {
   const handleCreate = () => {
     const payload = toCreatePayload(entity.formData);
     entity.createFn?.(payload).then((result) => {
-      if (result?.error) {
+      if (!result?.success) {
         // Error is already handled by entity hook's onError
         return;
       }
@@ -190,7 +190,7 @@ export function useChecklists() {
     if (!entity.selectedItem) return;
     const payload = toUpdatePayload(entity.formData);
     entity.updateFn?.(entity.selectedItem.id, payload).then((result) => {
-      if (result?.error) {
+      if (!result?.success) {
         // Error is already handled by entity hook's onError
         return;
       }

@@ -1,4 +1,5 @@
-import { apiClient } from "./client";
+import { fetchApi } from "./client";
+import type { ApiResult } from "./client";
 
 export interface Certificate {
   id: number;
@@ -25,22 +26,23 @@ export interface MyCertificate {
 }
 
 export const certificatesApi = {
-  getMyCertificates: async (): Promise<MyCertificate[]> => {
-    const response = await apiClient.get("/certificates/my");
-    return response.data;
+  getMyCertificates: async (): Promise<ApiResult<MyCertificate[]>> => {
+    return fetchApi<MyCertificate[]>("/certificates/my");
   },
 
   downloadCertificate: async (certUid: string, locale: string = "en"): Promise<Blob> => {
-    const response = await apiClient.get(`/certificates/${certUid}/download`, {
-      params: { locale },
-      responseType: "blob",
-    });
-    return response.data;
+    const response = await fetch(`/certificates/${certUid}/download?locale=${locale}`);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    return response.blob();
   },
 
-  issueCertificate: async (checklistId: number): Promise<{ cert_uid: string; message: string }> => {
-    const response = await apiClient.post("/certificates/issue", { checklist_id: checklistId });
-    return response.data;
+  issueCertificate: async (checklistId: number): Promise<ApiResult<{ cert_uid: string; message: string }>> => {
+    return fetchApi<{ cert_uid: string; message: string }>("/certificates/issue", {
+      method: "POST",
+      body: JSON.stringify({ checklist_id: checklistId }),
+    });
   },
 
   listCertificates: async (params?: {
@@ -49,8 +51,15 @@ export const certificatesApi = {
     user_id?: number;
     from_date?: string;
     to_date?: string;
-  }): Promise<CertificateListResponse> => {
-    const response = await apiClient.get("/certificates/list", { params });
-    return response.data;
+  }): Promise<ApiResult<CertificateListResponse>> => {
+    const url = new URL("/certificates/list", window.location.origin);
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined) {
+          url.searchParams.append(key, String(value));
+        }
+      });
+    }
+    return fetchApi<CertificateListResponse>(url.toString());
   },
 };

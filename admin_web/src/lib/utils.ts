@@ -5,20 +5,20 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatDate(date: string | Date | null | undefined): string {
+export function formatDate(date: string | Date | null | undefined, locale: string = "ru-RU"): string {
   if (!date) return "-";
   const d = new Date(date);
-  return d.toLocaleDateString("ru-RU", {
+  return d.toLocaleDateString(locale, {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
   });
 }
 
-export function formatDateTime(date: string | Date | null | undefined): string {
+export function formatDateTime(date: string | Date | null | undefined, locale: string = "ru-RU"): string {
   if (!date) return "-";
   const d = new Date(date);
-  return d.toLocaleString("ru-RU", {
+  return d.toLocaleString(locale, {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",

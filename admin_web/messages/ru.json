@@ -712,5 +712,55 @@
     "createError": "Ошибка создания документа",
     "updateError": "Ошибка обновления документа",
     "deleteError": "Ошибка удаления документа"
+  },
+  "entities": {
+    "departments": {
+      "singular": "Департамент",
+      "plural": "Департаменты"
+    },
+    "checklists": {
+      "singular": "Чек-лист",
+      "plural": "Чек-листы"
+    },
+    "templates": {
+      "singular": "Шаблон",
+      "plural": "Шаблоны"
+    },
+    "categories": {
+      "singular": "Категория",
+      "plural": "Категории"
+    },
+    "invitations": {
+      "singular": "Приглашение",
+      "plural": "Приглашения"
+    },
+    "escalations": {
+      "singular": "Эскалация",
+      "plural": "Эскалации"
+    },
+    "meetings": {
+      "singular": "Встреча",
+      "plural": "Встречи"
+    },
+    "dialogues": {
+      "singular": "Диалог",
+      "plural": "Диалоги"
+    },
+    "articles": {
+      "singular": "Статья",
+      "plural": "Статьи"
+    },
+    "feedback": {
+      "singular": "Отзыв",
+      "plural": "Отзывы"
+    },
+    "users": {
+      "singular": "Пользователь",
+      "plural": "Пользователи"
+    },
+    "notificationTemplates": {
+      "singular": "Шаблон уведомления",
+      "plural": "Шаблоны уведомлений"
+    }
   }
 }

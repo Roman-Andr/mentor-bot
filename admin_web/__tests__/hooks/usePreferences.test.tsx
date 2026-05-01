@@ -48,7 +48,7 @@ describe('usePreferences', () => {
       notification_email_enabled: true,
     }
 
-    vi.mocked(usersApi.getMyPreferences).mockResolvedValue(mockPreferences)
+    vi.mocked(usersApi.getMyPreferences).mockResolvedValue({ success: true, data: mockPreferences })
 
     const { result } = renderHook(() => usePreferences(), { wrapper })
 
@@ -57,7 +57,7 @@ describe('usePreferences', () => {
     })
 
     expect(usersApi.getMyPreferences).toHaveBeenCalledOnce()
-    expect(result.current.preferences).toEqual(mockPreferences)
+    expect(result.current.preferences).toEqual({ success: true, data: mockPreferences })
   })
 
   it('handles fetch errors gracefully', async () => {
@@ -86,8 +86,8 @@ describe('usePreferences', () => {
       notification_email_enabled: true,
     }
 
-    vi.mocked(usersApi.getMyPreferences).mockResolvedValue(initialPreferences)
-    vi.mocked(usersApi.updateMyPreferences).mockResolvedValue(updatedPreferences)
+    vi.mocked(usersApi.getMyPreferences).mockResolvedValue({ success: true, data: initialPreferences })
+    vi.mocked(usersApi.updateMyPreferences).mockResolvedValue({ success: true, data: updatedPreferences })
 
     const { result } = renderHook(() => usePreferences(), { wrapper })
 
@@ -115,10 +115,13 @@ describe('usePreferences', () => {
       notification_email_enabled: true,
     }
 
-    vi.mocked(usersApi.getMyPreferences).mockResolvedValue(initialPreferences)
+    vi.mocked(usersApi.getMyPreferences).mockResolvedValue({ success: true, data: initialPreferences })
     vi.mocked(usersApi.updateMyPreferences).mockResolvedValue({
-      ...initialPreferences,
-      language: 'ru',
+      success: true,
+      data: {
+        ...initialPreferences,
+        language: 'ru',
+      },
     })
 
     const { result } = renderHook(() => usePreferences(), { wrapper })
@@ -139,10 +142,13 @@ describe('usePreferences', () => {
       notification_email_enabled: true,
     }
 
-    vi.mocked(usersApi.getMyPreferences).mockResolvedValue(initialPreferences)
+    vi.mocked(usersApi.getMyPreferences).mockResolvedValue({ success: true, data: initialPreferences })
     vi.mocked(usersApi.updateMyPreferences).mockResolvedValue({
-      ...initialPreferences,
-      notification_telegram_enabled: false,
+      success: true,
+      data: {
+        ...initialPreferences,
+        notification_telegram_enabled: false,
+      },
     })
 
     const { result } = renderHook(() => usePreferences(), { wrapper })
@@ -163,10 +169,13 @@ describe('usePreferences', () => {
       notification_email_enabled: true,
     }
 
-    vi.mocked(usersApi.getMyPreferences).mockResolvedValue(initialPreferences)
+    vi.mocked(usersApi.getMyPreferences).mockResolvedValue({ success: true, data: initialPreferences })
     vi.mocked(usersApi.updateMyPreferences).mockResolvedValue({
-      ...initialPreferences,
-      notification_email_enabled: false,
+      success: true,
+      data: {
+        ...initialPreferences,
+        notification_email_enabled: false,
+      },
     })
 
     const { result } = renderHook(() => usePreferences(), { wrapper })
@@ -193,8 +202,8 @@ describe('usePreferences', () => {
       notification_email_enabled: false,
     }
 
-    vi.mocked(usersApi.getMyPreferences).mockResolvedValue(initialPreferences)
-    vi.mocked(usersApi.updateMyPreferences).mockResolvedValue(updatedPreferences)
+    vi.mocked(usersApi.getMyPreferences).mockResolvedValue({ success: true, data: initialPreferences })
+    vi.mocked(usersApi.updateMyPreferences).mockResolvedValue({ success: true, data: updatedPreferences })
 
     const { result } = renderHook(() => usePreferences(), { wrapper })
 
@@ -214,7 +223,7 @@ describe('usePreferences', () => {
       notification_email_enabled: true,
     }
 
-    vi.mocked(usersApi.getMyPreferences).mockResolvedValue(initialPreferences)
+    vi.mocked(usersApi.getMyPreferences).mockResolvedValue({ success: true, data: initialPreferences })
     vi.mocked(usersApi.updateMyPreferences).mockRejectedValue(new Error('Update failed'))
 
     const { result } = renderHook(() => usePreferences(), { wrapper })
@@ -227,16 +236,17 @@ describe('usePreferences', () => {
 
     // Should handle error without crashing
     await waitFor(() => {
-      expect(result.current.isError).toBe(true)
+      expect(result.current.error).toBeTruthy()
     })
   })
 
   it('returns default preferences when none exist', async () => {
-    vi.mocked(usersApi.getMyPreferences).mockResolvedValue({
+    const mockPreferences = {
       language: 'ru',
       notification_telegram_enabled: true,
       notification_email_enabled: true,
-    })
+    }
+    vi.mocked(usersApi.getMyPreferences).mockResolvedValue({ success: true, data: mockPreferences })
 
     const { result } = renderHook(() => usePreferences(), { wrapper })
 
@@ -244,10 +254,6 @@ describe('usePreferences', () => {
       expect(result.current.isLoading).toBe(false)
     })
 
-    expect(result.current.preferences).toEqual({
-      language: 'ru',
-      notification_telegram_enabled: true,
-      notification_email_enabled: true,
-    })
+    expect(result.current.preferences).toEqual({ success: true, data: mockPreferences })
   })
 })

@@ -48,7 +48,7 @@ function toPayload(): Record<string, never> {
 }
 
 export function useEscalations() {
-  const entity = useEntity<EscalationItem, EscalationFormData, ReturnType<typeof toPayload>, ReturnType<typeof toPayload>>({
+  const entity = useEntity<EscalationItem, EscalationFormData, ReturnType<typeof toPayload>, ReturnType<typeof toPayload>, Record<string, unknown>>({
     entityName: "Запрос",
     translationNamespace: "escalations",
     queryKeyPrefix: "escalations",
@@ -81,7 +81,7 @@ export function useEscalations() {
     queryFn: () => api.users.list({ limit: 1000 }),
     select: (result) => {
       const map = new Map<number, string>();
-      if (result.data) {
+      if (result.success && result.data) {
         for (const u of result.data.users) {
           map.set(u.id, `${u.first_name ?? ""} ${u.last_name ?? ""}`.trim() || String(u.id));
         }

@@ -57,7 +57,7 @@ export default function DepartmentsPage() {
           createButtonLabel={t("departments.addDepartment")}
           emptyStateMessage={t("departments.empty")}
           searchPlaceholder={t("common.search")}
-          getItemKey={(item) => item.id}
+          getItemKey={(item: DepartmentRow) => item.id}
           sortField={entity.sortField}
           sortDirection={entity.sortDirection}
           onSort={entity.toggleSort}
@@ -65,13 +65,13 @@ export default function DepartmentsPage() {
             {
               key: "name",
               header: t("departments.name"),
-              cell: (item) => <span className="font-medium">{item.name}</span>,
+              cell: (item: DepartmentRow) => <span className="font-medium">{item.name}</span>,
               sortable: true,
             },
             {
               key: "description",
               header: t("common.description"),
-              cell: (item) => (
+              cell: (item: DepartmentRow) => (
                 <span className="text-muted-foreground max-w-75 truncate text-sm">
                   {item.description || "—"}
                 </span>
@@ -80,12 +80,12 @@ export default function DepartmentsPage() {
             {
               key: "createdAt",
               header: t("common.created"),
-              cell: (item) => new Date(item.createdAt).toLocaleDateString(),
+              cell: (item: DepartmentRow) => new Date(item.createdAt).toLocaleDateString(),
               width: "w-32",
               sortable: true,
             },
           ]}
-          renderForm={({ formData, onChange }) => (
+          renderForm={({ formData, onChange }: { formData: DepartmentFormData; onChange: (data: DepartmentFormData) => void }) => (
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
                 <label className="text-sm font-medium">{t("departments.name")} *</label>

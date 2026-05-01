@@ -204,15 +204,13 @@ export function AsyncSearchableSelect({
     [onSearch, minSearchLength],
   );
 
-  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (debouncedSearch.length >= minSearchLength) {
       fetchOptions(debouncedSearch);
     } else {
       setOptions([]);
     }
-  }, [debouncedSearch, minSearchLength]);
-  /* eslint-enable react-hooks/set-state-in-effect */
+  }, [debouncedSearch, minSearchLength, fetchOptions]);
 
   useEffect(() => {
     if (isOpen) {

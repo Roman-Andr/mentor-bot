@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useLocale } from "next-intl";
 import { useToast } from "@/hooks/use-toast";
 import { certificatesApi } from "@/lib/api/certificates";
+import { logger } from "@/lib/logger";
 
 interface CertificateButtonProps {
   certUid: string | null;
@@ -43,7 +44,7 @@ export function CertificateButton({
       URL.revokeObjectURL(url);
       toast(locale === "ru" ? "Сертификат скачан" : "Certificate downloaded", "success");
     } catch (error) {
-      console.error("Failed to download certificate:", error);
+      logger.error("Failed to download certificate", { error });
       toast(locale === "ru" ? "Ошибка скачивания сертификата" : "Failed to download certificate", "error");
     } finally {
       setIsGenerating(false);

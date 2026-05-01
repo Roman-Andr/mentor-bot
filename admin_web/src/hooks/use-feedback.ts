@@ -152,7 +152,7 @@ export function useFeedback() {
     queryFn: () => api.users.list({ limit: 1000 }),
     select: (result) => {
       const map = new Map<number, string>();
-      if (result.data) {
+      if (result.success && result.data) {
         for (const u of result.data.users) {
           map.set(u.id, `${u.first_name ?? ""} ${u.last_name ?? ""}`.trim() || String(u.id));
         }
@@ -166,8 +166,8 @@ export function useFeedback() {
   const replyMutation = useMutation({
     mutationFn: async ({ commentId, reply }: { commentId: number; reply: string }) => {
       const result = await feedbackApi.replyToComment(commentId, reply);
-      if (result.error) {
-        throw new Error(result.error);
+      if (!result.success) {
+        throw new Error(result.error?.message || "Failed to reply");
       }
       return result.data;
     },
@@ -187,7 +187,7 @@ export function useFeedback() {
   const feedbackItems = useMemo<FeedbackItem[]>(() => {
     const items: FeedbackItem[] = [];
 
-    if (pulseData?.data?.items) {
+    if (pulseData?.success && pulseData.data?.items) {
       for (const item of pulseData.data.items) {
         items.push({
           ...item,
@@ -200,7 +200,7 @@ export function useFeedback() {
       }
     }
 
-    if (experienceData?.data?.items) {
+    if (experienceData?.success && experienceData.data?.items) {
       for (const item of experienceData.data.items) {
         items.push({
           ...item,
@@ -213,7 +213,7 @@ export function useFeedback() {
       }
     }
 
-    if (commentsData?.data?.items) {
+    if (commentsData?.success && commentsData.data?.items) {
       for (const item of commentsData.data.items) {
         items.push({
           ...item,
@@ -248,24 +248,24 @@ export function useFeedback() {
 
   // Calculate totals based on type filter
   const totalCount = useMemo(() => {
-    if (typeFilter === "pulse") return pulseData?.data?.total || 0;
-    if (typeFilter === "experience") return experienceData?.data?.total || 0;
-    if (typeFilter === "comment") return commentsData?.data?.total || 0;
+    if (typeFilter === "pulse") return pulseData?.success ? pulseData.data?.total || 0 : 0;
+    if (typeFilter === "experience") return experienceData?.success ? experienceData.data?.total || 0 : 0;
+    if (typeFilter === "comment") return commentsData?.success ? commentsData.data?.total || 0 : 0;
     // typeFilter === "all" - sum all totals
     return (
-      (pulseData?.data?.total || 0) +
-      (experienceData?.data?.total || 0) +
-      (commentsData?.data?.total || 0)
+      (pulseData?.success ? pulseData.data?.total || 0 : 0) +
+      (experienceData?.success ? experienceData.data?.total || 0 : 0) +
+      (commentsData?.success ? commentsData.data?.total || 0 : 0)
     );
   }, [pulseData, experienceData, commentsData, typeFilter]);
 
   const totalPages = useMemo(() => Math.ceil(totalCount / pageSize), [totalCount, pageSize]);
 
-  const totalComments = commentsData?.data?.total || 0;
+  const totalComments = commentsData?.success ? commentsData.data?.total || 0 : 0;
 
   const commentsWithReply = useMemo(() => {
     return (
-      commentsData?.data?.items?.filter((c) => c.reply)?.length || 0
+      commentsData?.success && commentsData.data?.items ? commentsData.data.items.filter((c: any) => c.reply).length : 0
     );
   }, [commentsData]);
 
@@ -319,9 +319,9 @@ export function useFeedback() {
     replySubmitting: replyMutation.isPending,
 
     // Stats
-    pulseStats: pulseStats?.data as PulseStats | undefined,
-    experienceStats: experienceStats?.data as ExperienceStats | undefined,
-    pulseAnonymityStats: pulseAnonymityStats?.data as AnonymityStats | undefined,
+    pulseStats: pulseStats?.success ? pulseStats.data as PulseStats | undefined : undefined,
+    experienceStats: experienceStats?.success ? experienceStats.data as ExperienceStats | undefined : undefined,
+    pulseAnonymityStats: pulseAnonymityStats?.success ? pulseAnonymityStats.data as AnonymityStats | undefined : undefined,
     totalComments,
     commentsWithReply,
 

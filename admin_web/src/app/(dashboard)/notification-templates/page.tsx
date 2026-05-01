@@ -46,7 +46,7 @@ export default function NotificationTemplatesPage() {
   const t = useTranslations("notificationTemplates");
   const tCommon = useTranslations("common");
   const confirm = useConfirm();
-  const toast = useToast();
+  const { toast } = useToast();
 
   const [search, setSearch] = useState("");
   const [channel, setChannel] = useState("");
@@ -66,16 +66,16 @@ export default function NotificationTemplatesPage() {
     is_active: isActive ? isActive === "true" : undefined,
   });
 
-  const templates = templatesData?.templates || [];
-  const totalCount = templatesData?.total || 0;
-  const totalPages = templatesData?.pages || 1;
+  const templates = templatesData?.success && templatesData.data ? templatesData.data.templates || [] : [];
+  const totalCount = templatesData?.success && templatesData.data ? templatesData.data.total || 0 : 0;
+  const totalPages = templatesData?.success && templatesData.data ? templatesData.data.pages || 1 : 1;
 
   const deleteMutation = useDeleteNotificationTemplate();
 
   const handleDelete = async (template: NotificationTemplate) => {
     const confirmed = await confirm({
       title: tCommon("deleteTitle"),
-      message: t("confirmDelete", { name: template.name }),
+      description: t("confirmDelete", { name: template.name }),
     });
 
     if (confirmed) {
@@ -211,7 +211,7 @@ export default function NotificationTemplatesPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {templates?.map((template) => (
+              {templates?.map((template: NotificationTemplate) => (
                 <TableRow key={template.id}>
                   <TableCell className="font-medium">{template.name}</TableCell>
                   <TableCell>
@@ -224,7 +224,7 @@ export default function NotificationTemplatesPage() {
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
                       {template.variables.length > 0 ? (
-                        template.variables.slice(0, 3).map((v) => (
+                        template.variables.slice(0, 3).map((v: string) => (
                           <Badge key={v} variant="secondary" className="text-xs">
                             {v}
                           </Badge>

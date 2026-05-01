@@ -73,9 +73,11 @@ export default function UsersPage() {
           handleCreateUser={u.handleCreateUser}
           handleUpdateUser={u.handleUpdateUser}
           setSelectedUser={u.setSelectedUser}
+          selectedUser={u.selectedUser}
           departments={u.departments}
           users={u.users}
           loading={u.loading}
+          isLoading={u.loading}
           openEditDialog={u.openEditDialog}
           handleDeleteUser={u.handleDeleteUser}
           openAssignMentorDialog={u.openAssignMentorDialog}
@@ -116,6 +118,9 @@ export default function UsersPage() {
           resetForm={d.resetForm}
           items={d.items}
           loading={d.loading}
+          isLoading={d.loading}
+          setSelectedItem={d.setSelectedItem}
+          selectedItem={d.selectedItem}
           searchQuery={d.searchQuery}
           setSearchQuery={d.setSearchQuery}
           currentPage={d.currentPage}

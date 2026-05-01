@@ -5,6 +5,7 @@ import { useTranslations } from "@/hooks/use-translations";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { logger } from "@/lib/logger";
 import {
   Dialog,
   DialogContent,
@@ -61,20 +62,18 @@ export function ChecklistFormDialog({
         api.users.list({ limit: 100 }),
         api.templates.list({ limit: 100 }),
       ]);
-      if (usersRes.data) setUsers(usersRes.data.users);
-      if (templatesRes.data) setTemplates(templatesRes.data);
+      if (usersRes.success && usersRes.data) setUsers(usersRes.data.users);
+      if (templatesRes.success && templatesRes.data) setTemplates(templatesRes.data);
     } catch (err) {
-      console.error("Failed to load reference data:", err);
+      logger.error("Failed to load reference data", { error: err });
     } finally {
       setLoading(false);
     }
   }, []);
 
-  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (open) loadReferenceData();
   }, [open, loadReferenceData]);
-  /* eslint-enable react-hooks/set-state-in-effect */
 
   const employeeOptions: SelectOption[] = users.map((u) => ({
     value: String(u.id),

@@ -84,7 +84,7 @@ export default function InvitationsPage() {
         onDelete={inv.handleDeleteInvitation}
         onCloseDialog={() => {}}
         formData={inv.formData}
-        onFormChange={(data) => inv.setFormData(data)}
+        onFormChange={(data: InvitationFormData) => inv.setFormData(data)}
         onSubmit={() => {}}
         isSubmitting={false}
         submitError={null}
@@ -94,7 +94,7 @@ export default function InvitationsPage() {
         createButtonLabel={t("invitations.sendInvitation")}
         emptyStateMessage={t("invitations.empty")}
         searchPlaceholder={t("invitations.searchByEmail")}
-        getItemKey={(item) => item.id}
+        getItemKey={(item: InvitationItem) => item.id}
         sortField={inv.sortField}
         sortDirection={inv.sortDirection}
         onSort={inv.toggleSort}

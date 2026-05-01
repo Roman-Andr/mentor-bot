@@ -2,8 +2,9 @@ import { useEffect } from "react";
 import { useEntity } from "./use-entity";
 import { api } from "@/lib/api";
 import { queryKeys } from "@/lib/query-keys";
-import type { TaskTemplate } from "@/types";
+import type { TaskTemplate, Template } from "@/types";
 import { useQuery } from "@tanstack/react-query";
+import { logger } from "@/lib/logger";
 
 export interface TemplateItem {
   id: number;
@@ -124,10 +125,10 @@ export function useTemplates() {
   const { data: departmentsData } = useQuery({
     queryKey: queryKeys.departments.all,
     queryFn: () => api.departments.list({ limit: 1000 }),
-    select: (result) => result.data?.departments || [],
+    select: (result) => result.success ? result.data?.departments || [] : [],
   });
 
-  const entity = useEntity<TemplateItem, TemplateFormData, ReturnType<typeof toCreatePayload>, ReturnType<typeof toUpdatePayload>>({
+  const entity = useEntity<TemplateItem, TemplateFormData, ReturnType<typeof toCreatePayload>, ReturnType<typeof toUpdatePayload>, ExtendedState>({
     entityName: "Шаблон",
     translationNamespace: "templates",
     queryKeyPrefix: "templates",
@@ -163,12 +164,11 @@ export function useTemplates() {
     if (entity.extendedState.tasks === undefined) {
       entity.setExtendedState(() => ({ tasks: [] }));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [entity.extendedState.tasks, entity.setExtendedState]);
 
   const addTasksToTemplate = async (templateId: number, tasks: TaskTemplate[]) => {
     for (const task of tasks) {
-      await api.templates.addTask(templateId, {
+      const result = await api.templates.addTask(templateId, {
         template_id: templateId,
         title: task.title,
         description: task.description,
@@ -179,32 +179,44 @@ export function useTemplates() {
         estimated_minutes: task.estimated_minutes,
       });
     }
+    throw new Error('Failed to add task');
+  };
+
+  const handleDeleteTask = async (templateId: number, task: TaskTemplate) => {
+    // TODO: Implement deleteTask API when available
+    console.warn('deleteTask API not yet implemented');
+  };
+
+  const syncTasks = async (templateId: number, tasks: TaskTemplate[]) => {
+    const toAdd = tasks.filter((t) => !t.id || t.id === 0);
+    const addedTasks = await Promise.all(toAdd.map((task) => addTasksToTemplate(templateId, [task])));
+    entity.setExtendedState((prev) => ({ ...prev, tasks: [...prev.tasks, ...addedTasks] }));
   };
 
   const handleCreate = async () => {
-    const { tasks } = entity.extendedState as unknown as ExtendedState;
+    const { tasks } = entity.extendedState;
     const result = await api.templates.create(toCreatePayload(entity.formData));
-    if (result.data) {
+    if (result.success && result.data) {
       await addTasksToTemplate(result.data.id, tasks);
       entity.invalidate();
       entity.setIsCreateDialogOpen(false);
       entity.resetForm();
-      entity.setExtendedState(() => defaultExtendedState as unknown as Record<string, unknown>);
+      entity.setExtendedState(() => defaultExtendedState);
     }
   };
 
   const handleUpdate = async () => {
     if (!entity.selectedItem) return;
-    const { tasks } = entity.extendedState as unknown as ExtendedState;
+    const { tasks } = entity.extendedState;
     const result = await api.templates.update(entity.selectedItem.id, toUpdatePayload(entity.formData));
-    if (result.data) {
+    if (result.success && result.data) {
       const newTasks = tasks.filter((t) => !t.id || t.id === 0);
       await addTasksToTemplate(entity.selectedItem.id, newTasks);
       entity.invalidate();
       entity.setIsEditDialogOpen(false);
       entity.setSelectedItem(null);
       entity.resetForm();
-      entity.setExtendedState(() => defaultExtendedState as unknown as Record<string, unknown>);
+      entity.setExtendedState(() => defaultExtendedState);
     }
   };
 
@@ -214,7 +226,7 @@ export function useTemplates() {
 
   const handlePublish = async (id: number) => {
     const result = await api.templates.publish(id);
-    if (result.data) {
+    if (result.success) {
       entity.invalidate();
     }
     return result;
@@ -223,19 +235,19 @@ export function useTemplates() {
   const openEditDialog = async (template: TemplateItem) => {
     entity.setSelectedItem(template);
     entity.setFormData(toForm(template));
-    entity.setExtendedState(() => defaultExtendedState as unknown as Record<string, unknown>);
+    entity.setExtendedState(() => defaultExtendedState);
 
     // Fetch tasks for the template
     try {
       const response = await api.templates.get(template.id);
-      if (response.data?.tasks) {
+      if (response.success && response.data?.tasks) {
         entity.setExtendedState((prev) => ({
-          ...(prev as unknown as ExtendedState),
-          tasks: response.data?.tasks,
+          ...prev,
+          tasks: response.data.tasks,
         }));
       }
     } catch (error) {
-      console.error("Failed to fetch template tasks:", error);
+      logger.error("Failed to fetch template tasks", { error });
     }
 
     entity.setIsEditDialogOpen(true);
@@ -243,7 +255,7 @@ export function useTemplates() {
 
   const resetForm = () => {
     entity.resetForm();
-    entity.setExtendedState(() => defaultExtendedState as unknown as Record<string, unknown>);
+    entity.setExtendedState(() => defaultExtendedState);
   };
 
   // Use entity.items directly - taskCount comes from API response in mapItem
@@ -284,13 +296,13 @@ export function useTemplates() {
     setFormData: entity.setFormData,
 
     // Tasks - ensure we always return an array
-    tasks: (entity.extendedState as unknown as ExtendedState).tasks ?? [],
+    tasks: entity.extendedState.tasks ?? [],
     setTasks: (tasks: TaskTemplate[]) =>
-      entity.setExtendedState((prev) => ({ ...(prev as unknown as ExtendedState), tasks })),
+      entity.setExtendedState((prev) => ({ ...prev, tasks })),
 
     // Handlers
-    handleCreate,
-    handleUpdate,
+    handleCreate: entity.handleSubmit,
+    handleUpdate: entity.handleSubmit,
     handleDelete,
     handlePublish,
     openEditDialog,

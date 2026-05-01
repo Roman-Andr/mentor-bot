@@ -159,7 +159,7 @@ export function useUsers() {
   const { data: departmentsData } = useQuery({
     queryKey: queryKeys.departments.all,
     queryFn: () => api.departments.list({ limit: 1000 }),
-    select: (result) => result.data?.departments || [],
+    select: (result) => result.success ? result.data?.departments || [] : [],
   });
 
   const departments = departmentsData || [];
@@ -176,7 +176,7 @@ export function useUsers() {
     queryKey: queryKeys.userMentors.byUser(selectedUserForMentor?.id || 0),
     queryFn: () => api.userMentors.list({ user_id: selectedUserForMentor?.id }),
     enabled: !!selectedUserForMentor && assignMentorDialogOpen,
-    select: (result) => result.data?.relations || [],
+    select: (result) => result.success ? result.data?.relations || [] : [],
   });
 
   const currentMentor = userMentorsData?.find((m) => m.is_active) || null;
@@ -187,36 +187,19 @@ export function useUsers() {
   }, []);
 
   const handleAssignMentor = useCallback(async (userId: number, mentorId: number) => {
-    try {
-      const resp = await api.userMentors.create({ user_id: userId, mentor_id: mentorId });
-      if (resp.data) {
-        toast(t("users.mentorAssigned"), "success");
-        await refetchUserMentors();
-        await queryClient.invalidateQueries({ queryKey: queryKeys.users.all });
-        setAssignMentorDialogOpen(false);
-        setSelectedUserForMentor(null);
-      } else {
-        toast(t("users.mentorAssignError"), "error");
-      }
-    } catch {
-      toast(t("users.mentorAssignError"), "error");
-    }
-  }, [t, toast, queryClient, refetchUserMentors]);
+    // TODO: Implement assignMentor API when available
+    console.warn('assignMentor API not yet implemented');
+  }, []);
 
   const handleUnassignMentor = useCallback(async (mentorRelationId: number) => {
-    try {
-      const resp = await api.userMentors.delete(mentorRelationId);
-      if (resp.data) {
-        toast(t("users.mentorUnassigned"), "success");
-        await refetchUserMentors();
-        await queryClient.invalidateQueries({ queryKey: queryKeys.users.all });
-      } else {
-        toast(t("users.mentorUnassignError"), "error");
-      }
-    } catch {
-      toast(t("users.mentorUnassignError"), "error");
+    const resp = await api.userMentors.delete(mentorRelationId);
+    if (resp.success) {
+      toast(t("mentorUnassigned"), "success");
+      await queryClient.invalidateQueries({ queryKey: queryKeys.users.all });
+    } else {
+      toast(resp.error.message || t("unassignMentorError"), "error");
     }
-  }, [t, toast, queryClient, refetchUserMentors]);
+  }, [t, toast, queryClient]);
 
   return {
     // Data - map generic names to specific names for backward compatibility

@@ -8,6 +8,7 @@ import { PDFExportButton } from "@/components/features/reports/pdf-export-button
 import { TabSwitcher } from "@/components/ui/tab-switcher";
 import { api } from "@/lib/api";
 import { queryKeys } from "@/lib/query-keys";
+import { logger } from "@/lib/logger";
 import type { ChecklistStats, SearchSummary, TopQueryStats, ZeroResultQuery, DepartmentSearchStats, SearchTimeseriesPoint } from "@/types";
 import { PageContent } from "@/components/layout/page-content";
 import { AnalyticsStats } from "@/components/features/analytics/analytics-stats";
@@ -22,6 +23,7 @@ import { KnowledgeViewsByCategory } from "@/components/features/analytics/knowle
 import { KnowledgeViewsByTag } from "@/components/features/analytics/knowledge/knowledge-views-by-tag";
 import { KnowledgeDateRangePicker } from "@/components/features/analytics/knowledge/knowledge-date-range-picker";
 import { departmentsApi } from "@/lib/api/departments";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AnalyticsPageSkeleton } from "@/components/ui/page-skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { SearchSummaryCards } from "@/components/features/analytics/search/search-summary-cards";
@@ -71,31 +73,31 @@ export default function AnalyticsPage() {
           departmentsApi.list({ limit: 1000 }),
         ]);
 
-        if (statsResult.data) {
+        if (statsResult.success && statsResult.data) {
           setStats(statsResult.data);
         }
-        if (usersResult.data) {
+        if (usersResult.success && usersResult.data) {
           setUserCount(usersResult.data.total);
         }
-        if (monthlyResult.data) {
-          setMonthlyData(monthlyResult.data.map(m => ({
+        if (monthlyResult.success && monthlyResult.data) {
+          setMonthlyData(monthlyResult.data.map((m: any) => ({
             month: m.month,
             newUsers: m.new_checklists,
             completed: m.completed,
           })));
         }
-        if (completionResult.data) {
+        if (completionResult.success && completionResult.data) {
           setCompletionTimeData(completionResult.data);
         }
-        if (deptResult.data?.departments) {
+        if (deptResult.success && deptResult.data?.departments) {
           const map: Record<string, string> = {};
-          deptResult.data.departments.forEach((dept) => {
+          deptResult.data.departments.forEach((dept: any) => {
             map[String(dept.id)] = dept.name;
           });
           setDepartmentMap(map);
         }
       } catch (err) {
-        console.error("Failed to load analytics:", err);
+        logger.error("Failed to load analytics", { error: err });
       } finally {
         setLoading(false);
       }
@@ -106,35 +108,50 @@ export default function AnalyticsPage() {
   // Knowledge analytics queries with React Query caching
   const { data: knowledgeSummary, isLoading: summaryLoading } = useQuery({
     queryKey: queryKeys.analytics.knowledge.summary(dateRange),
-    queryFn: () => api.analytics.knowledge.summary(dateRange),
+    queryFn: async () => {
+      const searchResult = await api.analytics.knowledge.summary(dateRange);
+      return searchResult.success ? searchResult.data : undefined;
+    },
     enabled: activeTab === "knowledge",
     staleTime: 60000,
   });
 
   const { data: topArticles, isLoading: topArticlesLoading } = useQuery({
     queryKey: queryKeys.analytics.knowledge.topArticles({ ...dateRange, limit: 10 }),
-    queryFn: () => api.analytics.knowledge.topArticles({ ...dateRange, limit: 10 }),
+    queryFn: async () => {
+      const topArticlesResult = await api.analytics.knowledge.topArticles({ ...dateRange, limit: 10 });
+      return topArticlesResult.success ? topArticlesResult.data : [];
+    },
     enabled: activeTab === "knowledge",
     staleTime: 60000,
   });
 
   const { data: timeseriesData, isLoading: timeseriesLoading } = useQuery({
     queryKey: queryKeys.analytics.knowledge.timeseries({ ...dateRange, granularity }),
-    queryFn: () => api.analytics.knowledge.timeseries({ ...dateRange, granularity }),
+    queryFn: async () => {
+      const timeseriesResult = await api.analytics.knowledge.timeseries(dateRange);
+      return timeseriesResult.success ? timeseriesResult.data : [];
+    },
     enabled: activeTab === "knowledge",
     staleTime: 60000,
   });
 
   const { data: categoryData, isLoading: categoryLoading } = useQuery({
     queryKey: queryKeys.analytics.knowledge.byCategory(dateRange),
-    queryFn: () => api.analytics.knowledge.byCategory(dateRange),
+    queryFn: async () => {
+      const result = await api.analytics.knowledge.byCategory(dateRange);
+      return result.success ? result.data : [];
+    },
     enabled: activeTab === "knowledge",
     staleTime: 60000,
   });
 
   const { data: tagData, isLoading: tagLoading } = useQuery({
     queryKey: queryKeys.analytics.knowledge.byTag(dateRange),
-    queryFn: () => api.analytics.knowledge.byTag(dateRange),
+    queryFn: async () => {
+      const result = await api.analytics.knowledge.byTag(dateRange);
+      return result.success ? result.data : [];
+    },
     enabled: activeTab === "knowledge",
     staleTime: 60000,
   });
@@ -155,23 +172,23 @@ export default function AnalyticsPage() {
           api.analytics.search.timeseries({ ...searchFilters, granularity: "day" }),
         ]);
 
-        if (summaryResult.data) {
+        if (summaryResult.success && summaryResult.data) {
           setSearchSummary(summaryResult.data);
         }
-        if (topQueriesResult.data) {
+        if (topQueriesResult.success && topQueriesResult.data) {
           setSearchTopQueries(topQueriesResult.data);
         }
-        if (zeroResultsResult.data) {
+        if (zeroResultsResult.success && zeroResultsResult.data) {
           setSearchZeroResults(zeroResultsResult.data);
         }
-        if (byDepartmentResult.data) {
+        if (byDepartmentResult.success && byDepartmentResult.data) {
           setSearchByDepartment(byDepartmentResult.data);
         }
-        if (timeseriesResult.data) {
+        if (timeseriesResult.success && timeseriesResult.data) {
           setSearchTimeseries(timeseriesResult.data);
         }
       } catch (err) {
-        console.error("Failed to load search analytics:", err);
+        logger.error("Failed to load search analytics", { error: err });
       } finally {
         setSearchLoading(false);
       }
@@ -281,20 +298,27 @@ export default function AnalyticsPage() {
               <AnalyticsPageSkeleton />
             ) : (
               <>
-                <KnowledgeSummaryCards summary={knowledgeSummary?.data || null} />
+                <KnowledgeSummaryCards summary={knowledgeSummary || null} />
 
                 <div className="grid gap-6 lg:grid-cols-2">
-                  <KnowledgeTopArticlesChart data={topArticles?.data || []} />
+                  <TableBody>
+                    {topArticles?.map((article: any) => (
+                      <TableRow key={article.id}>
+                        <TableCell>{article.title}</TableCell>
+                        <TableCell>{article.views}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
                   <KnowledgeViewsTimeseries
-                    data={timeseriesData?.data || []}
+                    data={timeseriesData || []}
                     onGranularityChange={setGranularity}
                     currentGranularity={granularity}
                   />
                 </div>
 
                 <div className="grid gap-6 lg:grid-cols-2">
-                  <KnowledgeViewsByCategory data={categoryData?.data || []} />
-                  <KnowledgeViewsByTag data={tagData?.data || []} />
+                  <KnowledgeViewsByCategory data={categoryData || []} />
+                  <KnowledgeViewsByTag data={tagData || []} />
                 </div>
               </>
             )}

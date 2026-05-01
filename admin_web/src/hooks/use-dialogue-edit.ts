@@ -1,7 +1,5 @@
 "use client";
 
-/* eslint-disable react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization */
-
 import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "@/hooks/use-translations";
@@ -57,7 +55,7 @@ export function useDialogueEdit(id: number) {
   const { data: dialogue, isLoading } = useQuery({
     queryKey: QUERY_KEY,
     queryFn: () => api.dialogues.get(id),
-    select: (r) => r.data ?? null,
+    select: (r) => r.success ? r.data ?? null : null,
     enabled: !!id,
   });
 
@@ -101,12 +99,12 @@ export function useDialogueEdit(id: number) {
     mutationFn: (data: Parameters<typeof api.dialogues.update>[1]) =>
       api.dialogues.update(id, data),
     onSuccess: (r) => {
-      if (r.data) {
+      if (r.success) {
         queryClient.invalidateQueries({ queryKey: QUERY_KEY });
         queryClient.invalidateQueries({ queryKey: ["dialogues"] });
         toast(t("saved"), "success");
-      } else if (r.error) {
-        toast(r.error, "error");
+      } else {
+        toast(r.error.message, "error");
       }
     },
     onError: () => toast(t("saveError"), "error"),
@@ -116,12 +114,12 @@ export function useDialogueEdit(id: number) {
     mutationFn: (data: Parameters<typeof api.dialogues.addStep>[1]) =>
       api.dialogues.addStep(id, data),
     onSuccess: (r) => {
-      if (r.data) {
+      if (r.success) {
         queryClient.invalidateQueries({ queryKey: QUERY_KEY });
         setIsStepDialogOpen(false);
         toast(t("stepAdded"), "success");
-      } else if (r.error) {
-        toast(r.error, "error");
+      } else {
+        toast(r.error.message, "error");
       }
     },
     onError: () => toast(t("stepAddError"), "error"),
@@ -131,12 +129,12 @@ export function useDialogueEdit(id: number) {
     mutationFn: ({ stepId, data }: { stepId: number; data: Parameters<typeof api.dialogues.updateStep>[1] }) =>
       api.dialogues.updateStep(stepId, data),
     onSuccess: (r) => {
-      if (r.data) {
+      if (r.success) {
         queryClient.invalidateQueries({ queryKey: QUERY_KEY });
         setIsStepDialogOpen(false);
         toast(t("stepUpdated"), "success");
-      } else if (r.error) {
-        toast(r.error, "error");
+      } else {
+        toast(r.error.message, "error");
       }
     },
     onError: () => toast(t("stepUpdateError"), "error"),
@@ -145,11 +143,11 @@ export function useDialogueEdit(id: number) {
   const deleteStep = useMutation({
     mutationFn: (stepId: number) => api.dialogues.deleteStep(stepId),
     onSuccess: (r) => {
-      if (!r.error) {
+      if (r.success) {
         queryClient.invalidateQueries({ queryKey: QUERY_KEY });
         toast(t("stepDeleted"), "success");
       } else {
-        toast(r.error, "error");
+        toast(r.error.message, "error");
       }
     },
     onError: () => toast(t("stepDeleteError"), "error"),
@@ -158,10 +156,10 @@ export function useDialogueEdit(id: number) {
   const reorderStepsMutation = useMutation({
     mutationFn: (stepIds: number[]) => api.dialogues.reorderSteps(id, stepIds),
     onSuccess: (r) => {
-      if (!r.error) {
+      if (r.success) {
         queryClient.invalidateQueries({ queryKey: QUERY_KEY });
       } else {
-        toast(r.error, "error");
+        toast(r.error.message, "error");
         // Revert optimistic update on error
         if (dialogue?.steps) {
           setLocalOrderedSteps([...dialogue.steps].sort((a, b) => a.step_number - b.step_number));

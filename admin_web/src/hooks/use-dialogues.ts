@@ -96,7 +96,7 @@ function toForm(dialogue: DialogueRow): DialogueFormData {
 }
 
 export function useDialogues() {
-  const entity = useEntity<DialogueRow, DialogueFormData, ReturnType<typeof toPayload>, ReturnType<typeof toPayload>>({
+  const entity = useEntity<DialogueRow, DialogueFormData, ReturnType<typeof toPayload>, ReturnType<typeof toPayload>, Record<string, unknown>>({
     entityName: "Диалог",
     translationNamespace: "dialogues",
     queryKeyPrefix: "dialogues",
@@ -129,8 +129,7 @@ export function useDialogues() {
     if (entity.extendedState.selectedSteps === undefined) {
       entity.setExtendedState(() => ({ selectedSteps: [] }));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [entity.extendedState.selectedSteps, entity.setExtendedState]);
 
   // Fetch steps for selected dialogue
   const { data: stepsData } = useQuery({
@@ -138,7 +137,7 @@ export function useDialogues() {
     queryFn: () => api.dialogues.get(entity.selectedItem!.id),
     enabled: !!entity.selectedItem,
     select: (result) => {
-      if (!result.data) return [];
+      if (!result.success) return [];
       return (
         result.data.steps?.map((s) => ({
           id: s.id,
@@ -198,7 +197,7 @@ export function useDialogues() {
     // Selection
     selectedDialogue: entity.selectedItem,
     setSelectedDialogue: entity.setSelectedItem,
-    selectedSteps: stepsData || (entity.extendedState as unknown as ExtendedState).selectedSteps || [],
+    selectedSteps: stepsData || entity.extendedState.selectedSteps || [],
 
     // Form
     formData: entity.formData,

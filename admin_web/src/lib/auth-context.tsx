@@ -1,6 +1,10 @@
 "use client";
 
 import { createContext, useEffect, useState, type ReactNode } from "react";
+import { setUnauthorizedCallback } from "./api/client";
+import { useRouter } from "next/navigation";
+import { logger } from "./logger";
+import { handleError } from "./error";
 
 interface AuthUser {
   id: number;
@@ -25,6 +29,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
 
   const [isLoading, setIsLoading] = useState(true);
+
+  const router = useRouter();
+
+  useEffect(() => {
+    setUnauthorizedCallback(() => {
+      setUser(null);
+      router.push("/login");
+    });
+  }, [router]);
 
   useEffect(() => {
     const validateSession = async () => {
@@ -51,7 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsLoading(false);
     };
     validateSession();
-     
+
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
@@ -60,7 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       formData.append("username", email);
       formData.append("password", password);
 
-      console.log("[Auth] Sending login request...");
+      logger.debug("Sending login request");
       const response = await fetch("/api/v1/auth/login", {
         method: "POST",
         headers: {
@@ -70,27 +83,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         body: formData.toString(),
       });
 
-      console.log("[Auth] Login response status:", response.status);
-      console.log("[Auth] Login response cookies (Set-Cookie):", response.headers.get("Set-Cookie") || "none");
+      logger.debug("Login response status", { status: response.status, setCookie: response.headers.get("Set-Cookie") || "none" });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error("[Auth] Login failed:", response.status, errorData);
+        logger.error("Login failed", { status: response.status, errorData });
         return false;
       }
 
       const data = await response.json();
-      console.log("[Auth] Login success, token received:", !!data.access_token);
+      logger.debug("Login success", { hasToken: !!data.access_token });
 
-      console.log("[Auth] Fetching /me with cookies...");
+      logger.debug("Fetching /me with cookies");
       const userResponse = await fetch("/api/v1/auth/me", {
         credentials: "include",
       });
 
-      console.log("[Auth] /me response status:", userResponse.status);
+      logger.debug("/me response status", { status: userResponse.status });
 
       if (!userResponse.ok) {
-        console.error("[Auth] Failed to fetch user:", userResponse.status);
+        logger.error("Failed to fetch user", { status: userResponse.status });
         return false;
       }
 
@@ -109,7 +121,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       return true;
     } catch (error) {
-      console.error("Login error:", error);
+      const appError = handleError(error, { action: "login" });
+      logger.error("Login error", { error: appError });
+      return false;
+    }
+  };
+
+  const refresh = async () => {
+    try {
+      logger.debug("Fetching /me with cookies");
+      const userResponse = await fetch("/api/v1/auth/me", {
+        credentials: "include",
+      });
+
+      logger.debug("/me response status", { status: userResponse.status });
+
+      if (!userResponse.ok) {
+        logger.error("Failed to fetch user", { status: userResponse.status });
+        return false;
+      }
+
+      const userData = await userResponse.json();
+      const user: AuthUser = {
+        id: userData.id,
+        email: userData.email,
+        role: userData.role,
+        first_name: userData.first_name,
+        last_name: userData.last_name,
+      };
+
+      setUser(user);
+      return true;
+    } catch (error) {
+      logger.error("Failed to refresh user data", { error });
       return false;
     }
   };

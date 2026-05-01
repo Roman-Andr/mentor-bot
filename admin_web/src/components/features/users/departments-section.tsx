@@ -1,19 +1,23 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+"use client";
 import { Dialog } from "@/components/ui/dialog";
 import { DepartmentsTable } from "@/components/features/users/departments-table";
 import { DepartmentFormDialog } from "@/components/features/users/department-form-dialog";
+import type { DepartmentFormData, DepartmentRow } from "@/hooks/use-departments";
 
 interface DepartmentsSectionProps {
   isCreateDialogOpen: boolean;
   setIsCreateDialogOpen: (open: boolean) => void;
   isEditDialogOpen: boolean;
   setIsEditDialogOpen: (open: boolean) => void;
-  formData: any;
-  updateFormField: any;
-  handleSubmit: any;
+  formData: DepartmentFormData;
+  updateFormField: <K extends keyof DepartmentFormData>(field: K, value: DepartmentFormData[K]) => void;
+  handleSubmit: () => void;
   resetForm: () => void;
-  items: any[];
+  items: DepartmentRow[];
   loading: boolean;
+  isLoading: boolean;
+  setSelectedItem: (item: DepartmentRow | null) => void;
+  selectedItem: DepartmentRow | null;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   currentPage: number;
@@ -22,7 +26,7 @@ interface DepartmentsSectionProps {
   pageSize: number;
   setCurrentPage: (page: number) => void;
   setPageSize: (size: number) => void;
-  openEditDialog: (item: any) => void;
+  openEditDialog: (item: DepartmentRow) => void;
   handleDelete: (id: number) => Promise<void>;
 }
 

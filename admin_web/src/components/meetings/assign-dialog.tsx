@@ -36,7 +36,7 @@ export function AssignDialog({
 
   const searchUsers = useCallback(async (query: string): Promise<SelectOption[]> => {
     const resp = await api.users.list({ search: query, limit: 20 });
-    if (!resp.data) return [];
+    if (!resp.success || !resp.data) return [];
     return resp.data.users.map((u) => ({
       value: String(u.id),
       label: `${u.first_name} ${u.last_name || ""}`.trim(),

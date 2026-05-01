@@ -1,9 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { departmentDocumentsApi } from "@/lib/api/department-documents";
 import type { DepartmentDocument, DepartmentDocumentCreate, DepartmentDocumentUpdate } from "@/types/department-document";
+import { useToast } from "@/hooks/use-toast";
+import { useTranslations } from "@/hooks/use-translations";
 
 export function useDepartmentDocuments(params?: { department_id?: number; category?: string; is_public?: boolean }) {
   const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const t = useTranslations("common");
 
   const listQuery = useQuery({
     queryKey: ["department-documents", params],
@@ -33,8 +37,8 @@ export function useDepartmentDocuments(params?: { department_id?: number; catego
   });
 
   return {
-    documents: listQuery.data?.documents || [],
-    total: listQuery.data?.total || 0,
+    documents: listQuery.data?.success && listQuery.data.data ? listQuery.data.data.documents || [] : [],
+    total: listQuery.data?.success && listQuery.data.data ? listQuery.data.data.total || 0 : 0,
     isLoading: listQuery.isLoading,
     error: listQuery.error,
     createDocument: createMutation.mutate,

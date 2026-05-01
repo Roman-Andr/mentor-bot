@@ -34,7 +34,7 @@ const LANGUAGE_OPTIONS = [
 export function NotificationTemplateFormDialog({ open, onOpenChange, template }: NotificationTemplateFormDialogProps) {
   const t = useTranslations("notificationTemplates");
   const tCommon = useTranslations("common");
-  const toast = useToast();
+  const { toast } = useToast();
   const createMutation = useCreateNotificationTemplate();
   const updateMutation = useUpdateNotificationTemplate();
   const previewMutation = usePreviewNotificationTemplate();
@@ -106,7 +106,9 @@ export function NotificationTemplateFormDialog({ open, onOpenChange, template }:
       },
       {
         onSuccess: (data) => {
-          setPreviewData({ subject: data.subject, body: data.body });
+          if (data.success && data.data) {
+            setPreviewData({ subject: data.data.subject, body: data.data.body });
+          }
         },
         onError: () => {
           toast(t("previewError"), "error");

@@ -149,5 +149,5 @@ export const queryKeys = {
 
 // Helper to invalidate all list queries for an entity
 export function getEntityListKey(entity: keyof typeof queryKeys) {
-  return queryKeys[entity]?.all ?? [entity];
+  return typeof queryKeys[entity] === 'function' ? [entity] : queryKeys[entity]?.all ?? [entity];
 }

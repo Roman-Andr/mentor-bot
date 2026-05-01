@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useLocale } from "next-intl";
 import { useTranslations } from "@/hooks/use-translations";
 import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/lib/logger";
 import type { ChecklistStats } from "@/types";
 import {
   generateOnboardingReportPDF,
@@ -71,7 +72,7 @@ export function PDFExportButton({
       downloadPDF(blob, filename);
       toast(locale === "ru" ? "PDF успешно экспортирован" : "PDF exported successfully", "success");
     } catch (error) {
-      console.error("Failed to generate PDF:", error);
+      logger.error("Failed to generate PDF", { error });
       toast(locale === "ru" ? "Ошибка генерации PDF" : "Failed to generate PDF", "error");
     } finally {
       setIsGenerating(false);

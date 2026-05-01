@@ -5,7 +5,7 @@ import { useTranslations } from "@/hooks/use-translations";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import {
@@ -70,21 +70,13 @@ export function DepartmentDocumentFormDialog({
         <div className="grid gap-2">
           <Label htmlFor="department">Департамент *</Label>
           <Select
+            id="department"
+            options={departments.map((dept) => ({ value: dept.id.toString(), label: dept.name }))}
             value={formData.department_id.toString()}
-            onValueChange={(value) => onFormDataChange("department_id", parseInt(value, 10))}
+            onChange={(value) => onFormDataChange("department_id", parseInt(value, 10))}
+            placeholder="Выберите департамент"
             disabled={isEdit}
-          >
-            <SelectTrigger id="department">
-              <SelectValue placeholder="Выберите департамент" />
-            </SelectTrigger>
-            <SelectContent>
-              {departments.map((dept) => (
-                <SelectItem key={dept.id} value={dept.id.toString()}>
-                  {dept.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          />
         </div>
         <div className="grid gap-2">
           <Label htmlFor="title">Название *</Label>
@@ -98,20 +90,12 @@ export function DepartmentDocumentFormDialog({
         <div className="grid gap-2">
           <Label htmlFor="category">Категория *</Label>
           <Select
+            id="category"
+            options={DOCUMENT_CATEGORIES}
             value={formData.category}
-            onValueChange={(value) => onFormDataChange("category", value)}
-          >
-            <SelectTrigger id="category">
-              <SelectValue placeholder="Выберите категорию" />
-            </SelectTrigger>
-            <SelectContent>
-              {DOCUMENT_CATEGORIES.map((cat) => (
-                <SelectItem key={cat.value} value={cat.value}>
-                  {cat.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            onChange={(value) => onFormDataChange("category", value)}
+            placeholder="Выберите категорию"
+          />
         </div>
         <div className="grid gap-2">
           <Label htmlFor="description">Описание</Label>

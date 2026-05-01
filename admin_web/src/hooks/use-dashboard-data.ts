@@ -3,6 +3,7 @@ import { useTranslations } from "@/hooks/use-translations";
 import { api } from "@/lib/api";
 import type { OnboardingProgress } from "@/types";
 import { useAuth } from "@/hooks/use-auth";
+import { logger } from "@/lib/logger";
 
 interface Activity {
   user: string;
@@ -74,16 +75,16 @@ export function useDashboardData(): UseDashboardDataResult {
       );
 
       const deptMap = new Map<number, string>();
-      if (departmentsResult.data?.departments) {
+      if (departmentsResult.success && departmentsResult.data?.departments) {
         for (const dept of departmentsResult.data.departments) {
           deptMap.set(dept.id, dept.name);
         }
       }
 
-      if (checklistResult.data) {
+      if (checklistResult.success && checklistResult.data) {
         const cs = checklistResult.data;
         setStats({
-          total_users: usersResult.data?.total || 0,
+          total_users: (usersResult.success && usersResult.data?.total) || 0,
           active_newbies: cs.in_progress || 0,
           completed_onboarding: cs.completed || 0,
           pending_tasks: cs.not_started || 0,
@@ -99,7 +100,7 @@ export function useDashboardData(): UseDashboardDataResult {
       }
 
       // Process escalation data
-      if (escalationResult.data?.requests) {
+      if (escalationResult.success && escalationResult.data?.requests) {
         const items = escalationResult.data.requests;
         const counts: EscalationCounts = {
           hr: items.filter((e) => e.type === "HR").length,
@@ -112,12 +113,12 @@ export function useDashboardData(): UseDashboardDataResult {
       const onboardingResult = await api.analytics.onboardingProgress();
       const allUsersResult = await api.users.list({ limit: 500 });
       const usersMap = new Map<number, string>();
-      if (allUsersResult.data?.users) {
+      if (allUsersResult.success && allUsersResult.data?.users) {
         for (const user of allUsersResult.data.users) {
           usersMap.set(user.id, `${user.first_name}${user.last_name ? ` ${user.last_name}` : ""}`);
         }
       }
-      if (onboardingResult.data) {
+      if (onboardingResult.success && onboardingResult.data) {
         const data = onboardingResult.data;
         const checklists = data.checklists || [];
         setProgress(
@@ -156,17 +157,15 @@ export function useDashboardData(): UseDashboardDataResult {
       ]);
     } catch (err) {
       setError(t("errorLoading"));
-      console.error(err);
+      logger.error("Failed to load dashboard data", { error: err });
     } finally {
       setLoading(false);
     }
   }, [authLoading, t]);
 
-  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     fetchData();
   }, []);
-  /* eslint-enable react-hooks/set-state-in-effect */
 
   return {
     stats,

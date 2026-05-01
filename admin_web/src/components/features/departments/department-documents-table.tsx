@@ -3,7 +3,7 @@
 import { useTranslations } from "@/hooks/use-translations";
 import { Button } from "@/components/ui/button";
 import { SearchInput } from "@/components/ui/search-input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select } from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -52,6 +52,22 @@ export function DepartmentDocumentsTable({
     return DOCUMENT_CATEGORIES.find((c) => c.value === category)?.label || category;
   };
 
+  const departmentOptions = [
+    { value: "all", label: "Все департаменты" },
+    ...departments.map((dept) => ({
+      value: dept.id.toString(),
+      label: dept.name,
+    })),
+  ];
+
+  const categoryOptions = [
+    { value: "all", label: "Все категории" },
+    ...DOCUMENT_CATEGORIES.map((cat) => ({
+      value: cat.value,
+      label: cat.label,
+    })),
+  ];
+
   const getDepartmentName = (departmentId: number) => {
     return departments.find((d) => d.id === departmentId)?.name || "Неизвестно";
   };
@@ -71,37 +87,15 @@ export function DepartmentDocumentsTable({
           <CardTitle>Документы департаментов</CardTitle>
           <div className="flex gap-2">
             <Select
+              options={departmentOptions}
               value={departmentFilter?.toString() || "all"}
-              onValueChange={(value) => onDepartmentFilterChange(value === "all" ? undefined : parseInt(value, 10))}
-            >
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Все департаменты" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Все департаменты</SelectItem>
-                {departments.map((dept) => (
-                  <SelectItem key={dept.id} value={dept.id.toString()}>
-                    {dept.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              onChange={(value) => onDepartmentFilterChange(value === "all" ? undefined : parseInt(value, 10))}
+            />
             <Select
+              options={categoryOptions}
               value={categoryFilter || "all"}
-              onValueChange={(value) => onCategoryFilterChange(value === "all" ? undefined : value)}
-            >
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Все категории" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Все категории</SelectItem>
-                {DOCUMENT_CATEGORIES.map((cat) => (
-                  <SelectItem key={cat.value} value={cat.value}>
-                    {cat.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              onChange={(value) => onCategoryFilterChange(value === "all" ? undefined : value)}
+            />
             <SearchInput placeholder="Поиск по названию" value={searchQuery} onChange={onSearchChange} />
           </div>
         </div>

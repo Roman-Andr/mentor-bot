@@ -47,7 +47,7 @@ function toForm(item: DepartmentRow): DepartmentFormData {
 }
 
 export function useDepartments() {
-  return useEntity<DepartmentRow, DepartmentFormData, ReturnType<typeof toCreatePayload>, ReturnType<typeof toUpdatePayload>>({
+  return useEntity<DepartmentRow, DepartmentFormData, ReturnType<typeof toCreatePayload>, ReturnType<typeof toUpdatePayload>, Record<string, unknown>>({
     entityName: "Отдел",
     translationNamespace: "departments",
     queryKeyPrefix: "departments",

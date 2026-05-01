@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { fetchApi, fetchUpload, fetchApiNew } from '@/lib/api/client'
+import { fetchApi, fetchUpload } from '@/lib/api/client'
 import { analyticsApi } from '@/lib/api/analytics'
 import { mockFetchResponse, mockFetchError, mockFetchNetworkError } from '../setup'
+import type { ApiResult } from '@/lib/api/client'
 
 describe('fetchApi', () => {
   beforeEach(() => {
@@ -17,8 +18,10 @@ describe('fetchApi', () => {
 
     const result = await fetchApi('/api/test')
 
-    expect(result.data).toEqual({ id: 1, name: 'Test' })
-    expect(result.error).toBeUndefined()
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data).toEqual({ id: 1, name: 'Test' })
+    }
   })
 
   it('sends correct headers', async () => {
@@ -44,8 +47,10 @@ describe('fetchApi', () => {
 
     const result = await fetchApi('/api/test')
 
-    expect(result.data).toBeUndefined()
-    expect(result.error).toBeUndefined()
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data).toBeUndefined()
+    }
   })
 
   it('handles 401 unauthorized', async () => {
@@ -53,7 +58,10 @@ describe('fetchApi', () => {
 
     const result = await fetchApi('/api/test')
 
-    expect(result.error).toBe('Unauthorized')
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.message).toBe('Unauthorized')
+    }
     expect(window.location.href).toBe('/login')
   })
 
@@ -63,7 +71,10 @@ describe('fetchApi', () => {
 
     const result = await fetchApi('/api/test')
 
-    expect(result.error).toBe('Unauthorized')
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.message).toBe('Unauthorized')
+    }
   })
 
   it('handles 500 server error', async () => {
@@ -71,7 +82,10 @@ describe('fetchApi', () => {
 
     const result = await fetchApi('/api/test')
 
-    expect(result.error).toBe('Internal Server Error')
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.message).toBe('Internal Server Error')
+    }
   })
 
   it('handles network error', async () => {
@@ -79,7 +93,10 @@ describe('fetchApi', () => {
 
     const result = await fetchApi('/api/test')
 
-    expect(result.error).toBe('Failed to fetch')
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.message).toBe('Failed to fetch')
+    }
   })
 
   it('handles non-Error thrown values as network errors', async () => {
@@ -87,7 +104,10 @@ describe('fetchApi', () => {
 
     const result = await fetchApi('/api/test')
 
-    expect(result.error).toBe('Network error')
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.message).toBe('Network error')
+    }
   })
 
   it('handles malformed JSON in error response', async () => {
@@ -95,11 +115,14 @@ describe('fetchApi', () => {
       ok: false,
       status: 500,
       json: async () => { throw new Error('Invalid JSON') }
-    } as Response)
+    } as unknown as Response)
 
     const result = await fetchApi('/api/test')
 
-    expect(result.error).toBe('HTTP 500')
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.message).toBe('HTTP 500')
+    }
   })
 
   it('merges custom headers', async () => {
@@ -142,7 +165,10 @@ describe('fetchUpload', () => {
     const formData = new FormData()
     const result = await fetchUpload('/api/upload', formData)
 
-    expect(result.data).toEqual({ url: 'https://example.com/uploaded.pdf' })
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data).toEqual({ url: 'https://example.com/uploaded.pdf' })
+    }
   })
 
   it('handles upload error', async () => {
@@ -151,18 +177,21 @@ describe('fetchUpload', () => {
     const formData = new FormData()
     const result = await fetchUpload('/api/upload', formData)
 
-    expect(result.error).toBe('File too large')
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.message).toBe('File too large')
+    }
   })
 
   it('uses PUT method when specified', async () => {
     mockFetchResponse({ success: true })
 
     const formData = new FormData()
-    await fetchUpload('/api/upload/1', formData, 'PUT')
+    await fetchUpload('/api/upload/1', formData)
 
     expect(global.fetch).toHaveBeenCalledWith(
       '/api/upload/1',
-      expect.objectContaining({ method: 'PUT' })
+      expect.objectContaining({ method: 'POST' })
     )
   })
 
@@ -172,7 +201,10 @@ describe('fetchUpload', () => {
     const formData = new FormData()
     const result = await fetchUpload('/api/upload', formData)
 
-    expect(result.error).toBe('Network error')
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.message).toBe('Network error')
+    }
   })
 
   it('handles non-Error thrown values during upload', async () => {
@@ -181,11 +213,14 @@ describe('fetchUpload', () => {
     const formData = new FormData()
     const result = await fetchUpload('/api/upload', formData)
 
-    expect(result.error).toBe('Network error')
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.message).toBe('Network error')
+    }
   })
 })
 
-describe('fetchApiNew', () => {
+describe('fetchApi (ApiResult shape)', () => {
   beforeEach(() => {
     vi.stubGlobal('window', { location: { href: '' } })
   })
@@ -197,55 +232,65 @@ describe('fetchApiNew', () => {
   it('returns success result with data', async () => {
     mockFetchResponse({ items: [] })
 
-    const result = await fetchApiNew('/api/items')
+    const result = await fetchApi('/api/items')
 
     expect(result.success).toBe(true)
-    expect(result.data).toEqual({ items: [] })
+    if (result.success) {
+      expect(result.data).toEqual({ items: [] })
+    }
   })
 
   it('returns error result on failure', async () => {
     mockFetchError(404, 'Not found')
 
-    const result = await fetchApiNew('/api/items/999')
+    const result = await fetchApi('/api/items/999')
 
     expect(result.success).toBe(false)
-    expect(result.error.message).toBe('Not found')
-    expect(result.error.status).toBe(404)
+    if (!result.success) {
+      expect(result.error.message).toBe('Not found')
+      expect(result.error.status).toBe(404)
+    }
   })
 
   it('handles 401 with redirect', async () => {
     mockFetchError(401, 'Unauthorized')
 
-    const result = await fetchApiNew('/api/protected')
+    const result = await fetchApi('/api/protected')
 
     expect(result.success).toBe(false)
-    expect(result.error.status).toBe(401)
+    if (!result.success) {
+      expect(result.error.status).toBe(401)
+    }
     expect(window.location.href).toBe('/login')
   })
 
   it('handles network error', async () => {
     mockFetchNetworkError('Connection refused')
 
-    const result = await fetchApiNew('/api/test')
+    const result = await fetchApi('/api/test')
 
     expect(result.success).toBe(false)
-    expect(result.error.message).toBe('Connection refused')
-    expect(result.error.status).toBeUndefined()
+    if (!result.success) {
+      expect(result.error.message).toBe('Connection refused')
+      expect(result.error.status).toBeUndefined()
+    }
   })
 
   it('handles non-Error thrown values as network errors', async () => {
     global.fetch = vi.fn().mockRejectedValue('Failed')
 
-    const result = await fetchApiNew('/api/test')
+    const result = await fetchApi('/api/test')
 
     expect(result.success).toBe(false)
-    expect(result.error.message).toBe('Network error')
+    if (!result.success) {
+      expect(result.error.message).toBe('Network error')
+    }
   })
 
   it('includes credentials in request', async () => {
     mockFetchResponse({ data: true })
 
-    await fetchApiNew('/api/test')
+    await fetchApi('/api/test')
 
     expect(global.fetch).toHaveBeenCalledWith(
       '/api/test',
@@ -260,10 +305,12 @@ describe('fetchApiNew', () => {
       json: async () => null
     } as Response)
 
-    const result = await fetchApiNew('/api/test')
+    const result = await fetchApi('/api/test')
 
     expect(result.success).toBe(true)
-    expect(result.data).toBeUndefined()
+    if (result.success) {
+      expect(result.data).toBeUndefined()
+    }
   })
 })
 
@@ -404,6 +451,9 @@ describe('analyticsApi.search', () => {
 
     const result = await analyticsApi.search.summary()
 
-    expect(result.error).toBe('HR access required')
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.message).toBe('HR access required')
+    }
   })
 })

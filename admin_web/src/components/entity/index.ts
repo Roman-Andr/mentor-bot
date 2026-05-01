@@ -1,9 +1,5 @@
 export { EntityFormDialog, type EntityFormDialogProps } from "./entity-form-dialog";
-export {
-  EntityPage,
-  EntityPageSkeleton,
-  EntityPageEmpty,
-  type EntityPageProps,
-  type ColumnDef,
-  type EntityPageTab,
-} from "./entity-page";
+export * from "./entity-page-composed";
+export { EntityPageHeader } from "./entity-page-header";
+export { EntityPageTable } from "./entity-page-table";
+export { EntityPageActions } from "./entity-page-actions";

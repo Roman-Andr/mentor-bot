@@ -26,26 +26,26 @@ const PaginationContext = createContext<PaginationContextType | undefined>(
 );
 
 export function PaginationProvider({ children }: { children: ReactNode }) {
-  const [pageSize, setPageSizeState] = useState<number>(DEFAULT_PAGE_SIZE);
-  const [isLoaded, setIsLoaded] = useState(false);
-
-  // Load settings from localStorage on mount
-  /* eslint-disable react-hooks/set-state-in-effect */
-  useEffect(() => {
+  const [pageSize, setPageSizeState] = useState<number>(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         const settings: PaginationSettings = JSON.parse(stored);
         if (settings.pageSize && [10, 20, 50, 100].includes(settings.pageSize)) {
-          setPageSizeState(settings.pageSize);
+          return settings.pageSize;
         }
       }
     } catch {
       // Ignore localStorage errors
     }
+    return DEFAULT_PAGE_SIZE;
+  });
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  // Prevent hydration mismatch by not rendering until loaded
+  useEffect(() => {
     setIsLoaded(true);
   }, []);
-  /* eslint-enable react-hooks/set-state-in-effect */
 
   // Save settings to localStorage when changed
   const setPageSize = useCallback((size: number) => {

@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { departmentsApi } from "@/lib/api/departments";
 import { useEffect } from "react";
+import { logger } from "@/lib/logger";
 
 interface SearchFiltersProps {
   onFiltersChange: (filters: { from_date?: string; to_date?: string; department_id?: number }) => void;
@@ -23,11 +24,11 @@ export function SearchFilters({ onFiltersChange }: SearchFiltersProps) {
     async function loadDepartments() {
       try {
         const result = await departmentsApi.list({ limit: 1000 });
-        if (result.data?.departments) {
+        if (result.success && result.data?.departments) {
           setDepartments(result.data.departments);
         }
       } catch (error) {
-        console.error("Failed to load departments:", error);
+        logger.error("Failed to load departments", { error });
       }
     }
     loadDepartments();

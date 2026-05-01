@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { analyticsApi } from '@/lib/api/analytics'
 import { mockFetchResponse } from '../setup'
 
@@ -23,12 +23,15 @@ describe('analyticsApi', () => {
 
         const result = await analyticsApi.knowledge.summary()
 
-        expect(result.data).toEqual({
-          total_views: 1000,
-          unique_viewers: 500,
-          total_articles: 50,
-          avg_views_per_article: 20.0
-        })
+        expect(result.success).toBe(true)
+        if (result.success) {
+          expect(result.data).toEqual({
+            total_views: 1000,
+            unique_viewers: 500,
+            total_articles: 50,
+            avg_views_per_article: 20.0
+          })
+        }
         expect(global.fetch).toHaveBeenCalledWith(
           '/api/v1/knowledge/analytics/summary',
           expect.objectContaining({
@@ -50,12 +53,15 @@ describe('analyticsApi', () => {
           to_date: '2026-01-31'
         })
 
-        expect(result.data).toEqual({
-          total_views: 500,
-          unique_viewers: 250,
-          total_articles: 25,
-          avg_views_per_article: 20.0
-        })
+        expect(result.success).toBe(true)
+        if (result.success) {
+          expect(result.data).toEqual({
+            total_views: 500,
+            unique_viewers: 250,
+            total_articles: 25,
+            avg_views_per_article: 20.0
+          })
+        }
         expect(global.fetch).toHaveBeenCalledWith(
           '/api/v1/knowledge/analytics/summary?from_date=2026-01-01&to_date=2026-01-31',
           expect.objectContaining({
@@ -78,14 +84,17 @@ describe('analyticsApi', () => {
 
         const result = await analyticsApi.knowledge.topArticles()
 
-        expect(result.data).toEqual([
-          {
-            article_id: 1,
-            title: 'Test Article',
-            view_count: 100,
-            unique_viewers: 50
-          }
-        ])
+        expect(result.success).toBe(true)
+        if (result.success) {
+          expect(result.data).toEqual([
+            {
+              article_id: 1,
+              title: 'Test Article',
+              view_count: 100,
+              unique_viewers: 50
+            }
+          ])
+        }
         expect(global.fetch).toHaveBeenCalledWith(
           '/api/v1/knowledge/analytics/top-articles',
           expect.objectContaining({
@@ -110,14 +119,17 @@ describe('analyticsApi', () => {
           limit: 5
         })
 
-        expect(result.data).toEqual([
-          {
-            article_id: 1,
-            title: 'Test Article',
-            view_count: 100,
-            unique_viewers: 50
-          }
-        ])
+        expect(result.success).toBe(true)
+        if (result.success) {
+          expect(result.data).toEqual([
+            {
+              article_id: 1,
+              title: 'Test Article',
+              view_count: 100,
+              unique_viewers: 50
+            }
+          ])
+        }
         expect(global.fetch).toHaveBeenCalledWith(
           '/api/v1/knowledge/analytics/top-articles?from_date=2026-01-01&to_date=2026-01-31&limit=5',
           expect.objectContaining({
@@ -141,13 +153,16 @@ describe('analyticsApi', () => {
           granularity: 'day'
         })
 
-        expect(result.data).toEqual([
-          {
-            bucket: '2026-01-01T00:00:00',
-            views: 42,
-            unique_viewers: 17
-          }
-        ])
+        expect(result.success).toBe(true)
+        if (result.success) {
+          expect(result.data).toEqual([
+            {
+              bucket: '2026-01-01T00:00:00',
+              views: 42,
+              unique_viewers: 17
+            }
+          ])
+        }
         expect(global.fetch).toHaveBeenCalledWith(
           '/api/v1/knowledge/analytics/views-timeseries?granularity=day',
           expect.objectContaining({
@@ -171,13 +186,16 @@ describe('analyticsApi', () => {
           granularity: 'week'
         })
 
-        expect(result.data).toEqual([
-          {
-            bucket: '2026-01-01T00:00:00',
-            views: 42,
-            unique_viewers: 17
-          }
-        ])
+        expect(result.success).toBe(true)
+        if (result.success) {
+          expect(result.data).toEqual([
+            {
+              bucket: '2026-01-01T00:00:00',
+              views: 42,
+              unique_viewers: 17
+            }
+          ])
+        }
         expect(global.fetch).toHaveBeenCalledWith(
           '/api/v1/knowledge/analytics/views-timeseries?from_date=2026-01-01&to_date=2026-01-31&granularity=week',
           expect.objectContaining({
@@ -199,13 +217,16 @@ describe('analyticsApi', () => {
 
         const result = await analyticsApi.knowledge.byCategory()
 
-        expect(result.data).toEqual([
-          {
-            category_id: 1,
-            category_name: 'Onboarding',
-            view_count: 200
-          }
-        ])
+        expect(result.success).toBe(true)
+        if (result.success) {
+          expect(result.data).toEqual([
+            {
+              category_id: 1,
+              category_name: 'Onboarding',
+              view_count: 200
+            }
+          ])
+        }
         expect(global.fetch).toHaveBeenCalledWith(
           '/api/v1/knowledge/analytics/views-by-category',
           expect.objectContaining({
@@ -228,13 +249,16 @@ describe('analyticsApi', () => {
           to_date: '2026-01-31'
         })
 
-        expect(result.data).toEqual([
-          {
-            category_id: 1,
-            category_name: 'Onboarding',
-            view_count: 200
-          }
-        ])
+        expect(result.success).toBe(true)
+        if (result.success) {
+          expect(result.data).toEqual([
+            {
+              category_id: 1,
+              category_name: 'Onboarding',
+              view_count: 200
+            }
+          ])
+        }
         expect(global.fetch).toHaveBeenCalledWith(
           '/api/v1/knowledge/analytics/views-by-category?from_date=2026-01-01&to_date=2026-01-31',
           expect.objectContaining({
@@ -256,13 +280,16 @@ describe('analyticsApi', () => {
 
         const result = await analyticsApi.knowledge.byTag()
 
-        expect(result.data).toEqual([
-          {
-            tag_id: 1,
-            tag_name: 'hr',
-            view_count: 150
-          }
-        ])
+        expect(result.success).toBe(true)
+        if (result.success) {
+          expect(result.data).toEqual([
+            {
+              tag_id: 1,
+              tag_name: 'hr',
+              view_count: 150
+            }
+          ])
+        }
         expect(global.fetch).toHaveBeenCalledWith(
           '/api/v1/knowledge/analytics/views-by-tag',
           expect.objectContaining({
@@ -285,13 +312,16 @@ describe('analyticsApi', () => {
           to_date: '2026-01-31'
         })
 
-        expect(result.data).toEqual([
-          {
-            tag_id: 1,
-            tag_name: 'hr',
-            view_count: 150
-          }
-        ])
+        expect(result.success).toBe(true)
+        if (result.success) {
+          expect(result.data).toEqual([
+            {
+              tag_id: 1,
+              tag_name: 'hr',
+              view_count: 150
+            }
+          ])
+        }
         expect(global.fetch).toHaveBeenCalledWith(
           '/api/v1/knowledge/analytics/views-by-tag?from_date=2026-01-01&to_date=2026-01-31',
           expect.objectContaining({

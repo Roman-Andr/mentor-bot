@@ -1,26 +1,31 @@
 "use client";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { UserFormDialog } from "@/components/features/users/user-form-dialog";
 import { UsersTable } from "@/components/features/users/users-table";
 import { AssignMentorDialog } from "@/components/features/users/assign-mentor-dialog";
+import type { UserFormData } from "@/hooks/use-users";
+import type { UserItem } from "@/hooks/use-users";
+import type { Department } from "@/types/department";
+import type { UserMentor } from "@/types/user";
 
 interface UsersSectionProps {
   isCreateDialogOpen: boolean;
   setIsCreateDialogOpen: (open: boolean) => void;
   isEditDialogOpen: boolean;
   setIsEditDialogOpen: (open: boolean) => void;
-  formData: any;
-  setFormData: (data: any) => void;
-  handleCreateUser: any;
-  handleUpdateUser: any;
-  setSelectedUser: any;
-  departments: any[];
-  users: any[];
+  formData: UserFormData;
+  setFormData: (data: UserFormData) => void;
+  handleCreateUser: () => void;
+  handleUpdateUser: () => void;
+  setSelectedUser: (user: UserItem | null) => void;
+  selectedUser: UserItem | null;
+  departments: Department[];
+  users: UserItem[];
   loading: boolean;
-  openEditDialog: (user: any) => void;
+  isLoading: boolean;
+  openEditDialog: (user: UserItem) => void;
   handleDeleteUser: (id: number) => Promise<void>;
-  openAssignMentorDialog: (user: any) => void;
+  openAssignMentorDialog: (user: UserItem) => void;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   roleFilter: string;
@@ -39,10 +44,10 @@ interface UsersSectionProps {
   toggleSort: (field: string) => void;
   assignMentorDialogOpen: boolean;
   setAssignMentorDialogOpen: (open: boolean) => void;
-  selectedUserForMentor: any;
+  selectedUserForMentor: UserItem | null;
   handleAssignMentor: (userId: number, mentorId: number) => Promise<void>;
   handleUnassignMentor: (mentorRelationId: number) => Promise<void>;
-  currentMentor: any;
+  currentMentor: UserMentor | null;
 }
 
 export function UsersSection({
