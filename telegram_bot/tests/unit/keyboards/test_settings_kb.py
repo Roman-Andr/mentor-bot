@@ -1,7 +1,6 @@
 """Unit tests for telegram_bot settings keyboards."""
 
 from aiogram.types import InlineKeyboardMarkup
-
 from telegram_bot.keyboards.settings_kb import get_notifications_keyboard, get_settings_keyboard
 
 

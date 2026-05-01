@@ -1,7 +1,5 @@
 """Tests for core/exceptions.py."""
 
-from fastapi import HTTPException, status
-
 from checklists_service.core.exceptions import (
     AuthException,
     ConflictException,
@@ -9,6 +7,7 @@ from checklists_service.core.exceptions import (
     PermissionDenied,
     ValidationException,
 )
+from fastapi import HTTPException, status
 
 
 class TestAuthException:

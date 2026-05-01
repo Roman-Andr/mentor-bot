@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 from unittest.mock import AsyncMock, MagicMock, patch
 
 if TYPE_CHECKING:
-    from collections.abc import AsyncGenerator
+    pass
 
 # Set required environment variables BEFORE any app imports
 # because config.py reads settings at import time
@@ -20,8 +20,9 @@ os.environ.setdefault("SECRET_KEY", "test-secret-key-for-unit-tests-only-123456"
 os.environ.setdefault("JWT_SECRET_KEY", "test-jwt-secret-key-for-unit-tests-only-12345")
 os.environ.setdefault("SERVICE_API_KEY", "test-service-api-key")
 
-import pytest
+from collections.abc import AsyncGenerator
 
+import pytest
 from auth_service.repositories.unit_of_work import IUnitOfWork
 
 
@@ -30,6 +31,7 @@ from auth_service.repositories.unit_of_work import IUnitOfWork
 def mock_auth_service():
     """Create a mock AuthService for dependency injection testing."""
     from auth_service.services import AuthService
+
     return MagicMock(spec=AuthService)
 
 
@@ -37,6 +39,7 @@ def mock_auth_service():
 def mock_user_service():
     """Create a mock UserService for dependency injection testing."""
     from auth_service.services import UserService
+
     return MagicMock(spec=UserService)
 
 
@@ -44,6 +47,7 @@ def mock_user_service():
 def mock_invitation_service():
     """Create a mock InvitationService for dependency injection testing."""
     from auth_service.services import InvitationService
+
     return MagicMock(spec=InvitationService)
 
 
@@ -51,6 +55,7 @@ def mock_invitation_service():
 def mock_department_service():
     """Create a mock DepartmentService for dependency injection testing."""
     from auth_service.services import DepartmentService
+
     return MagicMock(spec=DepartmentService)
 
 
@@ -177,6 +182,7 @@ def admin_user():
     """Create an admin user for testing."""
     from auth_service.core.enums import UserRole
     from auth_service.models import User
+
     return User(
         id=1,
         email="admin@example.com",
@@ -197,6 +203,7 @@ def hr_user():
     """Create an HR user for testing."""
     from auth_service.core.enums import UserRole
     from auth_service.models import User
+
     return User(
         id=2,
         email="hr@example.com",
@@ -217,6 +224,7 @@ def mentor_user():
     """Create a mentor user for testing."""
     from auth_service.core.enums import UserRole
     from auth_service.models import User
+
     return User(
         id=3,
         email="mentor@example.com",
@@ -237,6 +245,7 @@ def newbie_user():
     """Create a newbie user for testing."""
     from auth_service.core.enums import UserRole
     from auth_service.models import User
+
     return User(
         id=4,
         email="newbie@example.com",

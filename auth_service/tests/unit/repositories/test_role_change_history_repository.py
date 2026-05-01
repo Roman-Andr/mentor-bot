@@ -4,11 +4,10 @@ from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from auth_service.core.enums import UserRole
 from auth_service.models import RoleChangeHistory
 from auth_service.repositories.implementations.role_change_history import RoleChangeHistoryRepository
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class TestRoleChangeHistoryRepository:

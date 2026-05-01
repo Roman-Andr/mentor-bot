@@ -42,24 +42,19 @@ class ThrottlingMiddleware(BaseMiddleware):
             logger.warning("Failed to get rate limit data (user_id={})", user_id)
         return None
 
-    async def _set_rate_limit_data(
-        self, user_id: int, data: dict[str, Any], ttl: int
-    ) -> bool:
+    async def _set_rate_limit_data(self, user_id: int, data: dict[str, Any], ttl: int) -> bool:
         """Set rate limit data in Redis with TTL."""
         if not self.redis:
             return False
         try:
-            await self.redis.set(
-                self._make_key(user_id), json.dumps(data), ex=max(ttl, 1)
-            )
-            return True
+            await self.redis.set(self._make_key(user_id), json.dumps(data), ex=max(ttl, 1))
         except RedisError:
             logger.warning("Failed to set rate limit data (user_id={})", user_id)
             return False
+        else:
+            return True
 
-    async def _is_rate_limited(
-        self, user_id: int, calls: int, period: int
-    ) -> tuple[bool, int]:
+    async def _is_rate_limited(self, user_id: int, calls: int, period: int) -> tuple[bool, int]:
         """Check if user is rate limited. Returns (is_limited, remaining_calls)."""
         if not self.redis:
             return False, calls
@@ -70,9 +65,7 @@ class ThrottlingMiddleware(BaseMiddleware):
 
         if data is None:
             # First call in this window
-            await self._set_rate_limit_data(
-                user_id, {"start_time": now, "count": 1}, period
-            )
+            await self._set_rate_limit_data(user_id, {"start_time": now, "count": 1}, period)
             return False, calls - 1
 
         start_time = data.get("start_time", now)
@@ -81,9 +74,7 @@ class ThrottlingMiddleware(BaseMiddleware):
         # Check if window has expired
         if now - start_time >= period:
             # Reset window
-            await self._set_rate_limit_data(
-                user_id, {"start_time": now, "count": 1}, period
-            )
+            await self._set_rate_limit_data(user_id, {"start_time": now, "count": 1}, period)
             return False, calls - 1
 
         # Within window, check count
@@ -91,9 +82,7 @@ class ThrottlingMiddleware(BaseMiddleware):
             return True, 0
 
         # Increment count
-        await self._set_rate_limit_data(
-            user_id, {"start_time": start_time, "count": count + 1}, period
-        )
+        await self._set_rate_limit_data(user_id, {"start_time": start_time, "count": count + 1}, period)
         return False, calls - count - 1
 
     async def __call__(
@@ -118,14 +107,12 @@ class ThrottlingMiddleware(BaseMiddleware):
             calls = rate_limit.get("calls", self._default_calls)
             period = rate_limit.get("period", self._default_period)
 
-            is_limited, remaining = await self._is_rate_limited(user_id, calls, period)
+            is_limited, _remaining = await self._is_rate_limited(user_id, calls, period)
 
             if is_limited:
                 logger.warning("Rate limit exceeded (user_id={})", user_id)
                 if hasattr(event, "answer"):
-                    await event.answer(
-                        "Too many requests. Please wait a moment.", show_alert=True
-                    )
+                    await event.answer("Too many requests. Please wait a moment.", show_alert=True)
                 return None
 
         return await handler(event, data)

@@ -12,7 +12,8 @@ from checklists_service.core import ChecklistStatus, TaskCategory, TaskStatus
 from checklists_service.database import Base
 
 if TYPE_CHECKING:
-    from checklists_service.models import Task, Template
+    from checklists_service.models.task import Task
+    from checklists_service.models.template import Template
 
 
 class Checklist(Base):

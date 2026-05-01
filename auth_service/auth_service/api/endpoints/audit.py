@@ -83,11 +83,11 @@ def require_hr_or_admin(current_user: CurrentUser) -> None:
 async def get_login_history(
     current_user: Annotated[CurrentUser, Depends()],
     uow: UnitOfWorkDep,
-    user_id: int | None = Query(None),
-    from_date: datetime | None = Query(None),
-    to_date: datetime | None = Query(None),
-    limit: int = Query(50, ge=1, le=100),
-    offset: int = Query(0, ge=0),
+    user_id: Annotated[int | None, Query()] = None,
+    from_date: Annotated[datetime | None, Query()] = None,
+    to_date: Annotated[datetime | None, Query()] = None,
+    limit: Annotated[int, Query(ge=1, le=100)] = 50,
+    offset: Annotated[int, Query(ge=0)] = 0,
 ) -> AuditResponse:
     """Get login history for audit purposes (HR/Admin only)."""
     require_hr_or_admin(current_user)
@@ -98,9 +98,7 @@ async def get_login_history(
         )
         total = len(items)
     else:
-        items, total = await uow.login_history.get_all(
-            from_date=from_date, to_date=to_date, limit=limit, offset=offset
-        )
+        items, total = await uow.login_history.get_all(from_date=from_date, to_date=to_date, limit=limit, offset=offset)
 
     return AuditResponse(
         items=[LoginHistoryEntry.model_validate(item) for item in items],
@@ -112,19 +110,17 @@ async def get_login_history(
 async def get_role_change_history(
     current_user: Annotated[CurrentUser, Depends()],
     uow: UnitOfWorkDep,
-    user_id: int | None = Query(None),
-    from_date: datetime | None = Query(None),
-    to_date: datetime | None = Query(None),
-    limit: int = Query(50, ge=1, le=100),
-    offset: int = Query(0, ge=0),
+    user_id: Annotated[int | None, Query()] = None,
+    from_date: Annotated[datetime | None, Query()] = None,
+    to_date: Annotated[datetime | None, Query()] = None,
+    limit: Annotated[int, Query(ge=1, le=100)] = 50,
+    offset: Annotated[int, Query(ge=0)] = 0,
 ) -> AuditResponse:
     """Get role change history for audit purposes (HR/Admin only)."""
     require_hr_or_admin(current_user)
 
     if user_id:
-        items = await uow.role_change_history.get_by_user_id(
-            user_id=user_id, from_date=from_date, to_date=to_date
-        )
+        items = await uow.role_change_history.get_by_user_id(user_id=user_id, from_date=from_date, to_date=to_date)
         total = len(items)
     else:
         items, total = await uow.role_change_history.get_all(
@@ -141,11 +137,11 @@ async def get_role_change_history(
 async def get_invitation_history(
     current_user: Annotated[CurrentUser, Depends()],
     uow: UnitOfWorkDep,
-    invitation_id: int | None = Query(None),
-    from_date: datetime | None = Query(None),
-    to_date: datetime | None = Query(None),
-    limit: int = Query(50, ge=1, le=100),
-    offset: int = Query(0, ge=0),
+    invitation_id: Annotated[int | None, Query()] = None,
+    from_date: Annotated[datetime | None, Query()] = None,
+    to_date: Annotated[datetime | None, Query()] = None,
+    limit: Annotated[int, Query(ge=1, le=100)] = 50,
+    offset: Annotated[int, Query(ge=0)] = 0,
 ) -> AuditResponse:
     """Get invitation status history for audit purposes (HR/Admin only)."""
     require_hr_or_admin(current_user)
@@ -170,12 +166,12 @@ async def get_invitation_history(
 async def get_mentor_assignment_history(
     current_user: Annotated[CurrentUser, Depends()],
     uow: UnitOfWorkDep,
-    user_id: int | None = Query(None),
-    mentor_id: int | None = Query(None),
-    from_date: datetime | None = Query(None),
-    to_date: datetime | None = Query(None),
-    limit: int = Query(50, ge=1, le=100),
-    offset: int = Query(0, ge=0),
+    user_id: Annotated[int | None, Query()] = None,
+    mentor_id: Annotated[int | None, Query()] = None,
+    from_date: Annotated[datetime | None, Query()] = None,
+    to_date: Annotated[datetime | None, Query()] = None,
+    limit: Annotated[int, Query(ge=1, le=100)] = 50,
+    offset: Annotated[int, Query(ge=0)] = 0,
 ) -> AuditResponse:
     """Get mentor assignment history for audit purposes (HR/Admin only)."""
     require_hr_or_admin(current_user)

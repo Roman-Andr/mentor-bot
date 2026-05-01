@@ -4,10 +4,9 @@ from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from auth_service.models import MentorAssignmentHistory
 from auth_service.repositories.implementations.mentor_assignment_history import MentorAssignmentHistoryRepository
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class TestMentorAssignmentHistoryRepository:
@@ -68,7 +67,9 @@ class TestMentorAssignmentHistoryRepository:
         assert len(result) == 1
         assert result[0] == sample_mentor_assignment_history
 
-    async def test_get_by_user_id_with_from_date_only(self, mock_session, mock_result, sample_mentor_assignment_history):
+    async def test_get_by_user_id_with_from_date_only(
+        self, mock_session, mock_result, sample_mentor_assignment_history
+    ):
         """Test get_by_user_id with from_date filter only."""
         from_date = datetime.now(UTC) - timedelta(days=7)
         mock_result.scalars.return_value.all.return_value = [sample_mentor_assignment_history]

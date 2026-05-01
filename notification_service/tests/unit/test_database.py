@@ -4,9 +4,8 @@ from contextlib import asynccontextmanager, suppress
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from sqlalchemy import MetaData
-
 from notification_service.database import Base, get_db, init_db, metadata_obj
+from sqlalchemy import MetaData
 
 
 class TestMetadataObj:

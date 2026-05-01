@@ -56,9 +56,7 @@ class AuthMiddleware(BaseMiddleware):
             auth_result = await auth_client.authenticate_with_telegram(telegram_data)
 
             if auth_result and "access_token" in auth_result:
-                user_data = await auth_client.get_current_user(
-                    auth_result["access_token"]
-                )
+                user_data = await auth_client.get_current_user(auth_result["access_token"])
 
                 if user_data:
                     user_data = {
@@ -67,7 +65,9 @@ class AuthMiddleware(BaseMiddleware):
                         "refresh_token": auth_result["refresh_token"],
                     }
                     await user_cache.set_user(tg_user.id, user_data)
-                    logger.info("User authenticated and cached (telegram_id={}, user_id={})", tg_user.id, user_data.get("id"))
+                    logger.info(
+                        "User authenticated and cached (telegram_id={}, user_id={})", tg_user.id, user_data.get("id")
+                    )
                 else:
                     logger.warning("Authentication successful but user data fetch failed (telegram_id={})", tg_user.id)
             else:

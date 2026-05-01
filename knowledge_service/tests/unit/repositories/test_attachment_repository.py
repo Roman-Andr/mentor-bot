@@ -4,11 +4,10 @@ from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from knowledge_service.core import AttachmentType
 from knowledge_service.models import Attachment
 from knowledge_service.repositories.implementations.attachment import AttachmentRepository
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class TestAttachmentRepository:

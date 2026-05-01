@@ -146,7 +146,6 @@ class ChecklistsServiceDep:
     """Simple marker for service-to-service calls."""
 
 
-
 async def get_checklists_service_dep() -> ChecklistsServiceDep:
     """Dependency for service-to-service calls."""
     return ChecklistsServiceDep()

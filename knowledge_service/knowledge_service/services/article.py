@@ -116,10 +116,7 @@ class ArticleService:
             article.title = update_dict["title"]
 
         if "status" in update_dict:
-            if (
-                update_dict["status"] == ArticleStatus.PUBLISHED
-                and article.status != ArticleStatus.PUBLISHED
-            ):
+            if update_dict["status"] == ArticleStatus.PUBLISHED and article.status != ArticleStatus.PUBLISHED:
                 article.published_at = datetime.now(UTC)
             article.status = update_dict["status"]
 
@@ -127,8 +124,10 @@ class ArticleService:
             if field not in ["title", "status", "tag_ids"]:
                 # Sanitize HTML content to prevent XSS
                 if field in ("content", "excerpt") and value:
-                    value = sanitize_html(value)
-                setattr(article, field, value)
+                    sanitized_value = sanitize_html(value)
+                    setattr(article, field, sanitized_value)
+                else:
+                    setattr(article, field, value)
 
         if "tag_ids" in update_dict:
             for tag in list(article.tags):
@@ -244,7 +243,9 @@ class ArticleService:
     ) -> tuple[list[Article], int]:
         """Get articles for specific department."""
         items, total = await self._uow.articles.find_department_articles(department_id, skip=skip, limit=limit)
-        logger.debug("Department articles fetched (department_id={}, count={}, total={})", department_id, len(items), total)
+        logger.debug(
+            "Department articles fetched (department_id={}, count={}, total={})", department_id, len(items), total
+        )
         return list(items), total
 
     async def get_article_stats(self, article_id: int) -> dict[str, Any]:

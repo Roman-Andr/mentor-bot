@@ -4,8 +4,6 @@ from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from fastapi import HTTPException, UploadFile
-
 from checklists_service.api.deps import UserInfo
 from checklists_service.api.endpoints import tasks
 from checklists_service.core import NotFoundException, ValidationException
@@ -15,33 +13,29 @@ from checklists_service.schemas import (
     TaskProgress,
     TaskUpdate,
 )
+from fastapi import HTTPException, UploadFile
 
 
 @pytest.fixture
 def sample_user():
     """Create sample user."""
-    return UserInfo({
-        "id": 1, "email": "test@example.com", "role": "EMPLOYEE",
-        "is_active": True, "employee_id": "EMP001"
-    })
+    return UserInfo(
+        {"id": 1, "email": "test@example.com", "role": "EMPLOYEE", "is_active": True, "employee_id": "EMP001"}
+    )
 
 
 @pytest.fixture
 def sample_hr_user():
     """Create sample HR user."""
-    return UserInfo({
-        "id": 10, "email": "hr@example.com", "role": "HR",
-        "is_active": True, "employee_id": "HR001"
-    })
+    return UserInfo({"id": 10, "email": "hr@example.com", "role": "HR", "is_active": True, "employee_id": "HR001"})
 
 
 @pytest.fixture
 def sample_mentor_user():
     """Create sample mentor user."""
-    return UserInfo({
-        "id": 2, "email": "mentor@example.com", "role": "MENTOR",
-        "is_active": True, "employee_id": "MEN001"
-    })
+    return UserInfo(
+        {"id": 2, "email": "mentor@example.com", "role": "MENTOR", "is_active": True, "employee_id": "MEN001"}
+    )
 
 
 @pytest.fixture
@@ -79,18 +73,17 @@ class TestGetChecklistTasks:
         """Test getting tasks for a checklist."""
         uow = MagicMock()
 
-        with patch("checklists_service.api.endpoints.tasks.TaskService") as mock_task_cls, \
-             patch("checklists_service.api.endpoints.tasks.ChecklistService") as mock_checklist_cls:
-
+        with (
+            patch("checklists_service.api.endpoints.tasks.TaskService") as mock_task_cls,
+            patch("checklists_service.api.endpoints.tasks.ChecklistService") as mock_checklist_cls,
+        ):
             task_instance = MagicMock()
             mock_task_cls.return_value = task_instance
             task_instance.get_checklist_tasks = AsyncMock(return_value=[sample_task])
 
             checklist_instance = MagicMock()
             mock_checklist_cls.return_value = checklist_instance
-            checklist_instance.get_checklist = AsyncMock(return_value=MagicMock(
-                id=1, user_id=1, status="IN_PROGRESS"
-            ))
+            checklist_instance.get_checklist = AsyncMock(return_value=MagicMock(id=1, user_id=1, status="IN_PROGRESS"))
 
             result = await tasks.get_checklist_tasks(
                 checklist_id=1,
@@ -105,13 +98,13 @@ class TestGetChecklistTasks:
         """Test 404 raised when checklist not found (line 112)."""
         uow = MagicMock()
 
+        from checklists_service.core import NotFoundException
         from fastapi import HTTPException
 
-        from checklists_service.core import NotFoundException
-
-        with patch("checklists_service.api.endpoints.tasks.TaskService") as mock_task_cls, \
-             patch("checklists_service.api.endpoints.tasks.ChecklistService") as mock_checklist_cls:
-
+        with (
+            patch("checklists_service.api.endpoints.tasks.TaskService") as mock_task_cls,
+            patch("checklists_service.api.endpoints.tasks.ChecklistService") as mock_checklist_cls,
+        ):
             task_instance = MagicMock()
             mock_task_cls.return_value = task_instance
             task_instance.get_checklist_tasks = AsyncMock(return_value=[])
@@ -160,30 +153,41 @@ class TestUpdateTask:
 
         update_data = TaskUpdate(status=TaskStatus.IN_PROGRESS, assignee_id=3)
 
-        with patch("checklists_service.api.endpoints.tasks.TaskService") as mock_task_cls, \
-             patch("checklists_service.api.endpoints.tasks.ChecklistService") as mock_checklist_cls:
-
+        with (
+            patch("checklists_service.api.endpoints.tasks.TaskService") as mock_task_cls,
+            patch("checklists_service.api.endpoints.tasks.ChecklistService") as mock_checklist_cls,
+        ):
             task_instance = MagicMock()
             mock_task_cls.return_value = task_instance
             task_instance.get_task = AsyncMock(return_value=sample_task)
 
             updated_task = MagicMock(
-                id=1, checklist_id=1, template_task_id=1,
-                title="Complete Documentation", description="Read and sign documentation",
-                category="DOCUMENTATION", order=0, assignee_id=3, assignee_role="MENTOR",
+                id=1,
+                checklist_id=1,
+                template_task_id=1,
+                title="Complete Documentation",
+                description="Read and sign documentation",
+                category="DOCUMENTATION",
+                order=0,
+                assignee_id=3,
+                assignee_role="MENTOR",
                 due_date=datetime.now(UTC) + timedelta(days=3),
-                depends_on=[], status=TaskStatus.IN_PROGRESS,
-                started_at=datetime.now(UTC), completed_at=None, completed_by=None,
-                completion_notes=None, attachments=[], blocks=[],
-                created_at=datetime.now(UTC), updated_at=datetime.now(UTC),
+                depends_on=[],
+                status=TaskStatus.IN_PROGRESS,
+                started_at=datetime.now(UTC),
+                completed_at=None,
+                completed_by=None,
+                completion_notes=None,
+                attachments=[],
+                blocks=[],
+                created_at=datetime.now(UTC),
+                updated_at=datetime.now(UTC),
             )
             task_instance.update_task = AsyncMock(return_value=updated_task)
 
             checklist_instance = MagicMock()
             mock_checklist_cls.return_value = checklist_instance
-            checklist_instance.get_checklist = AsyncMock(return_value=MagicMock(
-                id=1, user_id=1, assignee_id=2
-            ))
+            checklist_instance.get_checklist = AsyncMock(return_value=MagicMock(id=1, user_id=1, assignee_id=2))
 
             result = await tasks.update_task(
                 task_id=1,
@@ -218,14 +222,26 @@ class TestUpdateTaskProgress:
             instance.get_task = AsyncMock(return_value=sample_task)
 
             updated_task = MagicMock(
-                id=1, checklist_id=1, template_task_id=1,
-                title="Complete Documentation", description="Read and sign documentation",
-                category="DOCUMENTATION", order=0, assignee_id=1, assignee_role="MENTOR",
+                id=1,
+                checklist_id=1,
+                template_task_id=1,
+                title="Complete Documentation",
+                description="Read and sign documentation",
+                category="DOCUMENTATION",
+                order=0,
+                assignee_id=1,
+                assignee_role="MENTOR",
                 due_date=datetime.now(UTC) + timedelta(days=3),
-                depends_on=[], status=TaskStatus.COMPLETED,
-                started_at=datetime.now(UTC), completed_at=datetime.now(UTC), completed_by=1,
-                completion_notes="Task completed successfully", attachments=[],
-                blocks=[], created_at=datetime.now(UTC), updated_at=datetime.now(UTC),
+                depends_on=[],
+                status=TaskStatus.COMPLETED,
+                started_at=datetime.now(UTC),
+                completed_at=datetime.now(UTC),
+                completed_by=1,
+                completion_notes="Task completed successfully",
+                attachments=[],
+                blocks=[],
+                created_at=datetime.now(UTC),
+                updated_at=datetime.now(UTC),
             )
             instance.update_task_progress = AsyncMock(return_value=updated_task)
 
@@ -251,14 +267,26 @@ class TestCompleteTask:
             mock_cls.return_value = instance
 
             completed_task = MagicMock(
-                id=1, checklist_id=1, template_task_id=1,
-                title="Complete Documentation", description="Read and sign documentation",
-                category="DOCUMENTATION", order=0, assignee_id=1, assignee_role="MENTOR",
+                id=1,
+                checklist_id=1,
+                template_task_id=1,
+                title="Complete Documentation",
+                description="Read and sign documentation",
+                category="DOCUMENTATION",
+                order=0,
+                assignee_id=1,
+                assignee_role="MENTOR",
                 due_date=datetime.now(UTC) + timedelta(days=3),
-                depends_on=[], status=TaskStatus.COMPLETED,
-                started_at=datetime.now(UTC), completed_at=datetime.now(UTC), completed_by=1,
-                completion_notes="Done!", attachments=[], blocks=[],
-                created_at=datetime.now(UTC), updated_at=datetime.now(UTC),
+                depends_on=[],
+                status=TaskStatus.COMPLETED,
+                started_at=datetime.now(UTC),
+                completed_at=datetime.now(UTC),
+                completed_by=1,
+                completion_notes="Done!",
+                attachments=[],
+                blocks=[],
+                created_at=datetime.now(UTC),
+                updated_at=datetime.now(UTC),
             )
             instance.complete_task = AsyncMock(return_value=completed_task)
 
@@ -311,18 +339,21 @@ class TestGetTaskDependencies:
         """Test getting task dependencies."""
         uow = MagicMock()
 
-        with patch("checklists_service.api.endpoints.tasks.TaskService") as mock_task_cls, \
-             patch("checklists_service.api.endpoints.tasks.ChecklistService") as mock_checklist_cls:
-
+        with (
+            patch("checklists_service.api.endpoints.tasks.TaskService") as mock_task_cls,
+            patch("checklists_service.api.endpoints.tasks.ChecklistService") as mock_checklist_cls,
+        ):
             task_instance = MagicMock()
             mock_task_cls.return_value = task_instance
             task_instance.get_task = AsyncMock(return_value=MagicMock(id=1, checklist_id=1))
-            task_instance.get_task_dependencies = AsyncMock(return_value={
-                "task_id": 1,
-                "dependencies": [{"id": 1, "title": "Dep Task", "status": "COMPLETED"}],
-                "blocked_tasks": [{"id": 3, "title": "Blocked Task", "status": "BLOCKED"}],
-                "can_complete": True,
-            })
+            task_instance.get_task_dependencies = AsyncMock(
+                return_value={
+                    "task_id": 1,
+                    "dependencies": [{"id": 1, "title": "Dep Task", "status": "COMPLETED"}],
+                    "blocked_tasks": [{"id": 3, "title": "Blocked Task", "status": "BLOCKED"}],
+                    "can_complete": True,
+                }
+            )
 
             checklist_instance = MagicMock()
             mock_checklist_cls.return_value = checklist_instance
@@ -347,25 +378,36 @@ class TestListTaskAttachments:
 
         now = datetime.now(UTC)
 
-        with patch("checklists_service.api.endpoints.tasks.TaskService") as mock_task_cls, \
-             patch("checklists_service.api.endpoints.tasks.ChecklistService") as mock_checklist_cls:
-
+        with (
+            patch("checklists_service.api.endpoints.tasks.TaskService") as mock_task_cls,
+            patch("checklists_service.api.endpoints.tasks.ChecklistService") as mock_checklist_cls,
+        ):
             task_instance = MagicMock()
             mock_task_cls.return_value = task_instance
             task_instance.get_task = AsyncMock(return_value=MagicMock(id=1, checklist_id=1))
             # Return dicts that will be validated into TaskAttachmentResponse
-            task_instance.get_attachments = AsyncMock(return_value=[
-                {
-                    "id": 1, "filename": "doc1.pdf", "file_size": 1024,
-                    "mime_type": "application/pdf", "description": None,
-                    "uploaded_at": now.isoformat(), "uploaded_by": 1,
-                },
-                {
-                    "id": 2, "filename": "doc2.pdf", "file_size": 2048,
-                    "mime_type": "application/pdf", "description": None,
-                    "uploaded_at": now.isoformat(), "uploaded_by": 2,
-                },
-            ])
+            task_instance.get_attachments = AsyncMock(
+                return_value=[
+                    {
+                        "id": 1,
+                        "filename": "doc1.pdf",
+                        "file_size": 1024,
+                        "mime_type": "application/pdf",
+                        "description": None,
+                        "uploaded_at": now.isoformat(),
+                        "uploaded_by": 1,
+                    },
+                    {
+                        "id": 2,
+                        "filename": "doc2.pdf",
+                        "file_size": 2048,
+                        "mime_type": "application/pdf",
+                        "description": None,
+                        "uploaded_at": now.isoformat(),
+                        "uploaded_by": 2,
+                    },
+                ]
+            )
 
             checklist_instance = MagicMock()
             mock_checklist_cls.return_value = checklist_instance
@@ -402,9 +444,10 @@ class TestListTaskAttachments:
         """Test listing attachments without permission raises 403."""
         uow = MagicMock()
 
-        with patch("checklists_service.api.endpoints.tasks.TaskService") as mock_task_cls, \
-             patch("checklists_service.api.endpoints.tasks.ChecklistService") as mock_checklist_cls:
-
+        with (
+            patch("checklists_service.api.endpoints.tasks.TaskService") as mock_task_cls,
+            patch("checklists_service.api.endpoints.tasks.ChecklistService") as mock_checklist_cls,
+        ):
             task_instance = MagicMock()
             mock_task_cls.return_value = task_instance
             task_instance.get_task = AsyncMock(return_value=MagicMock(id=1, checklist_id=1))
@@ -445,26 +488,29 @@ class TestUploadTaskAttachment:
         mock_storage.upload_file = AsyncMock(return_value="tasks/1/document.pdf")
         mock_storage.get_presigned_url = MagicMock(return_value="http://minio:9000/checklists/tasks/1/document.pdf")
 
-        with patch("checklists_service.api.endpoints.tasks.TaskService") as mock_task_cls, \
-             patch("checklists_service.api.endpoints.tasks.ChecklistService") as mock_checklist_cls, \
-             patch("checklists_service.api.endpoints.tasks.validate_file_size", return_value=True), \
-             patch("checklists_service.api.endpoints.tasks.validate_file_type", return_value=True), \
-             patch("checklists_service.api.endpoints.tasks.validate_filename", return_value="document.pdf"), \
-             patch("checklists_service.api.endpoints.tasks.get_storage_service", return_value=mock_storage):
-
+        with (
+            patch("checklists_service.api.endpoints.tasks.TaskService") as mock_task_cls,
+            patch("checklists_service.api.endpoints.tasks.ChecklistService") as mock_checklist_cls,
+            patch("checklists_service.api.endpoints.tasks.validate_file_size", return_value=True),
+            patch("checklists_service.api.endpoints.tasks.validate_file_type", return_value=True),
+            patch("checklists_service.api.endpoints.tasks.validate_filename", return_value="document.pdf"),
+            patch("checklists_service.api.endpoints.tasks.get_storage_service", return_value=mock_storage),
+        ):
             task_instance = MagicMock()
             mock_task_cls.return_value = task_instance
             task_instance.get_task = AsyncMock(return_value=MagicMock(id=1, checklist_id=1, assignee_id=1))
 
-            task_instance.add_attachment = AsyncMock(return_value={
-                "id": 1,
-                "filename": "document.pdf",
-                "file_size": len(file_content),
-                "mime_type": "application/pdf",
-                "description": "Test description",
-                "uploaded_at": datetime.now(UTC).isoformat(),
-                "uploaded_by": 1,
-            })
+            task_instance.add_attachment = AsyncMock(
+                return_value={
+                    "id": 1,
+                    "filename": "document.pdf",
+                    "file_size": len(file_content),
+                    "mime_type": "application/pdf",
+                    "description": "Test description",
+                    "uploaded_at": datetime.now(UTC).isoformat(),
+                    "uploaded_by": 1,
+                }
+            )
 
             checklist_instance = MagicMock()
             mock_checklist_cls.return_value = checklist_instance
@@ -491,10 +537,11 @@ class TestUploadTaskAttachment:
         mock_file.filename = "large.pdf"
         mock_file.size = 20 * 1024 * 1024  # 20 MB
 
-        with patch("checklists_service.api.endpoints.tasks.TaskService") as mock_task_cls, \
-             patch("checklists_service.api.endpoints.tasks.ChecklistService") as mock_checklist_cls, \
-             patch("checklists_service.api.endpoints.tasks.validate_file_size", return_value=False):
-
+        with (
+            patch("checklists_service.api.endpoints.tasks.TaskService") as mock_task_cls,
+            patch("checklists_service.api.endpoints.tasks.ChecklistService") as mock_checklist_cls,
+            patch("checklists_service.api.endpoints.tasks.validate_file_size", return_value=False),
+        ):
             task_instance = MagicMock()
             mock_task_cls.return_value = task_instance
             task_instance.get_task = AsyncMock(return_value=MagicMock(id=1, checklist_id=1, assignee_id=1))
@@ -521,11 +568,12 @@ class TestUploadTaskAttachment:
         mock_file.filename = "script.exe"
         mock_file.size = 1024
 
-        with patch("checklists_service.api.endpoints.tasks.TaskService") as mock_task_cls, \
-             patch("checklists_service.api.endpoints.tasks.ChecklistService") as mock_checklist_cls, \
-             patch("checklists_service.api.endpoints.tasks.validate_file_size", return_value=True), \
-             patch("checklists_service.api.endpoints.tasks.validate_file_type", return_value=False):
-
+        with (
+            patch("checklists_service.api.endpoints.tasks.TaskService") as mock_task_cls,
+            patch("checklists_service.api.endpoints.tasks.ChecklistService") as mock_checklist_cls,
+            patch("checklists_service.api.endpoints.tasks.validate_file_size", return_value=True),
+            patch("checklists_service.api.endpoints.tasks.validate_file_type", return_value=False),
+        ):
             task_instance = MagicMock()
             mock_task_cls.return_value = task_instance
             task_instance.get_task = AsyncMock(return_value=MagicMock(id=1, checklist_id=1, assignee_id=1))
@@ -575,9 +623,10 @@ class TestUploadTaskAttachment:
         mock_file.filename = "document.pdf"
         mock_file.size = 1024
 
-        with patch("checklists_service.api.endpoints.tasks.TaskService") as mock_task_cls, \
-             patch("checklists_service.api.endpoints.tasks.ChecklistService") as mock_checklist_cls:
-
+        with (
+            patch("checklists_service.api.endpoints.tasks.TaskService") as mock_task_cls,
+            patch("checklists_service.api.endpoints.tasks.ChecklistService") as mock_checklist_cls,
+        ):
             task_instance = MagicMock()
             mock_task_cls.return_value = task_instance
             task_instance.get_task = AsyncMock(return_value=MagicMock(id=1, checklist_id=1, assignee_id=999))
@@ -609,10 +658,11 @@ class TestDownloadTaskAttachment:
         mock_storage = MagicMock()
         mock_storage.get_presigned_url = MagicMock(return_value="http://minio:9000/checklists/tasks/1/document.pdf")
 
-        with patch("checklists_service.api.endpoints.tasks.TaskService") as mock_task_cls, \
-             patch("checklists_service.api.endpoints.tasks.ChecklistService") as mock_checklist_cls, \
-             patch("checklists_service.api.endpoints.tasks.get_storage_service", return_value=mock_storage):
-
+        with (
+            patch("checklists_service.api.endpoints.tasks.TaskService") as mock_task_cls,
+            patch("checklists_service.api.endpoints.tasks.ChecklistService") as mock_checklist_cls,
+            patch("checklists_service.api.endpoints.tasks.get_storage_service", return_value=mock_storage),
+        ):
             task_instance = MagicMock()
             mock_task_cls.return_value = task_instance
             task_instance.get_task = AsyncMock(return_value=MagicMock(id=1, checklist_id=1))
@@ -643,11 +693,12 @@ class TestDownloadTaskAttachment:
         mock_storage = MagicMock()
         mock_storage.get_presigned_url = MagicMock(side_effect=StorageError("File not found"))
 
-        with patch("checklists_service.api.endpoints.tasks.TaskService") as mock_task_cls, \
-             patch("checklists_service.api.endpoints.tasks.ChecklistService") as mock_checklist_cls, \
-             patch("checklists_service.api.endpoints.tasks.get_storage_service", return_value=mock_storage), \
-             patch("checklists_service.api.endpoints.tasks.StorageError", StorageError):
-
+        with (
+            patch("checklists_service.api.endpoints.tasks.TaskService") as mock_task_cls,
+            patch("checklists_service.api.endpoints.tasks.ChecklistService") as mock_checklist_cls,
+            patch("checklists_service.api.endpoints.tasks.get_storage_service", return_value=mock_storage),
+            patch("checklists_service.api.endpoints.tasks.StorageError", StorageError),
+        ):
             task_instance = MagicMock()
             mock_task_cls.return_value = task_instance
             task_instance.get_task = AsyncMock(return_value=MagicMock(id=1, checklist_id=1))
@@ -674,10 +725,11 @@ class TestDownloadTaskAttachment:
         mock_storage = MagicMock()
         mock_storage.get_presigned_url = MagicMock(return_value="http://minio:9000/checklists/tasks/1/document.pdf")
 
-        with patch("checklists_service.api.endpoints.tasks.TaskService") as mock_task_cls, \
-             patch("checklists_service.api.endpoints.tasks.ChecklistService") as mock_checklist_cls, \
-             patch("checklists_service.api.endpoints.tasks.get_storage_service", return_value=mock_storage):
-
+        with (
+            patch("checklists_service.api.endpoints.tasks.TaskService") as mock_task_cls,
+            patch("checklists_service.api.endpoints.tasks.ChecklistService") as mock_checklist_cls,
+            patch("checklists_service.api.endpoints.tasks.get_storage_service", return_value=mock_storage),
+        ):
             task_instance = MagicMock()
             mock_task_cls.return_value = task_instance
             task_instance.get_task = AsyncMock(return_value=MagicMock(id=1, checklist_id=1))
@@ -701,9 +753,10 @@ class TestDownloadTaskAttachment:
         """Test download without permission raises 403."""
         uow = MagicMock()
 
-        with patch("checklists_service.api.endpoints.tasks.TaskService") as mock_task_cls, \
-             patch("checklists_service.api.endpoints.tasks.ChecklistService") as mock_checklist_cls:
-
+        with (
+            patch("checklists_service.api.endpoints.tasks.TaskService") as mock_task_cls,
+            patch("checklists_service.api.endpoints.tasks.ChecklistService") as mock_checklist_cls,
+        ):
             task_instance = MagicMock()
             mock_task_cls.return_value = task_instance
             task_instance.get_task = AsyncMock(return_value=MagicMock(id=1, checklist_id=1))
@@ -731,9 +784,10 @@ class TestTaskEndpointsErrorHandling:
         """Test get_checklist_tasks with permission denied raises 403."""
         uow = MagicMock()
 
-        with patch("checklists_service.api.endpoints.tasks.TaskService") as mock_task_cls, \
-             patch("checklists_service.api.endpoints.tasks.ChecklistService") as mock_checklist_cls:
-
+        with (
+            patch("checklists_service.api.endpoints.tasks.TaskService") as mock_task_cls,
+            patch("checklists_service.api.endpoints.tasks.ChecklistService") as mock_checklist_cls,
+        ):
             task_instance = MagicMock()
             mock_task_cls.return_value = task_instance
             task_instance.get_checklist_tasks = AsyncMock(return_value=[])
@@ -758,9 +812,10 @@ class TestTaskEndpointsErrorHandling:
 
         update_data = TaskUpdate(status=TaskStatus.IN_PROGRESS)
 
-        with patch("checklists_service.api.endpoints.tasks.TaskService") as mock_task_cls, \
-             patch("checklists_service.api.endpoints.tasks.ChecklistService") as mock_checklist_cls:
-
+        with (
+            patch("checklists_service.api.endpoints.tasks.TaskService") as mock_task_cls,
+            patch("checklists_service.api.endpoints.tasks.ChecklistService") as mock_checklist_cls,
+        ):
             task_instance = MagicMock()
             mock_task_cls.return_value = task_instance
             sample_task.checklist_id = 1
@@ -769,9 +824,12 @@ class TestTaskEndpointsErrorHandling:
 
             checklist_instance = MagicMock()
             mock_checklist_cls.return_value = checklist_instance
-            checklist_instance.get_checklist = AsyncMock(return_value=MagicMock(
-                id=1, user_id=999  # Different from current user
-            ))
+            checklist_instance.get_checklist = AsyncMock(
+                return_value=MagicMock(
+                    id=1,
+                    user_id=999,  # Different from current user
+                )
+            )
 
             with pytest.raises(HTTPException) as exc_info:
                 await tasks.update_task(
@@ -818,9 +876,7 @@ class TestTaskEndpointsErrorHandling:
             instance = MagicMock()
             mock_cls.return_value = instance
             # Task assigned to different user
-            instance.get_task = AsyncMock(return_value=MagicMock(
-                id=1, checklist_id=1, assignee_id=999
-            ))
+            instance.get_task = AsyncMock(return_value=MagicMock(id=1, checklist_id=1, assignee_id=999))
 
             with pytest.raises(HTTPException) as exc_info:
                 await tasks.update_task_progress(
@@ -894,13 +950,14 @@ class TestTaskEndpointsErrorHandling:
         mock_storage = MagicMock()
         mock_storage.upload_file = AsyncMock(side_effect=StorageError("S3 upload failed"))
 
-        with patch("checklists_service.api.endpoints.tasks.TaskService") as mock_task_cls, \
-             patch("checklists_service.api.endpoints.tasks.ChecklistService") as mock_checklist_cls, \
-             patch("checklists_service.api.endpoints.tasks.validate_file_size", return_value=True), \
-             patch("checklists_service.api.endpoints.tasks.validate_file_type", return_value=True), \
-             patch("checklists_service.api.endpoints.tasks.validate_filename", return_value="document.pdf"), \
-             patch("checklists_service.api.endpoints.tasks.get_storage_service", return_value=mock_storage):
-
+        with (
+            patch("checklists_service.api.endpoints.tasks.TaskService") as mock_task_cls,
+            patch("checklists_service.api.endpoints.tasks.ChecklistService") as mock_checklist_cls,
+            patch("checklists_service.api.endpoints.tasks.validate_file_size", return_value=True),
+            patch("checklists_service.api.endpoints.tasks.validate_file_type", return_value=True),
+            patch("checklists_service.api.endpoints.tasks.validate_filename", return_value="document.pdf"),
+            patch("checklists_service.api.endpoints.tasks.get_storage_service", return_value=mock_storage),
+        ):
             task_instance = MagicMock()
             mock_task_cls.return_value = task_instance
             task_instance.get_task = AsyncMock(return_value=MagicMock(id=1, checklist_id=1, assignee_id=1))
@@ -930,10 +987,11 @@ class TestTaskEndpointsErrorHandling:
         mock_storage = MagicMock()
         mock_storage.get_presigned_url = MagicMock(side_effect=StorageError("File not found in S3"))
 
-        with patch("checklists_service.api.endpoints.tasks.TaskService") as mock_task_cls, \
-             patch("checklists_service.api.endpoints.tasks.ChecklistService") as mock_checklist_cls, \
-             patch("checklists_service.api.endpoints.tasks.get_storage_service", return_value=mock_storage):
-
+        with (
+            patch("checklists_service.api.endpoints.tasks.TaskService") as mock_task_cls,
+            patch("checklists_service.api.endpoints.tasks.ChecklistService") as mock_checklist_cls,
+            patch("checklists_service.api.endpoints.tasks.get_storage_service", return_value=mock_storage),
+        ):
             task_instance = MagicMock()
             mock_task_cls.return_value = task_instance
             task_instance.get_task = AsyncMock(return_value=MagicMock(id=1, checklist_id=1))
@@ -997,9 +1055,10 @@ class TestTaskEndpointsErrorHandling:
         """Test get_task_dependencies with permission denied raises 403."""
         uow = MagicMock()
 
-        with patch("checklists_service.api.endpoints.tasks.TaskService") as mock_task_cls, \
-             patch("checklists_service.api.endpoints.tasks.ChecklistService") as mock_checklist_cls:
-
+        with (
+            patch("checklists_service.api.endpoints.tasks.TaskService") as mock_task_cls,
+            patch("checklists_service.api.endpoints.tasks.ChecklistService") as mock_checklist_cls,
+        ):
             task_instance = MagicMock()
             mock_task_cls.return_value = task_instance
             task_instance.get_task = AsyncMock(return_value=MagicMock(id=1, checklist_id=1))
@@ -1086,4 +1145,3 @@ class TestBuildTaskResponse:
 
         assert result.is_overdue is False  # Completed tasks aren't overdue
         assert result.can_complete is False  # Already completed
-

@@ -14,14 +14,10 @@ class DocumentServiceClient:
     def __init__(self, base_url: str | None = None) -> None:
         """Initialize document service HTTP client."""
         self.base_url = base_url or settings.KNOWLEDGE_SERVICE_URL
-        self.client = httpx.AsyncClient(
-            base_url=self.base_url, timeout=settings.SERVICE_TIMEOUT
-        )
+        self.client = httpx.AsyncClient(base_url=self.base_url, timeout=settings.SERVICE_TIMEOUT)
 
     @cached(ttl=60, key_prefix="dept_docs")
-    async def get_department_documents(
-        self, department: str, auth_token: str
-    ) -> list[dict]:
+    async def get_department_documents(self, department: str, auth_token: str) -> list[dict]:
         """Get documents for department (cached)."""
         logger.debug("Fetching department documents (department={})", department)
         try:
@@ -31,16 +27,16 @@ class DocumentServiceClient:
             )
             if response.status_code == status.HTTP_200_OK:
                 data = response.json()
-                logger.debug("Department documents fetched (department={}, count={})", department, len(data.get("articles", [])))
+                logger.debug(
+                    "Department documents fetched (department={}, count={})", department, len(data.get("articles", []))
+                )
                 return data.get("articles", [])
         except httpx.RequestError:
             logger.exception("Document service request failed (department={})", department)
         return []
 
     @cached(ttl=60, key_prefix="department_docs")
-    async def get_department_documents_list(
-        self, department_id: int | None, auth_token: str
-    ) -> list[dict]:
+    async def get_department_documents_list(self, department_id: int | None, auth_token: str) -> list[dict]:
         """Get department documents list from new API (cached)."""
         logger.debug("Fetching department documents list (department_id={})", department_id)
         try:
@@ -60,9 +56,7 @@ class DocumentServiceClient:
             logger.exception("Document service request failed (department_id={})", department_id)
         return []
 
-    async def get_department_document_download_url(
-        self, document_id: int, auth_token: str
-    ) -> str | None:
+    async def get_department_document_download_url(self, document_id: int, auth_token: str) -> str | None:
         """Get presigned download URL for department document."""
         logger.debug("Fetching department document download URL (document_id={})", document_id)
         try:
@@ -120,9 +114,7 @@ class DocumentServiceClient:
             logger.exception("Document service request failed")
         return []
 
-    async def get_article_details(
-        self, article_id: int, auth_token: str
-    ) -> dict | None:
+    async def get_article_details(self, article_id: int, auth_token: str) -> dict | None:
         """Get article details with attachments."""
         logger.debug("Fetching article details (article_id={})", article_id)
         try:

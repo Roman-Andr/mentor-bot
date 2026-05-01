@@ -5,7 +5,6 @@ from unittest.mock import AsyncMock, MagicMock
 
 from fastapi import status
 from fastapi.testclient import TestClient
-
 from feedback_service.api.deps import get_current_active_user, get_uow, require_auth, verify_service_api_key
 from feedback_service.database import get_db
 from feedback_service.main import app
@@ -304,7 +303,7 @@ class TestSubmitComment:
         # Act
         response = client.post(
             "/api/v1/feedback/comments",
-            json={"comment": "This is a detailed feedback comment with enough length.", "is_anonymous": False}
+            json={"comment": "This is a detailed feedback comment with enough length.", "is_anonymous": False},
         )
 
         # Assert
@@ -345,8 +344,8 @@ class TestSubmitComment:
                 "comment": "Anonymous feedback with contact.",
                 "is_anonymous": True,
                 "allow_contact": True,
-                "contact_email": "user@example.com"
-            }
+                "contact_email": "user@example.com",
+            },
         )
 
         # Assert
@@ -363,10 +362,7 @@ class TestSubmitComment:
         """Test comment with less than 10 characters returns 422."""
         app.dependency_overrides[get_uow] = lambda: create_mock_uow()
         app.dependency_overrides[require_auth] = lambda: mock_current_user(1, "USER")
-        response = client.post(
-            "/api/v1/feedback/comments",
-            json={"comment": "Short", "is_anonymous": False}
-        )
+        response = client.post("/api/v1/feedback/comments", json={"comment": "Short", "is_anonymous": False})
 
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
 
@@ -384,7 +380,7 @@ class TestSubmitComment:
         # Act
         response = client.post(
             "/api/v1/feedback/comments",
-            json={"comment": "This is a detailed feedback comment with enough length.", "is_anonymous": False}
+            json={"comment": "This is a detailed feedback comment with enough length.", "is_anonymous": False},
         )
 
         # Assert
@@ -910,10 +906,7 @@ class TestReplyToComment:
         app.dependency_overrides[get_current_active_user] = lambda: mock_current_user(2, "HR")
 
         # Act
-        response = client.post(
-            "/api/v1/feedback/comments/1/reply",
-            json={"reply": "Thank you for your feedback!"}
-        )
+        response = client.post("/api/v1/feedback/comments/1/reply", json={"reply": "Thank you for your feedback!"})
 
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -946,8 +939,7 @@ class TestReplyToComment:
 
         # Act
         response = client.post(
-            "/api/v1/feedback/comments/1/reply",
-            json={"reply": "Thank you for your anonymous feedback!"}
+            "/api/v1/feedback/comments/1/reply", json={"reply": "Thank you for your anonymous feedback!"}
         )
 
         # Assert
@@ -971,10 +963,7 @@ class TestReplyToComment:
         app.dependency_overrides[get_current_active_user] = lambda: mock_current_user(2, "HR")
 
         # Act
-        response = client.post(
-            "/api/v1/feedback/comments/1/reply",
-            json={"reply": "This should fail"}
-        )
+        response = client.post("/api/v1/feedback/comments/1/reply", json={"reply": "This should fail"})
 
         # Assert
         assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -990,10 +979,7 @@ class TestReplyToComment:
         app.dependency_overrides[get_current_active_user] = lambda: mock_current_user(2, "HR")
 
         # Act
-        response = client.post(
-            "/api/v1/feedback/comments/999/reply",
-            json={"reply": "Thank you for your feedback!"}
-        )
+        response = client.post("/api/v1/feedback/comments/999/reply", json={"reply": "Thank you for your feedback!"})
 
         # Assert
         assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -1003,10 +989,7 @@ class TestReplyToComment:
         app.dependency_overrides[get_uow] = lambda: create_mock_uow()
         app.dependency_overrides[get_current_active_user] = lambda: mock_current_user(1, "USER")
 
-        response = client.post(
-            "/api/v1/feedback/comments/1/reply",
-            json={"reply": "Thank you for your feedback!"}
-        )
+        response = client.post("/api/v1/feedback/comments/1/reply", json={"reply": "Thank you for your feedback!"})
 
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
@@ -1027,10 +1010,7 @@ class TestReplyToComment:
         app.dependency_overrides[get_current_active_user] = lambda: mock_current_user(2, "HR")
 
         # Act
-        response = client.post(
-            "/api/v1/feedback/comments/1/reply",
-            json={"reply": "Thank you for your feedback!"}
-        )
+        response = client.post("/api/v1/feedback/comments/1/reply", json={"reply": "Thank you for your feedback!"})
 
         # Assert
         assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR

@@ -5,7 +5,6 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
-
 from telegram_bot.database import Base, get_db, init_db
 from telegram_bot.database.connection import AsyncSessionLocal, engine, metadata_obj
 from telegram_bot.database.models import BotLog, Notification, UserSession

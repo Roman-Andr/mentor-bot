@@ -4,7 +4,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from aiogram.types import CallbackQuery, Document, Message
-
 from telegram_bot.handlers.checklists import (
     attach_task,
     complete_task,
@@ -45,7 +44,7 @@ class TestShowChecklists:
         self.mock_callback.message.edit_text = AsyncMock()
 
         self.mock_user = {"id": 1, "first_name": "John", "role": "USER"}
-        self.auth_token = "test_token_123"  # noqa: S105
+        self.auth_token = "test_token_123"
 
     async def test_show_checklists_no_auth(self):
         """Test show checklists without auth."""
@@ -63,14 +62,10 @@ class TestShowChecklists:
             new_callable=AsyncMock,
         ) as mock_get:
             mock_get.return_value = []
-            with patch(
-                "telegram_bot.handlers.checklists.get_no_checklists_keyboard"
-            ) as mock_kb:
+            with patch("telegram_bot.handlers.checklists.get_no_checklists_keyboard") as mock_kb:
                 mock_kb.return_value.as_markup.return_value = MagicMock()
 
-                await show_checklists(
-                    self.mock_message, self.auth_token, self.mock_user, locale="en"
-                )
+                await show_checklists(self.mock_message, self.auth_token, self.mock_user, locale="en")
 
                 mock_get.assert_called_once_with(self.mock_user["id"], self.auth_token)
                 self.mock_message.answer.assert_called_once()
@@ -82,14 +77,10 @@ class TestShowChecklists:
             new_callable=AsyncMock,
         ) as mock_get:
             mock_get.return_value = []
-            with patch(
-                "telegram_bot.handlers.checklists.get_no_checklists_keyboard"
-            ) as mock_kb:
+            with patch("telegram_bot.handlers.checklists.get_no_checklists_keyboard") as mock_kb:
                 mock_kb.return_value.as_markup.return_value = MagicMock()
 
-                await show_checklists(
-                    self.mock_callback, self.auth_token, self.mock_user, locale="en"
-                )
+                await show_checklists(self.mock_callback, self.auth_token, self.mock_user, locale="en")
 
                 self.mock_callback.message.edit_text.assert_called_once()
                 self.mock_callback.answer.assert_called_once()
@@ -106,18 +97,13 @@ class TestShowChecklists:
             new_callable=AsyncMock,
         ) as mock_get:
             mock_get.return_value = checklists
-            with patch(
-                "telegram_bot.handlers.checklists.get_checklists_keyboard"
-            ) as mock_kb:
+            with patch("telegram_bot.handlers.checklists.get_checklists_keyboard") as mock_kb:
                 mock_kb.return_value = MagicMock()
                 with patch(
                     "telegram_bot.handlers.checklists.format_checklist_progress",
                     return_value="Checklist info",
                 ):
-
-                    await show_checklists(
-                        self.mock_message, self.auth_token, self.mock_user, locale="en"
-                    )
+                    await show_checklists(self.mock_message, self.auth_token, self.mock_user, locale="en")
 
                     self.mock_message.answer.assert_called_once()
 
@@ -132,18 +118,13 @@ class TestShowChecklists:
             new_callable=AsyncMock,
         ) as mock_get:
             mock_get.return_value = checklists
-            with patch(
-                "telegram_bot.handlers.checklists.get_checklists_keyboard"
-            ) as mock_kb:
+            with patch("telegram_bot.handlers.checklists.get_checklists_keyboard") as mock_kb:
                 mock_kb.return_value = MagicMock()
                 with patch(
                     "telegram_bot.handlers.checklists.format_checklist_progress",
                     return_value="Checklist info",
                 ):
-
-                    await show_checklists(
-                        self.mock_callback, self.auth_token, self.mock_user, locale="en"
-                    )
+                    await show_checklists(self.mock_callback, self.auth_token, self.mock_user, locale="en")
 
                     self.mock_callback.answer.assert_called_once()
                     self.mock_callback.message.edit_text.assert_called_once()
@@ -160,18 +141,13 @@ class TestShowChecklists:
             new_callable=AsyncMock,
         ) as mock_get:
             mock_get.return_value = checklists
-            with patch(
-                "telegram_bot.handlers.checklists.get_checklists_keyboard"
-            ) as mock_kb:
+            with patch("telegram_bot.handlers.checklists.get_checklists_keyboard") as mock_kb:
                 mock_kb.return_value = MagicMock()
                 with patch(
                     "telegram_bot.handlers.checklists.format_checklist_progress",
                     return_value="Checklist info",
                 ):
-
-                    await show_checklists(
-                        self.mock_message, self.auth_token, self.mock_user, locale="en"
-                    )
+                    await show_checklists(self.mock_message, self.auth_token, self.mock_user, locale="en")
 
                     self.mock_message.answer.assert_called_once()
 
@@ -190,7 +166,7 @@ class TestShowChecklistTasks:
         self.mock_callback.message = MagicMock()
         self.mock_callback.message.edit_text = AsyncMock()
 
-        self.auth_token = "test_token_123"  # noqa: S105
+        self.auth_token = "test_token_123"
 
     async def test_show_checklist_tasks_no_auth(self):
         """Test show checklist tasks without auth."""
@@ -209,14 +185,10 @@ class TestShowChecklistTasks:
                 new_callable=AsyncMock,
             ) as mock_get_tasks:
                 mock_get_tasks.return_value = []
-                with patch(
-                    "telegram_bot.handlers.checklists.get_no_tasks_keyboard"
-                ) as mock_kb:
+                with patch("telegram_bot.handlers.checklists.get_no_tasks_keyboard") as mock_kb:
                     mock_kb.return_value.as_markup.return_value = MagicMock()
 
-                    await show_checklist_tasks(
-                        self.mock_callback, self.auth_token, locale="en"
-                    )
+                    await show_checklist_tasks(self.mock_callback, self.auth_token, locale="en")
 
                     self.mock_callback.message.edit_text.assert_called_once()
 
@@ -236,14 +208,10 @@ class TestShowChecklistTasks:
                     {"id": 1, "title": "Task 1", "status": "pending"},
                     {"id": 2, "title": "Task 2", "status": "completed"},
                 ]
-                with patch(
-                    "telegram_bot.handlers.checklists.get_tasks_keyboard"
-                ) as mock_kb:
+                with patch("telegram_bot.handlers.checklists.get_tasks_keyboard") as mock_kb:
                     mock_kb.return_value = MagicMock()
 
-                    await show_checklist_tasks(
-                        self.mock_callback, self.auth_token, locale="en"
-                    )
+                    await show_checklist_tasks(self.mock_callback, self.auth_token, locale="en")
 
                     # Should still work with generic title when checklist not found
                     self.mock_callback.message.edit_text.assert_called_once()
@@ -266,14 +234,10 @@ class TestShowChecklistTasks:
                     {"id": 1, "title": "Task 1", "status": "pending"},
                     {"id": 2, "title": "Task 2", "status": "completed"},
                 ]
-                with patch(
-                    "telegram_bot.handlers.checklists.get_tasks_keyboard"
-                ) as mock_kb:
+                with patch("telegram_bot.handlers.checklists.get_tasks_keyboard") as mock_kb:
                     mock_kb.return_value = MagicMock()
 
-                    await show_checklist_tasks(
-                        self.mock_callback, self.auth_token, locale="en"
-                    )
+                    await show_checklist_tasks(self.mock_callback, self.auth_token, locale="en")
 
                     self.mock_callback.message.edit_text.assert_called_once()
 
@@ -292,7 +256,7 @@ class TestShowTaskDetail:
         self.mock_callback.message = MagicMock()
         self.mock_callback.message.edit_text = AsyncMock()
 
-        self.auth_token = "test_token_123"  # noqa: S105
+        self.auth_token = "test_token_123"
 
     async def test_show_task_detail_no_auth(self):
         """Test show task detail without auth."""
@@ -316,9 +280,7 @@ class TestShowTaskDetail:
                 ) as mock_get_cl:
                     mock_get_cl.return_value = []
 
-                    await show_task_detail(
-                        self.mock_callback, self.auth_token, locale="en"
-                    )
+                    await show_task_detail(self.mock_callback, self.auth_token, locale="en")
 
                     self.mock_callback.answer.assert_called_once()
 
@@ -351,14 +313,10 @@ class TestShowTaskDetail:
                             "telegram_bot.handlers.checklists.format_task_detail",
                             return_value="Task detail",
                         ):
-                            with patch(
-                                "telegram_bot.handlers.checklists.get_task_detail_keyboard"
-                            ) as mock_kb:
+                            with patch("telegram_bot.handlers.checklists.get_task_detail_keyboard") as mock_kb:
                                 mock_kb.return_value = MagicMock()
 
-                                await show_task_detail(
-                                    self.mock_callback, self.auth_token, locale="en"
-                                )
+                                await show_task_detail(self.mock_callback, self.auth_token, locale="en")
 
                                 self.mock_callback.message.edit_text.assert_called_once()
 
@@ -384,14 +342,10 @@ class TestShowTaskDetail:
                         "telegram_bot.handlers.checklists.format_task_detail",
                         return_value="Task detail",
                     ):
-                        with patch(
-                            "telegram_bot.handlers.checklists.get_task_detail_keyboard"
-                        ) as mock_kb:
+                        with patch("telegram_bot.handlers.checklists.get_task_detail_keyboard") as mock_kb:
                             mock_kb.return_value = MagicMock()
 
-                            await show_task_detail(
-                                self.mock_callback, self.auth_token, locale="en"
-                            )
+                            await show_task_detail(self.mock_callback, self.auth_token, locale="en")
 
                             self.mock_callback.message.edit_text.assert_called_once()
 
@@ -410,7 +364,7 @@ class TestStartTask:
         self.mock_callback.message = MagicMock()
         self.mock_callback.message.edit_reply_markup = AsyncMock()
 
-        self.auth_token = "test_token_123"  # noqa: S105
+        self.auth_token = "test_token_123"
 
     async def test_start_task_no_auth(self):
         """Test start task without auth."""
@@ -436,9 +390,7 @@ class TestStartTask:
             new_callable=AsyncMock,
         ) as mock_get:
             mock_get.return_value = [{"id": 1, "status": "IN_PROGRESS"}]
-            with patch(
-                "telegram_bot.handlers.checklists.get_task_detail_keyboard"
-            ) as mock_kb:
+            with patch("telegram_bot.handlers.checklists.get_task_detail_keyboard") as mock_kb:
                 mock_kb.return_value = MagicMock()
 
                 await start_task(self.mock_callback, self.auth_token, locale="en")
@@ -461,14 +413,10 @@ class TestStartTask:
                     "telegram_bot.handlers.checklists.checklists_client.invalidate_task_cache",
                     new_callable=AsyncMock,
                 ):
-                    with patch(
-                        "telegram_bot.handlers.checklists.get_task_detail_keyboard"
-                    ) as mock_kb:
+                    with patch("telegram_bot.handlers.checklists.get_task_detail_keyboard") as mock_kb:
                         mock_kb.return_value = MagicMock()
 
-                        await start_task(
-                            self.mock_callback, self.auth_token, locale="en"
-                        )
+                        await start_task(self.mock_callback, self.auth_token, locale="en")
 
                         mock_start.assert_called_once_with(1, self.auth_token)
 
@@ -508,17 +456,13 @@ class TestAttachTask:
 
     async def test_attach_task_success(self):
         """Test attach task success."""
-        with patch(
-            "telegram_bot.handlers.checklists.get_attach_task_keyboard"
-        ) as mock_kb:
+        with patch("telegram_bot.handlers.checklists.get_attach_task_keyboard") as mock_kb:
             mock_kb.return_value.as_markup.return_value = MagicMock()
 
             await attach_task(self.mock_callback, self.mock_state, locale="en")
 
             self.mock_state.update_data.assert_called_once()
-            self.mock_state.set_state.assert_called_once_with(
-                TaskAttachmentStates.waiting_for_file
-            )
+            self.mock_state.set_state.assert_called_once_with(TaskAttachmentStates.waiting_for_file)
 
     async def test_attach_task_no_message(self):
         """Test attach task with no message."""
@@ -532,9 +476,7 @@ class TestAttachTask:
         """Test attach task with checklist_id 0."""
         self.mock_callback.data = "attach_task_1_0"
 
-        with patch(
-            "telegram_bot.handlers.checklists.get_attach_task_keyboard"
-        ) as mock_kb:
+        with patch("telegram_bot.handlers.checklists.get_attach_task_keyboard") as mock_kb:
             mock_kb.return_value.as_markup.return_value = MagicMock()
 
             await attach_task(self.mock_callback, self.mock_state, locale="en")
@@ -557,7 +499,7 @@ class TestCompleteTask:
         self.mock_callback.message.edit_text = AsyncMock()
 
         self.mock_user = {"id": 1, "first_name": "John"}
-        self.auth_token = "test_token_123"  # noqa: S105
+        self.auth_token = "test_token_123"
 
     async def test_complete_task_no_auth(self):
         """Test complete task without auth."""
@@ -586,14 +528,10 @@ class TestCompleteTask:
                         new_callable=AsyncMock,
                     ) as mock_att:
                         mock_att.return_value = []
-                        with patch(
-                            "telegram_bot.handlers.checklists.get_task_completed_keyboard"
-                        ) as mock_kb:
+                        with patch("telegram_bot.handlers.checklists.get_task_completed_keyboard") as mock_kb:
                             mock_kb.return_value.as_markup.return_value = MagicMock()
 
-                            await complete_task(
-                                self.mock_callback, self.auth_token, self.mock_user, locale="en"
-                            )
+                            await complete_task(self.mock_callback, self.auth_token, self.mock_user, locale="en")
 
                             mock_complete.assert_called_once()
 
@@ -605,9 +543,7 @@ class TestCompleteTask:
         ) as mock_complete:
             mock_complete.return_value = None
 
-            await complete_task(
-                self.mock_callback, self.auth_token, self.mock_user, locale="en"
-            )
+            await complete_task(self.mock_callback, self.auth_token, self.mock_user, locale="en")
 
             self.mock_callback.answer.assert_called_once()
 
@@ -626,7 +562,7 @@ class TestTaskInfo:
         self.mock_callback.message = MagicMock()
         self.mock_callback.message.edit_text = AsyncMock()
 
-        self.auth_token = "test_token_123"  # noqa: S105
+        self.auth_token = "test_token_123"
 
     async def test_task_info_no_auth(self):
         """Test task info without auth."""
@@ -654,7 +590,7 @@ class TestTaskInfo:
             "status": "pending",
             "checklist_id": 1,
             "depends_on": [{"id": 2}],
-            "assignee": "John Doe"
+            "assignee": "John Doe",
         }
 
         with patch(
@@ -671,14 +607,10 @@ class TestTaskInfo:
                     new_callable=AsyncMock,
                 ) as mock_att:
                     mock_att.return_value = [{"id": 1, "filename": "file.pdf"}]
-                    with patch(
-                        "telegram_bot.handlers.checklists.get_task_info_keyboard"
-                    ) as mock_kb:
+                    with patch("telegram_bot.handlers.checklists.get_task_info_keyboard") as mock_kb:
                         mock_kb.return_value.as_markup.return_value = MagicMock()
 
-                        await task_info(
-                            self.mock_callback, self.auth_token, locale="en"
-                        )
+                        await task_info(self.mock_callback, self.auth_token, locale="en")
 
                         self.mock_callback.message.edit_text.assert_called_once()
 
@@ -701,7 +633,7 @@ class TestReceiveTaskFile:
         self.mock_state.set_state = AsyncMock()
         self.mock_state.clear = AsyncMock()
 
-        self.auth_token = "test_token_123"  # noqa: S105
+        self.auth_token = "test_token_123"
 
     async def test_receive_task_file_no_auth(self):
         """Test receive task file without auth."""
@@ -724,14 +656,10 @@ class TestReceiveTaskFile:
 
     async def test_receive_task_file_success(self):
         """Test receive task file success."""
-        with patch(
-            "telegram_bot.handlers.checklists.get_skip_description_keyboard"
-        ) as mock_kb:
+        with patch("telegram_bot.handlers.checklists.get_skip_description_keyboard") as mock_kb:
             mock_kb.return_value.as_markup.return_value = MagicMock()
 
-            await receive_task_file(
-                self.mock_message, self.mock_state, self.auth_token, locale="en"
-            )
+            await receive_task_file(self.mock_message, self.mock_state, self.auth_token, locale="en")
 
             self.mock_state.update_data.assert_called_once()
             self.mock_state.set_state.assert_called_once()
@@ -757,7 +685,7 @@ class TestReceiveTaskPhoto:
         self.mock_state.set_state = AsyncMock()
         self.mock_state.clear = AsyncMock()
 
-        self.auth_token = "test_token_123"  # noqa: S105
+        self.auth_token = "test_token_123"
 
     async def test_receive_task_photo_no_auth(self):
         """Test receive task photo without auth."""
@@ -768,9 +696,7 @@ class TestReceiveTaskPhoto:
         """Test receive task photo with no photo."""
         self.mock_message.photo = None
 
-        await receive_task_photo(
-            self.mock_message, self.mock_state, self.auth_token, locale="en"
-        )
+        await receive_task_photo(self.mock_message, self.mock_state, self.auth_token, locale="en")
         self.mock_message.answer.assert_called_once()
 
     async def test_receive_task_photo_too_large(self):
@@ -779,21 +705,15 @@ class TestReceiveTaskPhoto:
         mock_photo.file_size = 20 * 1024 * 1024  # 20 MB
         self.mock_message.photo = [mock_photo]
 
-        await receive_task_photo(
-            self.mock_message, self.mock_state, self.auth_token, locale="en"
-        )
+        await receive_task_photo(self.mock_message, self.mock_state, self.auth_token, locale="en")
         self.mock_message.answer.assert_called_once()
 
     async def test_receive_task_photo_success(self):
         """Test receive task photo success."""
-        with patch(
-            "telegram_bot.handlers.checklists.get_skip_description_keyboard"
-        ) as mock_kb:
+        with patch("telegram_bot.handlers.checklists.get_skip_description_keyboard") as mock_kb:
             mock_kb.return_value.as_markup.return_value = MagicMock()
 
-            await receive_task_photo(
-                self.mock_message, self.mock_state, self.auth_token, locale="en"
-            )
+            await receive_task_photo(self.mock_message, self.mock_state, self.auth_token, locale="en")
 
             self.mock_state.update_data.assert_called_once()
             self.mock_state.set_state.assert_called_once()
@@ -824,21 +744,21 @@ class TestReceiveTaskDescription:
         self.mock_message.answer = AsyncMock()
         self.mock_message.text = "File description"
         self.mock_message.bot = MagicMock()
-        self.mock_message.bot.get_file = AsyncMock(
-            return_value=MagicMock(file_path="path/to/file")
-        )
+        self.mock_message.bot.get_file = AsyncMock(return_value=MagicMock(file_path="path/to/file"))
         self.mock_message.bot.download_file = AsyncMock(return_value=b"file content")
 
         self.mock_state = MagicMock()
-        self.mock_state.get_data = AsyncMock(return_value={
-            "attach_task_id": 1,
-            "attach_checklist_id": 1,
-            "attach_file_id": "file_123",
-            "attach_filename": "test.pdf",
-        })
+        self.mock_state.get_data = AsyncMock(
+            return_value={
+                "attach_task_id": 1,
+                "attach_checklist_id": 1,
+                "attach_file_id": "file_123",
+                "attach_filename": "test.pdf",
+            }
+        )
         self.mock_state.clear = AsyncMock()
 
-        self.auth_token = "test_token_123"  # noqa: S105
+        self.auth_token = "test_token_123"
 
     async def test_receive_task_description_no_auth(self):
         """Test receive description without auth."""
@@ -854,13 +774,9 @@ class TestReceiveTaskDescription:
 
     async def test_receive_task_description_download_error(self):
         """Test receive description with download error."""
-        self.mock_message.bot.get_file = AsyncMock(
-            side_effect=Exception("Download failed")
-        )
+        self.mock_message.bot.get_file = AsyncMock(side_effect=Exception("Download failed"))
 
-        await receive_task_description(
-            self.mock_message, self.mock_state, self.auth_token, locale="en"
-        )
+        await receive_task_description(self.mock_message, self.mock_state, self.auth_token, locale="en")
         self.mock_message.answer.assert_called_once()
 
     async def test_receive_task_description_success(self):
@@ -870,14 +786,10 @@ class TestReceiveTaskDescription:
             new_callable=AsyncMock,
         ) as mock_upload:
             mock_upload.return_value = {"id": 1}
-            with patch(
-                "telegram_bot.handlers.checklists.get_back_to_task_keyboard"
-            ) as mock_kb:
+            with patch("telegram_bot.handlers.checklists.get_back_to_task_keyboard") as mock_kb:
                 mock_kb.return_value.as_markup.return_value = MagicMock()
 
-                await receive_task_description(
-                    self.mock_message, self.mock_state, self.auth_token, locale="en"
-                )
+                await receive_task_description(self.mock_message, self.mock_state, self.auth_token, locale="en")
 
                 mock_upload.assert_called_once()
                 self.mock_state.clear.assert_called_once()
@@ -890,9 +802,7 @@ class TestReceiveTaskDescription:
         ) as mock_upload:
             mock_upload.return_value = None
 
-            await receive_task_description(
-                self.mock_message, self.mock_state, self.auth_token, locale="en"
-            )
+            await receive_task_description(self.mock_message, self.mock_state, self.auth_token, locale="en")
 
             mock_upload.assert_called_once()
 
@@ -909,21 +819,21 @@ class TestSkipDescription:
         self.mock_callback.message = MagicMock()
         self.mock_callback.message.edit_text = AsyncMock()
         self.mock_callback.bot = MagicMock()
-        self.mock_callback.bot.get_file = AsyncMock(
-            return_value=MagicMock(file_path="path/to/file")
-        )
+        self.mock_callback.bot.get_file = AsyncMock(return_value=MagicMock(file_path="path/to/file"))
         self.mock_callback.bot.download_file = AsyncMock(return_value=b"file content")
 
         self.mock_state = MagicMock()
-        self.mock_state.get_data = AsyncMock(return_value={
-            "attach_task_id": 1,
-            "attach_checklist_id": 1,
-            "attach_file_id": "file_123",
-            "attach_filename": "test.pdf",
-        })
+        self.mock_state.get_data = AsyncMock(
+            return_value={
+                "attach_task_id": 1,
+                "attach_checklist_id": 1,
+                "attach_file_id": "file_123",
+                "attach_filename": "test.pdf",
+            }
+        )
         self.mock_state.clear = AsyncMock()
 
-        self.auth_token = "test_token_123"  # noqa: S105
+        self.auth_token = "test_token_123"
 
     async def test_skip_description_no_auth(self):
         """Test skip description without auth."""
@@ -934,20 +844,14 @@ class TestSkipDescription:
         """Test skip description with no task data."""
         self.mock_state.get_data = AsyncMock(return_value={})
 
-        await skip_description(
-            self.mock_callback, self.mock_state, self.auth_token, locale="en"
-        )
+        await skip_description(self.mock_callback, self.mock_state, self.auth_token, locale="en")
         self.mock_callback.answer.assert_called_once()
 
     async def test_skip_description_download_error(self):
         """Test skip description with download error."""
-        self.mock_callback.bot.get_file = AsyncMock(
-            side_effect=Exception("Download failed")
-        )
+        self.mock_callback.bot.get_file = AsyncMock(side_effect=Exception("Download failed"))
 
-        await skip_description(
-            self.mock_callback, self.mock_state, self.auth_token, locale="en"
-        )
+        await skip_description(self.mock_callback, self.mock_state, self.auth_token, locale="en")
         self.mock_callback.answer.assert_called_once()
 
     async def test_skip_description_success(self):
@@ -957,14 +861,10 @@ class TestSkipDescription:
             new_callable=AsyncMock,
         ) as mock_upload:
             mock_upload.return_value = {"id": 1}
-            with patch(
-                "telegram_bot.handlers.checklists.get_back_to_task_keyboard"
-            ) as mock_kb:
+            with patch("telegram_bot.handlers.checklists.get_back_to_task_keyboard") as mock_kb:
                 mock_kb.return_value.as_markup.return_value = MagicMock()
 
-                await skip_description(
-                    self.mock_callback, self.mock_state, self.auth_token, locale="en"
-                )
+                await skip_description(self.mock_callback, self.mock_state, self.auth_token, locale="en")
 
                 mock_upload.assert_called_once()
 
@@ -976,9 +876,7 @@ class TestSkipDescription:
         ) as mock_upload:
             mock_upload.return_value = None
 
-            await skip_description(
-                self.mock_callback, self.mock_state, self.auth_token, locale="en"
-            )
+            await skip_description(self.mock_callback, self.mock_state, self.auth_token, locale="en")
 
             # Handler calls answer() for error alert, then at the end of handler
             assert self.mock_callback.answer.call_count >= 1
@@ -1004,7 +902,7 @@ class TestShowTaskAttachments:
         self.mock_callback.message = MagicMock()
         self.mock_callback.message.edit_text = AsyncMock()
 
-        self.auth_token = "test_token_123"  # noqa: S105
+        self.auth_token = "test_token_123"
 
     async def test_show_task_attachments_no_auth(self):
         """Test show attachments without auth."""
@@ -1019,9 +917,7 @@ class TestShowTaskAttachments:
         ) as mock_get:
             mock_get.return_value = []
 
-            await show_task_attachments(
-                self.mock_callback, self.auth_token, locale="en"
-            )
+            await show_task_attachments(self.mock_callback, self.auth_token, locale="en")
 
             self.mock_callback.answer.assert_called_once()
 
@@ -1035,14 +931,10 @@ class TestShowTaskAttachments:
                 {"id": 1, "filename": "file1.pdf"},
                 {"id": 2, "filename": "file2.doc"},
             ]
-            with patch(
-                "telegram_bot.handlers.checklists.get_task_attachments_keyboard"
-            ) as mock_kb:
+            with patch("telegram_bot.handlers.checklists.get_task_attachments_keyboard") as mock_kb:
                 mock_kb.return_value.as_markup.return_value = MagicMock()
 
-                await show_task_attachments(
-                    self.mock_callback, self.auth_token, locale="en"
-                )
+                await show_task_attachments(self.mock_callback, self.auth_token, locale="en")
 
                 self.mock_callback.message.edit_text.assert_called_once()
 
@@ -1061,7 +953,7 @@ class TestDownloadTaskFile:
         self.mock_callback.message = MagicMock()
         self.mock_callback.message.answer_document = AsyncMock()
 
-        self.auth_token = "test_token_123"  # noqa: S105
+        self.auth_token = "test_token_123"
 
     async def test_download_task_file_no_auth(self):
         """Test download file without auth."""
@@ -1076,9 +968,7 @@ class TestDownloadTaskFile:
         ) as mock_get:
             mock_get.return_value = [{"id": 999, "filename": "other.pdf"}]
 
-            await download_task_file(
-                self.mock_callback, self.auth_token, locale="en"
-            )
+            await download_task_file(self.mock_callback, self.auth_token, locale="en")
 
             self.mock_callback.answer.assert_called_once()
 
@@ -1095,9 +985,7 @@ class TestDownloadTaskFile:
             ) as mock_dl:
                 mock_dl.return_value = b"file content"
 
-                await download_task_file(
-                    self.mock_callback, self.auth_token, locale="en"
-                )
+                await download_task_file(self.mock_callback, self.auth_token, locale="en")
 
                 self.mock_callback.message.answer_document.assert_called_once()
 
@@ -1114,9 +1002,7 @@ class TestDownloadTaskFile:
             ) as mock_dl:
                 mock_dl.return_value = None
 
-                await download_task_file(
-                    self.mock_callback, self.auth_token, locale="en"
-                )
+                await download_task_file(self.mock_callback, self.auth_token, locale="en")
 
                 # Handler calls answer() for loading, then for error alert
                 assert self.mock_callback.answer.call_count >= 2
@@ -1139,13 +1025,9 @@ class TestDownloadTaskFile:
                 new_callable=AsyncMock,
             ) as mock_dl:
                 mock_dl.return_value = b"file content"
-                self.mock_callback.message.answer_document = AsyncMock(
-                    side_effect=Exception("Send failed")
-                )
+                self.mock_callback.message.answer_document = AsyncMock(side_effect=Exception("Send failed"))
 
-                await download_task_file(
-                    self.mock_callback, self.auth_token, locale="en"
-                )
+                await download_task_file(self.mock_callback, self.auth_token, locale="en")
 
                 # Handler calls answer() for loading, then for error alert on exception
                 assert self.mock_callback.answer.call_count >= 2

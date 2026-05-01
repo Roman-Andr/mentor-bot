@@ -4,7 +4,6 @@ from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-
 from knowledge_service.core import NotFoundException
 from knowledge_service.models import DepartmentDocument
 from knowledge_service.services.department_document import DepartmentDocumentService
@@ -163,9 +162,7 @@ class TestListDocuments:
         result = await service.list_documents(department_id=1, category="policy", is_public=True)
 
         assert len(result) == 1
-        mock_uow.department_documents.get_by_department.assert_called_once_with(
-            1, category="policy", is_public=True
-        )
+        mock_uow.department_documents.get_by_department.assert_called_once_with(1, category="policy", is_public=True)
 
 
 class TestUpdateDocument:

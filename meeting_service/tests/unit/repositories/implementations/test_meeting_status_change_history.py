@@ -1,15 +1,14 @@
 """Unit tests for MeetingStatusChangeHistory repository implementation."""
 
-from datetime import datetime
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from meeting_service.models.meeting_status_change_history import MeetingStatusChangeHistory
 from meeting_service.repositories.implementations.meeting_status_change_history import (
     MeetingStatusChangeHistoryRepository,
 )
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 @pytest.fixture
@@ -68,7 +67,7 @@ class TestGetByMeetingId:
                 action="status_changed",
                 old_status="SCHEDULED",
                 new_status="COMPLETED",
-                changed_at=datetime(2024, 1, 1, 12, 0),
+                changed_at=datetime(2024, 1, 1, 12, 0, tzinfo=UTC),
             ),
             MeetingStatusChangeHistory(
                 id=2,
@@ -77,7 +76,7 @@ class TestGetByMeetingId:
                 action="created",
                 old_status=None,
                 new_status="SCHEDULED",
-                changed_at=datetime(2024, 1, 2, 12, 0),
+                changed_at=datetime(2024, 1, 2, 12, 0, tzinfo=UTC),
             ),
         ]
 
@@ -107,7 +106,7 @@ class TestGetByMeetingId:
                 action="status_changed",
                 old_status="SCHEDULED",
                 new_status="COMPLETED",
-                changed_at=datetime(2024, 1, 5, 12, 0),
+                changed_at=datetime(2024, 1, 5, 12, 0, tzinfo=UTC),
             )
         ]
 
@@ -117,7 +116,7 @@ class TestGetByMeetingId:
         mock_result.scalars.return_value = mock_scalars
         mock_session.execute.return_value = mock_result
 
-        from_date = datetime(2024, 1, 1, 0, 0)
+        from_date = datetime(2024, 1, 1, 0, 0, tzinfo=UTC)
 
         # Act
         result = await repository.get_by_meeting_id(meeting_id=5, from_date=from_date)
@@ -138,7 +137,7 @@ class TestGetByMeetingId:
                 action="status_changed",
                 old_status="SCHEDULED",
                 new_status="COMPLETED",
-                changed_at=datetime(2024, 1, 1, 12, 0),
+                changed_at=datetime(2024, 1, 1, 12, 0, tzinfo=UTC),
             )
         ]
 
@@ -148,7 +147,7 @@ class TestGetByMeetingId:
         mock_result.scalars.return_value = mock_scalars
         mock_session.execute.return_value = mock_result
 
-        to_date = datetime(2024, 1, 31, 23, 59)
+        to_date = datetime(2024, 1, 31, 23, 59, tzinfo=UTC)
 
         # Act
         result = await repository.get_by_meeting_id(meeting_id=5, to_date=to_date)
@@ -169,7 +168,7 @@ class TestGetByMeetingId:
                 action="status_changed",
                 old_status="SCHEDULED",
                 new_status="COMPLETED",
-                changed_at=datetime(2024, 1, 15, 12, 0),
+                changed_at=datetime(2024, 1, 15, 12, 0, tzinfo=UTC),
             )
         ]
 
@@ -179,8 +178,8 @@ class TestGetByMeetingId:
         mock_result.scalars.return_value = mock_scalars
         mock_session.execute.return_value = mock_result
 
-        from_date = datetime(2024, 1, 1, 0, 0)
-        to_date = datetime(2024, 1, 31, 23, 59)
+        from_date = datetime(2024, 1, 1, 0, 0, tzinfo=UTC)
+        to_date = datetime(2024, 1, 31, 23, 59, tzinfo=UTC)
 
         # Act
         result = await repository.get_by_meeting_id(meeting_id=5, from_date=from_date, to_date=to_date)
@@ -205,7 +204,7 @@ class TestGetAll:
                 action="status_changed",
                 old_status="SCHEDULED",
                 new_status="COMPLETED",
-                changed_at=datetime(2024, 1, 1, 12, 0),
+                changed_at=datetime(2024, 1, 1, 12, 0, tzinfo=UTC),
             ),
             MeetingStatusChangeHistory(
                 id=2,
@@ -214,7 +213,7 @@ class TestGetAll:
                 action="created",
                 old_status=None,
                 new_status="SCHEDULED",
-                changed_at=datetime(2024, 1, 2, 12, 0),
+                changed_at=datetime(2024, 1, 2, 12, 0, tzinfo=UTC),
             ),
         ]
 
@@ -248,7 +247,7 @@ class TestGetAll:
                 action="status_changed",
                 old_status="SCHEDULED",
                 new_status="COMPLETED",
-                changed_at=datetime(2024, 1, 5, 12, 0),
+                changed_at=datetime(2024, 1, 5, 12, 0, tzinfo=UTC),
             )
         ]
 
@@ -262,7 +261,7 @@ class TestGetAll:
 
         mock_session.execute.side_effect = [mock_count_result, mock_result]
 
-        from_date = datetime(2024, 1, 1, 0, 0)
+        from_date = datetime(2024, 1, 1, 0, 0, tzinfo=UTC)
 
         # Act
         result, total = await repository.get_all(from_date=from_date)
@@ -284,7 +283,7 @@ class TestGetAll:
                 action="status_changed",
                 old_status="SCHEDULED",
                 new_status="COMPLETED",
-                changed_at=datetime(2024, 1, 1, 12, 0),
+                changed_at=datetime(2024, 1, 1, 12, 0, tzinfo=UTC),
             )
         ]
 
@@ -298,7 +297,7 @@ class TestGetAll:
 
         mock_session.execute.side_effect = [mock_count_result, mock_result]
 
-        to_date = datetime(2024, 1, 31, 23, 59)
+        to_date = datetime(2024, 1, 31, 23, 59, tzinfo=UTC)
 
         # Act
         result, total = await repository.get_all(to_date=to_date)
@@ -320,7 +319,7 @@ class TestGetAll:
                 action="status_changed",
                 old_status="SCHEDULED",
                 new_status="COMPLETED",
-                changed_at=datetime(2024, 1, 15, 12, 0),
+                changed_at=datetime(2024, 1, 15, 12, 0, tzinfo=UTC),
             )
         ]
 
@@ -334,8 +333,8 @@ class TestGetAll:
 
         mock_session.execute.side_effect = [mock_count_result, mock_result]
 
-        from_date = datetime(2024, 1, 1, 0, 0)
-        to_date = datetime(2024, 1, 31, 23, 59)
+        from_date = datetime(2024, 1, 1, 0, 0, tzinfo=UTC)
+        to_date = datetime(2024, 1, 31, 23, 59, tzinfo=UTC)
 
         # Act
         result, total = await repository.get_all(from_date=from_date, to_date=to_date)
@@ -381,7 +380,7 @@ class TestGetAll:
                 action="status_changed",
                 old_status="SCHEDULED",
                 new_status="COMPLETED",
-                changed_at=datetime(2024, 1, 1, 12, 0),
+                changed_at=datetime(2024, 1, 1, 12, 0, tzinfo=UTC),
             )
         ]
 

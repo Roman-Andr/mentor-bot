@@ -10,23 +10,21 @@ Covers:
 
 import io
 from typing import TYPE_CHECKING
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from fastapi import UploadFile
-
+from knowledge_service.api.deps import UserInfo
 from knowledge_service.api.endpoints.attachments import (
     batch_upload_attachments,
     get_attachment_file,
 )
 from knowledge_service.core import ArticleStatus, PermissionDenied
+from knowledge_service.models import Article
 from knowledge_service.utils.storage import StorageError
 
 if TYPE_CHECKING:
-    from unittest.mock import AsyncMock
-
-    from knowledge_service.api.deps import UserInfo
-    from knowledge_service.models import Article
+    pass
 
 
 class TestBatchUploadPermissionDenied:
@@ -47,7 +45,9 @@ class TestBatchUploadPermissionDenied:
         mock_file = MagicMock(spec=UploadFile)
         mock_file.filename = "test.pdf"
 
-        with patch("knowledge_service.api.endpoints.attachments.get_storage_service", return_value=mock_storage_service):
+        with patch(
+            "knowledge_service.api.endpoints.attachments.get_storage_service", return_value=mock_storage_service
+        ):
             with pytest.raises(PermissionDenied) as exc_info:
                 await batch_upload_attachments(
                     article_service=mock_article_service,
@@ -94,7 +94,9 @@ class TestBatchUploadSkipOversizedFile:
         valid_file.content_type = "application/pdf"
         valid_file.file = io.BytesIO(b"valid content")
 
-        with patch("knowledge_service.api.endpoints.attachments.get_storage_service", return_value=mock_storage_service):
+        with patch(
+            "knowledge_service.api.endpoints.attachments.get_storage_service", return_value=mock_storage_service
+        ):
             result = await batch_upload_attachments(
                 article_service=mock_article_service,
                 attachment_service=mock_attachment_service,
@@ -139,7 +141,9 @@ class TestBatchUploadSkipInvalidFileType:
         valid_file.content_type = "application/pdf"
         valid_file.file = io.BytesIO(b"valid content")
 
-        with patch("knowledge_service.api.endpoints.attachments.get_storage_service", return_value=mock_storage_service):
+        with patch(
+            "knowledge_service.api.endpoints.attachments.get_storage_service", return_value=mock_storage_service
+        ):
             result = await batch_upload_attachments(
                 article_service=mock_article_service,
                 attachment_service=mock_attachment_service,
@@ -190,6 +194,7 @@ class TestBatchUploadS3Error:
 
         # Make storage upload fail for first call
         call_count = [0]
+
         async def mock_upload(*, file_data, object_name, content_type=None, metadata=None):
             call_count[0] += 1
             if call_count[0] == 1:
@@ -198,7 +203,9 @@ class TestBatchUploadS3Error:
 
         mock_storage_service.upload_file = mock_upload
 
-        with patch("knowledge_service.api.endpoints.attachments.get_storage_service", return_value=mock_storage_service):
+        with patch(
+            "knowledge_service.api.endpoints.attachments.get_storage_service", return_value=mock_storage_service
+        ):
             result = await batch_upload_attachments(
                 article_service=mock_article_service,
                 attachment_service=mock_attachment_service,
@@ -236,7 +243,9 @@ class TestGetAttachmentFileDraftPermissionDenied:
         mock_article.department_id = mock_user.department_id
         mock_article_service.get_article_by_id.return_value = mock_article
 
-        with patch("knowledge_service.api.endpoints.attachments.get_storage_service", return_value=mock_storage_service):
+        with patch(
+            "knowledge_service.api.endpoints.attachments.get_storage_service", return_value=mock_storage_service
+        ):
             with pytest.raises(PermissionDenied) as exc_info:
                 await get_attachment_file(
                     article_id=1,

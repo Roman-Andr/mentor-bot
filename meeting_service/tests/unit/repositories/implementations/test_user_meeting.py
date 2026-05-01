@@ -3,11 +3,10 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from meeting_service.core.enums import MeetingStatus
 from meeting_service.models.user_meeting import UserMeeting
 from meeting_service.repositories.implementations.user_meeting import UserMeetingRepository
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 @pytest.fixture
@@ -151,7 +150,9 @@ class TestFindByMeeting:
         mock_session.execute.side_effect = [mock_count_result, mock_result]
 
         # Act
-        result, _total = await repository.find_by_meeting(meeting_id=5, skip=0, limit=10, status=MeetingStatus.SCHEDULED)
+        result, _total = await repository.find_by_meeting(
+            meeting_id=5, skip=0, limit=10, status=MeetingStatus.SCHEDULED
+        )
 
         # Assert
         assert len(result) == 1

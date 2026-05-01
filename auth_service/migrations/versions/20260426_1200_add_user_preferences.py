@@ -5,6 +5,7 @@ Revision ID: a1b2c3d4e5f6
 Revises: 0444f265d1b2
 Create Date: 2026-04-26 12:00:00.000000+00:00
 """
+
 from collections.abc import Sequence
 
 import sqlalchemy as sa
@@ -19,7 +20,9 @@ depends_on: str | Sequence[str] | None = None
 def upgrade() -> None:
     """Upgrade database schema."""
     op.add_column("users", sa.Column("language", sa.String(length=10), nullable=False, server_default="ru"))
-    op.add_column("users", sa.Column("notification_telegram_enabled", sa.Boolean(), nullable=False, server_default="true"))
+    op.add_column(
+        "users", sa.Column("notification_telegram_enabled", sa.Boolean(), nullable=False, server_default="true")
+    )
     op.add_column("users", sa.Column("notification_email_enabled", sa.Boolean(), nullable=False, server_default="true"))
 
 

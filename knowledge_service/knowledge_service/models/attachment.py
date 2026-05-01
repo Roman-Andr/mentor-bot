@@ -10,9 +10,10 @@ from sqlalchemy.sql import func
 from knowledge_service.config import settings
 from knowledge_service.core import AttachmentType
 from knowledge_service.database import Base
+from knowledge_service.models import Article
 
 if TYPE_CHECKING:
-    from knowledge_service.models import Article
+    pass
 
 
 class Attachment(Base):

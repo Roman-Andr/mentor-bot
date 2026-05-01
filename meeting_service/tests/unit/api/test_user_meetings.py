@@ -7,7 +7,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi import FastAPI, status
 from fastapi.testclient import TestClient
-
 from meeting_service.api import deps
 from meeting_service.api.endpoints.user_meetings import router as user_meetings_router
 from meeting_service.core.enums import MeetingStatus, MeetingType
@@ -18,6 +17,7 @@ from meeting_service.models import Meeting, UserMeeting
 @pytest.fixture
 def mock_user_hr():
     """Mock HR user."""
+
     class MockUser:
         def __init__(self) -> None:
             self.id = 1
@@ -27,6 +27,7 @@ def mock_user_hr():
 
         def has_role(self, roles: list[str]) -> bool:
             return self.role in roles
+
     return MockUser()
 
 
@@ -63,8 +64,10 @@ class MockUser:
 @pytest.fixture
 def mock_user_employee():
     """Mock employee user factory."""
+
     def _create_user(user_id: int = 100) -> MockUser:
         return MockUser(user_id)
+
     return _create_user
 
 
@@ -101,8 +104,14 @@ class TestGetMyMeetings:
         user = mock_user_employee(100)
         now = datetime.now(UTC)
         meeting = Meeting(
-            id=1, title="My Meeting", type=MeetingType.HR,
-            is_mandatory=True, order=0, deadline_days=7, duration_minutes=60, created_at=now
+            id=1,
+            title="My Meeting",
+            type=MeetingType.HR,
+            is_mandatory=True,
+            order=0,
+            deadline_days=7,
+            duration_minutes=60,
+            created_at=now,
         )
         user_meeting = UserMeeting(
             id=1,
@@ -173,8 +182,14 @@ class TestAssignMeeting:
         # Arrange
         now = datetime.now(UTC)
         meeting = Meeting(
-            id=1, title="Test Meeting", type=MeetingType.HR,
-            is_mandatory=True, order=0, deadline_days=7, duration_minutes=60, created_at=now
+            id=1,
+            title="Test Meeting",
+            type=MeetingType.HR,
+            is_mandatory=True,
+            order=0,
+            deadline_days=7,
+            duration_minutes=60,
+            created_at=now,
         )
         mock_uow.meetings.get_by_id.return_value = meeting
         mock_uow.user_meetings.get_user_meeting.return_value = None
@@ -212,8 +227,14 @@ class TestAssignMeeting:
         # Arrange
         now = datetime.now(UTC)
         meeting = Meeting(
-            id=1, title="Test Meeting", type=MeetingType.HR,
-            is_mandatory=True, order=0, deadline_days=7, duration_minutes=60, created_at=now
+            id=1,
+            title="Test Meeting",
+            type=MeetingType.HR,
+            is_mandatory=True,
+            order=0,
+            deadline_days=7,
+            duration_minutes=60,
+            created_at=now,
         )
         mock_uow.meetings.get_by_id.return_value = meeting
         mock_uow.user_meetings.get_user_meeting.return_value = None
@@ -254,15 +275,18 @@ class TestAssignMeeting:
         # Arrange
         now = datetime.now(UTC)
         meeting = Meeting(
-            id=1, title="Test Meeting", type=MeetingType.HR,
-            is_mandatory=True, order=0, deadline_days=7, duration_minutes=60, created_at=now
+            id=1,
+            title="Test Meeting",
+            type=MeetingType.HR,
+            is_mandatory=True,
+            order=0,
+            deadline_days=7,
+            duration_minutes=60,
+            created_at=now,
         )
         mock_uow.meetings.get_by_id.return_value = meeting
 
-        existing = UserMeeting(
-            id=1, user_id=200, meeting_id=1,
-            status=MeetingStatus.SCHEDULED, created_at=now
-        )
+        existing = UserMeeting(id=1, user_id=200, meeting_id=1, status=MeetingStatus.SCHEDULED, created_at=now)
         mock_uow.user_meetings.get_user_meeting.return_value = existing
 
         app = create_test_app(mock_uow, mock_user_hr, require_hr_only=True)
@@ -309,8 +333,14 @@ class TestGetAssignment:
         user = mock_user_employee(100)
         now = datetime.now(UTC)
         meeting = Meeting(
-            id=1, title="Test Meeting", type=MeetingType.HR,
-            is_mandatory=True, order=0, deadline_days=7, duration_minutes=60, created_at=now
+            id=1,
+            title="Test Meeting",
+            type=MeetingType.HR,
+            is_mandatory=True,
+            order=0,
+            deadline_days=7,
+            duration_minutes=60,
+            created_at=now,
         )
         assignment = UserMeeting(
             id=1,
@@ -338,8 +368,14 @@ class TestGetAssignment:
         # Arrange
         now = datetime.now(UTC)
         meeting = Meeting(
-            id=1, title="Test Meeting", type=MeetingType.HR,
-            is_mandatory=True, order=0, deadline_days=7, duration_minutes=60, created_at=now
+            id=1,
+            title="Test Meeting",
+            type=MeetingType.HR,
+            is_mandatory=True,
+            order=0,
+            deadline_days=7,
+            duration_minutes=60,
+            created_at=now,
         )
         assignment = UserMeeting(
             id=1,
@@ -676,12 +712,26 @@ class TestAutoAssign:
         now = datetime.now(UTC)
         meetings = [
             Meeting(
-                id=1, title="HR Meeting", type=MeetingType.HR,
-                is_mandatory=True, department_id=1, order=0, deadline_days=7, duration_minutes=60, created_at=now
+                id=1,
+                title="HR Meeting",
+                type=MeetingType.HR,
+                is_mandatory=True,
+                department_id=1,
+                order=0,
+                deadline_days=7,
+                duration_minutes=60,
+                created_at=now,
             ),
             Meeting(
-                id=2, title="Security", type=MeetingType.SECURITY,
-                is_mandatory=True, department_id=1, order=1, deadline_days=7, duration_minutes=60, created_at=now
+                id=2,
+                title="Security",
+                type=MeetingType.SECURITY,
+                is_mandatory=True,
+                department_id=1,
+                order=1,
+                deadline_days=7,
+                duration_minutes=60,
+                created_at=now,
             ),
         ]
         mock_uow.meetings.find_meetings.return_value = (meetings, 2)
@@ -710,25 +760,27 @@ class TestAutoAssign:
         now = datetime.now(UTC)
         meetings = [
             Meeting(
-                id=1, title="Dev Meeting", type=MeetingType.TEAM,
-                is_mandatory=True, order=0, deadline_days=7, duration_minutes=60, created_at=now
+                id=1,
+                title="Dev Meeting",
+                type=MeetingType.TEAM,
+                is_mandatory=True,
+                order=0,
+                deadline_days=7,
+                duration_minutes=60,
+                created_at=now,
             ),
         ]
         mock_uow.meetings.find_meetings.return_value = (meetings, 1)
         mock_uow.user_meetings.get_user_meeting.return_value = None
 
-        assignment = UserMeeting(
-            id=1, user_id=300, meeting_id=1, status=MeetingStatus.SCHEDULED, created_at=now
-        )
+        assignment = UserMeeting(id=1, user_id=300, meeting_id=1, status=MeetingStatus.SCHEDULED, created_at=now)
         mock_uow.user_meetings.create.return_value = assignment
 
         app = create_test_app(mock_uow, mock_user_hr, require_hr_only=True)
         client = TestClient(app)
 
         # Act
-        response = client.post(
-            "/api/v1/user-meetings/auto-assign/300?department_id=1&position=Developer&level=JUNIOR"
-        )
+        response = client.post("/api/v1/user-meetings/auto-assign/300?department_id=1&position=Developer&level=JUNIOR")
 
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -742,8 +794,14 @@ class TestGetMeetingAssignments:
         # Arrange
         now = datetime.now(UTC)
         meeting = Meeting(
-            id=1, title="Test Meeting", type=MeetingType.HR,
-            is_mandatory=True, order=0, deadline_days=7, duration_minutes=60, created_at=now
+            id=1,
+            title="Test Meeting",
+            type=MeetingType.HR,
+            is_mandatory=True,
+            order=0,
+            deadline_days=7,
+            duration_minutes=60,
+            created_at=now,
         )
         mock_uow.meetings.get_by_id.return_value = meeting
 
@@ -770,8 +828,14 @@ class TestGetMeetingAssignments:
         # Arrange
         now = datetime.now(UTC)
         meeting = Meeting(
-            id=1, title="Test Meeting", type=MeetingType.HR,
-            is_mandatory=True, order=0, deadline_days=7, duration_minutes=60, created_at=now
+            id=1,
+            title="Test Meeting",
+            type=MeetingType.HR,
+            is_mandatory=True,
+            order=0,
+            deadline_days=7,
+            duration_minutes=60,
+            created_at=now,
         )
         mock_uow.meetings.get_by_id.return_value = meeting
 

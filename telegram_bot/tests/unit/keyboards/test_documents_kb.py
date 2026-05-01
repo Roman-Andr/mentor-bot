@@ -1,7 +1,6 @@
 """Unit tests for telegram_bot documents keyboards."""
 
 from aiogram.types import InlineKeyboardMarkup
-
 from telegram_bot.keyboards.documents_kb import (
     _get_file_emoji,
     get_article_detail_keyboard,
@@ -117,7 +116,11 @@ class TestGetArticleDetailKeyboard:
         attachments = [
             {"id": 1, "name": "doc.pdf", "mime_type": "application/pdf"},
             {"id": 2, "name": "image.png", "mime_type": "image/png"},
-            {"id": 3, "name": "sheet.xlsx", "mime_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"},
+            {
+                "id": 3,
+                "name": "sheet.xlsx",
+                "mime_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            },
         ]
         keyboard = get_article_detail_keyboard(attachments, 1, locale="en")
 
@@ -149,7 +152,9 @@ class TestGetFileEmoji:
     def test_word_mime_type(self):
         """Test emoji for Word documents."""
         assert _get_file_emoji("application/msword") == "\U0001f4d8"
-        assert _get_file_emoji("application/vnd.openxmlformats-officedocument.wordprocessingml.document") == "\U0001f4d8"
+        assert (
+            _get_file_emoji("application/vnd.openxmlformats-officedocument.wordprocessingml.document") == "\U0001f4d8"
+        )
 
     def test_excel_mime_type(self):
         """Test emoji for Excel files."""

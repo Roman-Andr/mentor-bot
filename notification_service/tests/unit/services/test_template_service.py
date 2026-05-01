@@ -4,7 +4,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from jinja2 import TemplateError
-
 from notification_service.models import NotificationTemplate
 from notification_service.services.template import (
     MissingTemplateVariablesError,
@@ -104,9 +103,7 @@ class TestTemplateServiceGetTemplate:
 class TestTemplateServiceGetDefaultTemplate:
     """Tests for TemplateService._get_default_template."""
 
-    async def test_get_default_template_exact_match(
-        self, template_service: TemplateService
-    ) -> None:
+    async def test_get_default_template_exact_match(self, template_service: TemplateService) -> None:
         """Get default template with exact match."""
         result = template_service._get_default_template("welcome", "telegram", "en")
 
@@ -115,18 +112,14 @@ class TestTemplateServiceGetDefaultTemplate:
         assert result.channel == "telegram"
         assert result.language == "en"
 
-    async def test_get_default_template_falls_back_to_english(
-        self, template_service: TemplateService
-    ) -> None:
+    async def test_get_default_template_falls_back_to_english(self, template_service: TemplateService) -> None:
         """Fall back to English when specific language not in defaults."""
         result = template_service._get_default_template("welcome", "telegram", "fr")
 
         assert result is not None
         assert result.language == "fr"  # Returns the requested language but with English content
 
-    async def test_get_default_template_returns_none_for_unknown(
-        self, template_service: TemplateService
-    ) -> None:
+    async def test_get_default_template_returns_none_for_unknown(self, template_service: TemplateService) -> None:
         """Returns None for unknown template."""
         result = template_service._get_default_template("unknown_template", "telegram", "en")
 
@@ -156,9 +149,7 @@ class TestTemplateServiceValidateVariables:
 
         assert result == {"user_name"}
 
-    async def test_validate_partial_variables(
-        self, template_service: TemplateService
-    ) -> None:
+    async def test_validate_partial_variables(self, template_service: TemplateService) -> None:
         """Returns only the missing variables when some are provided."""
         template = NotificationTemplate(
             id=1,
@@ -173,9 +164,7 @@ class TestTemplateServiceValidateVariables:
 
         assert result == {"task_title"}
 
-    async def test_validate_no_variables_required(
-        self, template_service: TemplateService
-    ) -> None:
+    async def test_validate_no_variables_required(self, template_service: TemplateService) -> None:
         """Returns empty set when template requires no variables."""
         template = NotificationTemplate(
             id=1,
@@ -194,9 +183,7 @@ class TestTemplateServiceValidateVariables:
 class TestTemplateServiceRender:
     """Tests for TemplateService.render."""
 
-    async def test_render_telegram_template(
-        self, template_service: TemplateService, mock_uow: MagicMock
-    ) -> None:
+    async def test_render_telegram_template(self, template_service: TemplateService, mock_uow: MagicMock) -> None:
         """Render a telegram template successfully."""
         mock_uow.templates.get_by_name_channel_language.return_value = None
 

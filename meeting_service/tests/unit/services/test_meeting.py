@@ -4,8 +4,6 @@ from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from sqlalchemy.exc import IntegrityError
-
 from meeting_service.core import ConflictException, NotFoundException, ValidationException
 from meeting_service.core.enums import EmployeeLevel, MaterialType, MeetingStatus, MeetingType
 from meeting_service.models import Meeting, MeetingMaterial, UserMeeting
@@ -18,6 +16,7 @@ from meeting_service.schemas import (
     UserMeetingUpdate,
 )
 from meeting_service.services.meeting import MeetingService
+from sqlalchemy.exc import IntegrityError
 
 
 class TestMeetingTemplateCRUD:
@@ -317,9 +316,7 @@ class TestAssignMeeting:
         mock_uow.user_meetings.create.return_value = created_assignment
 
         # Mock GoogleCalendarService to avoid real API calls
-        with patch(
-            "meeting_service.services.meeting.GoogleCalendarService"
-        ) as mock_gc_class:
+        with patch("meeting_service.services.meeting.GoogleCalendarService") as mock_gc_class:
             mock_gc_instance = MagicMock()
             mock_gc_instance.create_event = AsyncMock(return_value={"id": "event-123"})
             mock_gc_class.return_value = mock_gc_instance
@@ -382,9 +379,7 @@ class TestAssignMeeting:
         # Mock GoogleCalendarService.create_event to return an event
         calendar_event = {"id": "google-event-123", "status": "confirmed"}
 
-        with patch(
-            "meeting_service.services.meeting.GoogleCalendarService"
-        ) as mock_gc_class:
+        with patch("meeting_service.services.meeting.GoogleCalendarService") as mock_gc_class:
             mock_gc_instance = MagicMock()
             mock_gc_instance.create_event = AsyncMock(return_value=calendar_event)
             mock_gc_class.return_value = mock_gc_instance
@@ -509,13 +504,9 @@ class TestAssignMeeting:
         mock_uow.user_meetings.create.return_value = created_assignment
 
         # Mock GoogleCalendarService to raise ValidationException
-        with patch(
-            "meeting_service.services.meeting.GoogleCalendarService"
-        ) as mock_gc_class:
+        with patch("meeting_service.services.meeting.GoogleCalendarService") as mock_gc_class:
             mock_gc_instance = MagicMock()
-            mock_gc_instance.create_event = AsyncMock(
-                side_effect=ValidationException("No Google Calendar credentials")
-            )
+            mock_gc_instance.create_event = AsyncMock(side_effect=ValidationException("No Google Calendar credentials"))
             mock_gc_class.return_value = mock_gc_instance
 
             # Act
@@ -581,9 +572,7 @@ class TestUpdateAssignment:
 
         update_data = UserMeetingUpdate(scheduled_at=new_time)
 
-        with patch(
-            "meeting_service.services.meeting.GoogleCalendarService"
-        ) as mock_gc_class:
+        with patch("meeting_service.services.meeting.GoogleCalendarService") as mock_gc_class:
             mock_gc_instance = MagicMock()
             mock_gc_instance.update_event = AsyncMock()
             mock_gc_class.return_value = mock_gc_instance
@@ -622,9 +611,7 @@ class TestUpdateAssignment:
 
         update_data = UserMeetingUpdate(scheduled_at=None)
 
-        with patch(
-            "meeting_service.services.meeting.GoogleCalendarService"
-        ) as mock_gc_class:
+        with patch("meeting_service.services.meeting.GoogleCalendarService") as mock_gc_class:
             mock_gc_instance = MagicMock()
             mock_gc_instance.delete_event = AsyncMock()
             mock_gc_class.return_value = mock_gc_instance
@@ -713,9 +700,7 @@ class TestDeleteAssignment:
         )
         mock_uow.user_meetings.get_by_id.return_value = assignment
 
-        with patch(
-            "meeting_service.services.meeting.GoogleCalendarService"
-        ) as mock_gc_class:
+        with patch("meeting_service.services.meeting.GoogleCalendarService") as mock_gc_class:
             mock_gc_instance = MagicMock()
             mock_gc_instance.delete_event = AsyncMock()
             mock_gc_class.return_value = mock_gc_instance
@@ -757,8 +742,22 @@ class TestAutoAssignment:
         service = MeetingService(mock_uow)
 
         meetings = [
-            Meeting(id=1, title="HR Onboarding", type=MeetingType.HR, is_mandatory=True, department_id=1, duration_minutes=60),
-            Meeting(id=2, title="Security Training", type=MeetingType.SECURITY, is_mandatory=True, department_id=1, duration_minutes=60),
+            Meeting(
+                id=1,
+                title="HR Onboarding",
+                type=MeetingType.HR,
+                is_mandatory=True,
+                department_id=1,
+                duration_minutes=60,
+            ),
+            Meeting(
+                id=2,
+                title="Security Training",
+                type=MeetingType.SECURITY,
+                is_mandatory=True,
+                department_id=1,
+                duration_minutes=60,
+            ),
         ]
         mock_uow.meetings.find_meetings.return_value = (meetings, 2)
         mock_uow.user_meetings.get_user_meeting.return_value = None  # No existing assignments
@@ -836,9 +835,7 @@ class TestGoogleCalendarIntegration:
         # Mock GoogleCalendarService with specific event ID
         calendar_event = {"id": "google-event-456", "status": "confirmed"}
 
-        with patch(
-            "meeting_service.services.meeting.GoogleCalendarService"
-        ) as mock_gc_class:
+        with patch("meeting_service.services.meeting.GoogleCalendarService") as mock_gc_class:
             mock_gc_instance = MagicMock()
             mock_gc_instance.create_event = AsyncMock(return_value=calendar_event)
             mock_gc_class.return_value = mock_gc_instance
@@ -879,9 +876,7 @@ class TestGoogleCalendarIntegration:
 
         update_data = UserMeetingUpdate(scheduled_at=new_time)
 
-        with patch(
-            "meeting_service.services.meeting.GoogleCalendarService"
-        ) as mock_gc_class:
+        with patch("meeting_service.services.meeting.GoogleCalendarService") as mock_gc_class:
             mock_gc_instance = MagicMock()
             mock_gc_instance.create_event = AsyncMock(return_value={"id": "new-event-123"})
             mock_gc_class.return_value = mock_gc_instance
@@ -927,9 +922,7 @@ class TestGoogleCalendarIntegration:
 
         update_data = UserMeetingUpdate(scheduled_at=new_time)
 
-        with patch(
-            "meeting_service.services.meeting.GoogleCalendarService"
-        ) as mock_gc_class:
+        with patch("meeting_service.services.meeting.GoogleCalendarService") as mock_gc_class:
             mock_gc_instance = MagicMock()
             # Simulate create_event raising NotFoundException (lines 251-252 coverage)
             mock_gc_instance.create_event = AsyncMock(
@@ -966,9 +959,7 @@ class TestGoogleCalendarIntegration:
         # Update only status, not scheduled_at
         update_data = UserMeetingUpdate(status=MeetingStatus.COMPLETED)
 
-        with patch(
-            "meeting_service.services.meeting.GoogleCalendarService"
-        ) as mock_gc_class:
+        with patch("meeting_service.services.meeting.GoogleCalendarService") as mock_gc_class:
             mock_gc_instance = MagicMock()
             mock_gc_class.return_value = mock_gc_instance
 
@@ -1003,9 +994,7 @@ class TestGoogleCalendarIntegration:
 
         update_data = UserMeetingUpdate(scheduled_at=new_time)
 
-        with patch(
-            "meeting_service.services.meeting.GoogleCalendarService"
-        ) as mock_gc_class:
+        with patch("meeting_service.services.meeting.GoogleCalendarService") as mock_gc_class:
             mock_gc_instance = MagicMock()
             mock_gc_instance.update_event = AsyncMock()
             mock_gc_class.return_value = mock_gc_instance
@@ -1044,9 +1033,7 @@ class TestGoogleCalendarIntegration:
 
         completion = UserMeetingComplete(feedback="Great!", rating=5)
 
-        with patch(
-            "meeting_service.services.meeting.GoogleCalendarService"
-        ) as mock_gc_class:
+        with patch("meeting_service.services.meeting.GoogleCalendarService") as mock_gc_class:
             mock_gc_instance = MagicMock()
             mock_gc_class.return_value = mock_gc_instance
 
@@ -1202,14 +1189,10 @@ class TestCalendarFailureScenarios:
 
         update_data = UserMeetingUpdate(scheduled_at=new_time)
 
-        with patch(
-            "meeting_service.services.meeting.GoogleCalendarService"
-        ) as mock_gc_class:
+        with patch("meeting_service.services.meeting.GoogleCalendarService") as mock_gc_class:
             mock_gc_instance = MagicMock()
             # Calendar update raises exception
-            mock_gc_instance.update_event = AsyncMock(
-                side_effect=ValidationException("Calendar API error")
-            )
+            mock_gc_instance.update_event = AsyncMock(side_effect=ValidationException("Calendar API error"))
             mock_gc_class.return_value = mock_gc_instance
 
             # Act - should not raise
@@ -1249,14 +1232,10 @@ class TestCalendarFailureScenarios:
 
         update_data = UserMeetingUpdate(scheduled_at=None)
 
-        with patch(
-            "meeting_service.services.meeting.GoogleCalendarService"
-        ) as mock_gc_class:
+        with patch("meeting_service.services.meeting.GoogleCalendarService") as mock_gc_class:
             mock_gc_instance = MagicMock()
             # Calendar delete raises exception
-            mock_gc_instance.delete_event = AsyncMock(
-                side_effect=ValidationException("Calendar API error")
-            )
+            mock_gc_instance.delete_event = AsyncMock(side_effect=ValidationException("Calendar API error"))
             mock_gc_class.return_value = mock_gc_instance
 
             # Act - should not raise
@@ -1279,14 +1258,10 @@ class TestCalendarFailureScenarios:
         )
         mock_uow.user_meetings.get_by_id.return_value = assignment
 
-        with patch(
-            "meeting_service.services.meeting.GoogleCalendarService"
-        ) as mock_gc_class:
+        with patch("meeting_service.services.meeting.GoogleCalendarService") as mock_gc_class:
             mock_gc_instance = MagicMock()
             # Calendar delete raises exception
-            mock_gc_instance.delete_event = AsyncMock(
-                side_effect=ValidationException("Calendar API error")
-            )
+            mock_gc_instance.delete_event = AsyncMock(side_effect=ValidationException("Calendar API error"))
             mock_gc_class.return_value = mock_gc_instance
 
             # Act - should not raise

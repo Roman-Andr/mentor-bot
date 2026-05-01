@@ -5,7 +5,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from aiogram import Bot, Dispatcher
 from aiogram.types import ErrorEvent, Message
-
 from telegram_bot.bot import global_error_handler, setup_bot
 from telegram_bot.config import settings
 
@@ -65,9 +64,7 @@ class TestGlobalErrorHandler:
 
     async def test_global_error_handler_message_send_fails(self, mock_error_event_with_message):
         """Test error handler when message send fails."""
-        mock_error_event_with_message.update.message.answer = AsyncMock(
-            side_effect=Exception("Send failed")
-        )
+        mock_error_event_with_message.update.message.answer = AsyncMock(side_effect=Exception("Send failed"))
 
         with patch("telegram_bot.bot.logger") as mock_logger:
             result = await global_error_handler(mock_error_event_with_message)
@@ -78,9 +75,7 @@ class TestGlobalErrorHandler:
     async def test_global_error_handler_callback_send_fails(self, mock_error_event_with_callback):
         """Test error handler when callback answer fails."""
         # Set answer to fail
-        mock_error_event_with_callback.update.callback_query.answer = AsyncMock(
-            side_effect=Exception("Answer failed")
-        )
+        mock_error_event_with_callback.update.callback_query.answer = AsyncMock(side_effect=Exception("Answer failed"))
 
         with patch("telegram_bot.bot.logger") as mock_logger:
             result = await global_error_handler(mock_error_event_with_callback)

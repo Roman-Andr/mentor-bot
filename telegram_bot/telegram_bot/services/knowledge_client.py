@@ -15,14 +15,10 @@ class KnowledgeServiceClient:
     def __init__(self, base_url: str | None = None) -> None:
         """Initialize knowledge service HTTP client."""
         self.base_url = base_url or settings.KNOWLEDGE_SERVICE_URL
-        self.client = httpx.AsyncClient(
-            base_url=self.base_url, timeout=settings.SERVICE_TIMEOUT
-        )
+        self.client = httpx.AsyncClient(base_url=self.base_url, timeout=settings.SERVICE_TIMEOUT)
 
     @cached(ttl=30, key_prefix="kb_search")
-    async def search_articles(
-        self, query: str, auth_token: str, page: int = 1, size: int = 5
-    ) -> SearchResponse:
+    async def search_articles(self, query: str, auth_token: str, page: int = 1, size: int = 5) -> SearchResponse:
         """Search articles in knowledge base (cached)."""
         logger.debug("Searching articles (query={}, page={}, size={})", query, page, size)
         try:
@@ -53,9 +49,7 @@ class KnowledgeServiceClient:
         )
 
     @cached(ttl=60, key_prefix="kb_suggestions")
-    async def get_search_suggestions(
-        self, query: str, auth_token: str, limit: int = 10
-    ) -> list[str]:
+    async def get_search_suggestions(self, query: str, auth_token: str, limit: int = 10) -> list[str]:
         """Get search suggestions (cached)."""
         logger.debug("Fetching search suggestions (query={}, limit={})", query, limit)
         try:
@@ -71,9 +65,7 @@ class KnowledgeServiceClient:
             logger.exception("Knowledge service suggestions request failed (query={})", query)
         return []
 
-    async def get_article_details(
-        self, article_id: int, auth_token: str
-    ) -> dict | None:
+    async def get_article_details(self, article_id: int, auth_token: str) -> dict | None:
         """Get article details by ID."""
         logger.debug("Fetching article details (article_id={})", article_id)
         try:
@@ -90,9 +82,7 @@ class KnowledgeServiceClient:
         return None
 
     @cached(ttl=30, key_prefix="kb_attachments")
-    async def get_article_attachments(
-        self, article_id: int, auth_token: str
-    ) -> list[dict]:
+    async def get_article_attachments(self, article_id: int, auth_token: str) -> list[dict]:
         """Get all attachments for an article (cached)."""
         logger.debug("Fetching article attachments (article_id={})", article_id)
         try:
@@ -102,15 +92,17 @@ class KnowledgeServiceClient:
             )
             if response.status_code == status.HTTP_200_OK:
                 data = response.json()
-                logger.debug("Article attachments fetched (article_id={}, count={})", article_id, len(data.get("attachments", [])))
+                logger.debug(
+                    "Article attachments fetched (article_id={}, count={})",
+                    article_id,
+                    len(data.get("attachments", [])),
+                )
                 return data.get("attachments", [])
         except httpx.RequestError:
             logger.exception("Knowledge service attachments request failed (article_id={})", article_id)
         return []
 
-    async def download_attachment(
-        self, article_id: int, filename: str, auth_token: str
-    ) -> bytes | None:
+    async def download_attachment(self, article_id: int, filename: str, auth_token: str) -> bytes | None:
         """Download attachment file content."""
         logger.debug("Downloading attachment (article_id={}, filename={})", article_id, filename)
         try:
@@ -123,7 +115,9 @@ class KnowledgeServiceClient:
                 return response.content
             logger.warning("Attachment download failed (article_id={}, filename={})", article_id, filename)
         except httpx.RequestError:
-            logger.exception("Knowledge service file download failed (article_id={}, filename={})", article_id, filename)
+            logger.exception(
+                "Knowledge service file download failed (article_id={}, filename={})", article_id, filename
+            )
         return None
 
     async def upload_attachment(
@@ -226,9 +220,7 @@ class KnowledgeServiceClient:
         return {"id": scenario_id, "title": "", "steps": []}
 
     @cached(ttl=300, key_prefix="kb_categories")
-    async def get_categories(
-        self, auth_token: str, skip: int = 0, limit: int = 50
-    ) -> dict:
+    async def get_categories(self, auth_token: str, skip: int = 0, limit: int = 50) -> dict:
         """Get knowledge base categories (cached)."""
         logger.debug("Fetching categories (skip={}, limit={})", skip, limit)
         try:
@@ -245,9 +237,7 @@ class KnowledgeServiceClient:
         return {"total": 0, "categories": [], "page": 1, "size": limit, "pages": 0}
 
     @cached(ttl=60, key_prefix="kb_category_articles")
-    async def get_articles_by_category(
-        self, category_id: int, auth_token: str, skip: int = 0, limit: int = 20
-    ) -> dict:
+    async def get_articles_by_category(self, category_id: int, auth_token: str, skip: int = 0, limit: int = 20) -> dict:
         """Get articles by category ID (cached)."""
         logger.debug("Fetching articles by category (category_id={}, skip={}, limit={})", category_id, skip, limit)
         try:
@@ -261,7 +251,11 @@ class KnowledgeServiceClient:
                 headers={"Authorization": f"Bearer {auth_token}"},
             )
             if response.status_code == status.HTTP_200_OK:
-                logger.debug("Articles by category fetched (category_id={}, count={})", category_id, len(response.json().get("articles", [])))
+                logger.debug(
+                    "Articles by category fetched (category_id={}, count={})",
+                    category_id,
+                    len(response.json().get("articles", [])),
+                )
                 return response.json()
         except httpx.RequestError:
             logger.exception("Knowledge service articles by category request failed (category_id={})", category_id)

@@ -1,7 +1,6 @@
 """Department document management endpoints."""
 
 import logging
-from contextlib import suppress
 from typing import Annotated
 
 from fastapi import APIRouter, File, Form, HTTPException, Query, UploadFile
@@ -67,16 +66,15 @@ async def list_department_documents(
                 documents = [d for d in documents if d.is_public and d.category == category]
             else:
                 documents = [d for d in documents if d.is_public]
+    # HR/Admin can see all documents with filters
+    elif department_id:
+        documents = await uow.department_documents.get_by_department(
+            department_id, category=category, is_public=is_public
+        )
+    elif category:
+        documents = await uow.department_documents.get_by_category(category)
     else:
-        # HR/Admin can see all documents with filters
-        if department_id:
-            documents = await uow.department_documents.get_by_department(
-                department_id, category=category, is_public=is_public
-            )
-        elif category:
-            documents = await uow.department_documents.get_by_category(category)
-        else:
-            documents = await uow.department_documents.get_all()
+        documents = await uow.department_documents.get_all()
 
     return DepartmentDocumentListResponse(
         total=len(documents), documents=[DepartmentDocumentResponse.model_validate(d) for d in documents]
@@ -108,10 +106,10 @@ async def get_department_document(
 async def create_department_document(
     uow: UOWDep = None,
     current_user: HRUser = None,
-    department_id: Annotated[int, Form()] = None,
-    title: Annotated[str, Form()] = None,
+    department_id: Annotated[int | None, Form()] = None,
+    title: Annotated[str | None, Form()] = None,
     description: Annotated[str | None, Form()] = None,
-    category: Annotated[str, Form()] = None,
+    category: Annotated[str | None, Form()] = None,
     is_public: Annotated[bool, Form()] = False,
     file: Annotated[UploadFile, File()] = None,
 ) -> DepartmentDocumentResponse:
@@ -119,7 +117,7 @@ async def create_department_document(
     if not file:
         msg = "File is required"
         raise ValidationException(msg)
-    
+
     file_size = file.size if file.size is not None else 0
     if not validate_file_size(file_size):
         msg = f"File size exceeds {settings.MAX_FILE_SIZE_MB}MB limit"
@@ -150,7 +148,7 @@ async def create_department_document(
         )
         file_path = object_name
     except StorageError as e:
-        logger.error("Failed to upload file to S3: %s", e)
+        logger.exception("Failed to upload file to S3")
         raise HTTPException(status_code=500, detail=f"File upload failed: {e}") from e
 
     document = await uow.department_documents.create(

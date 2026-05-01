@@ -9,13 +9,15 @@ from knowledge_service.repositories.implementations.base import SqlAlchemyBaseRe
 from knowledge_service.repositories.implementations.category import CategoryRepository
 from knowledge_service.repositories.implementations.category_change_history import CategoryChangeHistoryRepository
 from knowledge_service.repositories.implementations.dialogue import DialogueScenarioRepository, DialogueStepRepository
-from knowledge_service.repositories.implementations.dialogue_scenario_change_history import DialogueScenarioChangeHistoryRepository
+from knowledge_service.repositories.implementations.dialogue_scenario_change_history import (
+    DialogueScenarioChangeHistoryRepository,
+)
 from knowledge_service.repositories.implementations.search_history import SearchHistoryRepository
 from knowledge_service.repositories.implementations.tag import TagRepository
 
 __all__ = [
-    "ArticleRepository",
     "ArticleChangeHistoryRepository",
+    "ArticleRepository",
     "ArticleViewHistoryRepository",
     "ArticleViewRepository",
     "AttachmentRepository",

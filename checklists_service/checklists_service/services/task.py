@@ -102,9 +102,7 @@ class TaskService:
 
         await self._uow.checklists.recalculate_progress(task.checklist_id)
 
-        logger.info(
-            "Task updated (task_id={}, status={})", task.id, task.status
-        )
+        logger.info("Task updated (task_id={}, status={})", task.id, task.status)
         return task
 
     async def update_task_progress(self, task_id: int, progress_data: TaskProgress) -> Task:
@@ -147,16 +145,12 @@ class TaskService:
 
         await self._uow.checklists.recalculate_progress(task.checklist_id)
 
-        logger.info(
-            "Task progress updated (task_id={}, status={})", task.id, task.status
-        )
+        logger.info("Task progress updated (task_id={}, status={})", task.id, task.status)
         return task
 
     async def complete_task(self, task_id: int, completed_by: int, notes: str | None = None) -> Task:
         """Mark task as completed."""
-        logger.debug(
-            "Completing task (task_id={}, completed_by={})", task_id, completed_by
-        )
+        logger.debug("Completing task (task_id={}, completed_by={})", task_id, completed_by)
         task = await self.get_task(task_id)
 
         if task.status == TaskStatus.COMPLETED:
@@ -191,9 +185,7 @@ class TaskService:
 
         await self._unblock_dependent_tasks(task_id)
 
-        logger.info(
-            "Task completed (task_id={}, completed_by={})", task.id, completed_by
-        )
+        logger.info("Task completed (task_id={}, completed_by={})", task.id, completed_by)
         return task
 
     async def bulk_update_tasks(self, bulk_data: TaskBulkUpdate) -> None:

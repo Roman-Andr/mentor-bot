@@ -1,6 +1,5 @@
 """Unit tests for telegram_bot/utils/validators.py."""
 
-
 from telegram_bot.utils.validators import (
     MAX_TOKEN_LENGTH,
     MIN_TOKEN_LENGTH,
@@ -46,18 +45,18 @@ class TestValidateInvitationToken:
     def test_invalid_token_with_forbidden_chars(self):
         """Token with forbidden characters should be invalid."""
         forbidden_tokens = [
-            "abc 1234",   # space
-            "abc!1234",   # exclamation
-            "abc@1234",   # at symbol
-            "abc#1234",   # hash
-            "abc$1234",   # dollar
-            "abc%1234",   # percent
-            "abc^1234",   # caret
-            "abc&1234",   # ampersand
-            "abc*1234",   # asterisk
-            "abc(1234",   # parenthesis
-            "abc.1234",   # period
-            "abc/1234",   # slash
+            "abc 1234",  # space
+            "abc!1234",  # exclamation
+            "abc@1234",  # at symbol
+            "abc#1234",  # hash
+            "abc$1234",  # dollar
+            "abc%1234",  # percent
+            "abc^1234",  # caret
+            "abc&1234",  # ampersand
+            "abc*1234",  # asterisk
+            "abc(1234",  # parenthesis
+            "abc.1234",  # period
+            "abc/1234",  # slash
         ]
         for token in forbidden_tokens:
             assert validate_invitation_token(token) is False, f"Token '{token}' should be invalid"

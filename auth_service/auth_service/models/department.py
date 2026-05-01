@@ -10,7 +10,8 @@ from sqlalchemy.sql import func
 from auth_service.database import Base
 
 if TYPE_CHECKING:
-    from auth_service.models import Invitation, User
+    from auth_service.models.invitation import Invitation
+    from auth_service.models.user import User
 
 
 class Department(Base):

@@ -2,7 +2,6 @@
 
 from aiogram.types import InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-
 from telegram_bot.keyboards.checklist import (
     get_checklists_keyboard,
     get_task_detail_keyboard,
@@ -64,9 +63,7 @@ class TestGetChecklistsKeyboard:
 
     def test_single_checklist(self):
         """Test keyboard with single checklist."""
-        checklists = [
-            {"id": 1, "name": "Test Checklist", "status": "in_progress"}
-        ]
+        checklists = [{"id": 1, "name": "Test Checklist", "status": "in_progress"}]
         keyboard = get_checklists_keyboard(checklists, locale="en")
 
         assert isinstance(keyboard, InlineKeyboardMarkup)
@@ -95,9 +92,7 @@ class TestGetTasksKeyboard:
 
     def test_single_task(self):
         """Test keyboard with single task."""
-        tasks = [
-            {"id": 1, "title": "Test Task", "status": "PENDING"}
-        ]
+        tasks = [{"id": 1, "title": "Test Task", "status": "PENDING"}]
         keyboard = get_tasks_keyboard(tasks, checklist_id=1, locale="en")
 
         assert isinstance(keyboard, InlineKeyboardMarkup)
@@ -108,33 +103,26 @@ class TestGetTaskDetailKeyboard:
 
     def test_completed_task_buttons(self):
         """Test keyboard for completed task."""
-        keyboard = get_task_detail_keyboard(
-            task_id=1, checklist_id=1, task_status="completed", locale="en"
-        )
+        keyboard = get_task_detail_keyboard(task_id=1, checklist_id=1, task_status="completed", locale="en")
 
         assert isinstance(keyboard, InlineKeyboardMarkup)
 
     def test_in_progress_task_buttons(self):
         """Test keyboard for in-progress task."""
-        keyboard = get_task_detail_keyboard(
-            task_id=1, checklist_id=1, task_status="in_progress", locale="en"
-        )
+        keyboard = get_task_detail_keyboard(task_id=1, checklist_id=1, task_status="in_progress", locale="en")
 
         assert isinstance(keyboard, InlineKeyboardMarkup)
 
     def test_pending_task_buttons(self):
         """Test keyboard for pending task."""
-        keyboard = get_task_detail_keyboard(
-            task_id=1, checklist_id=1, task_status="pending", locale="en"
-        )
+        keyboard = get_task_detail_keyboard(task_id=1, checklist_id=1, task_status="pending", locale="en")
 
         assert isinstance(keyboard, InlineKeyboardMarkup)
 
     def test_task_with_attachments(self):
         """Test keyboard shows view files button when attachments exist."""
         keyboard = get_task_detail_keyboard(
-            task_id=1, checklist_id=1, task_status="in_progress",
-            attachment_count=3, locale="en"
+            task_id=1, checklist_id=1, task_status="in_progress", attachment_count=3, locale="en"
         )
 
         assert isinstance(keyboard, InlineKeyboardMarkup)

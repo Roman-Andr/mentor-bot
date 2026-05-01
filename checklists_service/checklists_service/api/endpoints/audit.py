@@ -73,12 +73,12 @@ def require_hr_or_admin(current_user: CurrentUser) -> None:
 async def get_checklist_status_history(
     current_user: Annotated[CurrentUser, Depends()],
     uow: UnitOfWorkDep,
-    checklist_id: int | None = Query(None),
-    user_id: int | None = Query(None),
-    from_date: datetime | None = Query(None),
-    to_date: datetime | None = Query(None),
-    limit: int = Query(50, ge=1, le=100),
-    offset: int = Query(0, ge=0),
+    checklist_id: Annotated[int | None, Query()] = None,
+    user_id: Annotated[int | None, Query()] = None,
+    from_date: Annotated[datetime | None, Query()] = None,
+    to_date: Annotated[datetime | None, Query()] = None,
+    limit: Annotated[int, Query(ge=1, le=100)] = 50,
+    offset: Annotated[int, Query(ge=0)] = 0,
 ) -> AuditResponse:
     """Get checklist status history for audit purposes (HR/Admin only)."""
     require_hr_or_admin(current_user)
@@ -89,9 +89,7 @@ async def get_checklist_status_history(
         )
         total = len(items)
     elif user_id:
-        items = await uow.checklist_status_history.get_by_user_id(
-            user_id=user_id, from_date=from_date, to_date=to_date
-        )
+        items = await uow.checklist_status_history.get_by_user_id(user_id=user_id, from_date=from_date, to_date=to_date)
         total = len(items)
     else:
         items, total = await uow.checklist_status_history.get_all(
@@ -108,21 +106,19 @@ async def get_checklist_status_history(
 async def get_task_completion_history(
     current_user: Annotated[CurrentUser, Depends()],
     uow: UnitOfWorkDep,
-    task_id: int | None = Query(None),
-    checklist_id: int | None = Query(None),
-    user_id: int | None = Query(None),
-    from_date: datetime | None = Query(None),
-    to_date: datetime | None = Query(None),
-    limit: int = Query(50, ge=1, le=100),
-    offset: int = Query(0, ge=0),
+    task_id: Annotated[int | None, Query()] = None,
+    checklist_id: Annotated[int | None, Query()] = None,
+    user_id: Annotated[int | None, Query()] = None,
+    from_date: Annotated[datetime | None, Query()] = None,
+    to_date: Annotated[datetime | None, Query()] = None,
+    limit: Annotated[int, Query(ge=1, le=100)] = 50,
+    offset: Annotated[int, Query(ge=0)] = 0,
 ) -> AuditResponse:
     """Get task completion history for audit purposes (HR/Admin only)."""
     require_hr_or_admin(current_user)
 
     if task_id:
-        items = await uow.task_completion_history.get_by_task_id(
-            task_id=task_id, from_date=from_date, to_date=to_date
-        )
+        items = await uow.task_completion_history.get_by_task_id(task_id=task_id, from_date=from_date, to_date=to_date)
         total = len(items)
     elif checklist_id:
         items = await uow.task_completion_history.get_by_checklist_id(
@@ -130,9 +126,7 @@ async def get_task_completion_history(
         )
         total = len(items)
     elif user_id:
-        items = await uow.task_completion_history.get_by_user_id(
-            user_id=user_id, from_date=from_date, to_date=to_date
-        )
+        items = await uow.task_completion_history.get_by_user_id(user_id=user_id, from_date=from_date, to_date=to_date)
         total = len(items)
     else:
         items, total = await uow.task_completion_history.get_all(
@@ -149,11 +143,11 @@ async def get_task_completion_history(
 async def get_template_change_history(
     current_user: Annotated[CurrentUser, Depends()],
     uow: UnitOfWorkDep,
-    template_id: int | None = Query(None),
-    from_date: datetime | None = Query(None),
-    to_date: datetime | None = Query(None),
-    limit: int = Query(50, ge=1, le=100),
-    offset: int = Query(0, ge=0),
+    template_id: Annotated[int | None, Query()] = None,
+    from_date: Annotated[datetime | None, Query()] = None,
+    to_date: Annotated[datetime | None, Query()] = None,
+    limit: Annotated[int, Query(ge=1, le=100)] = 50,
+    offset: Annotated[int, Query(ge=0)] = 0,
 ) -> AuditResponse:
     """Get template change history for audit purposes (HR/Admin only)."""
     require_hr_or_admin(current_user)

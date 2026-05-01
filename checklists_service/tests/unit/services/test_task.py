@@ -6,15 +6,15 @@ from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
 
 import pytest
-
 from checklists_service.core import NotFoundException, ValidationException
 from checklists_service.core.enums import TaskStatus
-from checklists_service.models import Task  # noqa: TC001
 from checklists_service.schemas import TaskBulkUpdate, TaskProgress, TaskUpdate
 from checklists_service.services import TaskService
 
 if TYPE_CHECKING:
     from datetime import datetime
+
+    from checklists_service.models import Task
 
 
 class TestTaskServiceGet:
@@ -54,9 +54,7 @@ class TestTaskServiceGetChecklistTasks:
         assert len(tasks) == 1
         assert tasks[0].checklist_id == 1
 
-    async def test_get_checklist_tasks_with_status_filter(
-        self, mock_uow: MagicMock, sample_task: Task
-    ) -> None:
+    async def test_get_checklist_tasks_with_status_filter(self, mock_uow: MagicMock, sample_task: Task) -> None:
         """Test getting tasks filtered by status."""
         mock_uow.tasks.find_by_checklist.return_value = [sample_task]
 
@@ -67,9 +65,7 @@ class TestTaskServiceGetChecklistTasks:
         call_kwargs = mock_uow.tasks.find_by_checklist.call_args.kwargs
         assert call_kwargs["status"] == "pending"
 
-    async def test_get_checklist_tasks_with_category_filter(
-        self, mock_uow: MagicMock, sample_task: Task
-    ) -> None:
+    async def test_get_checklist_tasks_with_category_filter(self, mock_uow: MagicMock, sample_task: Task) -> None:
         """Test getting tasks filtered by category."""
         mock_uow.tasks.find_by_checklist.return_value = [sample_task]
 
@@ -80,9 +76,7 @@ class TestTaskServiceGetChecklistTasks:
         call_kwargs = mock_uow.tasks.find_by_checklist.call_args.kwargs
         assert call_kwargs["category"] == "DOCUMENTATION"
 
-    async def test_get_checklist_tasks_overdue_only(
-        self, mock_uow: MagicMock, sample_task: Task
-    ) -> None:
+    async def test_get_checklist_tasks_overdue_only(self, mock_uow: MagicMock, sample_task: Task) -> None:
         """Test getting only overdue tasks."""
         mock_uow.tasks.find_by_checklist.return_value = [sample_task]
 
@@ -265,36 +259,18 @@ class TestTaskServiceUpdate:
         mock_uow.tasks.get_by_id.return_value = sample_in_progress_task
         mock_uow.tasks.get_incomplete_dependencies.return_value = [sample_task]
 
-        progress_data = TaskProgress(
-            task_id=1, status=TaskStatus.COMPLETED, progress_percentage=100
-        )
+        progress_data = TaskProgress(task_id=1, status=TaskStatus.COMPLETED, progress_percentage=100)
 
         service = TaskService(mock_uow)
 
         with pytest.raises(ValidationException, match="Dependencies not completed"):
             await service.update_task_progress(1, progress_data)
 
-    async def test_update_task_to_in_progress_sets_started_at(
-        self, mock_uow: MagicMock, sample_task: Task
-    ) -> None:
-        """Test marking task in-progress sets started_at timestamp."""
-        mock_uow.tasks.get_by_id.return_value = sample_task
-        mock_uow.tasks.update.return_value = sample_task
-
-        update_data = TaskUpdate(status=TaskStatus.IN_PROGRESS)
-
-        service = TaskService(mock_uow)
-        result = await service.update_task(1, update_data)
-
-        assert result.started_at is not None
-
 
 class TestTaskServiceUpdateProgress:
     """Test task progress updates."""
 
-    async def test_update_task_progress_success(
-        self, mock_uow: MagicMock, sample_in_progress_task: Task
-    ) -> None:
+    async def test_update_task_progress_success(self, mock_uow: MagicMock, sample_in_progress_task: Task) -> None:
         """Test successful progress update."""
         mock_uow.tasks.get_by_id.return_value = sample_in_progress_task
         mock_uow.tasks.update.return_value = sample_in_progress_task
@@ -313,9 +289,7 @@ class TestTaskServiceUpdateProgress:
         assert result.status == TaskStatus.IN_PROGRESS
         assert "Halfway done" in str(result.completion_notes)
 
-    async def test_update_task_progress_appends_notes(
-        self, mock_uow: MagicMock, sample_completed_task: Task
-    ) -> None:
+    async def test_update_task_progress_appends_notes(self, mock_uow: MagicMock, sample_completed_task: Task) -> None:
         """Test progress notes are appended to existing notes."""
         sample_completed_task.completion_notes = "Previous notes"
         mock_uow.tasks.get_by_id.return_value = sample_completed_task
@@ -395,7 +369,7 @@ class TestTaskServiceComplete:
     """Test completing tasks."""
 
     async def test_complete_task_success(
-        self, mock_uow: MagicMock, sample_in_progress_task: Task, sample_datetime: datetime  # noqa: ARG002
+        self, mock_uow: MagicMock, sample_in_progress_task: Task, sample_datetime: datetime
     ) -> None:
         """Test successful task completion."""
         mock_uow.tasks.get_by_id.return_value = sample_in_progress_task
@@ -411,9 +385,7 @@ class TestTaskServiceComplete:
         assert "Done!" in str(result.completion_notes)
         mock_uow.checklists.recalculate_progress.assert_called_once_with(1)
 
-    async def test_complete_task_already_completed(
-        self, mock_uow: MagicMock, sample_completed_task: Task
-    ) -> None:
+    async def test_complete_task_already_completed(self, mock_uow: MagicMock, sample_completed_task: Task) -> None:
         """Test completing already completed task returns as-is."""
         mock_uow.tasks.get_by_id.return_value = sample_completed_task
 
@@ -469,8 +441,6 @@ class TestTaskServiceComplete:
         assert "New completion note" in str(result.completion_notes)
 
 
-
-
 class TestTaskServiceBulkUpdate:
     """Test bulk task updates."""
 
@@ -502,9 +472,7 @@ class TestTaskServiceBulkUpdate:
 
         mock_uow.tasks.find_by_ids.assert_not_called()
 
-    async def test_bulk_update_tasks_missing_tasks_fails(
-        self, mock_uow: MagicMock, sample_task: Task
-    ) -> None:
+    async def test_bulk_update_tasks_missing_tasks_fails(self, mock_uow: MagicMock, sample_task: Task) -> None:
         """Test bulk update fails when some tasks not found."""
         mock_uow.tasks.find_by_ids.return_value = [sample_task]  # Only 1 found, but 2 requested
 

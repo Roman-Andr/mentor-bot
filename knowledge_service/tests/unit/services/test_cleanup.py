@@ -3,7 +3,6 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
 from knowledge_service.services.cleanup import cleanup_old_search_history
 
 

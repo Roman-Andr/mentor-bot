@@ -9,7 +9,6 @@ from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-
 from knowledge_service.core import ArticleStatus
 from knowledge_service.models import Article
 from knowledge_service.schemas import ArticleUpdate
@@ -58,9 +57,7 @@ def sample_article():
 class TestUpdateArticleSlugCollisionLoop:
     """Test the while loop during slug generation on update - covers lines 95-96."""
 
-    async def test_update_article_title_with_multiple_slug_collisions(
-        self, mock_uow, sample_article
-    ):
+    async def test_update_article_title_with_multiple_slug_collisions(self, mock_uow, sample_article):
         """
         Test update_article with multiple slug collisions - covers lines 95-96.
 
@@ -74,8 +71,8 @@ class TestUpdateArticleSlugCollisionLoop:
         mock_uow.articles.get_by_id_with_relations.return_value = sample_article
         # Multiple slug exists checks - first 2 return True, third returns False
         mock_uow.articles.slug_exists.side_effect = [
-            True,   # "new-title" exists
-            True,   # "new-title-1" exists
+            True,  # "new-title" exists
+            True,  # "new-title-1" exists
             False,  # "new-title-2" is available
         ]
         mock_uow.articles.update.return_value = sample_article
@@ -92,9 +89,7 @@ class TestUpdateArticleSlugCollisionLoop:
         assert sample_article.slug == "new-title-2"
         assert sample_article.title == "New Title"
 
-    async def test_update_article_title_with_single_slug_collision(
-        self, mock_uow, sample_article
-    ):
+    async def test_update_article_title_with_single_slug_collision(self, mock_uow, sample_article):
         """
         Test update_article with single slug collision.
 
@@ -103,7 +98,7 @@ class TestUpdateArticleSlugCollisionLoop:
         mock_uow.articles.get_by_id_with_relations.return_value = sample_article
         # Single collision then success
         mock_uow.articles.slug_exists.side_effect = [
-            True,   # "new-title" exists
+            True,  # "new-title" exists
             False,  # "new-title-1" is available
         ]
         mock_uow.articles.update.return_value = sample_article

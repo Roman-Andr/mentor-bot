@@ -55,9 +55,7 @@ class TemplateService:
         )
 
         created = await self._uow.templates.create(template)
-        logger.info(
-            "Template created (template_id={}, name={})", created.id, created.name
-        )
+        logger.info("Template created (template_id={}, name={})", created.id, created.name)
         return await self.get_template(created.id)
 
     async def get_template(self, template_id: int) -> Template:
@@ -106,9 +104,7 @@ class TemplateService:
         template = await self.get_template(template_id)
 
         if template.status == TemplateStatus.ACTIVE:
-            logger.warning(
-                "Delete rejected: template is ACTIVE (template_id={})", template_id
-            )
+            logger.warning("Delete rejected: template is ACTIVE (template_id={})", template_id)
             msg = "Cannot delete active template. Archive it first."
             raise ValidationException(msg)
 
@@ -189,9 +185,7 @@ class TemplateService:
         template = await self.get_template(template_id)
 
         if template.status == TemplateStatus.ARCHIVED:
-            logger.warning(
-                "Cannot add task: template archived (template_id={})", template_id
-            )
+            logger.warning("Cannot add task: template archived (template_id={})", template_id)
             msg = "Cannot add tasks to archived template"
             raise ValidationException(msg)
 
@@ -236,16 +230,12 @@ class TemplateService:
         template = await self.get_template(template_id)
 
         if template.status == TemplateStatus.ACTIVE:
-            logger.debug(
-                "publish_template: already ACTIVE (template_id={})", template_id
-            )
+            logger.debug("publish_template: already ACTIVE (template_id={})", template_id)
             return template
 
         task_count = await self._uow.templates.count_tasks(template_id)
         if task_count == 0:
-            logger.warning(
-                "Cannot publish template without tasks (template_id={})", template_id
-            )
+            logger.warning("Cannot publish template without tasks (template_id={})", template_id)
             msg = "Cannot publish template without tasks"
             raise ValidationException(msg)
 

@@ -75,8 +75,8 @@ def main() -> int:
 
     print("-" * 52)
     if total_lines > 0:
-        total_pct = (total_covered / total_lines * 100)
-        print(f'{"TOTAL":<20} {total_lines:>10} {total_covered:>10} {total_pct:>9.1f}%')
+        total_pct = total_covered / total_lines * 100
+        print(f"{'TOTAL':<20} {total_lines:>10} {total_covered:>10} {total_pct:>9.1f}%")
 
     return 0
 

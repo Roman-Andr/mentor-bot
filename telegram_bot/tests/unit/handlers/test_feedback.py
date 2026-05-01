@@ -5,7 +5,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
-
 from telegram_bot.handlers.feedback import (
     MAX_PULSE_RATING,
     MIN_PULSE_RATING,
@@ -111,14 +110,10 @@ class TestFeedbackHandlers:
             new_callable=AsyncMock,
         ) as mock_submit:
             mock_submit.return_value = True
-            with patch(
-                "telegram_bot.handlers.feedback.get_feedback_menu_keyboard"
-            ) as mock_kb:
+            with patch("telegram_bot.handlers.feedback.get_feedback_menu_keyboard") as mock_kb:
                 mock_kb.return_value.as_markup.return_value = MagicMock()
 
-                await process_pulse_rating(
-                    mock_callback, mock_state, mock_user, mock_auth_token, locale="en"
-                )
+                await process_pulse_rating(mock_callback, mock_state, mock_user, mock_auth_token, locale="en")
 
         mock_submit.assert_called_once_with(rating=8, is_anonymous=False, auth_token=mock_auth_token)
         mock_state.clear.assert_called_once()
@@ -127,9 +122,7 @@ class TestFeedbackHandlers:
         """Test processing pulse rating with invalid format."""
         mock_callback.data = "pulse_invalid"
 
-        await process_pulse_rating(
-            mock_callback, mock_state, mock_user, mock_auth_token, locale="en"
-        )
+        await process_pulse_rating(mock_callback, mock_state, mock_user, mock_auth_token, locale="en")
 
         mock_callback.answer.assert_called_once()
         assert "show_alert" in mock_callback.answer.call_args.kwargs
@@ -138,9 +131,7 @@ class TestFeedbackHandlers:
         """Test processing pulse rating out of range (too high)."""
         mock_callback.data = f"pulse_{MAX_PULSE_RATING + 1}"
 
-        await process_pulse_rating(
-            mock_callback, mock_state, mock_user, mock_auth_token, locale="en"
-        )
+        await process_pulse_rating(mock_callback, mock_state, mock_user, mock_auth_token, locale="en")
 
         mock_callback.answer.assert_called_once()
         assert "show_alert" in mock_callback.answer.call_args.kwargs
@@ -149,9 +140,7 @@ class TestFeedbackHandlers:
         """Test processing pulse rating out of range (too low)."""
         mock_callback.data = f"pulse_{MIN_PULSE_RATING - 1}"
 
-        await process_pulse_rating(
-            mock_callback, mock_state, mock_user, mock_auth_token, locale="en"
-        )
+        await process_pulse_rating(mock_callback, mock_state, mock_user, mock_auth_token, locale="en")
 
         mock_callback.answer.assert_called_once()
         assert "show_alert" in mock_callback.answer.call_args.kwargs
@@ -166,9 +155,7 @@ class TestFeedbackHandlers:
         ) as mock_submit:
             mock_submit.return_value = False
 
-            await process_pulse_rating(
-                mock_callback, mock_state, mock_user, mock_auth_token, locale="en"
-            )
+            await process_pulse_rating(mock_callback, mock_state, mock_user, mock_auth_token, locale="en")
 
         mock_callback.answer.assert_called_once()
         assert "show_alert" in mock_callback.answer.call_args.kwargs
@@ -180,9 +167,7 @@ class TestFeedbackHandlers:
         with patch("telegram_bot.handlers.feedback.get_feedback_menu_keyboard") as mock_kb:
             mock_kb.return_value.as_markup.return_value = MagicMock()
 
-            await process_pulse_rating(
-                mock_callback, mock_state, None, mock_auth_token, locale="en"
-            )
+            await process_pulse_rating(mock_callback, mock_state, None, mock_auth_token, locale="en")
 
         mock_state.clear.assert_called_once()
 
@@ -205,14 +190,10 @@ class TestFeedbackHandlers:
             new_callable=AsyncMock,
         ) as mock_submit:
             mock_submit.return_value = True
-            with patch(
-                "telegram_bot.handlers.feedback.get_feedback_menu_keyboard"
-            ) as mock_kb:
+            with patch("telegram_bot.handlers.feedback.get_feedback_menu_keyboard") as mock_kb:
                 mock_kb.return_value.as_markup.return_value = MagicMock()
 
-                await process_experience_rating(
-                    mock_callback, mock_state, mock_user, mock_auth_token, locale="en"
-                )
+                await process_experience_rating(mock_callback, mock_state, mock_user, mock_auth_token, locale="en")
 
         mock_submit.assert_called_once_with(rating=4, is_anonymous=False, auth_token=mock_auth_token)
 
@@ -226,9 +207,7 @@ class TestFeedbackHandlers:
         ) as mock_submit:
             mock_submit.return_value = False
 
-            await process_experience_rating(
-                mock_callback, mock_state, mock_user, mock_auth_token, locale="en"
-            )
+            await process_experience_rating(mock_callback, mock_state, mock_user, mock_auth_token, locale="en")
 
         mock_callback.answer.assert_called_once()
         assert "show_alert" in mock_callback.answer.call_args.kwargs
@@ -240,9 +219,7 @@ class TestFeedbackHandlers:
         with patch("telegram_bot.handlers.feedback.get_feedback_menu_keyboard") as mock_kb:
             mock_kb.return_value.as_markup.return_value = MagicMock()
 
-            await process_experience_rating(
-                mock_callback, mock_state, None, mock_auth_token, locale="en"
-            )
+            await process_experience_rating(mock_callback, mock_state, None, mock_auth_token, locale="en")
 
         mock_callback.message.edit_text.assert_called_once()
 
@@ -266,14 +243,10 @@ class TestFeedbackHandlers:
             new_callable=AsyncMock,
         ) as mock_submit:
             mock_submit.return_value = True
-            with patch(
-                "telegram_bot.handlers.feedback.get_feedback_menu_keyboard"
-            ) as mock_kb:
+            with patch("telegram_bot.handlers.feedback.get_feedback_menu_keyboard") as mock_kb:
                 mock_kb.return_value.as_markup.return_value = MagicMock()
 
-                await process_comments(
-                    mock_message, mock_state, mock_user, mock_auth_token, locale="en"
-                )
+                await process_comments(mock_message, mock_state, mock_user, mock_auth_token, locale="en")
 
         mock_submit.assert_called_once()
         mock_state.clear.assert_called_once()
@@ -282,9 +255,7 @@ class TestFeedbackHandlers:
         """Test processing comment that is too short."""
         mock_message.text = "Short"
 
-        await process_comments(
-            mock_message, mock_state, mock_user, mock_auth_token, locale="en"
-        )
+        await process_comments(mock_message, mock_state, mock_user, mock_auth_token, locale="en")
 
         mock_message.answer.assert_called_once()
         mock_state.clear.assert_not_called()
@@ -299,9 +270,7 @@ class TestFeedbackHandlers:
         ) as mock_submit:
             mock_submit.return_value = False
 
-            await process_comments(
-                mock_message, mock_state, mock_user, mock_auth_token, locale="en"
-            )
+            await process_comments(mock_message, mock_state, mock_user, mock_auth_token, locale="en")
 
         mock_message.answer.assert_called_once()
         mock_state.clear.assert_not_called()
@@ -313,9 +282,7 @@ class TestFeedbackHandlers:
         with patch("telegram_bot.handlers.feedback.get_feedback_menu_keyboard") as mock_kb:
             mock_kb.return_value.as_markup.return_value = MagicMock()
 
-            await process_comments(
-                mock_message, mock_state, None, mock_auth_token, locale="en"
-            )
+            await process_comments(mock_message, mock_state, None, mock_auth_token, locale="en")
 
         mock_message.answer.assert_called_once()
         mock_state.clear.assert_called_once()
@@ -422,6 +389,7 @@ class TestFeedbackHandlers:
 
     async def test_process_pulse_anonymity_choice_index_error(self, mock_callback, mock_state):
         """Test process_pulse_anonymity_choice when split raises IndexError."""
+
         # Create a mock string that raises IndexError on split()[-1]
         class RaisingString:
             def split(self, sep):
@@ -443,6 +411,7 @@ class TestFeedbackHandlers:
 
     async def test_process_pulse_anonymity_choice_value_error(self, mock_callback, mock_state):
         """Test process_pulse_anonymity_choice when comparison raises ValueError."""
+
         # Create a mock that raises ValueError on == comparison
         class RaisingString:
             def split(self, sep):
@@ -462,6 +431,7 @@ class TestFeedbackHandlers:
 
     async def test_process_experience_anonymity_choice_index_error(self, mock_callback, mock_state):
         """Test process_experience_anonymity_choice when split raises IndexError."""
+
         class RaisingString:
             def split(self, sep):
                 return RaisingList()
@@ -482,6 +452,7 @@ class TestFeedbackHandlers:
 
     async def test_process_experience_anonymity_choice_value_error(self, mock_callback, mock_state):
         """Test process_experience_anonymity_choice when comparison raises ValueError."""
+
         class RaisingString:
             def split(self, sep):
                 return [RaisingComparison()]
@@ -500,6 +471,7 @@ class TestFeedbackHandlers:
 
     async def test_process_comment_anonymity_choice_index_error(self, mock_callback, mock_state):
         """Test process_comment_anonymity_choice when split raises IndexError."""
+
         class RaisingString:
             def split(self, sep):
                 return RaisingList()
@@ -520,6 +492,7 @@ class TestFeedbackHandlers:
 
     async def test_process_comment_anonymity_choice_value_error(self, mock_callback, mock_state):
         """Test process_comment_anonymity_choice when comparison raises ValueError."""
+
         class RaisingString:
             def split(self, sep):
                 return [RaisingComparison()]
@@ -536,18 +509,20 @@ class TestFeedbackHandlers:
         mock_callback.answer.assert_called_once()
         assert "show_alert" in mock_callback.answer.call_args.kwargs
 
-    async def test_process_experience_rating_invalid_format(self, mock_callback, mock_state, mock_user, mock_auth_token):
+    async def test_process_experience_rating_invalid_format(
+        self, mock_callback, mock_state, mock_user, mock_auth_token
+    ):
         """Test processing experience rating with invalid format."""
         mock_callback.data = "rate_invalid"
 
-        await process_experience_rating(
-            mock_callback, mock_state, mock_user, mock_auth_token, locale="en"
-        )
+        await process_experience_rating(mock_callback, mock_state, mock_user, mock_auth_token, locale="en")
 
         mock_callback.answer.assert_called_once()
         assert "show_alert" in mock_callback.answer.call_args.kwargs
 
-    async def test_process_experience_rating_anonymous_true(self, mock_callback, mock_state, mock_user, mock_auth_token):
+    async def test_process_experience_rating_anonymous_true(
+        self, mock_callback, mock_state, mock_user, mock_auth_token
+    ):
         """Test processing experience rating with anonymous=true."""
         mock_callback.data = "rate_5_anon_true"
 
@@ -556,14 +531,10 @@ class TestFeedbackHandlers:
             new_callable=AsyncMock,
         ) as mock_submit:
             mock_submit.return_value = True
-            with patch(
-                "telegram_bot.handlers.feedback.get_feedback_menu_keyboard"
-            ) as mock_kb:
+            with patch("telegram_bot.handlers.feedback.get_feedback_menu_keyboard") as mock_kb:
                 mock_kb.return_value.as_markup.return_value = MagicMock()
 
-                await process_experience_rating(
-                    mock_callback, mock_state, mock_user, mock_auth_token, locale="en"
-                )
+                await process_experience_rating(mock_callback, mock_state, mock_user, mock_auth_token, locale="en")
 
         mock_submit.assert_called_once_with(rating=5, is_anonymous=True, auth_token=mock_auth_token)
         mock_state.clear.assert_called_once()

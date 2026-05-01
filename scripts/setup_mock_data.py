@@ -18,6 +18,7 @@ Usage:
 import argparse
 import asyncio
 import json
+import logging
 import os
 import subprocess
 import sys
@@ -26,6 +27,8 @@ from pathlib import Path
 from typing import Any
 
 import httpx
+
+logger = logging.getLogger(__name__)
 
 SCRIPT_DIR = Path(__file__).parent
 MOCK_DATA_DIR = SCRIPT_DIR / "mock_data"
@@ -199,13 +202,13 @@ def create_admin_user() -> bool:
             log_success(f"Admin user created: {ADMIN_EMAIL}")
             return True
         log_warning(f"Failed to create admin: {result.stderr.strip()}")
-        return False
-
     except FileNotFoundError:
         log_warning("docker compose not found, trying direct psql")
         return create_admin_user_direct()
     except Exception as e:
         log_warning(f"Error creating admin user: {e}")
+        return False
+    else:
         return False
 
 
@@ -236,14 +239,16 @@ def create_admin_user_direct() -> bool:
             log_success(f"Admin user created: {ADMIN_EMAIL}")
             return True
         log_warning(f"Failed to create admin: {result.stderr.strip()}")
-        return False
     except Exception as e:
         log_warning(f"Error creating admin user: {e}")
+        return False
+    else:
         return False
 
 
 async def wait_for_admin_web(url: str, max_attempts: int = 30, delay: int = 1) -> bool:
-    """Wait for admin_web to become reachable.
+    """
+    Wait for admin_web to become reachable.
 
     Next.js doesn't ship a /health route by default; any 2xx/3xx from the root
     means the app is up and the API proxy is ready to forward requests.
@@ -256,8 +261,8 @@ async def wait_for_admin_web(url: str, max_attempts: int = 30, delay: int = 1) -
                 if 200 <= response.status_code < 400:
                     log_success("admin_web is available")
                     return True
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug("Admin_web not ready yet: %s", e)
             log_warning(f"Attempt {attempt}/{max_attempts}: admin_web not ready yet")
             await asyncio.sleep(delay)
     log_error(f"admin_web failed to respond after {max_attempts} attempts")
@@ -405,8 +410,6 @@ async def create_all_users_async(
         user_with_key["key"] = key
         enriched_users.append(user_with_key)
 
-    headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
-
     async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
         tasks = [create_user(client, token, user, dept_ids) for user in enriched_users]
         results = await asyncio.gather(*tasks)
@@ -439,6 +442,7 @@ async def create_checklist_templates(
     template_ids: list[int] = []
 
     async with httpx.AsyncClient(follow_redirects=True) as client:
+
         async def create_template(template: dict) -> int | None:
             tpl_name = template["name"]
             dept_name = template.get("department")
@@ -472,6 +476,7 @@ async def create_checklist_templates(
 
                     # Create tasks for this template in parallel
                     tasks = template.get("tasks", [])
+
                     async def create_task(task: dict) -> None:
                         task_payload = {
                             "template_id": tpl_id,
@@ -590,7 +595,9 @@ async def create_checklist_instances(
             if response.status_code in (200, 201):
                 checklist = response.json()
                 checklist_id = checklist["id"]
-                log_success(f"  Checklist {checklist_id} created for user {user_id} (status: {status}, template: {template_index})")
+                log_success(
+                    f"  Checklist {checklist_id} created for user {user_id} (status: {status}, template: {template_index})"
+                )
 
                 if completed_task_count > 0:
                     await update_checklist_tasks(client, headers, checklist_id, completed_task_count, status)
@@ -606,7 +613,9 @@ async def create_checklist_instances(
                     if complete_resp.status_code in (200, 201):
                         log_success(f"  Checklist {checklist_id} marked as completed")
                     else:
-                        log_warning(f"  Failed to complete checklist {checklist_id}: {complete_resp.status_code} - {complete_resp.text}")
+                        log_warning(
+                            f"  Failed to complete checklist {checklist_id}: {complete_resp.status_code} - {complete_resp.text}"
+                        )
 
                 return checklist_id
 
@@ -666,6 +675,7 @@ async def create_knowledge_categories(
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
 
     async with httpx.AsyncClient(follow_redirects=True) as client:
+
         async def create_category(cat: dict) -> tuple[str, int | None]:
             slug = cat["slug"]
             dept_name = cat.get("department")
@@ -720,6 +730,7 @@ async def create_knowledge_tags(
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
 
     async with httpx.AsyncClient(follow_redirects=True) as client:
+
         async def create_tag(tag: dict) -> tuple[str, int | None]:
             slug = tag["slug"]
             try:
@@ -761,6 +772,7 @@ async def create_knowledge_articles(
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
 
     async with httpx.AsyncClient(follow_redirects=True) as client:
+
         async def create_article(article: dict) -> int | None:
             cat_slug = article.get("category")
             cat_id = cat_ids.get(cat_slug) if cat_slug else None
@@ -798,7 +810,9 @@ async def create_knowledge_articles(
                         f"  Article '{article['title']}' created (ID: {art_id}, status: {article.get('status')})"
                     )
                     return art_id
-                log_warning(f"  Failed to create article '{article['title']}': {response.status_code} - {response.text}")
+                log_warning(
+                    f"  Failed to create article '{article['title']}': {response.status_code} - {response.text}"
+                )
             except Exception as e:
                 log_warning(f"  Error creating article '{article['title']}': {e}")
             return None
@@ -885,20 +899,40 @@ async def create_mock_article_attachments(
     mock_files = [
         # (filename, content_type, size_bytes, description)
         ("Employee_Handbook_2024.pdf", "application/pdf", 245760, "Company handbook with policies"),
-        ("Onboarding_Checklist.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", 51200, "Printable checklist version"),
+        (
+            "Onboarding_Checklist.docx",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            51200,
+            "Printable checklist version",
+        ),
         ("Team_Structure.png", "image/png", 184320, "Org chart diagram"),
         ("Benefits_Overview.pdf", "application/pdf", 153600, "Health insurance and benefits guide"),
         ("Office_Map.jpg", "image/jpeg", 102400, "Office floor plan"),
         ("IT_Setup_Guide.pdf", "application/pdf", 307200, "Technical setup instructions"),
         ("Security_Policy.pdf", "application/pdf", 204800, "Information security guidelines"),
-        ("Vacation_Request_Form.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", 25600, "Template for vacation requests"),
+        (
+            "Vacation_Request_Form.docx",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            25600,
+            "Template for vacation requests",
+        ),
         ("Code_Style_Guide.md", "text/markdown", 15360, "Development standards"),
-        ("Project_Template.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", 45056, "Project tracking spreadsheet"),
+        (
+            "Project_Template.xlsx",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            45056,
+            "Project tracking spreadsheet",
+        ),
         ("Emergency_Contacts.pdf", "application/pdf", 40960, "Important phone numbers"),
         ("Training_Schedule.ics", "text/calendar", 5120, "Onboarding events calendar"),
         ("Logo_Assets.zip", "application/zip", 512000, "Company logos and brand assets"),
         ("Remote_Access_Guide.pdf", "application/pdf", 176128, "VPN and remote work setup"),
-        ("Expense_Report_Template.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", 34816, "Expense submission template"),
+        (
+            "Expense_Report_Template.xlsx",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            34816,
+            "Expense submission template",
+        ),
         ("Office_Photo.jpg", "image/jpeg", 256000, "Office location photo"),
         ("Meeting_Notes.txt", "text/plain", 2048, "Important meeting notes"),
         ("Architecture_Diagram.png", "image/png", 128000, "System architecture diagram"),
@@ -914,7 +948,7 @@ async def create_mock_article_attachments(
         article_id = article_ids[article_idx]
         # Each article gets 1-3 random files
         num_files = min(3, 1 + (idx % 3))
-        file_selection = mock_files[idx % len(mock_files): (idx % len(mock_files)) + num_files]
+        file_selection = mock_files[idx % len(mock_files) : (idx % len(mock_files)) + num_files]
         if len(file_selection) < num_files:
             file_selection = mock_files[:num_files]
 
@@ -927,7 +961,10 @@ async def create_mock_article_attachments(
     success_count = 0
 
     async with httpx.AsyncClient(follow_redirects=True) as client:
-        async def upload_file(article_id: int, filename: str, content: bytes, content_type: str, description: str, order: int) -> None:
+
+        async def upload_file(
+            article_id: int, filename: str, content: bytes, content_type: str, description: str, order: int
+        ) -> None:
             nonlocal success_count
             try:
                 response = await client.post(
@@ -948,12 +985,16 @@ async def create_mock_article_attachments(
                     success_count += 1
                     log_success(f"  Uploaded {filename} to article {article_id}")
                 else:
-                     log_warning(f"  Failed to upload {filename}: {response.status_code} - {response.text}")
+                    log_warning(f"  Failed to upload {filename}: {response.status_code} - {response.text}")
             except Exception as e:
                 log_warning(f"  Error uploading {filename}: {e}")
 
-        await asyncio.gather(*[upload_file(article_id, filename, content, content_type, description, i)
-                               for article_id, filename, content, content_type, description, i in upload_tasks])
+        await asyncio.gather(
+            *[
+                upload_file(article_id, filename, content, content_type, description, i)
+                for article_id, filename, content, content_type, description, i in upload_tasks
+            ]
+        )
 
     log_success(f"  Created {success_count}/{total_uploads} article attachments")
 
@@ -1024,16 +1065,31 @@ async def create_mock_task_attachments(
         ("signed_nda.pdf", "application/pdf", 61440, "Signed NDA document"),
         ("id_scan.jpg", "image/jpeg", 81920, "ID document scan"),
         ("diploma.pdf", "application/pdf", 102400, "Education certificate"),
-        ("reference_letter.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", 30720, "Recommendation letter"),
+        (
+            "reference_letter.docx",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            30720,
+            "Recommendation letter",
+        ),
         ("medical_certificate.pdf", "application/pdf", 51200, "Health clearance"),
         ("training_completion.pdf", "application/pdf", 71680, "Course completion proof"),
         ("code_sample.py", "text/x-python", 8192, "Programming example"),
-        ("project_presentation.pptx", "application/vnd.openxmlformats-officedocument.presentationml.presentation", 153600, "Project deck"),
+        (
+            "project_presentation.pptx",
+            "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+            153600,
+            "Project deck",
+        ),
         ("screenshot_proof.png", "image/png", 122880, "Completion screenshot"),
         ("setup_confirmation.txt", "text/plain", 1024, "Setup verification"),
         ("payroll_form.xls", "application/vnd.ms-excel", 22528, "Payroll information form"),
         ("contract.doc", "application/msword", 40960, "Employment contract"),
-        ("benefits_form.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", 18432, "Benefits enrollment"),
+        (
+            "benefits_form.xlsx",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            18432,
+            "Benefits enrollment",
+        ),
         ("profile_photo.jpeg", "image/jpeg", 98304, "Employee photo"),
     ]
 
@@ -1064,18 +1120,21 @@ async def create_mock_task_attachments(
                 )
                 if response.status_code == 200:
                     return (checklist, response.json())
-                return (checklist, [])
             except Exception:
                 return (checklist, [])
+            else:
+                return (checklist, [])
 
-        checklist_task_pairs = await asyncio.gather(*[fetch_checklist_tasks(checklist) for checklist in checklists[:12]])
+        checklist_task_pairs = await asyncio.gather(
+            *[fetch_checklist_tasks(checklist) for checklist in checklists[:12]]
+        )
 
         # Build list of upload tasks
         upload_tasks = []
         for checklist_idx, (checklist, tasks) in enumerate(checklist_task_pairs):
             if not tasks:
                 continue
-            checklist_id = checklist["id"]
+            checklist["id"]
 
             # Select 1-2 tasks to attach files to
             num_tasks = 1 + (checklist_idx % 2)
@@ -1117,12 +1176,18 @@ async def create_mock_task_attachments(
                     success_count += 1
                     log_success(f"  Uploaded {filename} to task {task_id}")
                 else:
-                    log_warning(f"  Failed to upload {filename} to task {task_id}: {response.status_code} - {response.text}")
+                    log_warning(
+                        f"  Failed to upload {filename} to task {task_id}: {response.status_code} - {response.text}"
+                    )
             except Exception as e:
                 log_warning(f"  Error uploading {filename} to task {task_id}: {e}")
 
-        await asyncio.gather(*[upload_file(task_id, filename, content, content_type, description)
-                               for task_id, filename, content, content_type, description in upload_tasks])
+        await asyncio.gather(
+            *[
+                upload_file(task_id, filename, content, content_type, description)
+                for task_id, filename, content, content_type, description in upload_tasks
+            ]
+        )
 
     log_success(f"  Created {success_count}/{total_uploads} task attachments")
 
@@ -1136,6 +1201,7 @@ async def create_dialogue_scenarios(
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
 
     async with httpx.AsyncClient(follow_redirects=True) as client:
+
         async def create_scenario(scenario: dict) -> None:
             scenario_title = scenario["title"]
             try:
@@ -1169,6 +1235,7 @@ async def create_meeting_templates(
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
 
     async with httpx.AsyncClient(follow_redirects=True) as client:
+
         async def create_meeting(meeting: dict) -> int | None:
             dept_name = meeting.get("department")
 
@@ -1197,7 +1264,9 @@ async def create_meeting_templates(
                     meet_id = meet_data["id"]
                     log_success(f"  Meeting '{meeting['title']}' created (ID: {meet_id})")
                     return meet_id
-                log_warning(f"  Failed to create meeting '{meeting['title']}': {response.status_code} - {response.text}")
+                log_warning(
+                    f"  Failed to create meeting '{meeting['title']}': {response.status_code} - {response.text}"
+                )
             except Exception as e:
                 log_warning(f"  Error creating meeting '{meeting['title']}': {e}")
             return None
@@ -1289,7 +1358,7 @@ async def create_user_meetings(
                     # Meeting already assigned - skip silently
                     pass
                 else:
-                     log_warning(f"  Failed to create user meeting: {response.status_code} - {response.text[:200]}")
+                    log_warning(f"  Failed to create user meeting: {response.status_code} - {response.text[:200]}")
 
             except Exception as e:
                 log_warning(f"  Error creating user meeting: {e}")
@@ -1330,11 +1399,7 @@ async def create_notifications_async(
             except Exception as e:
                 log_warning(f"  Error sending notification: {e}")
 
-        tasks = [
-            send_notification(notif, user_id)
-            for notif in notification_data
-            for user_id in user_ids[:3]
-        ]
+        tasks = [send_notification(notif, user_id) for notif in notification_data for user_id in user_ids[:3]]
 
         await asyncio.gather(*tasks)
 
@@ -1385,7 +1450,7 @@ async def create_escalations_async(
 
                     log_success(f"  Escalation {esc_id} created (status: {status})")
                 else:
-                     log_warning(f"  Failed to create escalation: {response.status_code} - {response.text[:200]}")
+                    log_warning(f"  Failed to create escalation: {response.status_code} - {response.text[:200]}")
             except Exception as e:
                 log_warning(f"  Error creating escalation: {e}")
 
@@ -1400,7 +1465,6 @@ async def create_feedback_async(
 ) -> None:
     """Create all feedback asynchronously."""
     log_step("Creating feedback (async)")
-    headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
     service_headers = {"X-Service-Api-Key": SERVICE_API_KEY, "Content-Type": "application/json"}
 
     async with httpx.AsyncClient(follow_redirects=True) as client:
@@ -1411,14 +1475,14 @@ async def create_feedback_async(
         async def create_pulse(pulse: dict) -> None:
             user_key = pulse.get("user_key")
             user_id = user_ids.get(user_key) if user_key else None
-            
+
             # Make all feedback non-anonymous to avoid department_id/level requirement
             payload = {
                 "user_id": user_id,
                 "rating": pulse.get("rating", 7),
                 "is_anonymous": False,  # Force non-anonymous for now
             }
-            
+
             try:
                 response = await client.post(
                     f"{ADMIN_WEB_URL}/api/v1/feedback/pulse",
@@ -1436,14 +1500,14 @@ async def create_feedback_async(
         async def create_experience(exp: dict) -> None:
             user_key = exp.get("user_key")
             user_id = user_ids.get(user_key) if user_key else None
-            
+
             # Make all feedback non-anonymous to avoid department_id/level requirement
             payload = {
                 "user_id": user_id,
                 "rating": exp.get("rating", 4),
                 "is_anonymous": False,  # Force non-anonymous for now
             }
-            
+
             try:
                 response = await client.post(
                     f"{ADMIN_WEB_URL}/api/v1/feedback/experience",
@@ -1461,7 +1525,7 @@ async def create_feedback_async(
         async def create_comment(comment: dict) -> None:
             user_key = comment.get("user_key")
             user_id = user_ids.get(user_key) if user_key else None
-            
+
             # Make all feedback non-anonymous to avoid department_id/level requirement
             payload = {
                 "user_id": user_id,
@@ -1470,7 +1534,7 @@ async def create_feedback_async(
                 "allow_contact": comment.get("allow_contact", False),
                 "contact_email": comment.get("contact_email"),
             }
-            
+
             try:
                 response = await client.post(
                     f"{ADMIN_WEB_URL}/api/v1/feedback/comments",
@@ -1545,7 +1609,7 @@ async def create_pending_invitations_async(
                         f"  Pending invitation created: {inv['email']} (token: {inv_data.get('token', 'N/A')[:20]}...)"
                     )
                 else:
-                     log_warning(f"  Failed to create pending invitation: {response.status_code} - {response.text}")
+                    log_warning(f"  Failed to create pending invitation: {response.status_code} - {response.text}")
             except Exception as e:
                 log_warning(f"  Error creating pending invitation: {e}")
 
@@ -1590,7 +1654,9 @@ async def create_user_mentors_async(
                 if response.status_code in (200, 201):
                     log_success(f"  Mentor assigned: {user_key} -> {mentor_key}")
                 else:
-                     log_warning(f"  Failed to assign mentor {mentor_key} to {user_key}: {response.status_code} - {response.text}")
+                    log_warning(
+                        f"  Failed to assign mentor {mentor_key} to {user_key}: {response.status_code} - {response.text}"
+                    )
             except Exception as e:
                 log_warning(f"  Error assigning mentor {mentor_key} to {user_key}: {e}")
 

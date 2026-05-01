@@ -1,16 +1,12 @@
 """Department document database model."""
 
 from datetime import datetime
-from typing import TYPE_CHECKING
 
 from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
 
 from knowledge_service.database import Base
-
-if TYPE_CHECKING:
-    pass
 
 
 class DepartmentDocument(Base):
@@ -26,7 +22,9 @@ class DepartmentDocument(Base):
     # Document metadata
     title: Mapped[str] = mapped_column(String(500), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
-    category: Mapped[str] = mapped_column(String(100), nullable=False, index=True)  # e.g., "Регламенты", "Шаблоны", "Полезные ресурсы"
+    category: Mapped[str] = mapped_column(
+        String(100), nullable=False, index=True
+    )  # e.g., "Регламенты", "Шаблоны", "Полезные ресурсы"
 
     # File information
     file_name: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -35,7 +33,9 @@ class DepartmentDocument(Base):
     mime_type: Mapped[str] = mapped_column(String(100), nullable=False)
 
     # Visibility
-    is_public: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, index=True)  # visible to all or only department
+    is_public: Mapped[bool] = mapped_column(
+        Boolean, default=False, nullable=False, index=True
+    )  # visible to all or only department
 
     # Author
     uploaded_by: Mapped[int] = mapped_column(Integer, nullable=False)  # user_id from auth_service

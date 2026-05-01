@@ -6,7 +6,6 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 from _pytest.logging import LogCaptureFixture
-
 from notification_service.config import settings
 from notification_service.services.email import (
     EmailService as EmailServiceClass,

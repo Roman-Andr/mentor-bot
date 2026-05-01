@@ -5,14 +5,13 @@ from typing import get_args
 from unittest.mock import AsyncMock, patch
 
 import pytest
-from fastapi.testclient import TestClient
-
 from auth_service.api import deps
 from auth_service.api.deps import HRUser
 from auth_service.core.enums import UserRole
 from auth_service.core.security import create_access_token
 from auth_service.main import app
 from auth_service.models import User, UserMentor
+from fastapi.testclient import TestClient
 
 # Get the actual HRUser dependency callable used by FastAPI
 # So get_args returns (User, Depends(...)) and the Depends is at index 1
@@ -179,6 +178,7 @@ class TestCreateUserMentor:
 
     def test_create_relation_user_is_own_mentor(self, hr_user, mock_uow, newbie_user):
         """Test creating relation where user is their own mentor returns 422 (covers line 51)."""
+
         async def mock_require_hr() -> User:
             return hr_user
 
@@ -270,9 +270,7 @@ class TestCreateUserMentor:
         assert "already exists" in response.json()["detail"].lower()
 
     @pytest.mark.usefixtures("mentor_user")
-    def test_create_relation_user_has_active_mentor(
-        self, hr_user, mock_uow, sample_relation, newbie_user
-    ):
+    def test_create_relation_user_has_active_mentor(self, hr_user, mock_uow, sample_relation, newbie_user):
         """Test creating relation when user already has active mentor returns 409."""
         mock_uow.user_mentors.get_by_user_and_mentor = AsyncMock(return_value=None)
         mock_uow.user_mentors.get_active_by_user_id = AsyncMock(return_value=sample_relation)

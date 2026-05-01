@@ -3,11 +3,10 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+from checklists_service.middleware.auth import AuthTokenMiddleware
 from fastapi import Request
 from starlette.datastructures import Headers
 from starlette.responses import Response
-
-from checklists_service.middleware.auth import AuthTokenMiddleware
 
 
 class TestAuthTokenMiddleware:
@@ -54,7 +53,7 @@ class TestAuthTokenMiddleware:
 
         await middleware.dispatch(mock_request, mock_call_next)
 
-        assert mock_request.state.auth_token == "test-token-123"  # noqa: S105
+        assert mock_request.state.auth_token == "test-token-123"
         mock_call_next.assert_awaited_once()
 
     async def test_dispatch_with_invalid_auth_header(self, middleware):

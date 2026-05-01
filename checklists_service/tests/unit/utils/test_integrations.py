@@ -3,7 +3,6 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
-
 from checklists_service.utils.integrations import (
     AuthServiceClient,
     NotificationServiceClient,

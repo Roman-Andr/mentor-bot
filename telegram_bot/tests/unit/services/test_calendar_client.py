@@ -3,7 +3,6 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
-
 from telegram_bot.services.calendar_client import CalendarClient
 
 
@@ -46,13 +45,10 @@ class TestCalendarClient:
     async def test_check_connection_status_http_error(self, mock_get):
         """Test checking connection status - HTTP error."""
         import httpx
+
         mock_response = MagicMock()
         mock_response.status_code = 500
-        mock_get.side_effect = httpx.HTTPStatusError(
-            "Server error",
-            request=MagicMock(),
-            response=mock_response
-        )
+        mock_get.side_effect = httpx.HTTPStatusError("Server error", request=MagicMock(), response=mock_response)
 
         result = await self.client.check_connection_status(self.user_id, self.auth_token)
 
@@ -63,6 +59,7 @@ class TestCalendarClient:
     async def test_check_connection_status_request_error(self, mock_get):
         """Test checking connection status - request error."""
         import httpx
+
         mock_get.side_effect = httpx.RequestError("Connection failed")
 
         result = await self.client.check_connection_status(self.user_id, self.auth_token)
@@ -98,13 +95,10 @@ class TestCalendarClient:
     async def test_disconnect_calendar_http_error(self, mock_delete):
         """Test disconnecting calendar - HTTP error."""
         import httpx
+
         mock_response = MagicMock()
         mock_response.status_code = 404
-        mock_delete.side_effect = httpx.HTTPStatusError(
-            "Not found",
-            request=MagicMock(),
-            response=mock_response
-        )
+        mock_delete.side_effect = httpx.HTTPStatusError("Not found", request=MagicMock(), response=mock_response)
 
         result = await self.client.disconnect_calendar(self.user_id, self.auth_token)
 
@@ -115,6 +109,7 @@ class TestCalendarClient:
     async def test_disconnect_calendar_request_error(self, mock_delete):
         """Test disconnecting calendar - request error."""
         import httpx
+
         mock_delete.side_effect = httpx.RequestError("Connection failed")
 
         result = await self.client.disconnect_calendar(self.user_id, self.auth_token)

@@ -141,7 +141,7 @@ async def get_current_user_from_cookie(
 
 
 async def require_auth(
-    service_auth: Annotated[bool, Depends(verify_service_api_key)],
+    service_auth: Annotated[bool, Depends("verify_service_api_key")],
     current_user: Annotated[UserInfo | None, Depends(get_current_user_optional)],
 ) -> UserInfo | None:
     """Require either service auth or user auth."""

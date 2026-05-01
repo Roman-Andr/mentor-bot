@@ -62,7 +62,9 @@ def update_project(project_dir: Path) -> int:
         subprocess.run(["uv", "add", pkg, "--directory", str(project_dir)], capture_output=True, text=True, env=env)
     for dep in dev_deps:
         pkg = extract_pkg_name(dep)
-        subprocess.run(["uv", "add", pkg, "--directory", str(project_dir), "--dev"], capture_output=True, text=True, env=env)
+        subprocess.run(
+            ["uv", "add", pkg, "--directory", str(project_dir), "--dev"], capture_output=True, text=True, env=env
+        )
 
     return len(deps) + len(dev_deps)
 

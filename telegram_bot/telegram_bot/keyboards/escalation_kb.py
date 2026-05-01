@@ -22,9 +22,7 @@ def get_escalation_menu_keyboard(*, locale: str = "en") -> InlineKeyboardMarkup:
             callback_data="my_escalations",
             style=ButtonStyle.PRIMARY,
         ),
-        create_inline_button(
-            f"\u2190 {t('common.menu_button', locale=locale)}", callback_data="menu"
-        ),
+        create_inline_button(f"\u2190 {t('common.menu_button', locale=locale)}", callback_data="menu"),
     )
     builder.adjust(1)
     return builder.as_markup()

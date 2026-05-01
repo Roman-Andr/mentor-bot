@@ -3,10 +3,9 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from checklists_service.models import Checklist
 from checklists_service.repositories.implementations.base import SqlAlchemyBaseRepository
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class TestSqlAlchemyBaseRepository:

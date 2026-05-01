@@ -3,8 +3,6 @@
 from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 
-import pytest
-
 from feedback_service.models import FeedbackStatusChangeHistory
 from feedback_service.repositories.implementations.feedback_status_change_history import (
     FeedbackStatusChangeHistoryRepository,
@@ -124,7 +122,7 @@ class TestFeedbackStatusChangeHistoryRepository:
         repo = FeedbackStatusChangeHistoryRepository(mock_session)
 
         # Act
-        items, total = await repo.get_all()
+        _items, total = await repo.get_all()
 
         # Assert
         assert mock_session.execute.call_count == 2  # count and data queries
@@ -148,7 +146,7 @@ class TestFeedbackStatusChangeHistoryRepository:
         to_date = datetime(2026, 1, 31, tzinfo=UTC)
 
         # Act
-        items, total = await repo.get_all(from_date=from_date, to_date=to_date, limit=10, offset=5)
+        _items, total = await repo.get_all(from_date=from_date, to_date=to_date, limit=10, offset=5)
 
         # Assert
         assert mock_session.execute.call_count == 2
@@ -168,7 +166,7 @@ class TestFeedbackStatusChangeHistoryRepository:
         repo = FeedbackStatusChangeHistoryRepository(mock_session)
 
         # Act
-        items, total = await repo.get_all(limit=20, offset=10)
+        _items, total = await repo.get_all(limit=20, offset=10)
 
         # Assert
         assert mock_session.execute.call_count == 2

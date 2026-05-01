@@ -4,7 +4,6 @@ from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
 from knowledge_service.core import ArticleStatus, SearchSortBy
 from knowledge_service.models import Article, Category, Tag
 from knowledge_service.services.search import SearchService

@@ -9,9 +9,10 @@ from sqlalchemy.sql import func
 
 from meeting_service.core.enums import MeetingStatus
 from meeting_service.database import Base
+from meeting_service.models.meeting import Meeting
 
 if TYPE_CHECKING:
-    from meeting_service.models.meeting import Meeting
+    pass
 
 
 class UserMeeting(Base):

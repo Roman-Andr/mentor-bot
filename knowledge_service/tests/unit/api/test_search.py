@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING
 
 import pytest
 from fastapi import HTTPException, status
-
 from knowledge_service.api.endpoints.search import (
     clear_search_history,
     get_search_stats,
@@ -18,9 +17,11 @@ from knowledge_service.core import SearchSortBy
 from knowledge_service.schemas import SearchQuery, SearchResponse
 
 if TYPE_CHECKING:
-    from knowledge_service.api.deps import UserInfo
+    pass
 
 from unittest.mock import AsyncMock
+
+from knowledge_service.api.deps import UserInfo
 
 
 class TestSearchArticles:

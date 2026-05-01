@@ -5,7 +5,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from fastapi import HTTPException, status
-
 from notification_service.api.templates import (
     create_template,
     delete_template,
@@ -132,16 +131,21 @@ class TestListTemplates:
 
             with patch.object(TemplateResponse, "model_validate", return_value=sample_template_response):
                 result = await list_templates(
-                    mock_db, hr_user, skip=10, limit=25, name="welcome", channel="telegram", language="en", is_active=True
+                    mock_db,
+                    hr_user,
+                    skip=10,
+                    limit=25,
+                    name="welcome",
+                    channel="telegram",
+                    language="en",
+                    is_active=True,
                 )
 
                 mock_uow.templates.find_templates.assert_awaited_once_with(
                     skip=10, limit=25, name="welcome", channel="telegram", language="en", is_active=True
                 )
 
-    async def test_list_templates_empty(
-        self, mock_db: MagicMock, hr_user: MagicMock
-    ) -> None:
+    async def test_list_templates_empty(self, mock_db: MagicMock, hr_user: MagicMock) -> None:
         """List templates returns empty list when none found."""
         with patch("notification_service.api.templates.SqlAlchemyUnitOfWork") as mock_uow_cls:
             mock_uow = MagicMock()
@@ -178,9 +182,7 @@ class TestGetTemplate:
 
                 assert result is sample_db_template
 
-    async def test_get_template_by_id_not_found(
-        self, mock_db: MagicMock, hr_user: MagicMock
-    ) -> None:
+    async def test_get_template_by_id_not_found(self, mock_db: MagicMock, hr_user: MagicMock) -> None:
         """Get template by ID raises 404 when not found."""
         with patch("notification_service.api.templates.SqlAlchemyUnitOfWork") as mock_uow_cls:
             mock_uow = MagicMock()
@@ -217,9 +219,7 @@ class TestGetTemplateByName:
 
                 assert result is sample_db_template
 
-    async def test_get_template_by_name_from_defaults(
-        self, mock_db: MagicMock, hr_user: MagicMock
-    ) -> None:
+    async def test_get_template_by_name_from_defaults(self, mock_db: MagicMock, hr_user: MagicMock) -> None:
         """Get template by name falls back to defaults."""
         from notification_service.models import NotificationTemplate
 
@@ -254,9 +254,7 @@ class TestGetTemplateByName:
 
                     assert result is default_template
 
-    async def test_get_template_by_name_not_found(
-        self, mock_db: MagicMock, hr_user: MagicMock
-    ) -> None:
+    async def test_get_template_by_name_not_found(self, mock_db: MagicMock, hr_user: MagicMock) -> None:
         """Get template by name raises 404 when not in DB or defaults."""
         with patch("notification_service.api.templates.SqlAlchemyUnitOfWork") as mock_uow_cls:
             mock_uow = MagicMock()
@@ -341,9 +339,7 @@ class TestCreateTemplate:
 class TestUpdateTemplate:
     """Tests for the update_template endpoint."""
 
-    async def test_update_template_success(
-        self, mock_db: MagicMock, admin_user: MagicMock
-    ) -> None:
+    async def test_update_template_success(self, mock_db: MagicMock, admin_user: MagicMock) -> None:
         """Admin can update template (creates new version)."""
         from notification_service.models import NotificationTemplate
 
@@ -395,9 +391,7 @@ class TestUpdateTemplate:
                 mock_uow.templates.update.assert_awaited_once_with(existing_template)
                 mock_uow.commit.assert_awaited_once()
 
-    async def test_update_template_not_found(
-        self, mock_db: MagicMock, admin_user: MagicMock
-    ) -> None:
+    async def test_update_template_not_found(self, mock_db: MagicMock, admin_user: MagicMock) -> None:
         """Update raises 404 when template not found."""
         update_data = TemplateUpdate(subject="New Subject")
 
@@ -414,9 +408,7 @@ class TestUpdateTemplate:
 
             assert exc_info.value.status_code == status.HTTP_404_NOT_FOUND
 
-    async def test_update_default_template_forbidden(
-        self, mock_db: MagicMock, admin_user: MagicMock
-    ) -> None:
+    async def test_update_default_template_forbidden(self, mock_db: MagicMock, admin_user: MagicMock) -> None:
         """Cannot update default templates."""
         from notification_service.models import NotificationTemplate
 
@@ -452,9 +444,7 @@ class TestUpdateTemplate:
 class TestDeleteTemplate:
     """Tests for the delete_template endpoint."""
 
-    async def test_delete_template_success(
-        self, mock_db: MagicMock, admin_user: MagicMock
-    ) -> None:
+    async def test_delete_template_success(self, mock_db: MagicMock, admin_user: MagicMock) -> None:
         """Admin can delete non-default template."""
         from notification_service.models import NotificationTemplate
 
@@ -483,9 +473,7 @@ class TestDeleteTemplate:
             mock_uow.templates.delete.assert_awaited_once_with(1)
             mock_uow.commit.assert_awaited_once()
 
-    async def test_delete_template_not_found(
-        self, mock_db: MagicMock, admin_user: MagicMock
-    ) -> None:
+    async def test_delete_template_not_found(self, mock_db: MagicMock, admin_user: MagicMock) -> None:
         """Delete raises 404 when template not found."""
         with patch("notification_service.api.templates.SqlAlchemyUnitOfWork") as mock_uow_cls:
             mock_uow = MagicMock()
@@ -500,9 +488,7 @@ class TestDeleteTemplate:
 
             assert exc_info.value.status_code == status.HTTP_404_NOT_FOUND
 
-    async def test_delete_default_template_forbidden(
-        self, mock_db: MagicMock, admin_user: MagicMock
-    ) -> None:
+    async def test_delete_default_template_forbidden(self, mock_db: MagicMock, admin_user: MagicMock) -> None:
         """Cannot delete default templates."""
         from notification_service.models import NotificationTemplate
 
@@ -533,9 +519,7 @@ class TestDeleteTemplate:
 class TestRenderTemplate:
     """Tests for the render_template endpoint."""
 
-    async def test_render_template_success(
-        self, mock_db: MagicMock, hr_user: MagicMock
-    ) -> None:
+    async def test_render_template_success(self, mock_db: MagicMock, hr_user: MagicMock) -> None:
         """Render template with variables."""
         render_request = TemplateRenderRequest(
             template_name="welcome",
@@ -567,9 +551,7 @@ class TestRenderTemplate:
                 assert result.body == "Welcome, John!"
                 assert result.variables_used == ["user_name"]
 
-    async def test_render_template_not_found(
-        self, mock_db: MagicMock, hr_user: MagicMock
-    ) -> None:
+    async def test_render_template_not_found(self, mock_db: MagicMock, hr_user: MagicMock) -> None:
         """Render raises 404 when template not found."""
         from notification_service.services.template import TemplateNotFoundError
 
@@ -596,9 +578,7 @@ class TestRenderTemplate:
 
                 assert exc_info.value.status_code == status.HTTP_404_NOT_FOUND
 
-    async def test_render_template_missing_variables(
-        self, mock_db: MagicMock, hr_user: MagicMock
-    ) -> None:
+    async def test_render_template_missing_variables(self, mock_db: MagicMock, hr_user: MagicMock) -> None:
         """Render raises 400 when variables missing."""
         from notification_service.services.template import MissingTemplateVariablesError
 
@@ -625,9 +605,7 @@ class TestRenderTemplate:
 
                 assert exc_info.value.status_code == status.HTTP_400_BAD_REQUEST
 
-    async def test_render_template_render_error(
-        self, mock_db: MagicMock, hr_user: MagicMock
-    ) -> None:
+    async def test_render_template_render_error(self, mock_db: MagicMock, hr_user: MagicMock) -> None:
         """Render raises 500 on TemplateRenderError (lines 250-251)."""
         from notification_service.services.template import TemplateRenderError
 
@@ -659,9 +637,7 @@ class TestRenderTemplate:
 class TestPreviewTemplate:
     """Tests for the preview_template endpoint."""
 
-    async def test_preview_template_with_text(
-        self, hr_user: MagicMock
-    ) -> None:
+    async def test_preview_template_with_text(self, hr_user: MagicMock) -> None:
         """Preview template body with text."""
         preview_request = TemplatePreviewRequest(
             body_text="Hello {{ name }}!",
@@ -677,9 +653,7 @@ class TestPreviewTemplate:
         assert result.body == "Hello World!"
         assert result.variables_used == ["name"]
 
-    async def test_preview_template_with_html(
-        self, hr_user: MagicMock
-    ) -> None:
+    async def test_preview_template_with_html(self, hr_user: MagicMock) -> None:
         """Preview template body with HTML."""
         preview_request = TemplatePreviewRequest(
             body_html="<h1>Hello {{ name }}</h1>",
@@ -691,9 +665,7 @@ class TestPreviewTemplate:
         assert result.body == "<h1>Hello User</h1>"
         assert result.subject is None
 
-    async def test_preview_template_empty_body(
-        self, hr_user: MagicMock
-    ) -> None:
+    async def test_preview_template_empty_body(self, hr_user: MagicMock) -> None:
         """Preview with empty body renders empty string."""
         preview_request = TemplatePreviewRequest()
 
@@ -701,9 +673,7 @@ class TestPreviewTemplate:
 
         assert result.body == ""
 
-    async def test_preview_template_render_error(
-        self, hr_user: MagicMock
-    ) -> None:
+    async def test_preview_template_render_error(self, hr_user: MagicMock) -> None:
         """Preview raises 400 on template error."""
         preview_request = TemplatePreviewRequest(
             body_text="Hello {% invalid %}",

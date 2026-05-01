@@ -71,6 +71,7 @@ class TestUserNormalizeEmail:
 
         # Manually trigger the event listener (simulating what SQLAlchemy does)
         from auth_service.models.user import normalize_email_case
+
         normalize_email_case(None, None, user)
 
         assert user.email == "uppercase@example.com"
@@ -93,6 +94,7 @@ class TestUserNormalizeEmail:
 
         # Manually trigger the event listener
         from auth_service.models.user import normalize_email_case
+
         normalize_email_case(None, None, user)
 
         assert user.email == "newemail@example.com"
@@ -116,6 +118,7 @@ class TestUserNormalizeEmail:
 
         # Manually trigger the event listener
         from auth_service.models.user import normalize_email_case
+
         # Should not raise any error
         normalize_email_case(None, None, user)
 

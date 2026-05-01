@@ -5,14 +5,13 @@ from typing import get_args
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from fastapi.testclient import TestClient
-
 from auth_service.api import deps
 from auth_service.api.deps import HRUser
 from auth_service.core.enums import InvitationStatus, UserRole
 from auth_service.core.security import create_access_token
 from auth_service.main import app
 from auth_service.models import Invitation, User
+from fastapi.testclient import TestClient
 
 # Get the actual HRUser dependency callable used by FastAPI
 # So get_args returns (User, Depends(...)) and the Depends is at index 1
@@ -97,11 +96,21 @@ class TestGetInvitations:
     def test_get_invitations_success(self, hr_user, mock_invitation_service, sample_invitation):
         """Test getting list of invitations as HR."""
         mock_invitation_service.get_invitations = AsyncMock(return_value=([sample_invitation], 1))
-        mock_invitation_service.get_invitation_stats = AsyncMock(return_value={
-            "total": 1, "pending": 1, "used": 0, "revoked": 0, "expired": 0,
-            "conversion_rate": 0.0, "by_status": {}, "recent_activity": []
-        })
-        mock_invitation_service.generate_invitation_url = MagicMock(return_value="https://t.me/bot?start=invite-token-123")
+        mock_invitation_service.get_invitation_stats = AsyncMock(
+            return_value={
+                "total": 1,
+                "pending": 1,
+                "used": 0,
+                "revoked": 0,
+                "expired": 0,
+                "conversion_rate": 0.0,
+                "by_status": {},
+                "recent_activity": [],
+            }
+        )
+        mock_invitation_service.generate_invitation_url = MagicMock(
+            return_value="https://t.me/bot?start=invite-token-123"
+        )
 
         async def mock_require_hr() -> User:
             return hr_user
@@ -127,11 +136,21 @@ class TestGetInvitations:
     def test_get_invitations_with_email_filter(self, hr_user, mock_invitation_service, sample_invitation):
         """Test getting invitations with email filter."""
         mock_invitation_service.get_invitations = AsyncMock(return_value=([sample_invitation], 1))
-        mock_invitation_service.get_invitation_stats = AsyncMock(return_value={
-            "total": 1, "pending": 1, "used": 0, "revoked": 0, "expired": 0,
-            "conversion_rate": 0.0, "by_status": {}, "recent_activity": []
-        })
-        mock_invitation_service.generate_invitation_url = MagicMock(return_value="https://t.me/bot?start=invite-token-123")
+        mock_invitation_service.get_invitation_stats = AsyncMock(
+            return_value={
+                "total": 1,
+                "pending": 1,
+                "used": 0,
+                "revoked": 0,
+                "expired": 0,
+                "conversion_rate": 0.0,
+                "by_status": {},
+                "recent_activity": [],
+            }
+        )
+        mock_invitation_service.generate_invitation_url = MagicMock(
+            return_value="https://t.me/bot?start=invite-token-123"
+        )
 
         async def mock_require_hr() -> User:
             return hr_user
@@ -153,11 +172,21 @@ class TestGetInvitations:
     def test_get_invitations_with_status_filter(self, hr_user, mock_invitation_service, sample_invitation):
         """Test getting invitations with status filter."""
         mock_invitation_service.get_invitations = AsyncMock(return_value=([sample_invitation], 1))
-        mock_invitation_service.get_invitation_stats = AsyncMock(return_value={
-            "total": 1, "pending": 1, "used": 0, "revoked": 0, "expired": 0,
-            "conversion_rate": 0.0, "by_status": {}, "recent_activity": []
-        })
-        mock_invitation_service.generate_invitation_url = MagicMock(return_value="https://t.me/bot?start=invite-token-123")
+        mock_invitation_service.get_invitation_stats = AsyncMock(
+            return_value={
+                "total": 1,
+                "pending": 1,
+                "used": 0,
+                "revoked": 0,
+                "expired": 0,
+                "conversion_rate": 0.0,
+                "by_status": {},
+                "recent_activity": [],
+            }
+        )
+        mock_invitation_service.generate_invitation_url = MagicMock(
+            return_value="https://t.me/bot?start=invite-token-123"
+        )
 
         async def mock_require_hr() -> User:
             return hr_user
@@ -183,7 +212,9 @@ class TestCreateInvitation:
     def test_create_invitation_success(self, hr_user, mock_invitation_service, sample_invitation):
         """Test creating a new invitation."""
         mock_invitation_service.create_invitation = AsyncMock(return_value=sample_invitation)
-        mock_invitation_service.generate_invitation_url = MagicMock(return_value="https://t.me/bot?start=invite-token-123")
+        mock_invitation_service.generate_invitation_url = MagicMock(
+            return_value="https://t.me/bot?start=invite-token-123"
+        )
 
         async def mock_require_hr() -> User:
             return hr_user
@@ -218,6 +249,7 @@ class TestCreateInvitation:
     def test_create_invitation_conflict(self, hr_user, mock_invitation_service):
         """Test creating invitation with duplicate email returns 409."""
         from auth_service.core import ConflictException
+
         mock_invitation_service.create_invitation = AsyncMock(
             side_effect=ConflictException("Invitation already exists")
         )
@@ -251,7 +283,9 @@ class TestGetInvitationById:
     def test_get_invitation_by_id_success(self, hr_user, mock_invitation_service, sample_invitation):
         """Test getting invitation by ID."""
         mock_invitation_service.get_invitation_by_id = AsyncMock(return_value=sample_invitation)
-        mock_invitation_service.generate_invitation_url = MagicMock(return_value="https://t.me/bot?start=invite-token-123")
+        mock_invitation_service.generate_invitation_url = MagicMock(
+            return_value="https://t.me/bot?start=invite-token-123"
+        )
 
         async def mock_require_hr() -> User:
             return hr_user
@@ -276,9 +310,8 @@ class TestGetInvitationById:
     def test_get_invitation_by_id_not_found(self, hr_user, mock_invitation_service):
         """Test getting non-existent invitation returns 404."""
         from auth_service.core import NotFoundException
-        mock_invitation_service.get_invitation_by_id = AsyncMock(
-            side_effect=NotFoundException("Invitation not found")
-        )
+
+        mock_invitation_service.get_invitation_by_id = AsyncMock(side_effect=NotFoundException("Invitation not found"))
 
         async def mock_require_hr() -> User:
             return hr_user
@@ -304,7 +337,9 @@ class TestGetInvitationByToken:
     def test_get_invitation_by_token_success(self, mock_invitation_service, sample_invitation):
         """Test getting valid invitation by token (public endpoint)."""
         mock_invitation_service.get_valid_invitation = AsyncMock(return_value=sample_invitation)
-        mock_invitation_service.generate_invitation_url = MagicMock(return_value="https://t.me/bot?start=invite-token-123")
+        mock_invitation_service.generate_invitation_url = MagicMock(
+            return_value="https://t.me/bot?start=invite-token-123"
+        )
         app.dependency_overrides[deps.get_invitation_service] = lambda: mock_invitation_service
 
         try:
@@ -320,9 +355,8 @@ class TestGetInvitationByToken:
     def test_get_invitation_by_token_invalid(self, mock_invitation_service):
         """Test getting invalid/expired invitation returns 404."""
         from auth_service.core import NotFoundException
-        mock_invitation_service.get_valid_invitation = AsyncMock(
-            side_effect=NotFoundException("Invalid token")
-        )
+
+        mock_invitation_service.get_valid_invitation = AsyncMock(side_effect=NotFoundException("Invalid token"))
         app.dependency_overrides[deps.get_invitation_service] = lambda: mock_invitation_service
 
         try:
@@ -380,6 +414,7 @@ class TestResendInvitation:
     def test_resend_non_pending_invitation(self, hr_user, mock_invitation_service):
         """Test resending non-pending invitation returns 400."""
         from auth_service.core import ValidationException
+
         mock_invitation_service.resend_invitation = AsyncMock(
             side_effect=ValidationException("Cannot resend non-pending invitation")
         )
@@ -409,7 +444,9 @@ class TestRevokeInvitation:
         """Test revoking an invitation."""
         sample_invitation.status = InvitationStatus.REVOKED
         mock_invitation_service.revoke_invitation = AsyncMock(return_value=sample_invitation)
-        mock_invitation_service.generate_invitation_url = MagicMock(return_value="https://t.me/bot?start=invite-token-123")
+        mock_invitation_service.generate_invitation_url = MagicMock(
+            return_value="https://t.me/bot?start=invite-token-123"
+        )
 
         async def mock_require_hr() -> User:
             return hr_user
@@ -433,9 +470,8 @@ class TestRevokeInvitation:
     def test_revoke_invitation_not_found(self, hr_user, mock_invitation_service):
         """Test revoking non-existent invitation returns 400."""
         from auth_service.core import NotFoundException
-        mock_invitation_service.revoke_invitation = AsyncMock(
-            side_effect=NotFoundException("Invitation not found")
-        )
+
+        mock_invitation_service.revoke_invitation = AsyncMock(side_effect=NotFoundException("Invitation not found"))
 
         async def mock_require_hr() -> User:
             return hr_user
@@ -458,6 +494,7 @@ class TestRevokeInvitation:
     def test_revoke_invitation_validation_error(self, hr_user, mock_invitation_service):
         """Test revoking already used invitation returns 400."""
         from auth_service.core import ValidationException
+
         mock_invitation_service.revoke_invitation = AsyncMock(
             side_effect=ValidationException("Cannot revoke used invitation")
         )
@@ -548,9 +585,8 @@ class TestDeleteInvitation:
     def test_delete_invitation_not_found(self, hr_user, mock_invitation_service):
         """Test deleting non-existent invitation returns 404."""
         from auth_service.core import NotFoundException
-        mock_invitation_service.delete_invitation = AsyncMock(
-            side_effect=NotFoundException("Invitation not found")
-        )
+
+        mock_invitation_service.delete_invitation = AsyncMock(side_effect=NotFoundException("Invitation not found"))
 
         async def mock_require_hr() -> User:
             return hr_user

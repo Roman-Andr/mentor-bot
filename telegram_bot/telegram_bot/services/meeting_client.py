@@ -13,9 +13,7 @@ class MeetingServiceClient:
     def __init__(self, base_url: str | None = None) -> None:
         """Initialize meeting service HTTP client."""
         self.base_url = base_url or settings.MEETING_SERVICE_URL
-        self.client = httpx.AsyncClient(
-            base_url=self.base_url, timeout=settings.SERVICE_TIMEOUT
-        )
+        self.client = httpx.AsyncClient(base_url=self.base_url, timeout=settings.SERVICE_TIMEOUT)
 
     async def create_meeting(
         self,
@@ -52,9 +50,7 @@ class MeetingServiceClient:
             logger.exception("Meeting service request failed (user_id={})", user_id)
         return None
 
-    async def get_user_meetings(
-        self, user_id: int, auth_token: str, limit: int = 10
-    ) -> list[dict]:
+    async def get_user_meetings(self, user_id: int, auth_token: str, limit: int = 10) -> list[dict]:
         """Get user meetings."""
         logger.debug("Fetching user meetings (user_id={}, limit={})", user_id, limit)
         try:
@@ -71,9 +67,7 @@ class MeetingServiceClient:
             logger.exception("Meeting service get meetings failed (user_id={})", user_id)
         return []
 
-    async def get_upcoming_meetings(
-        self, user_id: int, auth_token: str, limit: int = 5
-    ) -> list[dict]:
+    async def get_upcoming_meetings(self, user_id: int, auth_token: str, limit: int = 5) -> list[dict]:
         """Get upcoming meetings for user."""
         logger.debug("Fetching upcoming meetings (user_id={}, limit={})", user_id, limit)
         try:
@@ -90,9 +84,7 @@ class MeetingServiceClient:
             logger.exception("Meeting service get upcoming meetings failed (user_id={})", user_id)
         return []
 
-    async def confirm_meeting(
-        self, meeting_id: int, user_id: int, auth_token: str
-    ) -> dict | None:
+    async def confirm_meeting(self, meeting_id: int, user_id: int, auth_token: str) -> dict | None:
         """Confirm meeting attendance."""
         logger.info("Confirming meeting (meeting_id={}, user_id={})", meeting_id, user_id)
         try:
@@ -104,7 +96,12 @@ class MeetingServiceClient:
             if response.status_code == status.HTTP_200_OK:
                 logger.info("Meeting confirmed (meeting_id={}, user_id={})", meeting_id, user_id)
                 return response.json()
-            logger.warning("Meeting confirmation failed (meeting_id={}, user_id={}, status={})", meeting_id, user_id, response.status_code)
+            logger.warning(
+                "Meeting confirmation failed (meeting_id={}, user_id={}, status={})",
+                meeting_id,
+                user_id,
+                response.status_code,
+            )
         except httpx.RequestError:
             logger.exception("Meeting service confirm meeting failed (meeting_id={})", meeting_id)
         return None
@@ -127,7 +124,12 @@ class MeetingServiceClient:
             if response.status_code == status.HTTP_200_OK:
                 logger.info("Meeting canceled (meeting_id={}, user_id={})", meeting_id, user_id)
                 return response.json()
-            logger.warning("Meeting cancellation failed (meeting_id={}, user_id={}, status={})", meeting_id, user_id, response.status_code)
+            logger.warning(
+                "Meeting cancellation failed (meeting_id={}, user_id={}, status={})",
+                meeting_id,
+                user_id,
+                response.status_code,
+            )
         except httpx.RequestError:
             logger.exception("Meeting service cancel meeting failed (meeting_id={})", meeting_id)
         return None

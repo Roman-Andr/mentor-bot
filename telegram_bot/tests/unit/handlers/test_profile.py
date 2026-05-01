@@ -3,7 +3,6 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
 from telegram_bot.handlers.common import (
     cmd_about,
     my_mentor,
@@ -42,7 +41,7 @@ class TestMyMentor:
         self.mock_callback.message.edit_text = AsyncMock()
 
         self.user = {"id": 1, "first_name": "John", "last_name": "Doe", "mentor_id": 2}
-        self.test_token = "mock_token_for_testing"  # noqa: S105
+        self.test_token = "mock_token_for_testing"
 
     @patch("telegram_bot.handlers.common.auth_client")
     async def test_my_mentor_with_mentor(self, mock_auth):

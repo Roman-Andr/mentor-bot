@@ -213,7 +213,9 @@ class MeetingService:
                         "timeZone": "UTC",
                     },
                     "end": {
-                        "dateTime": (assignment_data.scheduled_at + timedelta(minutes=meeting.duration_minutes)).isoformat(),
+                        "dateTime": (
+                            assignment_data.scheduled_at + timedelta(minutes=meeting.duration_minutes)
+                        ).isoformat(),
                         "timeZone": "UTC",
                     },
                 }
@@ -268,7 +270,9 @@ class MeetingService:
             limit=limit,
             status=status,
         )
-        logger.debug("Meeting assignments fetched (meeting_id={}, count={}, total={})", meeting_id, len(list(items)), total)
+        logger.debug(
+            "Meeting assignments fetched (meeting_id={}, count={}, total={})", meeting_id, len(list(items)), total
+        )
         return list(items), total
 
     async def get_assignment(self, assignment_id: int) -> UserMeeting:

@@ -4,10 +4,9 @@ from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from knowledge_service.models import CategoryChangeHistory
 from knowledge_service.repositories.implementations.category_change_history import CategoryChangeHistoryRepository
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class TestCategoryChangeHistoryRepository:

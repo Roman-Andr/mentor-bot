@@ -14,9 +14,9 @@ __all__ = [
     "ICertificateRepository",
     "IChecklistRepository",
     "IChecklistStatusHistoryRepository",
-    "ITaskRepository",
     "ITaskCompletionHistoryRepository",
+    "ITaskRepository",
     "ITaskTemplateRepository",
-    "ITemplateRepository",
     "ITemplateChangeHistoryRepository",
+    "ITemplateRepository",
 ]

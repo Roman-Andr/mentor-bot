@@ -5,7 +5,6 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from botocore.exceptions import ClientError
-
 from knowledge_service.utils.storage import (
     FileNotFoundError,
     StorageError,
@@ -270,9 +269,7 @@ class TestDeleteFile:
         result = await mock_service.delete_file("test/file.txt")
 
         assert result is True
-        mock_service.client.delete_object.assert_called_once_with(
-            Bucket="test-bucket", Key="test/file.txt"
-        )
+        mock_service.client.delete_object.assert_called_once_with(Bucket="test-bucket", Key="test/file.txt")
 
     @pytest.mark.asyncio
     async def test_delete_file_not_found_returns_false(self, mock_service):
@@ -329,9 +326,7 @@ class TestFileExists:
         result = await mock_service.file_exists("test/file.txt")
 
         assert result is True
-        mock_service.client.head_object.assert_called_once_with(
-            Bucket="test-bucket", Key="test/file.txt"
-        )
+        mock_service.client.head_object.assert_called_once_with(Bucket="test-bucket", Key="test/file.txt")
 
     @pytest.mark.asyncio
     async def test_file_exists_false_404(self, mock_service):

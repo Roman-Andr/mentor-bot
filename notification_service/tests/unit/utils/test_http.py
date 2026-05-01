@@ -3,10 +3,8 @@
 import os
 
 import httpx
-
 from notification_service.utils.http import make_async_client
 from notification_service.utils.logging import inject_request_id
-
 
 # Clear proxy environment variables to avoid httpx proxy errors
 # httpx doesn't support 'socks://' scheme, only 'socks5://' and 'socks5h://'

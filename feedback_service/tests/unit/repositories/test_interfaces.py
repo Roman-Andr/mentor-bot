@@ -3,7 +3,6 @@
 from datetime import datetime
 
 import pytest
-
 from feedback_service.models import Comment, ExperienceRating, PulseSurvey
 from feedback_service.repositories.interfaces import (
     BaseRepository,
@@ -18,6 +17,7 @@ class TestBaseRepositoryInterface:
 
     async def test_get_by_id_raises_not_implemented(self) -> None:
         """Test BaseRepository.get_by_id raises NotImplementedError."""
+
         # Create a concrete class to test the interface
         class ConcreteRepo(BaseRepository[dict, int]):
             async def get_by_id(self, entity_id: int) -> dict | None:
@@ -42,6 +42,7 @@ class TestBaseRepositoryInterface:
 
     async def test_get_all_raises_not_implemented(self) -> None:
         """Test BaseRepository.get_all raises NotImplementedError."""
+
         class ConcreteRepo(BaseRepository[dict, int]):
             async def get_by_id(self, entity_id: int) -> dict | None:
                 return {}
@@ -65,6 +66,7 @@ class TestBaseRepositoryInterface:
 
     async def test_create_raises_not_implemented(self) -> None:
         """Test BaseRepository.create raises NotImplementedError."""
+
         class ConcreteRepo(BaseRepository[dict, int]):
             async def get_by_id(self, entity_id: int) -> dict | None:
                 return {}
@@ -88,6 +90,7 @@ class TestBaseRepositoryInterface:
 
     async def test_update_raises_not_implemented(self) -> None:
         """Test BaseRepository.update raises NotImplementedError."""
+
         class ConcreteRepo(BaseRepository[dict, int]):
             async def get_by_id(self, entity_id: int) -> dict | None:
                 return {}
@@ -111,6 +114,7 @@ class TestBaseRepositoryInterface:
 
     async def test_delete_raises_not_implemented(self) -> None:
         """Test BaseRepository.delete raises NotImplementedError."""
+
         class ConcreteRepo(BaseRepository[dict, int]):
             async def get_by_id(self, entity_id: int) -> dict | None:
                 return {}
@@ -138,6 +142,7 @@ class TestIPulseSurveyRepository:
 
     async def test_find_by_user_raises_not_implemented(self) -> None:
         """Test IPulseSurveyRepository.find_by_user raises NotImplementedError."""
+
         # Create a minimal concrete implementation that only implements base methods
         # but calls super() for find_by_user
         class TestRepo(IPulseSurveyRepository):
@@ -190,6 +195,7 @@ class TestIExperienceRatingRepository:
 
     async def test_find_by_user_raises_not_implemented(self) -> None:
         """Test IExperienceRatingRepository.find_by_user raises NotImplementedError."""
+
         class TestRepo(IExperienceRatingRepository):
             async def get_by_id(self, entity_id: int) -> ExperienceRating | None:
                 return None
@@ -243,6 +249,7 @@ class TestIExperienceRatingRepository:
 
     async def test_get_by_user_raises_not_implemented(self) -> None:
         """Test IExperienceRatingRepository.get_by_user raises NotImplementedError."""
+
         class TestRepo(IExperienceRatingRepository):
             async def get_by_id(self, entity_id: int) -> ExperienceRating | None:
                 return None
@@ -296,6 +303,7 @@ class TestIExperienceRatingRepository:
 
     async def test_get_stats_raises_not_implemented(self) -> None:
         """Test IExperienceRatingRepository.get_stats raises NotImplementedError."""
+
         class TestRepo(IExperienceRatingRepository):
             async def get_by_id(self, entity_id: int) -> ExperienceRating | None:
                 return None
@@ -349,6 +357,7 @@ class TestIExperienceRatingRepository:
 
     async def test_get_rating_distribution_raises_not_implemented(self) -> None:
         """Test IExperienceRatingRepository.get_rating_distribution raises NotImplementedError."""
+
         class TestRepo(IExperienceRatingRepository):
             async def get_by_id(self, entity_id: int) -> ExperienceRating | None:
                 return None
@@ -406,6 +415,7 @@ class TestIPulseSurveyRepositoryAdditional:
 
     async def test_get_by_user_raises_not_implemented(self) -> None:
         """Test IPulseSurveyRepository.get_by_user raises NotImplementedError."""
+
         class TestRepo(IPulseSurveyRepository):
             async def get_by_id(self, entity_id: int) -> PulseSurvey | None:
                 return None
@@ -452,6 +462,7 @@ class TestIPulseSurveyRepositoryAdditional:
 
     async def test_get_stats_raises_not_implemented(self) -> None:
         """Test IPulseSurveyRepository.get_stats raises NotImplementedError."""
+
         class TestRepo(IPulseSurveyRepository):
             async def get_by_id(self, entity_id: int) -> PulseSurvey | None:
                 return None
@@ -498,6 +509,7 @@ class TestIPulseSurveyRepositoryAdditional:
 
     async def test_get_rating_distribution_raises_not_implemented(self) -> None:
         """Test IPulseSurveyRepository.get_rating_distribution raises NotImplementedError."""
+
         class TestRepo(IPulseSurveyRepository):
             async def get_by_id(self, entity_id: int) -> PulseSurvey | None:
                 return None
@@ -548,6 +560,7 @@ class TestICommentRepository:
 
     async def test_find_by_user_raises_not_implemented(self) -> None:
         """Test ICommentRepository.find_by_user raises NotImplementedError."""
+
         class TestRepo(ICommentRepository):
             async def get_by_id(self, entity_id: int) -> Comment | None:
                 return None
@@ -588,7 +601,12 @@ class TestICommentRepository:
                 raise NotImplementedError
 
             async def get_reply_eligible_comments(
-                self, department_id: int | None, from_date: datetime | None, to_date: datetime | None, skip: int, limit: int
+                self,
+                department_id: int | None,
+                from_date: datetime | None,
+                to_date: datetime | None,
+                skip: int,
+                limit: int,
             ) -> tuple[list[Comment], int]:
                 raise NotImplementedError
 
@@ -599,6 +617,7 @@ class TestICommentRepository:
 
     async def test_get_by_user_raises_not_implemented(self) -> None:
         """Test ICommentRepository.get_by_user raises NotImplementedError."""
+
         class TestRepo(ICommentRepository):
             async def get_by_id(self, entity_id: int) -> Comment | None:
                 return None
@@ -639,7 +658,12 @@ class TestICommentRepository:
                 raise NotImplementedError
 
             async def get_reply_eligible_comments(
-                self, department_id: int | None, from_date: datetime | None, to_date: datetime | None, skip: int, limit: int
+                self,
+                department_id: int | None,
+                from_date: datetime | None,
+                to_date: datetime | None,
+                skip: int,
+                limit: int,
             ) -> tuple[list[Comment], int]:
                 raise NotImplementedError
 
@@ -650,6 +674,7 @@ class TestICommentRepository:
 
     async def test_add_reply_raises_not_implemented(self) -> None:
         """Test ICommentRepository.add_reply raises NotImplementedError."""
+
         class TestRepo(ICommentRepository):
             async def get_by_id(self, entity_id: int) -> Comment | None:
                 return None
@@ -690,7 +715,12 @@ class TestICommentRepository:
                 raise NotImplementedError
 
             async def get_reply_eligible_comments(
-                self, department_id: int | None, from_date: datetime | None, to_date: datetime | None, skip: int, limit: int
+                self,
+                department_id: int | None,
+                from_date: datetime | None,
+                to_date: datetime | None,
+                skip: int,
+                limit: int,
             ) -> tuple[list[Comment], int]:
                 raise NotImplementedError
 
@@ -701,6 +731,7 @@ class TestICommentRepository:
 
     async def test_get_anonymity_stats_raises_not_implemented(self) -> None:
         """Test ICommentRepository.get_anonymity_stats raises NotImplementedError."""
+
         class TestRepo(ICommentRepository):
             async def get_by_id(self, entity_id: int) -> Comment | None:
                 return None
@@ -741,7 +772,12 @@ class TestICommentRepository:
                 return await super().get_anonymity_stats(department_id, from_date, to_date)
 
             async def get_reply_eligible_comments(
-                self, department_id: int | None, from_date: datetime | None, to_date: datetime | None, skip: int, limit: int
+                self,
+                department_id: int | None,
+                from_date: datetime | None,
+                to_date: datetime | None,
+                skip: int,
+                limit: int,
             ) -> tuple[list[Comment], int]:
                 raise NotImplementedError
 
@@ -752,6 +788,7 @@ class TestICommentRepository:
 
     async def test_get_reply_eligible_comments_raises_not_implemented(self) -> None:
         """Test ICommentRepository.get_reply_eligible_comments raises NotImplementedError."""
+
         class TestRepo(ICommentRepository):
             async def get_by_id(self, entity_id: int) -> Comment | None:
                 return None
@@ -792,7 +829,12 @@ class TestICommentRepository:
                 raise NotImplementedError
 
             async def get_reply_eligible_comments(
-                self, department_id: int | None, from_date: datetime | None, to_date: datetime | None, skip: int, limit: int
+                self,
+                department_id: int | None,
+                from_date: datetime | None,
+                to_date: datetime | None,
+                skip: int,
+                limit: int,
             ) -> tuple[list[Comment], int]:
                 return await super().get_reply_eligible_comments(department_id, from_date, to_date, skip, limit)
 
@@ -807,6 +849,7 @@ class TestIPulseSurveyRepositoryGetAnonymityStats:
 
     async def test_get_anonymity_stats_raises_not_implemented(self) -> None:
         """Test IPulseSurveyRepository.get_anonymity_stats raises NotImplementedError."""
+
         class TestRepo(IPulseSurveyRepository):
             async def get_by_id(self, entity_id: int) -> PulseSurvey | None:
                 return None
@@ -857,6 +900,7 @@ class TestIExperienceRatingRepositoryGetAnonymityStats:
 
     async def test_get_anonymity_stats_raises_not_implemented(self) -> None:
         """Test IExperienceRatingRepository.get_anonymity_stats raises NotImplementedError."""
+
         class TestRepo(IExperienceRatingRepository):
             async def get_by_id(self, entity_id: int) -> ExperienceRating | None:
                 return None

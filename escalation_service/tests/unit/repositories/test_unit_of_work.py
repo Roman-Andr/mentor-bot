@@ -3,7 +3,6 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-
 from escalation_service.repositories.unit_of_work import SqlAlchemyUnitOfWork, sqlalchemy_uow
 
 

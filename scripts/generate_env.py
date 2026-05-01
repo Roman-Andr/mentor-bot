@@ -28,7 +28,7 @@ def get_user_input(prompt: str, default: str = "", *, required: bool = True) -> 
             if default:
                 return default
             if required:
-                print("This field is required. Please enter a value.")  # noqa: T201
+                print("This field is required. Please enter a value.")
                 continue
             return ""
         return value
@@ -40,18 +40,18 @@ def main() -> None:
     env_file = Path(".env")
 
     if not env_example.exists():
-        print("Error: .env.example not found")  # noqa: T201
+        print("Error: .env.example not found")
         sys.exit(1)
 
-    print("=" * 70)  # noqa: T201
-    print("ENVIRONMENT FILE GENERATOR")  # noqa: T201
-    print("=" * 70)  # noqa: T201
-    print()  # noqa: T201
+    print("=" * 70)
+    print("ENVIRONMENT FILE GENERATOR")
+    print("=" * 70)
+    print()
 
     # Ask for domain first
     domain = get_user_input("Domain (e.g., example.com)")
     server_ip = get_user_input("Server IP address (e.g., 1.2.3.4)")
-    print()  # noqa: T201
+    print()
 
     # Variables to generate secrets for (key: generator function)
     auto_vars = {
@@ -82,8 +82,8 @@ def main() -> None:
     }
 
     # Collect user input
-    print("Please provide the following required values:")  # noqa: T201
-    print("-" * 70)  # noqa: T201
+    print("Please provide the following required values:")
+    print("-" * 70)
     user_values = {}
 
     # Telegram configuration
@@ -98,12 +98,12 @@ def main() -> None:
             "Telegram Proxy URL (for host machine proxy use host.docker.internal)",
             "socks5://host.docker.internal:1080",
         )
-    print()  # noqa: T201
+    print()
 
     # Other required values
     for key, description in user_input_vars.items():
         user_values[key] = get_user_input(f"{description}")
-    print()  # noqa: T201
+    print()
 
     # Read .env.example
     content = env_example.read_text()
@@ -157,22 +157,22 @@ def main() -> None:
     output_content = "\n".join(output_lines)
     env_file.write_text(output_content)
 
-    print("=" * 70)  # noqa: T201
-    print("✓ .env file generated successfully!")  # noqa: T201
-    print("=" * 70)  # noqa: T201
-    print()  # noqa: T201
-    print("The following secrets were auto-generated:")  # noqa: T201
+    print("=" * 70)
+    print("✓ .env file generated successfully!")
+    print("=" * 70)
+    print()
+    print("The following secrets were auto-generated:")
     for var, value in sorted(auto_values.items()):
-        print(f"  - {var}: {value}")  # noqa: T201
-    print()  # noqa: T201
-    print("You provided values for:")  # noqa: T201
+        print(f"  - {var}: {value}")
+    print()
+    print("You provided values for:")
     for var, value in sorted(user_values.items()):
-        print(f"  - {var}: {value}")  # noqa: T201
-    print(f"  - Domain: {domain}")  # noqa: T201
-    print(f"  - Server IP: {server_ip}")  # noqa: T201
+        print(f"  - {var}: {value}")
+    print(f"  - Domain: {domain}")
+    print(f"  - Server IP: {server_ip}")
     if telegram_proxy:
-        print(f"  - TELEGRAM_PROXY: {telegram_proxy}")  # noqa: T201
-    print()  # noqa: T201
+        print(f"  - TELEGRAM_PROXY: {telegram_proxy}")
+    print()
 
 
 if __name__ == "__main__":

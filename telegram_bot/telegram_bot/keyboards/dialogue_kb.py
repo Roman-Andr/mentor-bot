@@ -8,9 +8,7 @@ from telegram_bot.i18n import t
 from telegram_bot.keyboards.utils import create_inline_button
 
 
-def get_faq_menu_keyboard(
-    scenarios: list[dict], *, locale: str = "en"
-) -> InlineKeyboardMarkup:
+def get_faq_menu_keyboard(scenarios: list[dict], *, locale: str = "en") -> InlineKeyboardMarkup:
     """Create FAQ menu keyboard with scenarios."""
     builder = InlineKeyboardBuilder()
 
@@ -34,9 +32,7 @@ def get_faq_menu_keyboard(
     return builder.as_markup()
 
 
-def get_dialogue_step_keyboard(
-    step: dict, *, locale: str = "en"
-) -> InlineKeyboardMarkup:
+def get_dialogue_step_keyboard(step: dict, *, locale: str = "en") -> InlineKeyboardMarkup:
     """Create keyboard for a dialogue step based on answer_type."""
     builder = InlineKeyboardBuilder()
 

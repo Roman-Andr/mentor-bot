@@ -99,11 +99,11 @@ def require_hr_or_admin(current_user: CurrentUser) -> None:
 async def get_article_change_history(
     current_user: Annotated[CurrentUser, Depends()],
     uow: UnitOfWorkDep,
-    article_id: int | None = Query(None),
-    from_date: datetime | None = Query(None),
-    to_date: datetime | None = Query(None),
-    limit: int = Query(50, ge=1, le=100),
-    offset: int = Query(0, ge=0),
+    article_id: Annotated[int | None, Query()] = None,
+    from_date: Annotated[datetime | None, Query()] = None,
+    to_date: Annotated[datetime | None, Query()] = None,
+    limit: Annotated[int, Query(ge=1, le=100)] = 50,
+    offset: Annotated[int, Query(ge=0)] = 0,
 ) -> AuditResponse:
     """Get article change history for audit purposes (HR/Admin only)."""
     require_hr_or_admin(current_user)
@@ -128,12 +128,12 @@ async def get_article_change_history(
 async def get_article_view_history(
     current_user: Annotated[CurrentUser, Depends()],
     uow: UnitOfWorkDep,
-    article_id: int | None = Query(None),
-    user_id: int | None = Query(None),
-    from_date: datetime | None = Query(None),
-    to_date: datetime | None = Query(None),
-    limit: int = Query(50, ge=1, le=100),
-    offset: int = Query(0, ge=0),
+    article_id: Annotated[int | None, Query()] = None,
+    user_id: Annotated[int | None, Query()] = None,
+    from_date: Annotated[datetime | None, Query()] = None,
+    to_date: Annotated[datetime | None, Query()] = None,
+    limit: Annotated[int, Query(ge=1, le=100)] = 50,
+    offset: Annotated[int, Query(ge=0)] = 0,
 ) -> AuditResponse:
     """Get article view history for audit purposes (HR/Admin only)."""
     require_hr_or_admin(current_user)
@@ -144,9 +144,7 @@ async def get_article_view_history(
         )
         total = len(items)
     elif user_id:
-        items = await uow.article_view_history.get_by_user_id(
-            user_id=user_id, from_date=from_date, to_date=to_date
-        )
+        items = await uow.article_view_history.get_by_user_id(user_id=user_id, from_date=from_date, to_date=to_date)
         total = len(items)
     else:
         items, total = await uow.article_view_history.get_all(
@@ -163,11 +161,11 @@ async def get_article_view_history(
 async def get_category_change_history(
     current_user: Annotated[CurrentUser, Depends()],
     uow: UnitOfWorkDep,
-    category_id: int | None = Query(None),
-    from_date: datetime | None = Query(None),
-    to_date: datetime | None = Query(None),
-    limit: int = Query(50, ge=1, le=100),
-    offset: int = Query(0, ge=0),
+    category_id: Annotated[int | None, Query()] = None,
+    from_date: Annotated[datetime | None, Query()] = None,
+    to_date: Annotated[datetime | None, Query()] = None,
+    limit: Annotated[int, Query(ge=1, le=100)] = 50,
+    offset: Annotated[int, Query(ge=0)] = 0,
 ) -> AuditResponse:
     """Get category change history for audit purposes (HR/Admin only)."""
     require_hr_or_admin(current_user)
@@ -192,11 +190,11 @@ async def get_category_change_history(
 async def get_dialogue_scenario_change_history(
     current_user: Annotated[CurrentUser, Depends()],
     uow: UnitOfWorkDep,
-    scenario_id: int | None = Query(None),
-    from_date: datetime | None = Query(None),
-    to_date: datetime | None = Query(None),
-    limit: int = Query(50, ge=1, le=100),
-    offset: int = Query(0, ge=0),
+    scenario_id: Annotated[int | None, Query()] = None,
+    from_date: Annotated[datetime | None, Query()] = None,
+    to_date: Annotated[datetime | None, Query()] = None,
+    limit: Annotated[int, Query(ge=1, le=100)] = 50,
+    offset: Annotated[int, Query(ge=0)] = 0,
 ) -> AuditResponse:
     """Get dialogue scenario change history for audit purposes (HR/Admin only)."""
     require_hr_or_admin(current_user)

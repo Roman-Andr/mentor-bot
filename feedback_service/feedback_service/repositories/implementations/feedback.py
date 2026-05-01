@@ -153,7 +153,10 @@ class PulseSurveyRepository(DateFilterMixin, SqlAlchemyBaseRepository[PulseSurve
 
         result = await self._session.execute(query)
 
-        stats: dict = {"anonymous": {"average_rating": None, "count": 0}, "attributed": {"average_rating": None, "count": 0}}
+        stats: dict = {
+            "anonymous": {"average_rating": None, "count": 0},
+            "attributed": {"average_rating": None, "count": 0},
+        }
         for row in result.all():
             key = "anonymous" if row.is_anonymous else "attributed"
             stats[key] = {
@@ -164,7 +167,9 @@ class PulseSurveyRepository(DateFilterMixin, SqlAlchemyBaseRepository[PulseSurve
         return stats
 
 
-class ExperienceRatingRepository(DateFilterMixin, SqlAlchemyBaseRepository[ExperienceRating, int], IExperienceRatingRepository):
+class ExperienceRatingRepository(
+    DateFilterMixin, SqlAlchemyBaseRepository[ExperienceRating, int], IExperienceRatingRepository
+):
     """SQLAlchemy implementation of ExperienceRating repository."""
 
     def __init__(self, session: AsyncSession) -> None:
@@ -449,10 +454,7 @@ class CommentRepository(DateFilterMixin, SqlAlchemyBaseRepository[Comment, int],
         limit: int = 50,
     ) -> tuple[Sequence[Comment], int]:
         """Get comments that can be replied to (non-anonymous or anonymous with contact)."""
-        query = select(Comment).where(
-            (Comment.is_anonymous.is_(False)) |
-            (Comment.allow_contact.is_(True))
-        )
+        query = select(Comment).where((Comment.is_anonymous.is_(False)) | (Comment.allow_contact.is_(True)))
 
         if department_id:
             query = query.where(Comment.department_id == department_id)

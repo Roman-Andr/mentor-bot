@@ -14,7 +14,18 @@ from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
 from sqlalchemy import text
 
-from knowledge_service.api import analytics, articles, attachments, audit, categories, department_documents, dialogues, search, search_analytics, tags
+from knowledge_service.api import (
+    analytics,
+    articles,
+    attachments,
+    audit,
+    categories,
+    department_documents,
+    dialogues,
+    search,
+    search_analytics,
+    tags,
+)
 from knowledge_service.config import settings
 from knowledge_service.database import engine, init_db
 from knowledge_service.middleware.auth import AuthTokenMiddleware
@@ -86,7 +97,9 @@ app.add_middleware(RequestIDMiddleware)
 app.include_router(categories.router, prefix=f"{settings.API_V1_PREFIX}/categories", tags=["categories"])
 app.include_router(articles.router, prefix=f"{settings.API_V1_PREFIX}/articles", tags=["articles"])
 app.include_router(search.router, prefix=f"{settings.API_V1_PREFIX}/search", tags=["search"])
-app.include_router(search_analytics.router, prefix=f"{settings.API_V1_PREFIX}/knowledge/search-analytics", tags=["search-analytics"])
+app.include_router(
+    search_analytics.router, prefix=f"{settings.API_V1_PREFIX}/knowledge/search-analytics", tags=["search-analytics"]
+)
 app.include_router(tags.router, prefix=f"{settings.API_V1_PREFIX}/tags", tags=["tags"])
 app.include_router(attachments.router, prefix=f"{settings.API_V1_PREFIX}", tags=["attachments"])
 app.include_router(dialogues.router, prefix=f"{settings.API_V1_PREFIX}/dialogue-scenarios", tags=["dialogues"])

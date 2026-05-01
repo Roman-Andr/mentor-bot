@@ -4,7 +4,6 @@ from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-
 from checklists_service.core.enums import TemplateStatus
 from checklists_service.models import Template
 from checklists_service.repositories.unit_of_work import IUnitOfWork

@@ -4,8 +4,6 @@ from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from fastapi import HTTPException
-
 from checklists_service.api.deps import UserInfo
 from checklists_service.api.endpoints import templates
 from checklists_service.core import ConflictException, NotFoundException
@@ -16,24 +14,21 @@ from checklists_service.schemas import (
     TemplateResponse,
     TemplateUpdate,
 )
+from fastapi import HTTPException
 
 
 @pytest.fixture
 def sample_hr_user():
     """Create sample HR user."""
-    return UserInfo({
-        "id": 10, "email": "hr@example.com", "role": "HR",
-        "is_active": True, "employee_id": "HR001"
-    })
+    return UserInfo({"id": 10, "email": "hr@example.com", "role": "HR", "is_active": True, "employee_id": "HR001"})
 
 
 @pytest.fixture
 def sample_admin_user():
     """Create sample admin user."""
-    return UserInfo({
-        "id": 11, "email": "admin@example.com", "role": "ADMIN",
-        "is_active": True, "employee_id": "ADM001"
-    })
+    return UserInfo(
+        {"id": 11, "email": "admin@example.com", "role": "ADMIN", "is_active": True, "employee_id": "ADM001"}
+    )
 
 
 @pytest.fixture
@@ -409,18 +404,16 @@ class TestCreateTemplate:
 class TestGetTemplate:
     """Test GET /templates/{template_id} endpoint."""
 
-    async def test_get_template_with_tasks(
-        self, sample_hr_user, sample_template, sample_task_template  # noqa: ARG002
-    ) -> None:
+    async def test_get_template_with_tasks(self, sample_hr_user, sample_template, sample_task_template) -> None:
         """Test getting template with its tasks."""
         uow = MagicMock()
 
         with patch("checklists_service.api.endpoints.templates.TemplateService") as mock_cls:
             instance = MagicMock()
             mock_cls.return_value = instance
-            instance.get_template_with_tasks = AsyncMock(return_value=MagicMock(
-                id=1, name="Onboarding Template", tasks=[sample_task_template]
-            ))
+            instance.get_template_with_tasks = AsyncMock(
+                return_value=MagicMock(id=1, name="Onboarding Template", tasks=[sample_task_template])
+            )
 
             result = await templates.get_template(
                 template_id=1,

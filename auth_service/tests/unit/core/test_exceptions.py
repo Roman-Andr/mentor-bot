@@ -1,7 +1,5 @@
 """Unit tests for auth_service/core/exceptions.py."""
 
-import pytest
-
 from auth_service.core import AuthException, ConflictException, NotFoundException, PermissionDenied, ValidationException
 
 

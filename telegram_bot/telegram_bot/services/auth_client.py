@@ -14,14 +14,10 @@ class AuthServiceClient:
     def __init__(self, base_url: str | None = None) -> None:
         """Initialize auth service HTTP client."""
         self.base_url = base_url or settings.AUTH_SERVICE_URL
-        self.client = httpx.AsyncClient(
-            base_url=self.base_url, timeout=settings.SERVICE_TIMEOUT
-        )
+        self.client = httpx.AsyncClient(base_url=self.base_url, timeout=settings.SERVICE_TIMEOUT)
 
     @cached(ttl=300, key_prefix="auth_user")
-    async def get_user_by_telegram_id(
-        self, telegram_id: int, auth_token: str
-    ) -> dict | None:
+    async def get_user_by_telegram_id(self, telegram_id: int, auth_token: str) -> dict | None:
         """Get user by Telegram ID (cached)."""
         logger.debug("Fetching user by telegram_id (telegram_id={})", telegram_id)
         try:
@@ -32,7 +28,9 @@ class AuthServiceClient:
             if response.status_code == status.HTTP_200_OK:
                 logger.debug("User found by telegram_id (telegram_id={})", telegram_id)
                 return response.json()
-            logger.warning("User not found by telegram_id (telegram_id={}, status={})", telegram_id, response.status_code)
+            logger.warning(
+                "User not found by telegram_id (telegram_id={}, status={})", telegram_id, response.status_code
+            )
         except httpx.RequestError:
             logger.exception("Auth service request failed (telegram_id={})", telegram_id)
         return None
@@ -49,14 +47,16 @@ class AuthServiceClient:
             if response.status_code == status.HTTP_200_OK:
                 logger.info("Telegram authentication successful (telegram_id={})", telegram_data.get("telegram_id"))
                 return response.json()
-            logger.warning("Telegram authentication failed (telegram_id={}, status={})", telegram_data.get("telegram_id"), response.status_code)
+            logger.warning(
+                "Telegram authentication failed (telegram_id={}, status={})",
+                telegram_data.get("telegram_id"),
+                response.status_code,
+            )
         except httpx.RequestError:
             logger.exception("Auth service authentication failed (telegram_id={})", telegram_data.get("telegram_id"))
         return None
 
-    async def register_with_invitation(
-        self, token: str, telegram_data: dict
-    ) -> dict | None:
+    async def register_with_invitation(self, token: str, telegram_data: dict) -> dict | None:
         """Register user with invitation token."""
         logger.debug("Registering with invitation (telegram_id={})", telegram_data.get("telegram_id"))
         try:
@@ -68,7 +68,11 @@ class AuthServiceClient:
             if response.status_code == status.HTTP_200_OK:
                 logger.info("Registration successful (telegram_id={})", telegram_data.get("telegram_id"))
                 return response.json()
-            logger.warning("Registration failed (telegram_id={}, status={})", telegram_data.get("telegram_id"), response.status_code)
+            logger.warning(
+                "Registration failed (telegram_id={}, status={})",
+                telegram_data.get("telegram_id"),
+                response.status_code,
+            )
         except httpx.RequestError:
             logger.exception("Auth service registration failed (telegram_id={})", telegram_data.get("telegram_id"))
         return None
@@ -120,9 +124,7 @@ class AuthServiceClient:
             logger.exception("Auth service get mentor failed (mentor_id={})", mentor_id)
         return None
 
-    async def list_users(
-        self, auth_token: str, *, page: int = 1, size: int = 20
-    ) -> dict | None:
+    async def list_users(self, auth_token: str, *, page: int = 1, size: int = 20) -> dict | None:
         """List users for admin panel."""
         logger.debug("Listing users (page={}, size={})", page, size)
         try:
@@ -194,6 +196,7 @@ class AuthServiceClient:
         except httpx.RequestError:
             logger.exception("Auth service update preferences failed (user_id={})", user_id)
         return None
+
 
 # Singleton instance
 auth_client = AuthServiceClient()

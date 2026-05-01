@@ -4,11 +4,10 @@ from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from checklists_service.core.enums import TaskStatus
 from checklists_service.models import Task
 from checklists_service.repositories.implementations.task import TaskRepository
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class TestTaskRepository:
@@ -336,32 +335,24 @@ class TestTaskRepository:
         assert result == []
         mock_session.execute.assert_not_called()
 
-    async def test_find_by_checklist_combined_filters(
-        self, repository, mock_session, sample_task
-    ):
+    async def test_find_by_checklist_combined_filters(self, repository, mock_session, sample_task):
         """Test finding tasks with multiple filters combined."""
         mock_result = MagicMock()
         mock_result.scalars.return_value.all.return_value = [sample_task]
         mock_session.execute.return_value = mock_result
 
-        result = await repository.find_by_checklist(
-            1, status="PENDING", category="DOCUMENTATION", overdue_only=True
-        )
+        result = await repository.find_by_checklist(1, status="PENDING", category="DOCUMENTATION", overdue_only=True)
 
         assert len(result) == 1
 
-    async def test_find_assigned_combined_filters(
-        self, repository, mock_session, sample_task
-    ):
+    async def test_find_assigned_combined_filters(self, repository, mock_session, sample_task):
         """Test finding assigned tasks with status filter and pagination."""
         mock_result = MagicMock()
         mock_result.scalar_one.return_value = 10
         mock_result.scalars.return_value.all.return_value = [sample_task]
         mock_session.execute.return_value = mock_result
 
-        tasks, total = await repository.find_assigned(
-            2, status="PENDING", skip=5, limit=10
-        )
+        tasks, total = await repository.find_assigned(2, status="PENDING", skip=5, limit=10)
 
         assert total == 10
         assert len(tasks) == 1

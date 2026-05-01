@@ -50,9 +50,7 @@ class DepartmentService:
         logger.debug("Creating department (name={})", department_data.name)
         existing = await self._uow.departments.get_by_name(department_data.name)
         if existing:
-            logger.warning(
-                "Create department conflict: name already exists ({})", department_data.name
-            )
+            logger.warning("Create department conflict: name already exists ({})", department_data.name)
             msg = "Department with this name already exists"
             raise ConflictException(msg)
 

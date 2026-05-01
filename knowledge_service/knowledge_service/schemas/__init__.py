@@ -23,13 +23,6 @@ from knowledge_service.schemas.attachment import (
     BatchUploadResponse,
     FileUploadError,
 )
-from knowledge_service.schemas.department_document import (
-    DepartmentDocumentBase,
-    DepartmentDocumentCreate,
-    DepartmentDocumentListResponse,
-    DepartmentDocumentResponse,
-    DepartmentDocumentUpdate,
-)
 from knowledge_service.schemas.category import (
     CategoryBase,
     CategoryCreate,
@@ -37,6 +30,13 @@ from knowledge_service.schemas.category import (
     CategoryResponse,
     CategoryUpdate,
     CategoryWithArticles,
+)
+from knowledge_service.schemas.department_document import (
+    DepartmentDocumentBase,
+    DepartmentDocumentCreate,
+    DepartmentDocumentListResponse,
+    DepartmentDocumentResponse,
+    DepartmentDocumentUpdate,
 )
 from knowledge_service.schemas.dialogue import (
     DialogueScenarioCreate,

@@ -1,9 +1,6 @@
 """Knowledge analytics schemas for request/response validation."""
 
-from datetime import datetime
-from typing import Literal
-
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 class TopArticleStats(BaseModel):

@@ -4,11 +4,10 @@ from collections.abc import Sequence
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from meeting_service.models.meeting import Meeting
 from meeting_service.repositories.implementations.base import SqlAlchemyBaseRepository
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 @pytest.fixture

@@ -27,14 +27,10 @@ def get_feedback_menu_keyboard(*, locale: str = "en") -> InlineKeyboardMarkup:
             callback_data="comments_suggestions",
             style=ButtonStyle.PRIMARY,
         ),
-        create_inline_button(
-            f"\u2190 {t('common.menu_button', locale=locale)}", callback_data="menu"
-        ),
+        create_inline_button(f"\u2190 {t('common.menu_button', locale=locale)}", callback_data="menu"),
     )
     builder.adjust(1)
     return builder.as_markup()
-
-
 
 
 def get_pulse_rating_keyboard(*, locale: str = "en", is_anonymous: bool = False) -> InlineKeyboardMarkup:

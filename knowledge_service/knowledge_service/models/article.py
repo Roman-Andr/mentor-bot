@@ -20,7 +20,9 @@ from knowledge_service.database import Base
 from knowledge_service.models.association import article_tags
 
 if TYPE_CHECKING:
-    from knowledge_service.models import Attachment, Category, Tag
+    from knowledge_service.models.attachment import Attachment
+    from knowledge_service.models.category import Category
+    from knowledge_service.models.tag import Tag
 
 
 class Article(Base):

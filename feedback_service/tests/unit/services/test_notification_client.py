@@ -3,7 +3,6 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
 from feedback_service.services.notification_client import NotificationClient
 
 

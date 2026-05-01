@@ -4,7 +4,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
 import pytest
-
 from auth_service.utils.integrations import (
     ChecklistsServiceClient,
     NotificationServiceClient,

@@ -4,7 +4,6 @@ from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-
 from checklists_service.core import ConflictException, NotFoundException, ValidationException
 from checklists_service.core.enums import TemplateStatus
 from checklists_service.models import TaskTemplate, Template
@@ -15,9 +14,7 @@ from checklists_service.services import TemplateService
 class TestTemplateServiceCreate:
     """Test template creation."""
 
-    async def test_create_template_success(
-        self, mock_uow: MagicMock, sample_datetime: datetime
-    ) -> None:
+    async def test_create_template_success(self, mock_uow: MagicMock, sample_datetime: datetime) -> None:
         """Test successful template creation."""
         mock_uow.templates.get_by_name_and_department.return_value = None
         mock_uow.templates.create.return_value = Template(
@@ -56,9 +53,7 @@ class TestTemplateServiceCreate:
         assert result.status == TemplateStatus.DRAFT
         mock_uow.templates.create.assert_called_once()
 
-    async def test_create_template_duplicate_name_fails(
-        self, mock_uow: MagicMock, sample_template: Template
-    ) -> None:
+    async def test_create_template_duplicate_name_fails(self, mock_uow: MagicMock, sample_template: Template) -> None:
         """Test template creation fails with duplicate name in same department."""
         mock_uow.templates.get_by_name_and_department.return_value = sample_template
 
@@ -118,9 +113,7 @@ class TestTemplateServiceGet:
 class TestTemplateServiceUpdate:
     """Test template updates."""
 
-    async def test_update_template_success(
-        self, mock_uow: MagicMock, sample_template: Template
-    ) -> None:
+    async def test_update_template_success(self, mock_uow: MagicMock, sample_template: Template) -> None:
         """Test successful template update."""
         mock_uow.templates.get_by_id.return_value = sample_template
         mock_uow.templates.update.return_value = sample_template
@@ -135,9 +128,7 @@ class TestTemplateServiceUpdate:
         assert result.name == "Updated Name"
         assert result.description == "Updated description"
 
-    async def test_update_template_set_default(
-        self, mock_uow: MagicMock, sample_template: Template
-    ) -> None:
+    async def test_update_template_set_default(self, mock_uow: MagicMock, sample_template: Template) -> None:
         """Test setting template as default clears others."""
         mock_uow.templates.get_by_id.return_value = sample_template
         mock_uow.templates.clear_other_defaults.return_value = None
@@ -163,9 +154,7 @@ class TestTemplateServiceUpdate:
 class TestTemplateServiceDelete:
     """Test template deletion."""
 
-    async def test_delete_template_success(
-        self, mock_uow: MagicMock, sample_template_draft: Template
-    ) -> None:
+    async def test_delete_template_success(self, mock_uow: MagicMock, sample_template_draft: Template) -> None:
         """Test successful template deletion."""
         mock_uow.templates.get_by_id.return_value = sample_template_draft
         mock_uow.templates.has_checklists.return_value = False
@@ -175,9 +164,7 @@ class TestTemplateServiceDelete:
 
         mock_uow.templates.delete.assert_called_once_with(2)
 
-    async def test_delete_template_active_fails(
-        self, mock_uow: MagicMock, sample_template: Template
-    ) -> None:
+    async def test_delete_template_active_fails(self, mock_uow: MagicMock, sample_template: Template) -> None:
         """Test deletion fails for active template."""
         mock_uow.templates.get_by_id.return_value = sample_template
 
@@ -221,9 +208,7 @@ class TestTemplateServiceList:
         assert len(templates) == 1
         assert total == 1
 
-    async def test_get_templates_with_filters(
-        self, mock_uow: MagicMock, sample_template: Template
-    ) -> None:
+    async def test_get_templates_with_filters(self, mock_uow: MagicMock, sample_template: Template) -> None:
         """Test getting templates with filters."""
         mock_uow.templates.find_templates.return_value = ([sample_template], 1)
 
@@ -329,9 +314,7 @@ class TestTemplateServiceAddTask:
         assert result.title == "New Task"
         assert result.depends_on == [1, 2]
 
-    async def test_add_task_to_archived_template_fails(
-        self, mock_uow: MagicMock, sample_template: Template
-    ) -> None:
+    async def test_add_task_to_archived_template_fails(self, mock_uow: MagicMock, sample_template: Template) -> None:
         """Test adding task to archived template fails."""
         sample_template.status = TemplateStatus.ARCHIVED
         mock_uow.templates.get_by_id.return_value = sample_template
@@ -376,9 +359,7 @@ class TestTemplateServiceAddTask:
 class TestTemplateServicePublish:
     """Test template publishing."""
 
-    async def test_publish_template_success(
-        self, mock_uow: MagicMock, sample_template_draft: Template
-    ) -> None:
+    async def test_publish_template_success(self, mock_uow: MagicMock, sample_template_draft: Template) -> None:
         """Test successful template publishing."""
         mock_uow.templates.get_by_id.return_value = sample_template_draft
         mock_uow.templates.count_tasks.return_value = 5
@@ -390,9 +371,7 @@ class TestTemplateServicePublish:
 
         assert result.status == TemplateStatus.ACTIVE
 
-    async def test_publish_already_active_template(
-        self, mock_uow: MagicMock, sample_template: Template
-    ) -> None:
+    async def test_publish_already_active_template(self, mock_uow: MagicMock, sample_template: Template) -> None:
         """Test publishing already active template returns as-is."""
         mock_uow.templates.get_by_id.return_value = sample_template
 
@@ -402,9 +381,7 @@ class TestTemplateServicePublish:
         assert result.status == TemplateStatus.ACTIVE
         mock_uow.templates.update.assert_not_called()
 
-    async def test_publish_template_no_tasks_fails(
-        self, mock_uow: MagicMock, sample_template_draft: Template
-    ) -> None:
+    async def test_publish_template_no_tasks_fails(self, mock_uow: MagicMock, sample_template_draft: Template) -> None:
         """Test publishing template without tasks fails."""
         mock_uow.templates.get_by_id.return_value = sample_template_draft
         mock_uow.templates.count_tasks.return_value = 0
@@ -468,9 +445,7 @@ class TestTemplateServiceCreateLogging:
         assert result.id == 1
         mock_uow.templates.create.assert_called_once()
 
-    async def test_create_template_conflict_logs_warning(
-        self, mock_uow: MagicMock, sample_template: Template
-    ) -> None:
+    async def test_create_template_conflict_logs_warning(self, mock_uow: MagicMock, sample_template: Template) -> None:
         """Test template creation conflict logs warning."""
         mock_uow.templates.get_by_name_and_department.return_value = sample_template
 
@@ -490,9 +465,7 @@ class TestTemplateServiceCreateLogging:
 class TestTemplateServiceUpdateLogging:
     """Test template update with logging coverage."""
 
-    async def test_update_template_logs_debug_and_info(
-        self, mock_uow: MagicMock, sample_template: Template
-    ) -> None:
+    async def test_update_template_logs_debug_and_info(self, mock_uow: MagicMock, sample_template: Template) -> None:
         """Test template update logs debug and info messages."""
         mock_uow.templates.get_by_id.return_value = sample_template
         mock_uow.templates.update.return_value = sample_template
@@ -525,9 +498,7 @@ class TestTemplateServiceUpdateLogging:
 class TestTemplateServiceGetTemplatesLogging:
     """Test get_templates with logging coverage."""
 
-    async def test_get_templates_with_all_filters(
-        self, mock_uow: MagicMock, sample_template: Template
-    ) -> None:
+    async def test_get_templates_with_all_filters(self, mock_uow: MagicMock, sample_template: Template) -> None:
         """Test getting templates with all filter options."""
         mock_uow.templates.find_templates.return_value = ([sample_template], 1)
 
@@ -547,14 +518,12 @@ class TestTemplateServiceGetTemplatesLogging:
         assert total == 1
         mock_uow.templates.find_templates.assert_called_once()
 
-    async def test_get_templates_with_desc_sort(
-        self, mock_uow: MagicMock, sample_template: Template
-    ) -> None:
+    async def test_get_templates_with_desc_sort(self, mock_uow: MagicMock, sample_template: Template) -> None:
         """Test getting templates with descending sort order."""
         mock_uow.templates.find_templates.return_value = ([sample_template], 1)
 
         service = TemplateService(mock_uow)
-        templates, total = await service.get_templates(
+        templates, _total = await service.get_templates(
             skip=10,
             limit=25,
             sort_by="created_at",
@@ -614,9 +583,7 @@ class TestTemplateServiceIntegration:
         with pytest.raises(ConflictException, match="Template with this name already exists"):
             await service.create_template(template_data)
 
-    async def test_update_template_executes_real_code(
-        self, mock_uow: MagicMock, sample_template: Template
-    ) -> None:
+    async def test_update_template_executes_real_code(self, mock_uow: MagicMock, sample_template: Template) -> None:
         """Test that update_template executes real code including logging."""
         mock_uow.templates.get_by_id.return_value = sample_template
         mock_uow.templates.update.return_value = sample_template
@@ -654,9 +621,7 @@ class TestTemplateServiceIntegration:
         mock_uow.templates.clear_other_defaults.assert_not_called()
         mock_uow.templates.update.assert_called_once()
 
-    async def test_get_template_not_found_executes_real_code(
-        self, mock_uow: MagicMock
-    ) -> None:
+    async def test_get_template_not_found_executes_real_code(self, mock_uow: MagicMock) -> None:
         """Test that get_template executes real code including warning log."""
         mock_uow.templates.get_by_id.return_value = None
 
@@ -669,8 +634,6 @@ class TestTemplateServiceIntegration:
         self, mock_uow: MagicMock, sample_template: Template
     ) -> None:
         """Test that get_templates with status filter executes real code."""
-        from checklists_service.core.enums import TemplateStatus
-
         mock_uow.templates.find_templates.return_value = ([sample_template], 1)
 
         service = TemplateService(mock_uow)
@@ -796,9 +759,7 @@ class TestTemplateServiceIntegration:
         with pytest.raises(ValidationException, match="Cannot publish template without tasks"):
             await service.publish_template(2)
 
-    async def test_clone_template_executes_real_code(
-        self, mock_uow: MagicMock, sample_template: Template
-    ) -> None:
+    async def test_clone_template_executes_real_code(self, mock_uow: MagicMock, sample_template: Template) -> None:
         """Test that clone_template executes real code including logging."""
         mock_uow.templates.get_by_id.return_value = sample_template
         mock_uow.templates.create.return_value = sample_template

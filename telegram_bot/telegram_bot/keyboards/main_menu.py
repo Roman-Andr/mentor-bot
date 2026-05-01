@@ -70,14 +70,8 @@ def get_main_menu_keyboard(
                 style=ButtonStyle.PRIMARY,
             )
         )
-        builder.add(
-            create_keyboard_button(f"\u2139\ufe0f {t('buttons.help', locale=locale)}")
-        )
-        builder.add(
-            create_keyboard_button(
-                f"\u2699\ufe0f {t('buttons.settings', locale=locale)}"
-            )
-        )
+        builder.add(create_keyboard_button(f"\u2139\ufe0f {t('buttons.help', locale=locale)}"))
+        builder.add(create_keyboard_button(f"\u2699\ufe0f {t('buttons.settings', locale=locale)}"))
 
         # Add admin button if user has admin role
         if _is_admin(user):
@@ -95,9 +89,7 @@ def get_main_menu_keyboard(
     return builder.as_markup(resize_keyboard=True)
 
 
-def get_inline_main_menu(
-    user: dict | None = None, locale: str = "en"
-) -> InlineKeyboardMarkup:
+def get_inline_main_menu(user: dict | None = None, locale: str = "en") -> InlineKeyboardMarkup:
     """Create inline main menu matching TZ layout: 2 columns."""
     builder = InlineKeyboardBuilder()
 
@@ -177,9 +169,7 @@ def get_inline_main_menu(
             callback_data="settings_menu",
             style=ButtonStyle.PRIMARY,
         ),
-        create_inline_button(
-            f"\u2139\ufe0f {t('buttons.help', locale=locale)}", callback_data="help"
-        ),
+        create_inline_button(f"\u2139\ufe0f {t('buttons.help', locale=locale)}", callback_data="help"),
     )
 
     # Row 8: Admin (if applicable)

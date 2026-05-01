@@ -55,9 +55,7 @@ async def create_user_mentor(
         data.mentor_id,
     )
     if data.user_id == data.mentor_id:
-        logger.warning(
-            "User-mentor rejected: same user and mentor (id={})", data.user_id
-        )
+        logger.warning("User-mentor rejected: same user and mentor (id={})", data.user_id)
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail="User cannot be their own mentor",
@@ -118,9 +116,7 @@ async def update_user_mentor(
     )
     relation = await uow.user_mentors.get_by_id(relation_id)
     if not relation:
-        logger.warning(
-            "User-mentor relation not found (relation_id={})", relation_id
-        )
+        logger.warning("User-mentor relation not found (relation_id={})", relation_id)
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Relation not found",
@@ -148,9 +144,7 @@ async def delete_user_mentor(
     )
     deleted = await uow.user_mentors.delete(relation_id)
     if not deleted:
-        logger.warning(
-            "Delete user-mentor: relation not found (relation_id={})", relation_id
-        )
+        logger.warning("Delete user-mentor: relation not found (relation_id={})", relation_id)
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Relation not found",

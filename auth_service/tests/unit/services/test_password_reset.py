@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
+from typing import TYPE_CHECKING
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-
 from auth_service.services.password_reset import PasswordResetService
+
+if TYPE_CHECKING:
+    from auth_service.models import PasswordResetToken
 
 
 class TestPasswordResetService:

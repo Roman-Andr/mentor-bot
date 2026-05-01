@@ -3,7 +3,6 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
-
 from telegram_bot.services.checklists_client import ChecklistsServiceClient, checklists_client
 
 
@@ -38,6 +37,7 @@ class TestChecklistsServiceClient:
     async def test_get_user_checklists_request_error(self, mock_get):
         """Test getting user checklists - request error."""
         import httpx
+
         mock_get.side_effect = httpx.RequestError("Connection failed")
 
         result = await self.client.get_user_checklists(self.user_id, self.auth_token)
@@ -162,6 +162,7 @@ class TestChecklistsServiceClient:
     async def test_get_admin_stats_error(self, mock_get):
         """Test getting admin stats - error returns defaults."""
         import httpx
+
         mock_get.side_effect = httpx.RequestError("Connection failed")
 
         result = await self.client.get_admin_stats(self.auth_token)
@@ -181,7 +182,7 @@ class TestChecklistsServiceClient:
             file_content=b"file content",
             filename="test.pdf",
             auth_token=self.auth_token,
-            description="Test file"
+            description="Test file",
         )
 
         assert result is not None
@@ -290,6 +291,7 @@ class TestChecklistsClientEdgeCases:
     async def test_get_checklist_tasks_request_error(self, mock_get):
         """Test getting checklist tasks with request error."""
         import httpx
+
         mock_get.side_effect = httpx.RequestError("Connection failed")
 
         result = await self.client.get_checklist_tasks(1, self.auth_token)
@@ -311,6 +313,7 @@ class TestChecklistsClientEdgeCases:
     async def test_get_assigned_tasks_request_error(self, mock_get):
         """Test getting assigned tasks with request error."""
         import httpx
+
         mock_get.side_effect = httpx.RequestError("Timeout")
 
         result = await self.client.get_assigned_tasks(self.auth_token)
@@ -333,6 +336,7 @@ class TestChecklistsClientEdgeCases:
     async def test_update_task_status_request_error(self, mock_put):
         """Test updating task status with request error."""
         import httpx
+
         mock_put.side_effect = httpx.RequestError("Network error")
 
         result = await self.client.update_task_status(1, "in_progress", self.auth_token)
@@ -369,6 +373,7 @@ class TestChecklistsClientEdgeCases:
     async def test_complete_task_request_error(self, mock_post):
         """Test completing task with request error."""
         import httpx
+
         mock_post.side_effect = httpx.RequestError("Connection lost")
 
         result = await self.client.complete_task(1, self.auth_token)
@@ -390,6 +395,7 @@ class TestChecklistsClientEdgeCases:
     async def test_get_checklist_progress_request_error(self, mock_get):
         """Test getting checklist progress with request error."""
         import httpx
+
         mock_get.side_effect = httpx.RequestError("Server unavailable")
 
         result = await self.client.get_checklist_progress(1, self.auth_token)
@@ -411,6 +417,7 @@ class TestChecklistsClientEdgeCases:
     async def test_get_templates_request_error(self, mock_get):
         """Test getting templates with request error."""
         import httpx
+
         mock_get.side_effect = httpx.RequestError("Timeout")
 
         result = await self.client.get_templates(self.auth_token)
@@ -432,6 +439,7 @@ class TestChecklistsClientEdgeCases:
     async def test_get_overdue_tasks_request_error(self, mock_get):
         """Test getting overdue tasks with request error."""
         import httpx
+
         mock_get.side_effect = httpx.RequestError("Network error")
 
         result = await self.client.get_overdue_tasks(self.auth_token)
@@ -469,7 +477,8 @@ class TestChecklistsClientEdgeCases:
 
     @patch("telegram_bot.services.checklists_client.httpx.AsyncClient.get")
     async def test_get_task_details_checklist_id_task_not_in_list(self, mock_get):
-        """Test get_task_details when checklist_id provided but task not found in checklist tasks.
+        """
+        Test get_task_details when checklist_id provided but task not found in checklist tasks.
 
         When checklist_id is provided, get_checklist_tasks returns tasks,
         but none match the task_id - should fall through to return None.
@@ -480,7 +489,10 @@ class TestChecklistsClientEdgeCases:
         # Second call (checklist tasks): returns tasks but not the one we're looking for
         mock_response.json.side_effect = [
             [{"id": 100, "title": "Other assigned task"}],  # assigned tasks - no match
-            [{"id": 200, "title": "Checklist task 1"}, {"id": 300, "title": "Checklist task 2"}],  # checklist tasks - no match for task_id=1
+            [
+                {"id": 200, "title": "Checklist task 1"},
+                {"id": 300, "title": "Checklist task 2"},
+            ],  # checklist tasks - no match for task_id=1
         ]
         mock_get.return_value = mock_response
 
@@ -490,7 +502,8 @@ class TestChecklistsClientEdgeCases:
 
     @patch("telegram_bot.services.checklists_client.httpx.AsyncClient.get")
     async def test_get_task_details_found_in_checklist_tasks(self, mock_get):
-        """Test get_task_details when task is found in checklist tasks (line 150).
+        """
+        Test get_task_details when task is found in checklist tasks (line 150).
 
         Covers line 150: when checklist_id is provided and task IS found in checklist tasks,
         the method returns the task from the checklist lookup.
@@ -502,7 +515,11 @@ class TestChecklistsClientEdgeCases:
         # Second call (checklist tasks): returns tasks including the target
         mock_response.json.side_effect = [
             [{"id": 100, "title": "Other assigned task"}],  # assigned tasks - no match
-            [{"id": 200, "title": "Checklist task 1"}, target_task, {"id": 300, "title": "Checklist task 2"}],  # checklist tasks - includes task_id=1
+            [
+                {"id": 200, "title": "Checklist task 1"},
+                target_task,
+                {"id": 300, "title": "Checklist task 2"},
+            ],  # checklist tasks - includes task_id=1
         ]
         mock_get.return_value = mock_response
 
@@ -516,6 +533,7 @@ class TestChecklistsClientEdgeCases:
     async def test_get_task_details_request_error(self, mock_get):
         """Test getting task details with request error."""
         import httpx
+
         mock_get.side_effect = httpx.RequestError("Error")
 
         result = await self.client.get_task_details(1, self.auth_token)
@@ -543,6 +561,7 @@ class TestChecklistsClientEdgeCases:
     async def test_upload_task_attachment_request_error(self, mock_post):
         """Test uploading attachment with request error."""
         import httpx
+
         mock_post.side_effect = httpx.RequestError("Upload failed")
 
         result = await self.client.upload_task_attachment(
@@ -589,6 +608,7 @@ class TestChecklistsClientEdgeCases:
     async def test_get_task_attachments_request_error(self, mock_get):
         """Test getting attachments with request error."""
         import httpx
+
         mock_get.side_effect = httpx.RequestError("Error")
 
         result = await self.client.get_task_attachments(1, self.auth_token)
@@ -610,6 +630,7 @@ class TestChecklistsClientEdgeCases:
     async def test_download_task_attachment_request_error(self, mock_get):
         """Test downloading attachment with request error."""
         import httpx
+
         mock_get.side_effect = httpx.RequestError("Download failed")
 
         result = await self.client.download_task_attachment(1, "file.pdf", self.auth_token)

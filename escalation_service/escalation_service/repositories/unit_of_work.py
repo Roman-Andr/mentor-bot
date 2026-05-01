@@ -6,8 +6,16 @@ from typing import Protocol, Self, runtime_checkable
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from escalation_service.repositories.implementations import EscalationRepository, EscalationStatusHistoryRepository, MentorInterventionHistoryRepository
-from escalation_service.repositories.interfaces import IEscalationRepository, IEscalationStatusHistoryRepository, IMentorInterventionHistoryRepository
+from escalation_service.repositories.implementations import (
+    EscalationRepository,
+    EscalationStatusHistoryRepository,
+    MentorInterventionHistoryRepository,
+)
+from escalation_service.repositories.interfaces import (
+    IEscalationRepository,
+    IEscalationStatusHistoryRepository,
+    IMentorInterventionHistoryRepository,
+)
 
 
 @runtime_checkable

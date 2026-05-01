@@ -3,11 +3,10 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from starlette.requests import Request
-from starlette.responses import Response
-
 from escalation_service.middleware.request_id import RequestIDMiddleware
 from escalation_service.utils.logging import request_id_var
+from starlette.requests import Request
+from starlette.responses import Response
 
 
 def _build_request() -> Request:

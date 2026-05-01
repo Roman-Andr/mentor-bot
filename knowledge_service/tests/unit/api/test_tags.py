@@ -1,10 +1,11 @@
 """Tests for tag API endpoints."""
 
 from typing import TYPE_CHECKING
+from unittest.mock import AsyncMock
 
 import pytest
 from fastapi import HTTPException, status
-
+from knowledge_service.api.deps import UserInfo
 from knowledge_service.api.endpoints.tags import (
     create_tag,
     delete_tag,
@@ -19,9 +20,7 @@ from knowledge_service.core import NotFoundException, ValidationException
 from knowledge_service.schemas import TagCreate, TagResponse, TagUpdate
 
 if TYPE_CHECKING:
-    from unittest.mock import AsyncMock
-
-    from knowledge_service.api.deps import UserInfo
+    pass
 
 
 class TestGetTags:

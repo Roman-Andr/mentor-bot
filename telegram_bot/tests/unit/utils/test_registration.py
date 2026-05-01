@@ -3,7 +3,6 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
 from telegram_bot.utils.registration import register_by_token
 
 
@@ -64,10 +63,12 @@ class TestRegisterByToken:
         """Test when registration succeeds but user data fetch fails."""
         mock_validate.return_value = True
         mock_auth.validate_invitation_token = AsyncMock(return_value={"token": "valid"})
-        mock_auth.register_with_invitation = AsyncMock(return_value={
-            "access_token": "access_123",
-            "refresh_token": "refresh_123",
-        })
+        mock_auth.register_with_invitation = AsyncMock(
+            return_value={
+                "access_token": "access_123",
+                "refresh_token": "refresh_123",
+            }
+        )
         mock_auth.get_current_user = AsyncMock(return_value=None)
 
         success, result = await register_by_token("valid_token", self.mock_tg_user, self.mock_state)
@@ -82,10 +83,12 @@ class TestRegisterByToken:
         """Test successful registration with user caching."""
         mock_validate.return_value = True
         mock_auth.validate_invitation_token = AsyncMock(return_value={"token": "valid"})
-        mock_auth.register_with_invitation = AsyncMock(return_value={
-            "access_token": "access_123",
-            "refresh_token": "refresh_123",
-        })
+        mock_auth.register_with_invitation = AsyncMock(
+            return_value={
+                "access_token": "access_123",
+                "refresh_token": "refresh_123",
+            }
+        )
         user_data = {"id": 1, "first_name": "John", "email": "john@example.com"}
         mock_auth.get_current_user = AsyncMock(return_value=user_data)
         mock_cache.set_user = AsyncMock(return_value=True)

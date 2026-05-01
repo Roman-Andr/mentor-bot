@@ -1,7 +1,6 @@
 """Tests for custom exceptions - covering line 56 (ConflictException)."""
 
 from fastapi import status
-
 from knowledge_service.core.exceptions import (
     AuthException,
     ConflictException,

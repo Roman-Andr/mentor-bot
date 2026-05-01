@@ -5,7 +5,6 @@ from typing import Never
 import pytest
 from fastapi import status
 from httpx import RequestError, Response
-
 from telegram_bot.services.escalation_client import EscalationServiceClient
 
 
@@ -64,7 +63,7 @@ class TestCreateEscalation:
         for category, expected_type in test_cases:
             captured_payload = {}
 
-            async def mock_post(*args, **kwargs):
+            async def mock_post(*args, captured_payload=captured_payload, **kwargs):
                 captured_payload["json"] = kwargs.get("json", {})
                 return Response(
                     status_code=status.HTTP_201_CREATED,
@@ -305,9 +304,7 @@ class TestUpdateEscalationStatus:
 
         monkeypatch.setattr(escalation_client.client, "patch", mock_patch)
 
-        result = await escalation_client.update_escalation_status(
-            1, "RESOLVED", "test-token"
-        )
+        result = await escalation_client.update_escalation_status(1, "RESOLVED", "test-token")
         assert result is not None
         assert result["status"] == "RESOLVED"
 
@@ -321,9 +318,7 @@ class TestUpdateEscalationStatus:
 
         monkeypatch.setattr(escalation_client.client, "patch", mock_patch)
 
-        result = await escalation_client.update_escalation_status(
-            1, "RESOLVED", "test-token", notes="Issue fixed"
-        )
+        result = await escalation_client.update_escalation_status(1, "RESOLVED", "test-token", notes="Issue fixed")
         assert result is not None
         assert captured_json["data"].get("notes") == "Issue fixed"
 
@@ -335,9 +330,7 @@ class TestUpdateEscalationStatus:
 
         monkeypatch.setattr(escalation_client.client, "patch", mock_patch)
 
-        result = await escalation_client.update_escalation_status(
-            1, "RESOLVED", "test-token"
-        )
+        result = await escalation_client.update_escalation_status(1, "RESOLVED", "test-token")
         assert result is None
 
     async def test_update_escalation_status_request_error(self, escalation_client, monkeypatch):
@@ -349,7 +342,5 @@ class TestUpdateEscalationStatus:
 
         monkeypatch.setattr(escalation_client.client, "patch", mock_patch)
 
-        result = await escalation_client.update_escalation_status(
-            1, "RESOLVED", "test-token"
-        )
+        result = await escalation_client.update_escalation_status(1, "RESOLVED", "test-token")
         assert result is None

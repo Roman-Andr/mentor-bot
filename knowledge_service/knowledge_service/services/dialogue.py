@@ -79,8 +79,13 @@ class DialogueService:
     ) -> tuple[list[DialogueScenario], int]:
         """Find scenarios with filters."""
         return await self._uow.dialogue_scenarios.find_scenarios(
-            skip=skip, limit=limit, category=category, is_active=is_active, search=search,
-            sort_by=sort_by, sort_order=sort_order,
+            skip=skip,
+            limit=limit,
+            category=category,
+            is_active=is_active,
+            search=search,
+            sort_by=sort_by,
+            sort_order=sort_order,
         )
 
     async def update_scenario(self, scenario_id: int, scenario_data: DialogueScenarioUpdate) -> DialogueScenario:

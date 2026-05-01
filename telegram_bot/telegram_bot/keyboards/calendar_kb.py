@@ -25,11 +25,7 @@ def get_calendar_connected_keyboard(*, locale: str = "en") -> InlineKeyboardMark
             style=ButtonStyle.DANGER,
         )
     )
-    builder.add(
-        create_inline_button(
-            f"\u2190 {t('common.menu_button', locale=locale)}", callback_data="menu"
-        )
-    )
+    builder.add(create_inline_button(f"\u2190 {t('common.menu_button', locale=locale)}", callback_data="menu"))
     builder.adjust(1)
     return builder.as_markup()
 
@@ -44,18 +40,12 @@ def get_calendar_not_connected_keyboard(*, locale: str = "en") -> InlineKeyboard
             style=ButtonStyle.PRIMARY,
         )
     )
-    builder.add(
-        create_inline_button(
-            f"\u2190 {t('common.menu_button', locale=locale)}", callback_data="menu"
-        )
-    )
+    builder.add(create_inline_button(f"\u2190 {t('common.menu_button', locale=locale)}", callback_data="menu"))
     builder.adjust(1)
     return builder.as_markup()
 
 
-def get_calendar_connect_keyboard(
-    connect_url: str, *, locale: str = "en"
-) -> InlineKeyboardMarkup:
+def get_calendar_connect_keyboard(connect_url: str, *, locale: str = "en") -> InlineKeyboardMarkup:
     """Build calendar connect keyboard with authorization URL."""
     builder = InlineKeyboardBuilder()
     builder.add(

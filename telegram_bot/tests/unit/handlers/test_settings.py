@@ -3,7 +3,6 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
 from telegram_bot.handlers.settings import (
     cb_notifications_menu,
     cb_settings_menu,
@@ -54,7 +53,9 @@ class TestSettingsHandlers:
 
     async def test_cmd_settings(self, mock_message):
         """Test settings command."""
-        with patch("telegram_bot.handlers.settings.auth_client.get_user_preferences", new_callable=AsyncMock, return_value=None):
+        with patch(
+            "telegram_bot.handlers.settings.auth_client.get_user_preferences", new_callable=AsyncMock, return_value=None
+        ):
             with patch("telegram_bot.handlers.settings.get_settings_keyboard") as mock_kb:
                 mock_kb.return_value = MagicMock()
 
@@ -67,7 +68,9 @@ class TestSettingsHandlers:
 
     async def test_cmd_settings_russian(self, mock_message):
         """Test settings command with Russian locale."""
-        with patch("telegram_bot.handlers.settings.auth_client.get_user_preferences", new_callable=AsyncMock, return_value=None):
+        with patch(
+            "telegram_bot.handlers.settings.auth_client.get_user_preferences", new_callable=AsyncMock, return_value=None
+        ):
             with patch("telegram_bot.handlers.settings.get_settings_keyboard") as mock_kb:
                 mock_kb.return_value = MagicMock()
 
@@ -77,7 +80,9 @@ class TestSettingsHandlers:
 
     async def test_cb_settings_menu(self, mock_callback):
         """Test settings menu callback."""
-        with patch("telegram_bot.handlers.settings.auth_client.get_user_preferences", new_callable=AsyncMock, return_value=None):
+        with patch(
+            "telegram_bot.handlers.settings.auth_client.get_user_preferences", new_callable=AsyncMock, return_value=None
+        ):
             with patch("telegram_bot.handlers.settings.get_settings_keyboard") as mock_kb:
                 mock_kb.return_value = MagicMock()
 
@@ -102,7 +107,9 @@ class TestSettingsHandlers:
         """Test settings command triggered by English text."""
         mock_message.text = "Settings"
 
-        with patch("telegram_bot.handlers.settings.auth_client.get_user_preferences", new_callable=AsyncMock, return_value=None):
+        with patch(
+            "telegram_bot.handlers.settings.auth_client.get_user_preferences", new_callable=AsyncMock, return_value=None
+        ):
             with patch("telegram_bot.handlers.settings.get_settings_keyboard") as mock_kb:
                 mock_kb.return_value = MagicMock()
 
@@ -114,7 +121,9 @@ class TestSettingsHandlers:
         """Test settings command triggered by Russian text."""
         mock_message.text = "\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438"
 
-        with patch("telegram_bot.handlers.settings.auth_client.get_user_preferences", new_callable=AsyncMock, return_value=None):
+        with patch(
+            "telegram_bot.handlers.settings.auth_client.get_user_preferences", new_callable=AsyncMock, return_value=None
+        ):
             with patch("telegram_bot.handlers.settings.get_settings_keyboard") as mock_kb:
                 mock_kb.return_value = MagicMock()
 
@@ -124,7 +133,11 @@ class TestSettingsHandlers:
 
     async def test_cmd_settings_with_preferences(self, mock_message):
         """Test settings command with user preferences returned."""
-        with patch("telegram_bot.handlers.settings.auth_client.get_user_preferences", new_callable=AsyncMock, return_value={"notification_telegram_enabled": False, "notification_email_enabled": True}):
+        with patch(
+            "telegram_bot.handlers.settings.auth_client.get_user_preferences",
+            new_callable=AsyncMock,
+            return_value={"notification_telegram_enabled": False, "notification_email_enabled": True},
+        ):
             with patch("telegram_bot.handlers.settings.get_settings_keyboard") as mock_kb:
                 mock_kb.return_value = MagicMock()
 
@@ -135,7 +148,11 @@ class TestSettingsHandlers:
 
     async def test_cb_settings_menu_with_preferences(self, mock_callback):
         """Test settings menu callback with user preferences returned."""
-        with patch("telegram_bot.handlers.settings.auth_client.get_user_preferences", new_callable=AsyncMock, return_value={"notification_telegram_enabled": True, "notification_email_enabled": False}):
+        with patch(
+            "telegram_bot.handlers.settings.auth_client.get_user_preferences",
+            new_callable=AsyncMock,
+            return_value={"notification_telegram_enabled": True, "notification_email_enabled": False},
+        ):
             with patch("telegram_bot.handlers.settings.get_settings_keyboard") as mock_kb:
                 mock_kb.return_value = MagicMock()
 
@@ -147,7 +164,9 @@ class TestSettingsHandlers:
     async def test_cb_notifications_menu(self, mock_callback):
         """Test notifications menu callback."""
         mock_callback.data = "notifications_menu"
-        with patch("telegram_bot.handlers.settings.auth_client.get_user_preferences", new_callable=AsyncMock, return_value=None):
+        with patch(
+            "telegram_bot.handlers.settings.auth_client.get_user_preferences", new_callable=AsyncMock, return_value=None
+        ):
             with patch("telegram_bot.handlers.settings.get_notifications_keyboard") as mock_kb:
                 mock_kb.return_value = MagicMock()
 
@@ -160,7 +179,11 @@ class TestSettingsHandlers:
     async def test_cb_notifications_menu_with_preferences(self, mock_callback):
         """Test notifications menu callback with user preferences."""
         mock_callback.data = "notifications_menu"
-        with patch("telegram_bot.handlers.settings.auth_client.get_user_preferences", new_callable=AsyncMock, return_value={"notification_telegram_enabled": False, "notification_email_enabled": True}):
+        with patch(
+            "telegram_bot.handlers.settings.auth_client.get_user_preferences",
+            new_callable=AsyncMock,
+            return_value={"notification_telegram_enabled": False, "notification_email_enabled": True},
+        ):
             with patch("telegram_bot.handlers.settings.get_notifications_keyboard") as mock_kb:
                 mock_kb.return_value = MagicMock()
 
@@ -174,14 +197,20 @@ class TestSettingsHandlers:
         with patch("telegram_bot.handlers.settings.get_notifications_keyboard") as mock_kb:
             mock_kb.return_value = MagicMock()
 
-            await cb_notifications_menu(mock_callback_no_message, auth_token="test_token", user={"id": 123456}, locale="en")
+            await cb_notifications_menu(
+                mock_callback_no_message, auth_token="test_token", user={"id": 123456}, locale="en"
+            )
 
         mock_callback_no_message.answer.assert_called_once()
 
     async def test_cb_toggle_telegram(self, mock_callback):
         """Test toggle Telegram notifications callback."""
         mock_callback.data = "toggle_telegram"
-        with patch("telegram_bot.handlers.settings.auth_client.get_user_preferences", new_callable=AsyncMock, return_value={"notification_telegram_enabled": True, "notification_email_enabled": True}):
+        with patch(
+            "telegram_bot.handlers.settings.auth_client.get_user_preferences",
+            new_callable=AsyncMock,
+            return_value={"notification_telegram_enabled": True, "notification_email_enabled": True},
+        ):
             with patch("telegram_bot.handlers.settings.auth_client.update_user_preferences", new_callable=AsyncMock):
                 with patch("telegram_bot.handlers.settings.get_notifications_keyboard") as mock_kb:
                     mock_kb.return_value = MagicMock()
@@ -198,14 +227,20 @@ class TestSettingsHandlers:
         with patch("telegram_bot.handlers.settings.get_notifications_keyboard") as mock_kb:
             mock_kb.return_value = MagicMock()
 
-            await cb_toggle_telegram(mock_callback_no_message, auth_token="test_token", user={"id": 123456}, locale="en")
+            await cb_toggle_telegram(
+                mock_callback_no_message, auth_token="test_token", user={"id": 123456}, locale="en"
+            )
 
         mock_callback_no_message.answer.assert_called_once()
 
     async def test_cb_toggle_email(self, mock_callback):
         """Test toggle Email notifications callback."""
         mock_callback.data = "toggle_email"
-        with patch("telegram_bot.handlers.settings.auth_client.get_user_preferences", new_callable=AsyncMock, return_value={"notification_telegram_enabled": True, "notification_email_enabled": True}):
+        with patch(
+            "telegram_bot.handlers.settings.auth_client.get_user_preferences",
+            new_callable=AsyncMock,
+            return_value={"notification_telegram_enabled": True, "notification_email_enabled": True},
+        ):
             with patch("telegram_bot.handlers.settings.auth_client.update_user_preferences", new_callable=AsyncMock):
                 with patch("telegram_bot.handlers.settings.get_notifications_keyboard") as mock_kb:
                     mock_kb.return_value = MagicMock()

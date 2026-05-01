@@ -65,9 +65,7 @@ class RedisCache:
             return None
         return None
 
-    async def set(
-        self, key: str, value: object, ttl: int | timedelta | None = None
-    ) -> bool:
+    async def set(self, key: str, value: object, ttl: int | timedelta | None = None) -> bool:
         """Set value in cache with TTL."""
         if not self._is_connected:
             return False

@@ -3,7 +3,6 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
 from telegram_bot.handlers.auth import cb_logout, process_invitation_token
 
 
@@ -37,18 +36,14 @@ class TestProcessInvitationToken:
     @patch("telegram_bot.handlers.auth.register_by_token")
     @patch("telegram_bot.handlers.auth.format_welcome_message")
     @patch("telegram_bot.handlers.auth.get_main_menu_keyboard")
-    async def test_successful_token_registration(
-        self, mock_get_keyboard, mock_format_welcome, mock_register
-    ):
+    async def test_successful_token_registration(self, mock_get_keyboard, mock_format_welcome, mock_register):
         """Test successful registration with valid token."""
         mock_register.return_value = (True, self.user_data)
         mock_format_welcome.return_value = "Welcome John Doe!"
         mock_keyboard = MagicMock()
         mock_get_keyboard.return_value = mock_keyboard
 
-        await process_invitation_token(
-            self.mock_message, self.mock_state, self.mock_tg_user, locale="en"
-        )
+        await process_invitation_token(self.mock_message, self.mock_state, self.mock_tg_user, locale="en")
 
         mock_register.assert_called_once_with("valid_token_123", self.mock_tg_user, self.mock_state)
         mock_format_welcome.assert_called_once_with(self.mock_tg_user, self.user_data, locale="en")
@@ -59,9 +54,7 @@ class TestProcessInvitationToken:
         """Test failed registration with invalid token."""
         mock_register.return_value = (False, "Invalid token message")
 
-        await process_invitation_token(
-            self.mock_message, self.mock_state, self.mock_tg_user, locale="en"
-        )
+        await process_invitation_token(self.mock_message, self.mock_state, self.mock_tg_user, locale="en")
 
         mock_register.assert_called_once_with("valid_token_123", self.mock_tg_user, self.mock_state)
         self.mock_message.answer.assert_called_once()
@@ -74,9 +67,7 @@ class TestProcessInvitationToken:
         self.mock_message.text = "  valid_token_123  "
         mock_register.return_value = (True, self.user_data)
 
-        await process_invitation_token(
-            self.mock_message, self.mock_state, self.mock_tg_user, locale="en"
-        )
+        await process_invitation_token(self.mock_message, self.mock_state, self.mock_tg_user, locale="en")
 
         mock_register.assert_called_once_with("valid_token_123", self.mock_tg_user, self.mock_state)
 
@@ -86,9 +77,7 @@ class TestProcessInvitationToken:
         self.mock_message.text = ""
         mock_register.return_value = (False, "Invalid token")
 
-        await process_invitation_token(
-            self.mock_message, self.mock_state, self.mock_tg_user, locale="en"
-        )
+        await process_invitation_token(self.mock_message, self.mock_state, self.mock_tg_user, locale="en")
 
         mock_register.assert_called_once_with("", self.mock_tg_user, self.mock_state)
 

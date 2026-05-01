@@ -1,4 +1,4 @@
-exclude = ["*/migrations/*"]
+exclude = ["*/migrations/*", "migrations", "*/migrations/*"]
 
 line-length = 120
 indent-width = 4
@@ -25,7 +25,71 @@ ignore = [
     "ANN202",
     "ANN003",
     "TC003",
+    # Project-wide ignores (Step 1)
+    "D100", "D104", "D105", "D107",  # Don't enforce module/package/__magic__/__init__ docstrings
+    "D401",  # Imperative mood too noisy for Russian/English-mixed prose
+    "FAST001",  # response_model= set intentionally for OpenAPI clarity
+    "B008",  # Depends/Query/File in defaults is canonical FastAPI pattern (until Annotated refactor)
+    "EM101", "EM102", "TRY003",  # Don't force custom exception class for every one-off error
+    "PLC0415",  # Lazy imports used deliberately to break circular deps
+    "FBT001", "FBT002", "FBT003",  # Boolean-trap rule produces too many false positives
+    "PLR2004",  # Magic-value comparison flags HTTP status codes, ports, retry counts
+    "RUF012",  # ClassVar on mutable defaults - Pydantic/SQLAlchemy models don't follow this
+    "G004",  # Logging f-strings - loguru handles these fine
+    "INP001",  # Implicit namespace packages - false positives on tests/scripts/migrations
+    "E501",  # Line too long - long lines are usually log messages, URLs, or localization strings
+    "PTH119",  # Path vs os.path - preference, not a bug
+    "N806",  # Variable naming - preference, not a bug
+    "PLW1641",  # __hash__ implementation - preference, not a bug
+    "SLF001",  # Private member access - sometimes needed for repository patterns
+    "TC005",  # Empty type-checking blocks - cleanup after moving imports
+    "RUF100",  # Unused noqa directives - cleanup after adding ignores
+    "SIM102",  # Nested if statements - preference, not a bug
+    "A004",    # Import shadowing builtin - custom exceptions
+    "A001",    # Variable shadowing builtin - custom exceptions
+    "PLW0603", # Global statement - singleton pattern
+    "TRY002",  # Create your own exception - test mocks
+    "DTZ011",  # datetime.date.today() - test fixtures
+    "PLR1714", # Merge multiple comparisons - preference
+    "RUF005",  # List unpacking - preference
+    "ARG002",  # Unused method argument - interface compatibility
+    "ERA001",  # Commented-out code - documentation
+    "SIM108",  # Ternary operator - readability preference
+    "ANN201",  # Missing return type annotation - FastAPI deps
 ]
+
+[lint.per-file-ignores]
+"**/tests/**/*.py" = [
+    "S101",      # assert is the point
+    "ANN001", "ANN002", "ANN201", "ANN202", "ANN204",
+    "SLF001",    # private access for white-box testing
+    "ANN401",
+    "PLR2004",
+    "SIM117",
+    "PT011", "PT012", "PT019",
+    "B017",
+    "S105", "S106", "S107",   # fake passwords / tokens in fixtures are fine
+    "D100", "D101", "D102", "D103", "D104", "D106",   # tests don't need docstrings
+    "INP001",
+    "PLC0415",
+    "ARG001", "ARG002",
+    "F841",      # often used for "we don't care about return value" in tests
+    "FBT001", "FBT002", "FBT003",   # boolean positional values in tests are fine
+    "EM101", "EM102",   # string literals in exceptions in tests are fine
+    "TRY003",   # vanilla args in exceptions in tests are fine
+    "E402",      # late imports for test fixtures/mocks
+    "DTZ005",    # datetime.now() without tz in test fixtures
+    "RET504",    # unnecessary assignment in test helpers
+    "T201",      # print statements in test debugging
+    "A002",      # shadowing builtin in test fixtures
+]
+"**/migrations/**/*.py" = ["ALL"]   # alembic-generated; do not lint
+"scripts/**/*.py" = ["INP001", "T201", "S101", "DTZ005", "ARG001", "PTH123", "S603", "S607", "PLW1510", "PTH110", "PTH118", "S314", "ANN001", "ANN002", "ANN201", "S608", "RET504", "B905", "ERA001", "A002"]
+"**/api/**/*.py" = ["ARG001", "ARG002", "ANN001", "ANN206"]   # FastAPI Depends params often unused by name + schema methods
+"telegram_bot/telegram_bot/handlers/**/*.py" = ["ARG001", "ARG002", "E402"]   # aiogram DI + logger setup before imports
+"telegram_bot/telegram_bot/keyboards/**/*.py" = ["ARG001"]   # keyboard params often unused
+"telegram_bot/**/*.py" = ["TRY401"]   # redundant exception in logging.exception
+"**/conftest.py" = ["ANN001", "ANN201", "ARG001"]
 
 [format]
 quote-style = "double"

@@ -125,9 +125,7 @@ class ScheduledNotificationRepository(
         await self._session.refresh(notification)
         return notification
 
-    async def increment_retry(
-        self, notification_id: int, next_scheduled_time: datetime
-    ) -> ScheduledNotification:
+    async def increment_retry(self, notification_id: int, next_scheduled_time: datetime) -> ScheduledNotification:
         """Increment retry count and update scheduled time for next attempt."""
         notification = await self.get_by_id(notification_id)
         if not notification:

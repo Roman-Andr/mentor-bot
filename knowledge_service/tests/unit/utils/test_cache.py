@@ -5,12 +5,12 @@ import logging
 from typing import TYPE_CHECKING
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
+from knowledge_service.utils.cache import CacheManager, cached
 from redis import RedisError
 
-from knowledge_service.utils.cache import CacheManager, cached
-
 if TYPE_CHECKING:
-    import pytest
+    pass
 
 
 class TestCacheManagerGracefulDegrade:

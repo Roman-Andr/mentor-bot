@@ -1,8 +1,6 @@
 """Unit tests for notification service preferences integration."""
 
-from unittest.mock import AsyncMock, MagicMock, patch
-
-import pytest
+from unittest.mock import AsyncMock, patch
 
 from notification_service.core.enums import NotificationChannel, NotificationStatus, NotificationType
 from notification_service.models import Notification
@@ -38,7 +36,9 @@ class TestNotificationPreferences:
             notification_email_enabled=True,
         )
 
-        with patch.object(service._auth_client, "get_user_preferences", new_callable=AsyncMock, return_value=mock_prefs):
+        with patch.object(
+            service._auth_client, "get_user_preferences", new_callable=AsyncMock, return_value=mock_prefs
+        ):
             # Act
             success, error = await service._send_telegram(notification, mock_prefs)
 
@@ -71,7 +71,9 @@ class TestNotificationPreferences:
             notification_email_enabled=False,
         )
 
-        with patch.object(service._auth_client, "get_user_preferences", new_callable=AsyncMock, return_value=mock_prefs):
+        with patch.object(
+            service._auth_client, "get_user_preferences", new_callable=AsyncMock, return_value=mock_prefs
+        ):
             # Act
             success, error = await service._send_email(notification, mock_prefs)
 
@@ -104,7 +106,9 @@ class TestNotificationPreferences:
             notification_email_enabled=False,
         )
 
-        with patch.object(service._auth_client, "get_user_preferences", new_callable=AsyncMock, return_value=mock_prefs):
+        with patch.object(
+            service._auth_client, "get_user_preferences", new_callable=AsyncMock, return_value=mock_prefs
+        ):
             # Act
             success, error = await service._send_both(notification, mock_prefs)
 
@@ -139,7 +143,9 @@ class TestNotificationPreferences:
 
         # Mock telegram service to succeed
         with patch.object(service._telegram, "send_message", new_callable=AsyncMock, return_value=True):
-            with patch.object(service._auth_client, "get_user_preferences", new_callable=AsyncMock, return_value=mock_prefs):
+            with patch.object(
+                service._auth_client, "get_user_preferences", new_callable=AsyncMock, return_value=mock_prefs
+            ):
                 # Act
                 success, error = await service._send_telegram(notification, mock_prefs)
 
@@ -174,7 +180,9 @@ class TestNotificationPreferences:
 
         # Mock email service to succeed
         with patch.object(service._email, "send_email", new_callable=AsyncMock):
-            with patch.object(service._auth_client, "get_user_preferences", new_callable=AsyncMock, return_value=mock_prefs):
+            with patch.object(
+                service._auth_client, "get_user_preferences", new_callable=AsyncMock, return_value=mock_prefs
+            ):
                 # Act
                 success, error = await service._send_email(notification, mock_prefs)
 
@@ -201,7 +209,12 @@ class TestNotificationPreferences:
         service = NotificationService(mock_uow)
 
         # Mock auth_client to raise error
-        with patch.object(service._auth_client, "get_user_preferences", new_callable=AsyncMock, side_effect=AuthClientError("Auth service error")):
+        with patch.object(
+            service._auth_client,
+            "get_user_preferences",
+            new_callable=AsyncMock,
+            side_effect=AuthClientError("Auth service error"),
+        ):
             # Mock telegram service to succeed
             with patch.object(service._telegram, "send_message", new_callable=AsyncMock, return_value=True):
                 # Act

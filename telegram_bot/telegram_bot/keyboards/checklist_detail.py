@@ -90,9 +90,7 @@ def get_task_info_keyboard(
     builder.add(
         create_inline_button(
             f"\u2190 {t('common.back_button', locale=locale)}",
-            callback_data=f"checklist_{checklist_id}"
-            if checklist_id is not None
-            else "my_tasks",
+            callback_data=f"checklist_{checklist_id}" if checklist_id is not None else "my_tasks",
         ),
     )
     builder.adjust(1)
@@ -128,9 +126,7 @@ def get_task_completed_keyboard(
     builder.add(
         create_inline_button(
             f"\u2190 {t('common.back_button', locale=locale)}",
-            callback_data=f"checklist_{checklist_id}"
-            if checklist_id is not None
-            else "my_tasks",
+            callback_data=f"checklist_{checklist_id}" if checklist_id is not None else "my_tasks",
         )
     )
     builder.adjust(1)
@@ -179,10 +175,7 @@ def get_task_attachments_keyboard(
         filename = att.get("filename", "file")
         emoji = (
             "\U0001f4f7"
-            if any(
-                ext in filename.lower()
-                for ext in [".jpg", ".jpeg", ".png", ".gif", ".webp"]
-            )
+            if any(ext in filename.lower() for ext in [".jpg", ".jpeg", ".png", ".gif", ".webp"])
             else "\U0001f4c4"
         )
         builder.add(

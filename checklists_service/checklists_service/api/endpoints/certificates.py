@@ -1,14 +1,12 @@
 """Certificate management endpoints."""
 
 import logging
-from datetime import UTC, datetime
 from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Query, Response, status
 from pydantic import BaseModel
 
-from checklists_service.api.deps import AuthToken, CurrentUser, HRUser, ServiceAuth, UOWDep
-from checklists_service.core import NotFoundException, PermissionDenied, ValidationException
+from checklists_service.api.deps import AuthToken, CurrentUser, HRUser, UOWDep
 from checklists_service.models import Certificate
 from checklists_service.services import CertificateGenerator
 
@@ -73,7 +71,7 @@ async def download_certificate(
     checklist_data = {
         "template_name": template.name,
     }
-    
+
     try:
         pdf_bytes = await generator.generate_certificate_from_checklist(
             certificate=certificate,
@@ -83,10 +81,9 @@ async def download_certificate(
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from e
     except Exception as e:
-        logger.error("Failed to generate certificate PDF: %s", e)
+        logger.exception("Failed to generate certificate PDF")
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
-            detail="Failed to generate certificate PDF"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to generate certificate PDF"
         ) from e
 
     return Response(

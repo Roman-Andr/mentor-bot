@@ -5,7 +5,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
-
 from telegram_bot.handlers.common import (
     cmd_about,
     cmd_help,
@@ -68,9 +67,7 @@ class TestCommonHandlers:
     # Tests for cmd_help
     async def test_cmd_help_callback(self, mock_callback):
         """Test help via callback."""
-        with patch(
-            "telegram_bot.handlers.common.get_help_keyboard"
-        ) as mock_kb:
+        with patch("telegram_bot.handlers.common.get_help_keyboard") as mock_kb:
             mock_kb.return_value.as_markup.return_value = MagicMock()
 
             await cmd_help(mock_callback, locale="en")
@@ -80,9 +77,7 @@ class TestCommonHandlers:
 
     async def test_cmd_help_message(self, mock_message):
         """Test help via message."""
-        with patch(
-            "telegram_bot.handlers.common.get_help_keyboard"
-        ) as mock_kb:
+        with patch("telegram_bot.handlers.common.get_help_keyboard") as mock_kb:
             mock_kb.return_value.as_markup.return_value = MagicMock()
 
             await cmd_help(mock_message, locale="en")
@@ -123,9 +118,7 @@ class TestCommonHandlers:
             new_callable=AsyncMock,
             return_value=mentor_info,
         ):
-            with patch(
-                "telegram_bot.handlers.common.get_my_mentor_keyboard"
-            ) as mock_kb:
+            with patch("telegram_bot.handlers.common.get_my_mentor_keyboard") as mock_kb:
                 mock_kb.return_value.as_markup.return_value = MagicMock()
 
                 await my_mentor(mock_callback, mock_user, mock_auth_token, locale="en")
@@ -149,9 +142,7 @@ class TestCommonHandlers:
             new_callable=AsyncMock,
             return_value=mentor_info,
         ):
-            with patch(
-                "telegram_bot.handlers.common.get_my_mentor_keyboard"
-            ) as mock_kb:
+            with patch("telegram_bot.handlers.common.get_my_mentor_keyboard") as mock_kb:
                 mock_kb.return_value.as_markup.return_value = MagicMock()
 
                 await my_mentor(mock_message, mock_user, mock_auth_token, locale="en")
@@ -160,9 +151,7 @@ class TestCommonHandlers:
 
     async def test_my_mentor_no_mentor(self, mock_callback, mock_user_no_mentor, mock_auth_token):
         """Test my mentor without mentor."""
-        with patch(
-            "telegram_bot.handlers.common.get_my_mentor_no_mentor_keyboard"
-        ) as mock_kb:
+        with patch("telegram_bot.handlers.common.get_my_mentor_no_mentor_keyboard") as mock_kb:
             mock_kb.return_value.as_markup.return_value = MagicMock()
 
             await my_mentor(mock_callback, mock_user_no_mentor, mock_auth_token, locale="en")
@@ -183,9 +172,7 @@ class TestCommonHandlers:
             new_callable=AsyncMock,
             return_value=None,
         ):
-            with patch(
-                "telegram_bot.handlers.common.get_my_mentor_keyboard"
-            ) as mock_kb:
+            with patch("telegram_bot.handlers.common.get_my_mentor_keyboard") as mock_kb:
                 mock_kb.return_value.as_markup.return_value = MagicMock()
 
                 await my_mentor(mock_callback, mock_user, mock_auth_token, locale="en")
@@ -209,9 +196,7 @@ class TestCommonHandlers:
             new_callable=AsyncMock,
             return_value=mentor_info,
         ):
-            with patch(
-                "telegram_bot.handlers.common.get_my_mentor_keyboard"
-            ) as mock_kb:
+            with patch("telegram_bot.handlers.common.get_my_mentor_keyboard") as mock_kb:
                 mock_kb.return_value.as_markup.return_value = MagicMock()
 
                 await my_mentor(mock_callback, mock_user, mock_auth_token, locale="en")
@@ -249,9 +234,7 @@ class TestCommonHandlers:
     # Tests for schedule_mentor
     async def test_schedule_mentor(self, mock_callback):
         """Test schedule mentor."""
-        with patch(
-            "telegram_bot.handlers.common.get_schedule_mentor_keyboard"
-        ) as mock_kb:
+        with patch("telegram_bot.handlers.common.get_schedule_mentor_keyboard") as mock_kb:
             mock_kb.return_value.as_markup.return_value = MagicMock()
 
             await schedule_mentor(mock_callback, locale="en")
@@ -281,9 +264,7 @@ class TestCommonHandlers:
             new_callable=AsyncMock,
             return_value=mock_tasks,
         ):
-            with patch(
-                "telegram_bot.handlers.common.get_mentor_tasks_keyboard"
-            ) as mock_kb:
+            with patch("telegram_bot.handlers.common.get_mentor_tasks_keyboard") as mock_kb:
                 mock_kb.return_value.as_markup.return_value = MagicMock()
 
                 await mentor_tasks(mock_callback, mock_auth_token, locale="en")
@@ -302,9 +283,7 @@ class TestCommonHandlers:
             new_callable=AsyncMock,
             return_value=mock_tasks,
         ):
-            with patch(
-                "telegram_bot.handlers.common.get_mentor_tasks_keyboard"
-            ) as mock_kb:
+            with patch("telegram_bot.handlers.common.get_mentor_tasks_keyboard") as mock_kb:
                 mock_kb.return_value.as_markup.return_value = MagicMock()
 
                 await mentor_tasks(mock_callback, mock_auth_token, locale="en")
@@ -318,9 +297,7 @@ class TestCommonHandlers:
             new_callable=AsyncMock,
             return_value=[],
         ):
-            with patch(
-                "telegram_bot.handlers.common.get_mentor_tasks_keyboard"
-            ) as mock_kb:
+            with patch("telegram_bot.handlers.common.get_mentor_tasks_keyboard") as mock_kb:
                 mock_kb.return_value.as_markup.return_value = MagicMock()
 
                 await mentor_tasks(mock_callback, mock_auth_token, locale="en")
@@ -396,9 +373,7 @@ class TestCommonHandlers:
                         {"title": "Task 1", "status": "pending"},
                     ],
                 ):
-                    with patch(
-                        "telegram_bot.handlers.common.get_progress_keyboard"
-                    ) as mock_kb:
+                    with patch("telegram_bot.handlers.common.get_progress_keyboard") as mock_kb:
                         mock_kb.return_value.as_markup.return_value = MagicMock()
 
                         await progress(mock_callback, mock_user, mock_auth_token, locale="en")
@@ -432,9 +407,7 @@ class TestCommonHandlers:
                     new_callable=AsyncMock,
                     return_value=[],
                 ):
-                    with patch(
-                        "telegram_bot.handlers.common.get_progress_keyboard"
-                    ) as mock_kb:
+                    with patch("telegram_bot.handlers.common.get_progress_keyboard") as mock_kb:
                         mock_kb.return_value.as_markup.return_value = MagicMock()
 
                         await progress(mock_callback, mock_user, mock_auth_token, locale="en")
@@ -468,9 +441,7 @@ class TestCommonHandlers:
                     new_callable=AsyncMock,
                     return_value=[],
                 ):
-                    with patch(
-                        "telegram_bot.handlers.common.get_progress_keyboard"
-                    ) as mock_kb:
+                    with patch("telegram_bot.handlers.common.get_progress_keyboard") as mock_kb:
                         mock_kb.return_value.as_markup.return_value = MagicMock()
 
                         await progress(mock_callback, mock_user, mock_auth_token, locale="en")
@@ -510,9 +481,7 @@ class TestCommonHandlers:
                     new_callable=AsyncMock,
                     return_value=[{"title": "Task 1", "status": "pending"}],
                 ):
-                    with patch(
-                        "telegram_bot.handlers.common.get_progress_keyboard"
-                    ) as mock_kb:
+                    with patch("telegram_bot.handlers.common.get_progress_keyboard") as mock_kb:
                         mock_kb.return_value.as_markup.return_value = MagicMock()
 
                         await progress(mock_callback, mock_user, mock_auth_token, locale="en")
@@ -547,9 +516,7 @@ class TestCommonHandlers:
                     new_callable=AsyncMock,
                     return_value=[],
                 ):
-                    with patch(
-                        "telegram_bot.handlers.common.get_progress_keyboard"
-                    ) as mock_kb:
+                    with patch("telegram_bot.handlers.common.get_progress_keyboard") as mock_kb:
                         mock_kb.return_value.as_markup.return_value = MagicMock()
 
                         await progress(mock_callback, mock_user, mock_auth_token, locale="en")
@@ -583,9 +550,7 @@ class TestCommonHandlers:
                     new_callable=AsyncMock,
                     return_value=[],
                 ):
-                    with patch(
-                        "telegram_bot.handlers.common.get_progress_keyboard"
-                    ) as mock_kb:
+                    with patch("telegram_bot.handlers.common.get_progress_keyboard") as mock_kb:
                         mock_kb.return_value.as_markup.return_value = MagicMock()
 
                         await progress(mock_callback, mock_user, mock_auth_token, locale="en")
@@ -623,9 +588,7 @@ class TestCommonHandlers:
                     new_callable=AsyncMock,
                     return_value=[],
                 ):
-                    with patch(
-                        "telegram_bot.handlers.common.get_progress_keyboard"
-                    ) as mock_kb:
+                    with patch("telegram_bot.handlers.common.get_progress_keyboard") as mock_kb:
                         mock_kb.return_value.as_markup.return_value = MagicMock()
 
                         await progress(mock_message, mock_user, mock_auth_token, locale="en")

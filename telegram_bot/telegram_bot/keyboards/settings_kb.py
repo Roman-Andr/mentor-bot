@@ -8,7 +8,9 @@ from telegram_bot.i18n import t
 from telegram_bot.keyboards.utils import create_inline_button
 
 
-def get_settings_keyboard(locale: str = "en", telegram_enabled: bool = True, email_enabled: bool = True) -> InlineKeyboardMarkup:
+def get_settings_keyboard(
+    locale: str = "en", telegram_enabled: bool = True, email_enabled: bool = True
+) -> InlineKeyboardMarkup:
     """Create settings menu keyboard."""
     builder = InlineKeyboardBuilder()
 
@@ -43,7 +45,9 @@ def get_settings_keyboard(locale: str = "en", telegram_enabled: bool = True, ema
     return builder.as_markup()
 
 
-def get_notifications_keyboard(locale: str = "en", telegram_enabled: bool = True, email_enabled: bool = True) -> InlineKeyboardMarkup:
+def get_notifications_keyboard(
+    locale: str = "en", telegram_enabled: bool = True, email_enabled: bool = True
+) -> InlineKeyboardMarkup:
     """Create notifications settings keyboard."""
     builder = InlineKeyboardBuilder()
 
@@ -78,4 +82,3 @@ def get_notifications_keyboard(locale: str = "en", telegram_enabled: bool = True
 
     builder.adjust(1)
     return builder.as_markup()
-

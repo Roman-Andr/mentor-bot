@@ -29,9 +29,7 @@ MAX_MEETING_DURATION = 480
 @router.message(F.text == "\U0001f4c5 \u0412\u0441\u0442\u0440\u0435\u0447\u0438")
 @router.message(F.text == "\u0412\u0441\u0442\u0440\u0435\u0447\u0438")
 @router.callback_query(F.data == "meetings_menu")
-async def meetings_menu(
-    update: Message | CallbackQuery, user: dict, auth_token: str, *, locale: str = "en"
-) -> None:
+async def meetings_menu(update: Message | CallbackQuery, user: dict, auth_token: str, *, locale: str = "en") -> None:
     """Show meetings menu."""
     if isinstance(update, CallbackQuery):
         msg = update.message
@@ -43,9 +41,7 @@ async def meetings_menu(
         await msg.answer(t("common.auth_required", locale=locale))
         return
 
-    meetings = await meeting_client.get_upcoming_meetings(
-        user["id"], auth_token, limit=5
-    )
+    meetings = await meeting_client.get_upcoming_meetings(user["id"], auth_token, limit=5)
 
     text = f"*\U0001f4c5 {t('meetings.title', locale=locale)}*\n\n"
     if meetings:
@@ -58,17 +54,13 @@ async def meetings_menu(
 
     keyboard = get_meetings_menu_keyboard(locale=locale)
     if isinstance(update, CallbackQuery):
-        await msg.edit_text(
-            text, reply_markup=keyboard, parse_mode="Markdown"
-        )
+        await msg.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
     else:
         await msg.answer(text, reply_markup=keyboard, parse_mode="Markdown")
 
 
 @router.callback_query(F.data == "my_meetings")
-async def my_meetings(
-    callback: CallbackQuery, user: dict, auth_token: str, *, locale: str = "en"
-) -> None:
+async def my_meetings(callback: CallbackQuery, user: dict, auth_token: str, *, locale: str = "en") -> None:
     """Show user's meetings."""
     if not user or not auth_token:
         await callback.answer(t("common.auth_required_short", locale=locale))
@@ -76,11 +68,7 @@ async def my_meetings(
 
     meetings = await meeting_client.get_user_meetings(user["id"], auth_token, limit=20)
 
-    text = (
-        format_meeting_list(meetings, locale=locale)
-        if meetings
-        else t("meetings.no_meetings_list", locale=locale)
-    )
+    text = format_meeting_list(meetings, locale=locale) if meetings else t("meetings.no_meetings_list", locale=locale)
 
     if callback.message:
         await callback.message.edit_text(
@@ -92,9 +80,7 @@ async def my_meetings(
 
 
 @router.callback_query(F.data == "schedule_meeting")
-async def start_schedule_meeting(
-    callback: CallbackQuery, state: FSMContext, *, locale: str = "en"
-) -> None:
+async def start_schedule_meeting(callback: CallbackQuery, state: FSMContext, *, locale: str = "en") -> None:
     """Start scheduling a meeting."""
     if callback.message is None:
         return
@@ -110,16 +96,12 @@ async def start_schedule_meeting(
 
 
 @router.message(MeetingStates.waiting_for_title)
-async def process_meeting_title(
-    message: Message, state: FSMContext, *, locale: str = "en"
-) -> None:
+async def process_meeting_title(message: Message, state: FSMContext, *, locale: str = "en") -> None:
     """Process meeting title."""
     title = (message.text or "").strip()
 
     if len(title) < MIN_TITLE_LENGTH:
-        await message.answer(
-            t("meetings.title_too_short", locale=locale, min=MIN_TITLE_LENGTH)
-        )
+        await message.answer(t("meetings.title_too_short", locale=locale, min=MIN_TITLE_LENGTH))
         return
 
     await state.update_data(title=title)
@@ -128,9 +110,7 @@ async def process_meeting_title(
 
 
 @router.message(MeetingStates.waiting_for_description)
-async def process_meeting_description(
-    message: Message, state: FSMContext, *, locale: str = "en"
-) -> None:
+async def process_meeting_description(message: Message, state: FSMContext, *, locale: str = "en") -> None:
     """Process meeting description."""
     description = (message.text or "").strip()
 
@@ -143,9 +123,7 @@ async def process_meeting_description(
 
 
 @router.message(MeetingStates.waiting_for_datetime)
-async def process_meeting_datetime(
-    message: Message, state: FSMContext, *, locale: str = "en"
-) -> None:
+async def process_meeting_datetime(message: Message, state: FSMContext, *, locale: str = "en") -> None:
     """Process meeting date and time."""
     datetime_str = (message.text or "").strip()
 
@@ -224,13 +202,9 @@ async def process_meeting_duration(
 
 
 @router.callback_query(
-    F.data.startswith("meeting_")
-    & ~F.data.startswith("confirm_meeting_")
-    & ~F.data.startswith("cancel_meeting_")
+    F.data.startswith("meeting_") & ~F.data.startswith("confirm_meeting_") & ~F.data.startswith("cancel_meeting_")
 )
-async def meeting_details(
-    callback: CallbackQuery, user: dict, auth_token: str, *, locale: str = "en"
-) -> None:
+async def meeting_details(callback: CallbackQuery, user: dict, auth_token: str, *, locale: str = "en") -> None:
     """Show meeting details."""
     if not auth_token or not user:
         await callback.answer(t("common.auth_required_short", locale=locale))
@@ -259,18 +233,14 @@ async def meeting_details(
     if callback.message:
         await callback.message.edit_text(
             text,
-            reply_markup=get_meeting_details_keyboard(
-                meeting_id, locale=locale
-            ),
+            reply_markup=get_meeting_details_keyboard(meeting_id, locale=locale),
             parse_mode="Markdown",
         )
     await callback.answer()
 
 
 @router.callback_query(F.data.startswith("confirm_meeting_"))
-async def confirm_meeting(
-    callback: CallbackQuery, user: dict, auth_token: str, *, locale: str = "en"
-) -> None:
+async def confirm_meeting(callback: CallbackQuery, user: dict, auth_token: str, *, locale: str = "en") -> None:
     """Confirm meeting attendance."""
     if not user or not auth_token:
         await callback.answer(t("common.auth_required_short", locale=locale))
@@ -289,9 +259,7 @@ async def confirm_meeting(
 
 
 @router.callback_query(F.data.startswith("cancel_meeting_"))
-async def cancel_meeting(
-    callback: CallbackQuery, user: dict, auth_token: str, *, locale: str = "en"
-) -> None:
+async def cancel_meeting(callback: CallbackQuery, user: dict, auth_token: str, *, locale: str = "en") -> None:
     """Cancel meeting."""
     if not user or not auth_token:
         await callback.answer(t("common.auth_required_short", locale=locale))
@@ -299,9 +267,7 @@ async def cancel_meeting(
 
     meeting_id = int(callback.data.split("_")[2])
 
-    result = await meeting_client.cancel_meeting(
-        meeting_id, user["id"], auth_token, "Cancelled via Telegram"
-    )
+    result = await meeting_client.cancel_meeting(meeting_id, user["id"], auth_token, "Cancelled via Telegram")
 
     if result:
         await callback.answer(t("meetings.cancelled", locale=locale))

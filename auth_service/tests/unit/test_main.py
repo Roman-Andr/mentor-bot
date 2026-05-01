@@ -2,10 +2,9 @@
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
+from auth_service.main import app, lifespan
 from fastapi.testclient import TestClient
 from sqlalchemy.exc import SQLAlchemyError
-
-from auth_service.main import app, lifespan
 
 
 def get_test_client():
@@ -128,6 +127,7 @@ class TestLifespan:
                     mock_logger.info.assert_any_call("Starting Auth Service...")
                     mock_logger.info.assert_any_call("Database initialized")
                     mock_logger.info.assert_any_call("Shutting down Auth Service...")
+
 
 class TestRateLimiter:
     """Tests for rate limiter configuration."""
@@ -280,4 +280,6 @@ class TestCreateDefaultAdminUser:
 
                             mock_user_service.get_user_by_email.assert_called_once_with("admin@example.com")
                             mock_user_service.create_user.assert_not_called()
-                            mock_logger.info.assert_any_call("Default admin user already exists: {}", "admin@example.com")
+                            mock_logger.info.assert_any_call(
+                                "Default admin user already exists: {}", "admin@example.com"
+                            )

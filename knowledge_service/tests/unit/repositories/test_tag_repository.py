@@ -4,10 +4,9 @@ from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from knowledge_service.models import Tag
 from knowledge_service.repositories.implementations.tag import TagRepository
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class TestTagRepository:

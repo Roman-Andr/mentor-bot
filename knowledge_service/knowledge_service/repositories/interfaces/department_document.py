@@ -3,10 +3,11 @@
 from abc import abstractmethod
 from typing import TYPE_CHECKING
 
+from knowledge_service.models.department_document import DepartmentDocument
 from knowledge_service.repositories.interfaces.base import BaseRepository
 
 if TYPE_CHECKING:
-    from knowledge_service.models.department_document import DepartmentDocument
+    pass
 
 
 class IDepartmentDocumentRepository(BaseRepository["DepartmentDocument", int]):

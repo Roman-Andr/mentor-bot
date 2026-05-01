@@ -5,7 +5,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
-
 from telegram_bot.handlers.escalation import (
     escalation_details,
     escalation_menu,
@@ -89,9 +88,7 @@ class TestEscalationHandlers:
             },
         ]
 
-    async def test_escalation_menu_callback(
-        self, mock_callback, mock_user, mock_auth_token, mock_escalations
-    ):
+    async def test_escalation_menu_callback(self, mock_callback, mock_user, mock_auth_token, mock_escalations):
         """Test escalation menu via callback."""
         with patch(
             "telegram_bot.handlers.escalation.escalation_client.get_user_escalations",
@@ -102,21 +99,15 @@ class TestEscalationHandlers:
                 "telegram_bot.handlers.escalation.format_escalation_list",
                 return_value="Escalation List",
             ):
-                with patch(
-                    "telegram_bot.handlers.escalation.get_escalation_menu_keyboard"
-                ) as mock_kb:
+                with patch("telegram_bot.handlers.escalation.get_escalation_menu_keyboard") as mock_kb:
                     mock_kb.return_value.as_markup.return_value = MagicMock()
 
-                    await escalation_menu(
-                        mock_callback, mock_user, mock_auth_token, locale="en"
-                    )
+                    await escalation_menu(mock_callback, mock_user, mock_auth_token, locale="en")
 
         mock_callback.answer.assert_called_once()
         mock_callback.message.edit_text.assert_called_once()
 
-    async def test_escalation_menu_message(
-        self, mock_message, mock_user, mock_auth_token, mock_escalations
-    ):
+    async def test_escalation_menu_message(self, mock_message, mock_user, mock_auth_token, mock_escalations):
         """Test escalation menu via message."""
         with patch(
             "telegram_bot.handlers.escalation.escalation_client.get_user_escalations",
@@ -127,14 +118,10 @@ class TestEscalationHandlers:
                 "telegram_bot.handlers.escalation.format_escalation_list",
                 return_value="Escalation List",
             ):
-                with patch(
-                    "telegram_bot.handlers.escalation.get_escalation_menu_keyboard"
-                ) as mock_kb:
+                with patch("telegram_bot.handlers.escalation.get_escalation_menu_keyboard") as mock_kb:
                     mock_kb.return_value.as_markup.return_value = MagicMock()
 
-                    await escalation_menu(
-                        mock_message, mock_user, mock_auth_token, locale="en"
-                    )
+                    await escalation_menu(mock_message, mock_user, mock_auth_token, locale="en")
 
         mock_message.answer.assert_called_once()
 
@@ -150,31 +137,23 @@ class TestEscalationHandlers:
 
         mock_message.answer.assert_called_once()
 
-    async def test_escalation_menu_no_escalations(
-        self, mock_callback, mock_user, mock_auth_token
-    ):
+    async def test_escalation_menu_no_escalations(self, mock_callback, mock_user, mock_auth_token):
         """Test escalation menu with no escalations."""
         with patch(
             "telegram_bot.handlers.escalation.escalation_client.get_user_escalations",
             new_callable=AsyncMock,
         ) as mock_get:
             mock_get.return_value = []
-            with patch(
-                "telegram_bot.handlers.escalation.get_escalation_menu_keyboard"
-            ) as mock_kb:
+            with patch("telegram_bot.handlers.escalation.get_escalation_menu_keyboard") as mock_kb:
                 mock_kb.return_value.as_markup.return_value = MagicMock()
 
-                await escalation_menu(
-                    mock_callback, mock_user, mock_auth_token, locale="en"
-                )
+                await escalation_menu(mock_callback, mock_user, mock_auth_token, locale="en")
 
         mock_callback.message.edit_text.assert_called_once()
 
     async def test_new_escalation(self, mock_callback, mock_state):
         """Test starting new escalation."""
-        with patch(
-            "telegram_bot.handlers.escalation.get_new_escalation_keyboard"
-        ) as mock_kb:
+        with patch("telegram_bot.handlers.escalation.get_new_escalation_keyboard") as mock_kb:
             mock_kb.return_value.as_markup.return_value = MagicMock()
 
             await new_escalation(mock_callback, mock_state, locale="en")
@@ -239,9 +218,7 @@ class TestEscalationHandlers:
         mock_state.update_data.assert_not_called()
         mock_state.set_state.assert_not_called()
 
-    async def test_process_escalation_title_success(
-        self, mock_message, mock_state, mock_user, mock_auth_token
-    ):
+    async def test_process_escalation_title_success(self, mock_message, mock_state, mock_user, mock_auth_token):
         """Test processing valid escalation title."""
         mock_message.text = "Valid Title"
         mock_state.get_data.return_value = {
@@ -255,30 +232,22 @@ class TestEscalationHandlers:
         ) as mock_create:
             mock_create.return_value = {"id": 123, "reason": "Valid Title"}
 
-            await process_escalation_title(
-                mock_message, mock_state, mock_user, mock_auth_token, locale="en"
-            )
+            await process_escalation_title(mock_message, mock_state, mock_user, mock_auth_token, locale="en")
 
         mock_create.assert_called_once()
         mock_state.clear.assert_called_once()
         mock_message.answer.assert_called_once()
 
-    async def test_process_escalation_title_too_short(
-        self, mock_message, mock_state, mock_user, mock_auth_token
-    ):
+    async def test_process_escalation_title_too_short(self, mock_message, mock_state, mock_user, mock_auth_token):
         """Test processing title that is too short."""
         mock_message.text = "AB"
 
-        await process_escalation_title(
-            mock_message, mock_state, mock_user, mock_auth_token, locale="en"
-        )
+        await process_escalation_title(mock_message, mock_state, mock_user, mock_auth_token, locale="en")
 
         mock_message.answer.assert_called_once()
         mock_state.clear.assert_not_called()
 
-    async def test_process_escalation_title_create_failed(
-        self, mock_message, mock_state, mock_user, mock_auth_token
-    ):
+    async def test_process_escalation_title_create_failed(self, mock_message, mock_state, mock_user, mock_auth_token):
         """Test processing title when create fails."""
         mock_message.text = "Valid Title"
         mock_state.get_data.return_value = {
@@ -292,16 +261,12 @@ class TestEscalationHandlers:
         ) as mock_create:
             mock_create.return_value = None
 
-            await process_escalation_title(
-                mock_message, mock_state, mock_user, mock_auth_token, locale="en"
-            )
+            await process_escalation_title(mock_message, mock_state, mock_user, mock_auth_token, locale="en")
 
         mock_message.answer.assert_called_once()
         mock_state.clear.assert_called_once()
 
-    async def test_my_escalations_success(
-        self, mock_callback, mock_user, mock_auth_token, mock_escalations
-    ):
+    async def test_my_escalations_success(self, mock_callback, mock_user, mock_auth_token, mock_escalations):
         """Test my escalations with data."""
         with patch(
             "telegram_bot.handlers.escalation.escalation_client.get_user_escalations",
@@ -312,14 +277,10 @@ class TestEscalationHandlers:
                 "telegram_bot.handlers.escalation.format_escalation_list",
                 return_value="Escalation List",
             ):
-                with patch(
-                    "telegram_bot.handlers.escalation.get_my_escalations_keyboard"
-                ) as mock_kb:
+                with patch("telegram_bot.handlers.escalation.get_my_escalations_keyboard") as mock_kb:
                     mock_kb.return_value.as_markup.return_value = MagicMock()
 
-                    await my_escalations(
-                        mock_callback, mock_user, mock_auth_token, locale="en"
-                    )
+                    await my_escalations(mock_callback, mock_user, mock_auth_token, locale="en")
 
         mock_callback.message.edit_text.assert_called_once()
         mock_callback.answer.assert_called_once()
@@ -330,23 +291,17 @@ class TestEscalationHandlers:
 
         mock_callback.answer.assert_called_once()
 
-    async def test_my_escalations_empty(
-        self, mock_callback, mock_user, mock_auth_token
-    ):
+    async def test_my_escalations_empty(self, mock_callback, mock_user, mock_auth_token):
         """Test my escalations with no data."""
         with patch(
             "telegram_bot.handlers.escalation.escalation_client.get_user_escalations",
             new_callable=AsyncMock,
         ) as mock_get:
             mock_get.return_value = []
-            with patch(
-                "telegram_bot.handlers.escalation.get_my_escalations_keyboard"
-            ) as mock_kb:
+            with patch("telegram_bot.handlers.escalation.get_my_escalations_keyboard") as mock_kb:
                 mock_kb.return_value.as_markup.return_value = MagicMock()
 
-                await my_escalations(
-                    mock_callback, mock_user, mock_auth_token, locale="en"
-                )
+                await my_escalations(mock_callback, mock_user, mock_auth_token, locale="en")
 
         mock_callback.message.edit_text.assert_called_once()
 
@@ -368,9 +323,7 @@ class TestEscalationHandlers:
             new_callable=AsyncMock,
         ) as mock_get:
             mock_get.return_value = escalation_data
-            with patch(
-                "telegram_bot.handlers.escalation.get_escalation_details_keyboard"
-            ) as mock_kb:
+            with patch("telegram_bot.handlers.escalation.get_escalation_details_keyboard") as mock_kb:
                 mock_kb.return_value.as_markup.return_value = MagicMock()
 
                 await escalation_details(mock_callback, mock_auth_token, locale="en")
@@ -401,9 +354,7 @@ class TestEscalationHandlers:
 
         mock_callback.answer.assert_called_once()
 
-    async def test_escalation_details_various_statuses(
-        self, mock_callback, mock_auth_token
-    ):
+    async def test_escalation_details_various_statuses(self, mock_callback, mock_auth_token):
         """Test escalation details with different statuses."""
         statuses = ["open", "in_progress", "resolved", "closed"]
 
@@ -424,22 +375,16 @@ class TestEscalationHandlers:
                 new_callable=AsyncMock,
             ) as mock_get:
                 mock_get.return_value = escalation_data
-                with patch(
-                    "telegram_bot.handlers.escalation.get_escalation_details_keyboard"
-                ) as mock_kb:
+                with patch("telegram_bot.handlers.escalation.get_escalation_details_keyboard") as mock_kb:
                     mock_kb.return_value.as_markup.return_value = MagicMock()
 
-                    await escalation_details(
-                        mock_callback, mock_auth_token, locale="en"
-                    )
+                    await escalation_details(mock_callback, mock_auth_token, locale="en")
 
             # Reset the mock for next iteration
             mock_callback.message.edit_text.reset_mock()
             mock_callback.answer.reset_mock()
 
-    async def test_view_escalation_from_notification_success(
-        self, mock_callback, mock_user, mock_auth_token
-    ):
+    async def test_view_escalation_from_notification_success(self, mock_callback, mock_user, mock_auth_token):
         """Test viewing escalation from notification - success."""
         mock_callback.data = "escalation:view:123"
         escalation_data = {
@@ -459,28 +404,20 @@ class TestEscalationHandlers:
         ) as mock_get:
             mock_get.return_value = escalation_data
 
-            await view_escalation_from_notification(
-                mock_callback, mock_user, mock_auth_token, locale="en"
-            )
+            await view_escalation_from_notification(mock_callback, mock_user, mock_auth_token, locale="en")
 
         mock_callback.message.edit_text.assert_called_once()
         mock_callback.answer.assert_called_once()
 
-    async def test_view_escalation_from_notification_no_auth(
-        self, mock_callback, mock_auth_token
-    ):
+    async def test_view_escalation_from_notification_no_auth(self, mock_callback, mock_auth_token):
         """Test viewing escalation from notification without auth."""
         mock_callback.data = "escalation:view:123"
 
-        await view_escalation_from_notification(
-            mock_callback, None, mock_auth_token, locale="en"
-        )
+        await view_escalation_from_notification(mock_callback, None, mock_auth_token, locale="en")
 
         mock_callback.answer.assert_called_once()
 
-    async def test_view_escalation_from_notification_not_found(
-        self, mock_callback, mock_user, mock_auth_token
-    ):
+    async def test_view_escalation_from_notification_not_found(self, mock_callback, mock_user, mock_auth_token):
         """Test viewing escalation from notification - escalation not found."""
         mock_callback.data = "escalation:view:999"
 
@@ -490,16 +427,12 @@ class TestEscalationHandlers:
         ) as mock_get:
             mock_get.return_value = None
 
-            await view_escalation_from_notification(
-                mock_callback, mock_user, mock_auth_token, locale="en"
-            )
+            await view_escalation_from_notification(mock_callback, mock_user, mock_auth_token, locale="en")
 
         mock_callback.answer.assert_called_once()
         assert "show_alert" in mock_callback.answer.call_args.kwargs
 
-    async def test_view_escalation_from_notification_unauthorized(
-        self, mock_callback, mock_auth_token
-    ):
+    async def test_view_escalation_from_notification_unauthorized(self, mock_callback, mock_auth_token):
         """Test viewing escalation from notification - user not authorized."""
         mock_callback.data = "escalation:view:123"
         # User with different ID than escalation owner
@@ -520,16 +453,12 @@ class TestEscalationHandlers:
         ) as mock_get:
             mock_get.return_value = escalation_data
 
-            await view_escalation_from_notification(
-                mock_callback, different_user, mock_auth_token, locale="en"
-            )
+            await view_escalation_from_notification(mock_callback, different_user, mock_auth_token, locale="en")
 
         mock_callback.answer.assert_called_once()
         assert "show_alert" in mock_callback.answer.call_args.kwargs
 
-    async def test_view_escalation_from_notification_assigned_to_user(
-        self, mock_callback, mock_auth_token
-    ):
+    async def test_view_escalation_from_notification_assigned_to_user(self, mock_callback, mock_auth_token):
         """Test viewing escalation when assigned to current user."""
         mock_callback.data = "escalation:view:123"
         # User is the assignee
@@ -550,16 +479,12 @@ class TestEscalationHandlers:
         ) as mock_get:
             mock_get.return_value = escalation_data
 
-            await view_escalation_from_notification(
-                mock_callback, assigned_user, mock_auth_token, locale="en"
-            )
+            await view_escalation_from_notification(mock_callback, assigned_user, mock_auth_token, locale="en")
 
         mock_callback.message.edit_text.assert_called_once()
         mock_callback.answer.assert_called_once()
 
-    async def test_view_escalation_from_notification_hr_role(
-        self, mock_callback, mock_auth_token
-    ):
+    async def test_view_escalation_from_notification_hr_role(self, mock_callback, mock_auth_token):
         """Test viewing escalation as HR user."""
         mock_callback.data = "escalation:view:123"
         # User is HR (can view any escalation)
@@ -580,16 +505,12 @@ class TestEscalationHandlers:
         ) as mock_get:
             mock_get.return_value = escalation_data
 
-            await view_escalation_from_notification(
-                mock_callback, hr_user, mock_auth_token, locale="en"
-            )
+            await view_escalation_from_notification(mock_callback, hr_user, mock_auth_token, locale="en")
 
         mock_callback.message.edit_text.assert_called_once()
         mock_callback.answer.assert_called_once()
 
-    async def test_view_escalation_with_assigned_name(
-        self, mock_callback, mock_user, mock_auth_token
-    ):
+    async def test_view_escalation_with_assigned_name(self, mock_callback, mock_user, mock_auth_token):
         """Test viewing escalation with assigned_to_name field."""
         mock_callback.data = "escalation:view:123"
         escalation_data = {
@@ -611,9 +532,7 @@ class TestEscalationHandlers:
         ) as mock_get:
             mock_get.return_value = escalation_data
 
-            await view_escalation_from_notification(
-                mock_callback, mock_user, mock_auth_token, locale="en"
-            )
+            await view_escalation_from_notification(mock_callback, mock_user, mock_auth_token, locale="en")
 
         mock_callback.message.edit_text.assert_called_once()
         mock_callback.answer.assert_called_once()
@@ -625,14 +544,10 @@ class TestEscalationHandlers:
             new_callable=AsyncMock,
         ) as mock_get:
             mock_get.return_value = []
-            with patch(
-                "telegram_bot.handlers.escalation.get_my_escalations_keyboard"
-            ) as mock_kb:
+            with patch("telegram_bot.handlers.escalation.get_my_escalations_keyboard") as mock_kb:
                 mock_kb.return_value.as_markup.return_value = MagicMock()
 
-                await list_my_escalations(
-                    mock_callback, mock_user, mock_auth_token, locale="en"
-                )
+                await list_my_escalations(mock_callback, mock_user, mock_auth_token, locale="en")
 
         mock_callback.message.edit_text.assert_called_once()
         mock_callback.answer.assert_called_once()

@@ -10,9 +10,10 @@ from sqlalchemy.sql import func
 
 from checklists_service.core import EmployeeLevel, TaskCategory, TemplateStatus
 from checklists_service.database import Base
+from checklists_service.models import Checklist
 
 if TYPE_CHECKING:
-    from checklists_service.models import Checklist, TaskTemplate
+    from checklists_service.models import TaskTemplate
 
 
 class Template(Base):
@@ -27,9 +28,7 @@ class Template(Base):
     # Target audience
     department_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
     position: Mapped[str | None] = mapped_column(String(100), nullable=True)
-    level: Mapped[EmployeeLevel | None] = mapped_column(
-        Enum(EmployeeLevel, name="employeelevel"), nullable=True
-    )
+    level: Mapped[EmployeeLevel | None] = mapped_column(Enum(EmployeeLevel, name="employeelevel"), nullable=True)
 
     # Configuration
     duration_days: Mapped[int] = mapped_column(Integer, default=30, nullable=False)
@@ -68,9 +67,7 @@ class TaskTemplate(Base):
     __tablename__ = "task_templates"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    template_id: Mapped[int] = mapped_column(
-        ForeignKey("templates.id", ondelete="CASCADE"), nullable=False, index=True
-    )
+    template_id: Mapped[int] = mapped_column(ForeignKey("templates.id", ondelete="CASCADE"), nullable=False, index=True)
     title: Mapped[str] = mapped_column(String(200), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     instructions: Mapped[str | None] = mapped_column(Text, nullable=True)

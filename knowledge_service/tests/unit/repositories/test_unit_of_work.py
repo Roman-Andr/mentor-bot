@@ -3,8 +3,6 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
-
 from knowledge_service.repositories.implementations.article import ArticleRepository
 from knowledge_service.repositories.implementations.article_view import ArticleViewRepository
 from knowledge_service.repositories.implementations.attachment import AttachmentRepository
@@ -16,6 +14,7 @@ from knowledge_service.repositories.unit_of_work import (
     SqlAlchemyUnitOfWork,
     sqlalchemy_uow,
 )
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 
 class TestSqlAlchemyUnitOfWork:

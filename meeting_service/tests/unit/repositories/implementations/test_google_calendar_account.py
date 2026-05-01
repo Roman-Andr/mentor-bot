@@ -4,12 +4,11 @@ from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from meeting_service.models.google_calendar_account import GoogleCalendarAccount
 from meeting_service.repositories.implementations.google_calendar_account import (
     SQLAlchemyGoogleCalendarAccountRepository,
 )
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 @pytest.fixture

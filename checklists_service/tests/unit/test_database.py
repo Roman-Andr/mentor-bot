@@ -4,10 +4,9 @@ from contextlib import suppress
 from types import TracebackType
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from sqlalchemy.ext.asyncio import async_sessionmaker
-
 from checklists_service.database import base as database_base
 from checklists_service.database.base import AsyncSessionLocal, engine, get_db, init_db
+from sqlalchemy.ext.asyncio import async_sessionmaker
 
 
 class TestAsyncSessionLocal:
@@ -48,9 +47,10 @@ class TestEngineConfiguration:
             mock_settings.DATABASE_MAX_OVERFLOW = 10
 
             # Import fresh to get engine with mocked settings
-            import importlib  # noqa: PLC0415
+            import importlib
 
-            from checklists_service.database import base  # noqa: PLC0415
+            from checklists_service.database import base
+
             importlib.reload(base)
 
             assert base.engine is not None
@@ -69,6 +69,7 @@ class TestInitDb:
         class MockBeginContextManager:
             async def __aenter__(self) -> MagicMock:
                 return mock_conn
+
             async def __aexit__(
                 self,
                 exc_type: type[BaseException] | None,
@@ -82,7 +83,7 @@ class TestInitDb:
         mock_engine.begin = MagicMock(return_value=MockBeginContextManager())
 
         # Patch the engine in the database.base module
-        import checklists_service.database.base as db_base  # noqa: PLC0415
+        import checklists_service.database.base as db_base
 
         original_engine = db_base.engine
         db_base.engine = mock_engine
@@ -119,6 +120,7 @@ class TestGetDB:
         class MockSessionLocal:
             async def __aenter__(self):
                 return mock_session
+
             async def __aexit__(self, exc_type, exc_val, exc_tb):
                 return False
 
@@ -145,6 +147,7 @@ class TestGetDB:
         class MockSessionLocal:
             async def __aenter__(self):
                 return mock_session
+
             async def __aexit__(self, exc_type, exc_val, exc_tb):
                 return False
 

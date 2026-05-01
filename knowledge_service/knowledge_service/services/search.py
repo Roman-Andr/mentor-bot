@@ -194,7 +194,12 @@ class SearchService:
             ttl=settings.SEARCH_CACHE_TTL,
         )
 
-        logger.info("Search completed (query_present={}, total={}, returned={})", bool(query.strip()), total, len(formatted_results))
+        logger.info(
+            "Search completed (query_present={}, total={}, returned={})",
+            bool(query.strip()),
+            total,
+            len(formatted_results),
+        )
         return formatted_results, total, suggestions
 
     async def get_search_suggestions(

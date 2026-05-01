@@ -8,7 +8,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from redis import RedisError
-
 from telegram_bot.utils.cache import RedisCache, cache, cached, get_or_set, invalidate_cache
 
 
@@ -251,9 +250,11 @@ class TestRedisCache:
 
     def _async_iterator(self, items: list) -> object:
         """Create async iterator from items."""
+
         async def gen() -> object:
             for item in items:
                 yield item
+
         return gen()
 
     async def test_exists_not_connected(self, redis_cache):

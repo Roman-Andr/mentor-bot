@@ -4,9 +4,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from fastapi import FastAPI, Request, Response
-from starlette.testclient import TestClient
-
 from notification_service.middleware.auth import AuthTokenMiddleware
+from starlette.testclient import TestClient
 
 
 class TestAuthTokenMiddleware:

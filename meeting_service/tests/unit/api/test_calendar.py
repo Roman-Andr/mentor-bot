@@ -5,7 +5,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 from fastapi import FastAPI, status
 from fastapi.testclient import TestClient
-
 from meeting_service.api import deps
 from meeting_service.api.endpoints.calendar import router as calendar_router
 from meeting_service.config import settings
@@ -149,9 +148,7 @@ class TestOAuthCallback:
     @patch("meeting_service.api.endpoints.calendar.Flow")
     @patch("meeting_service.api.endpoints.calendar.SqlAlchemyUnitOfWork")
     @patch("meeting_service.api.endpoints.calendar.GoogleCalendarService")
-    async def test_oauth_callback_success(
-        self, mock_gc_service_class, mock_uow_class, mock_flow_class
-    ):
+    async def test_oauth_callback_success(self, mock_gc_service_class, mock_uow_class, mock_flow_class):
         """Test successful OAuth callback."""
         # Arrange
         app = FastAPI()
@@ -168,8 +165,8 @@ class TestOAuthCallback:
         # Mock Flow
         mock_flow = MagicMock()
         mock_credentials = MagicMock()
-        mock_credentials.token = "test_access_token"  # noqa: S105
-        mock_credentials.refresh_token = "test_refresh_token"  # noqa: S105
+        mock_credentials.token = "test_access_token"
+        mock_credentials.refresh_token = "test_refresh_token"
         mock_credentials.expiry = datetime.now(UTC) + timedelta(hours=1)
         mock_flow.credentials = mock_credentials
         mock_flow_class.from_client_config.return_value = mock_flow

@@ -13,13 +13,9 @@ class FeedbackServiceClient:
     def __init__(self, base_url: str | None = None) -> None:
         """Initialize feedback service HTTP client."""
         self.base_url = base_url or settings.FEEDBACK_SERVICE_URL
-        self.client = httpx.AsyncClient(
-            base_url=self.base_url, timeout=settings.SERVICE_TIMEOUT
-        )
+        self.client = httpx.AsyncClient(base_url=self.base_url, timeout=settings.SERVICE_TIMEOUT)
 
-    async def submit_pulse_survey(
-        self, rating: int, is_anonymous: bool, auth_token: str
-    ) -> bool:
+    async def submit_pulse_survey(self, rating: int, is_anonymous: bool, auth_token: str) -> bool:
         """Submit pulse survey rating. Can be anonymous."""
         logger.info("Submitting pulse survey (rating={}, is_anonymous={})", rating, is_anonymous)
         try:
@@ -37,9 +33,7 @@ class FeedbackServiceClient:
             return False
         return False
 
-    async def submit_experience_rating(
-        self, rating: int, is_anonymous: bool, auth_token: str
-    ) -> bool:
+    async def submit_experience_rating(self, rating: int, is_anonymous: bool, auth_token: str) -> bool:
         """Submit experience rating. Can be anonymous."""
         logger.info("Submitting experience rating (rating={}, is_anonymous={})", rating, is_anonymous)
         try:

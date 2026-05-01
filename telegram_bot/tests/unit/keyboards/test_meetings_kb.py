@@ -1,7 +1,6 @@
 """Unit tests for telegram_bot/keyboards/meetings_kb.py."""
 
 from aiogram.types import InlineKeyboardMarkup
-
 from telegram_bot.keyboards.meetings_kb import (
     get_meeting_details_keyboard,
     get_meetings_menu_keyboard,
@@ -58,6 +57,7 @@ class TestGetMyMeetingsKeyboard:
 
         # Returns InlineKeyboardBuilder, not InlineKeyboardMarkup
         from aiogram.utils.keyboard import InlineKeyboardBuilder
+
         assert isinstance(keyboard, InlineKeyboardBuilder)
 
     def test_back_button_callback(self):

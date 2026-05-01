@@ -5,7 +5,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import httpx
 import pytest
 from fastapi import HTTPException, status
-
 from feedback_service.api.deps import (
     UserInfo,
     get_current_active_user,
@@ -426,9 +425,7 @@ class TestGetUow:
 
     @patch("feedback_service.api.deps.SqlAlchemyUnitOfWork")
     @patch("feedback_service.api.deps.AsyncSessionLocal")
-    async def test_get_uow_yields_uow_instance(
-        self, mock_session_local: MagicMock, mock_uow_class: MagicMock
-    ) -> None:
+    async def test_get_uow_yields_uow_instance(self, mock_session_local: MagicMock, mock_uow_class: MagicMock) -> None:
         """Test get_uow yields a SqlAlchemyUnitOfWork instance."""
         # Arrange
         from feedback_service.api.deps import get_uow
@@ -447,14 +444,13 @@ class TestGetUow:
 
         # Clean up generator
         from contextlib import suppress
+
         with suppress(StopAsyncIteration):
             await gen.__anext__()
 
     @patch("feedback_service.api.deps.SqlAlchemyUnitOfWork")
     @patch("feedback_service.api.deps.AsyncSessionLocal")
-    async def test_get_uow_closes_on_exit(
-        self, mock_session_local: MagicMock, mock_uow_class: MagicMock
-    ) -> None:
+    async def test_get_uow_closes_on_exit(self, mock_session_local: MagicMock, mock_uow_class: MagicMock) -> None:
         """Test get_uow properly closes UOW on generator exit."""
         # Arrange
         from feedback_service.api.deps import get_uow
@@ -469,6 +465,7 @@ class TestGetUow:
 
         # Clean up
         from contextlib import suppress
+
         with suppress(StopAsyncIteration):
             await gen.__anext__()
 
@@ -477,9 +474,7 @@ class TestGetUow:
 
     @patch("feedback_service.api.deps.SqlAlchemyUnitOfWork")
     @patch("feedback_service.api.deps.AsyncSessionLocal")
-    async def test_get_uow_handles_exception(
-        self, mock_session_local: MagicMock, mock_uow_class: MagicMock
-    ) -> None:
+    async def test_get_uow_handles_exception(self, mock_session_local: MagicMock, mock_uow_class: MagicMock) -> None:
         """Test get_uow properly handles exceptions during yield."""
         # Arrange
         from feedback_service.api.deps import get_uow

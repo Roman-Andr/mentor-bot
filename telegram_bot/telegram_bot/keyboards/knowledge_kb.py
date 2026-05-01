@@ -26,9 +26,7 @@ def get_knowledge_base_menu_keyboard(*, locale: str = "en") -> InlineKeyboardBui
             callback_data="kb_categories",
             style=ButtonStyle.PRIMARY,
         ),
-        create_inline_button(
-            f"\u2190 {t('common.menu_button', locale=locale)}", callback_data="menu"
-        ),
+        create_inline_button(f"\u2190 {t('common.menu_button', locale=locale)}", callback_data="menu"),
     )
     builder.adjust(1)
     return builder
@@ -48,9 +46,7 @@ def get_search_no_results_keyboard(*, locale: str = "en") -> InlineKeyboardBuild
             callback_data="escalate_question",
             style=ButtonStyle.DANGER,
         ),
-        create_inline_button(
-            f"\u2190 {t('common.menu_button', locale=locale)}", callback_data="menu"
-        ),
+        create_inline_button(f"\u2190 {t('common.menu_button', locale=locale)}", callback_data="menu"),
     )
     builder.adjust(1)
     return builder
@@ -110,9 +106,7 @@ def get_search_results_keyboard(
             callback_data="escalate_question",
             style=ButtonStyle.DANGER,
         ),
-        create_inline_button(
-            f"\u2190 {t('common.menu_button', locale=locale)}", callback_data="menu"
-        ),
+        create_inline_button(f"\u2190 {t('common.menu_button', locale=locale)}", callback_data="menu"),
     )
     builder.adjust(1)
     return builder
@@ -163,9 +157,7 @@ def get_article_view_keyboard(
     return builder
 
 
-def get_kb_categories_keyboard(
-    categories: list | None = None, *, locale: str = "en"
-) -> InlineKeyboardBuilder:
+def get_kb_categories_keyboard(categories: list | None = None, *, locale: str = "en") -> InlineKeyboardBuilder:
     """Build knowledge base categories keyboard."""
     builder = InlineKeyboardBuilder()
 
@@ -174,9 +166,7 @@ def get_kb_categories_keyboard(
             cat_id = category.get("id", 0)
             cat_name = category.get("name", "Unknown")
             article_count = category.get("articles_count", 0)
-            display_name = (
-                f"{cat_name} ({article_count})" if article_count else cat_name
-            )
+            display_name = f"{cat_name} ({article_count})" if article_count else cat_name
             builder.add(
                 create_inline_button(
                     f"\U0001f4c1 {display_name[:40]}",
@@ -305,9 +295,7 @@ def get_kb_category_article_view_keyboard(
     return builder
 
 
-def get_faq_keyboard(
-    scenarios: list | None = None, *, locale: str = "en"
-) -> InlineKeyboardBuilder:
+def get_faq_keyboard(scenarios: list | None = None, *, locale: str = "en") -> InlineKeyboardBuilder:
     """Build FAQ keyboard with scenario buttons."""
     builder = InlineKeyboardBuilder()
 
@@ -316,7 +304,7 @@ def get_faq_keyboard(
             scenario_id = scenario.get("id", 0)
             scenario_title = scenario.get("title", "Untitled")
             scenario_category = scenario.get("category", "")
-            prefix = "\u2753" if not scenario_category else f"\ud83d\udcda"
+            prefix = "\u2753" if not scenario_category else "\ud83d\udcda"
             builder.add(
                 create_inline_button(
                     f"{prefix} {scenario_title[:45]}",
@@ -420,9 +408,7 @@ def get_kb_create_files_keyboard() -> InlineKeyboardBuilder:
     """Build keyboard for article creation file step."""
     builder = InlineKeyboardBuilder()
     builder.add(
-        create_inline_button(
-            "\u2705 Done \u2014 Save Article", callback_data="kb_create_save"
-        ),
+        create_inline_button("\u2705 Done \u2014 Save Article", callback_data="kb_create_save"),
         create_inline_button("\u274c Cancel", callback_data="kb_create_cancel"),
     )
     builder.adjust(1)
@@ -433,12 +419,8 @@ def get_kb_article_saved_keyboard(*, locale: str = "en") -> InlineKeyboardBuilde
     """Build keyboard shown after article is saved."""
     builder = InlineKeyboardBuilder()
     builder.add(
-        create_inline_button(
-            "\U0001f4da Knowledge Base", callback_data="knowledge_base"
-        ),
-        create_inline_button(
-            f"\u2190 {t('admin.title', locale=locale)}", callback_data="admin_panel"
-        ),
+        create_inline_button("\U0001f4da Knowledge Base", callback_data="knowledge_base"),
+        create_inline_button(f"\u2190 {t('admin.title', locale=locale)}", callback_data="admin_panel"),
     )
     builder.adjust(1)
     return builder
@@ -460,9 +442,7 @@ def get_kb_upload_complete_keyboard() -> InlineKeyboardBuilder:
     builder = InlineKeyboardBuilder()
     builder.add(
         create_inline_button("\U0001f4e4 Upload More", callback_data="kb_upload_file"),
-        create_inline_button(
-            "\U0001f4da Knowledge Base", callback_data="knowledge_base"
-        ),
+        create_inline_button("\U0001f4da Knowledge Base", callback_data="knowledge_base"),
         create_inline_button("\u2190 Admin", callback_data="admin_panel"),
     )
     builder.adjust(1)

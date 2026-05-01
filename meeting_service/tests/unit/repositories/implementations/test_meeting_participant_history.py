@@ -1,15 +1,14 @@
 """Unit tests for MeetingParticipantHistory repository implementation."""
 
-from datetime import datetime
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from meeting_service.models.meeting_participant_history import MeetingParticipantHistory
 from meeting_service.repositories.implementations.meeting_participant_history import (
     MeetingParticipantHistoryRepository,
 )
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 @pytest.fixture
@@ -39,7 +38,7 @@ class TestCreate:
             id=1,
             meeting_id=5,
             user_id=100,
-            joined_at=datetime(2024, 1, 1, 12, 0),
+            joined_at=datetime(2024, 1, 1, 12, 0, tzinfo=UTC),
         )
 
         # Act
@@ -63,13 +62,13 @@ class TestGetByMeetingId:
                 id=1,
                 meeting_id=5,
                 user_id=100,
-                joined_at=datetime(2024, 1, 1, 12, 0),
+                joined_at=datetime(2024, 1, 1, 12, 0, tzinfo=UTC),
             ),
             MeetingParticipantHistory(
                 id=2,
                 meeting_id=5,
                 user_id=101,
-                joined_at=datetime(2024, 1, 2, 12, 0),
+                joined_at=datetime(2024, 1, 2, 12, 0, tzinfo=UTC),
             ),
         ]
 
@@ -96,7 +95,7 @@ class TestGetByMeetingId:
                 id=1,
                 meeting_id=5,
                 user_id=100,
-                joined_at=datetime(2024, 1, 5, 12, 0),
+                joined_at=datetime(2024, 1, 5, 12, 0, tzinfo=UTC),
             )
         ]
 
@@ -106,7 +105,7 @@ class TestGetByMeetingId:
         mock_result.scalars.return_value = mock_scalars
         mock_session.execute.return_value = mock_result
 
-        from_date = datetime(2024, 1, 1, 0, 0)
+        from_date = datetime(2024, 1, 1, 0, 0, tzinfo=UTC)
 
         # Act
         result = await repository.get_by_meeting_id(meeting_id=5, from_date=from_date)
@@ -124,7 +123,7 @@ class TestGetByMeetingId:
                 id=1,
                 meeting_id=5,
                 user_id=100,
-                joined_at=datetime(2024, 1, 1, 12, 0),
+                joined_at=datetime(2024, 1, 1, 12, 0, tzinfo=UTC),
             )
         ]
 
@@ -134,7 +133,7 @@ class TestGetByMeetingId:
         mock_result.scalars.return_value = mock_scalars
         mock_session.execute.return_value = mock_result
 
-        to_date = datetime(2024, 1, 31, 23, 59)
+        to_date = datetime(2024, 1, 31, 23, 59, tzinfo=UTC)
 
         # Act
         result = await repository.get_by_meeting_id(meeting_id=5, to_date=to_date)
@@ -152,7 +151,7 @@ class TestGetByMeetingId:
                 id=1,
                 meeting_id=5,
                 user_id=100,
-                joined_at=datetime(2024, 1, 15, 12, 0),
+                joined_at=datetime(2024, 1, 15, 12, 0, tzinfo=UTC),
             )
         ]
 
@@ -162,8 +161,8 @@ class TestGetByMeetingId:
         mock_result.scalars.return_value = mock_scalars
         mock_session.execute.return_value = mock_result
 
-        from_date = datetime(2024, 1, 1, 0, 0)
-        to_date = datetime(2024, 1, 31, 23, 59)
+        from_date = datetime(2024, 1, 1, 0, 0, tzinfo=UTC)
+        to_date = datetime(2024, 1, 31, 23, 59, tzinfo=UTC)
 
         # Act
         result = await repository.get_by_meeting_id(meeting_id=5, from_date=from_date, to_date=to_date)
@@ -185,13 +184,13 @@ class TestGetByUserId:
                 id=1,
                 meeting_id=5,
                 user_id=100,
-                joined_at=datetime(2024, 1, 1, 12, 0),
+                joined_at=datetime(2024, 1, 1, 12, 0, tzinfo=UTC),
             ),
             MeetingParticipantHistory(
                 id=2,
                 meeting_id=6,
                 user_id=100,
-                joined_at=datetime(2024, 1, 2, 12, 0),
+                joined_at=datetime(2024, 1, 2, 12, 0, tzinfo=UTC),
             ),
         ]
 
@@ -218,7 +217,7 @@ class TestGetByUserId:
                 id=1,
                 meeting_id=5,
                 user_id=100,
-                joined_at=datetime(2024, 1, 5, 12, 0),
+                joined_at=datetime(2024, 1, 5, 12, 0, tzinfo=UTC),
             )
         ]
 
@@ -228,7 +227,7 @@ class TestGetByUserId:
         mock_result.scalars.return_value = mock_scalars
         mock_session.execute.return_value = mock_result
 
-        from_date = datetime(2024, 1, 1, 0, 0)
+        from_date = datetime(2024, 1, 1, 0, 0, tzinfo=UTC)
 
         # Act
         result = await repository.get_by_user_id(user_id=100, from_date=from_date)
@@ -246,7 +245,7 @@ class TestGetByUserId:
                 id=1,
                 meeting_id=5,
                 user_id=100,
-                joined_at=datetime(2024, 1, 1, 12, 0),
+                joined_at=datetime(2024, 1, 1, 12, 0, tzinfo=UTC),
             )
         ]
 
@@ -256,7 +255,7 @@ class TestGetByUserId:
         mock_result.scalars.return_value = mock_scalars
         mock_session.execute.return_value = mock_result
 
-        to_date = datetime(2024, 1, 31, 23, 59)
+        to_date = datetime(2024, 1, 31, 23, 59, tzinfo=UTC)
 
         # Act
         result = await repository.get_by_user_id(user_id=100, to_date=to_date)
@@ -274,7 +273,7 @@ class TestGetByUserId:
                 id=1,
                 meeting_id=5,
                 user_id=100,
-                joined_at=datetime(2024, 1, 15, 12, 0),
+                joined_at=datetime(2024, 1, 15, 12, 0, tzinfo=UTC),
             )
         ]
 
@@ -284,8 +283,8 @@ class TestGetByUserId:
         mock_result.scalars.return_value = mock_scalars
         mock_session.execute.return_value = mock_result
 
-        from_date = datetime(2024, 1, 1, 0, 0)
-        to_date = datetime(2024, 1, 31, 23, 59)
+        from_date = datetime(2024, 1, 1, 0, 0, tzinfo=UTC)
+        to_date = datetime(2024, 1, 31, 23, 59, tzinfo=UTC)
 
         # Act
         result = await repository.get_by_user_id(user_id=100, from_date=from_date, to_date=to_date)
@@ -307,13 +306,13 @@ class TestGetAll:
                 id=1,
                 meeting_id=5,
                 user_id=100,
-                joined_at=datetime(2024, 1, 1, 12, 0),
+                joined_at=datetime(2024, 1, 1, 12, 0, tzinfo=UTC),
             ),
             MeetingParticipantHistory(
                 id=2,
                 meeting_id=6,
                 user_id=101,
-                joined_at=datetime(2024, 1, 2, 12, 0),
+                joined_at=datetime(2024, 1, 2, 12, 0, tzinfo=UTC),
             ),
         ]
 
@@ -344,7 +343,7 @@ class TestGetAll:
                 id=1,
                 meeting_id=5,
                 user_id=100,
-                joined_at=datetime(2024, 1, 5, 12, 0),
+                joined_at=datetime(2024, 1, 5, 12, 0, tzinfo=UTC),
             )
         ]
 
@@ -358,7 +357,7 @@ class TestGetAll:
 
         mock_session.execute.side_effect = [mock_count_result, mock_result]
 
-        from_date = datetime(2024, 1, 1, 0, 0)
+        from_date = datetime(2024, 1, 1, 0, 0, tzinfo=UTC)
 
         # Act
         result, total = await repository.get_all(from_date=from_date)
@@ -377,7 +376,7 @@ class TestGetAll:
                 id=1,
                 meeting_id=5,
                 user_id=100,
-                joined_at=datetime(2024, 1, 1, 12, 0),
+                joined_at=datetime(2024, 1, 1, 12, 0, tzinfo=UTC),
             )
         ]
 
@@ -391,7 +390,7 @@ class TestGetAll:
 
         mock_session.execute.side_effect = [mock_count_result, mock_result]
 
-        to_date = datetime(2024, 1, 31, 23, 59)
+        to_date = datetime(2024, 1, 31, 23, 59, tzinfo=UTC)
 
         # Act
         result, total = await repository.get_all(to_date=to_date)
@@ -410,7 +409,7 @@ class TestGetAll:
                 id=1,
                 meeting_id=5,
                 user_id=100,
-                joined_at=datetime(2024, 1, 15, 12, 0),
+                joined_at=datetime(2024, 1, 15, 12, 0, tzinfo=UTC),
             )
         ]
 
@@ -424,8 +423,8 @@ class TestGetAll:
 
         mock_session.execute.side_effect = [mock_count_result, mock_result]
 
-        from_date = datetime(2024, 1, 1, 0, 0)
-        to_date = datetime(2024, 1, 31, 23, 59)
+        from_date = datetime(2024, 1, 1, 0, 0, tzinfo=UTC)
+        to_date = datetime(2024, 1, 31, 23, 59, tzinfo=UTC)
 
         # Act
         result, total = await repository.get_all(from_date=from_date, to_date=to_date)
@@ -468,7 +467,7 @@ class TestGetAll:
                 id=1,
                 meeting_id=5,
                 user_id=100,
-                joined_at=datetime(2024, 1, 1, 12, 0),
+                joined_at=datetime(2024, 1, 1, 12, 0, tzinfo=UTC),
             )
         ]
 

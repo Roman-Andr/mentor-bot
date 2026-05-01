@@ -1,8 +1,6 @@
 """Unit tests for user_service/services/user.py."""
 
-
 import pytest
-
 from auth_service.core import ConflictException, NotFoundException, UserRole
 from auth_service.models import User
 from auth_service.schemas import UserCreate, UserUpdate
@@ -284,6 +282,7 @@ class TestDeleteUser:
     async def test_delete_user_success(self, mock_uow, sample_user):
         """Test deleting a user (covers lines 116-117)."""
         from unittest.mock import AsyncMock
+
         mock_uow.users.get_by_id.return_value = sample_user
         mock_uow.users.delete = AsyncMock(return_value=True)
         service = UserService(mock_uow)
@@ -414,6 +413,7 @@ class TestChangePassword:
         service = UserService(mock_uow)
 
         from unittest.mock import patch
+
         with patch("auth_service.services.user.verify_password", return_value=True):
             with patch("auth_service.services.user.hash_password", return_value="$2b$12$newhash"):
                 await service.change_password(1, "current_password", "new_password123")
@@ -433,6 +433,7 @@ class TestChangePassword:
         service = UserService(mock_uow)
 
         from auth_service.core import ValidationException
+
         with pytest.raises(ValidationException) as exc_info:
             await service.change_password(1, "current", "new")
 
@@ -446,6 +447,7 @@ class TestChangePassword:
         from unittest.mock import patch
 
         from auth_service.core import ValidationException
+
         with patch("auth_service.services.user.verify_password", return_value=False):
             with pytest.raises(ValidationException) as exc_info:
                 await service.change_password(1, "wrong_password", "new_password123")

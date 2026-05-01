@@ -4,7 +4,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
-
 from feedback_service.main import app, lifespan
 
 client = TestClient(app)
@@ -37,6 +36,7 @@ class TestLifespan:
 
         with patch("feedback_service.main.init_db") as mock_init_db:
             from sqlalchemy.exc import SQLAlchemyError
+
             mock_init_db.side_effect = SQLAlchemyError("Database connection failed")
 
             # Act & Assert
@@ -50,8 +50,10 @@ class TestLifespan:
         # Arrange
         mock_app = MagicMock()
 
-        with patch("feedback_service.main.init_db") as mock_init_db, \
-             patch("feedback_service.main.logger") as mock_logger:
+        with (
+            patch("feedback_service.main.init_db") as mock_init_db,
+            patch("feedback_service.main.logger") as mock_logger,
+        ):
             mock_init_db.return_value = AsyncMock()
 
             # Act
@@ -91,6 +93,7 @@ class TestHealthEndpoint:
             class AsyncContextMock:
                 async def __aenter__(self):
                     return mock_conn
+
                 async def __aexit__(self, *args):
                     return False
 
@@ -115,6 +118,7 @@ class TestHealthEndpoint:
             class AsyncContextMock:
                 async def __aenter__(self):
                     raise Exception("Database connection failed")
+
                 async def __aexit__(self, *args):
                     return False
 

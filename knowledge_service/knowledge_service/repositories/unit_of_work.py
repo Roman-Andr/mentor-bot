@@ -16,7 +16,9 @@ from knowledge_service.repositories.implementations.category import CategoryRepo
 from knowledge_service.repositories.implementations.category_change_history import CategoryChangeHistoryRepository
 from knowledge_service.repositories.implementations.department_document import DepartmentDocumentRepository
 from knowledge_service.repositories.implementations.dialogue import DialogueScenarioRepository, DialogueStepRepository
-from knowledge_service.repositories.implementations.dialogue_scenario_change_history import DialogueScenarioChangeHistoryRepository
+from knowledge_service.repositories.implementations.dialogue_scenario_change_history import (
+    DialogueScenarioChangeHistoryRepository,
+)
 from knowledge_service.repositories.implementations.search_history import SearchHistoryRepository
 from knowledge_service.repositories.implementations.tag import TagRepository
 from knowledge_service.repositories.interfaces.article import IArticleRepository
@@ -28,7 +30,9 @@ from knowledge_service.repositories.interfaces.category import ICategoryReposito
 from knowledge_service.repositories.interfaces.category_change_history import ICategoryChangeHistoryRepository
 from knowledge_service.repositories.interfaces.department_document import IDepartmentDocumentRepository
 from knowledge_service.repositories.interfaces.dialogue import IDialogueScenarioRepository, IDialogueStepRepository
-from knowledge_service.repositories.interfaces.dialogue_scenario_change_history import IDialogueScenarioChangeHistoryRepository
+from knowledge_service.repositories.interfaces.dialogue_scenario_change_history import (
+    IDialogueScenarioChangeHistoryRepository,
+)
 from knowledge_service.repositories.interfaces.search_history import ISearchHistoryRepository
 from knowledge_service.repositories.interfaces.tag import ITagRepository
 

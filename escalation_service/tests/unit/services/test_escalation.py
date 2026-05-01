@@ -4,7 +4,6 @@ from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
 from escalation_service.core.enums import EscalationSource, EscalationStatus, EscalationType
 from escalation_service.core.exceptions import NotFoundException
 from escalation_service.models import EscalationRequest

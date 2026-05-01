@@ -5,7 +5,6 @@ from unittest.mock import AsyncMock
 
 import httpx
 import pytest
-
 from knowledge_service.services.circuit_breaker import (
     CircuitBreaker,
     CircuitBreakerOpenError,
@@ -273,9 +272,7 @@ class TestCircuitBreakerIntegration:
         # Create a mock response for HTTPStatusError
         mock_response = httpx.Response(500, text="Internal Server Error")
         mock_func = AsyncMock(
-            side_effect=httpx.HTTPStatusError(
-                "Server error", request=httpx.Request("GET", "/"), response=mock_response
-            )
+            side_effect=httpx.HTTPStatusError("Server error", request=httpx.Request("GET", "/"), response=mock_response)
         )
 
         with pytest.raises(httpx.HTTPStatusError, match="Server error"):

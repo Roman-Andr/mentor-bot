@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING
 
 import pytest
 from fastapi import HTTPException, status
-
 from knowledge_service.api.endpoints.dialogues import (
     add_step,
     create_scenario,
@@ -33,9 +32,11 @@ from knowledge_service.schemas import (
 )
 
 if TYPE_CHECKING:
-    from knowledge_service.api.deps import UserInfo
+    pass
 
 from unittest.mock import AsyncMock
+
+from knowledge_service.api.deps import UserInfo
 
 
 class TestGetScenarios:

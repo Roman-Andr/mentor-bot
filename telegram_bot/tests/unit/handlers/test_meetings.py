@@ -6,7 +6,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
-
 from telegram_bot.handlers.meetings import (
     cancel_meeting,
     confirm_meeting,
@@ -84,21 +83,15 @@ class TestMeetingsHandlers:
             },
         ]
 
-    async def test_meetings_menu_callback(
-        self, mock_callback, mock_user, mock_auth_token, mock_meetings
-    ):
+    async def test_meetings_menu_callback(self, mock_callback, mock_user, mock_auth_token, mock_meetings):
         """Test meetings menu via callback."""
         with patch(
             "telegram_bot.handlers.meetings.meeting_client.get_upcoming_meetings",
             new_callable=AsyncMock,
         ) as mock_get:
             mock_get.return_value = mock_meetings
-            with patch(
-                "telegram_bot.handlers.meetings.format_meeting_list", return_value="Meeting List"
-            ):
-                with patch(
-                    "telegram_bot.handlers.meetings.get_meetings_menu_keyboard"
-                ) as mock_kb:
+            with patch("telegram_bot.handlers.meetings.format_meeting_list", return_value="Meeting List"):
+                with patch("telegram_bot.handlers.meetings.get_meetings_menu_keyboard") as mock_kb:
                     mock_kb.return_value.as_markup.return_value = MagicMock()
 
                     await meetings_menu(mock_callback, mock_user, mock_auth_token, locale="en")
@@ -106,9 +99,7 @@ class TestMeetingsHandlers:
         mock_callback.answer.assert_called_once()
         mock_callback.message.edit_text.assert_called_once()
 
-    async def test_meetings_menu_message(
-        self, mock_message, mock_user, mock_auth_token, mock_meetings
-    ):
+    async def test_meetings_menu_message(self, mock_message, mock_user, mock_auth_token, mock_meetings):
         """Test meetings menu via message."""
         with patch(
             "telegram_bot.handlers.meetings.meeting_client.get_upcoming_meetings",
@@ -119,9 +110,7 @@ class TestMeetingsHandlers:
                 "telegram_bot.handlers.meetings.format_meeting_list",
                 return_value="Meeting List",
             ):
-                with patch(
-                    "telegram_bot.handlers.meetings.get_meetings_menu_keyboard"
-                ) as mock_kb:
+                with patch("telegram_bot.handlers.meetings.get_meetings_menu_keyboard") as mock_kb:
                     mock_kb.return_value.as_markup.return_value = MagicMock()
 
                     await meetings_menu(mock_message, mock_user, mock_auth_token, locale="en")
@@ -134,18 +123,14 @@ class TestMeetingsHandlers:
 
         mock_message.answer.assert_called_once()
 
-    async def test_meetings_menu_no_meetings(
-        self, mock_callback, mock_user, mock_auth_token
-    ):
+    async def test_meetings_menu_no_meetings(self, mock_callback, mock_user, mock_auth_token):
         """Test meetings menu with no meetings."""
         with patch(
             "telegram_bot.handlers.meetings.meeting_client.get_upcoming_meetings",
             new_callable=AsyncMock,
         ) as mock_get:
             mock_get.return_value = []
-            with patch(
-                "telegram_bot.handlers.meetings.get_meetings_menu_keyboard"
-            ) as mock_kb:
+            with patch("telegram_bot.handlers.meetings.get_meetings_menu_keyboard") as mock_kb:
                 mock_kb.return_value.as_markup.return_value = MagicMock()
 
                 await meetings_menu(mock_callback, mock_user, mock_auth_token, locale="en")
@@ -336,9 +321,7 @@ class TestMeetingsHandlers:
         mock_message.answer.assert_called_once()
         mock_state.clear.assert_called_once()
 
-    async def test_my_meetings_success(
-        self, mock_callback, mock_user, mock_auth_token, mock_meetings
-    ):
+    async def test_my_meetings_success(self, mock_callback, mock_user, mock_auth_token, mock_meetings):
         """Test my meetings - success."""
         with patch(
             "telegram_bot.handlers.meetings.meeting_client.get_user_meetings",
@@ -349,9 +332,7 @@ class TestMeetingsHandlers:
                 "telegram_bot.handlers.meetings.format_meeting_list",
                 return_value="Meeting List",
             ):
-                with patch(
-                    "telegram_bot.handlers.meetings.get_my_meetings_keyboard"
-                ) as mock_kb:
+                with patch("telegram_bot.handlers.meetings.get_my_meetings_keyboard") as mock_kb:
                     mock_kb.return_value.as_markup.return_value = MagicMock()
 
                     await my_meetings(mock_callback, mock_user, mock_auth_token, locale="en")
@@ -365,18 +346,14 @@ class TestMeetingsHandlers:
 
         mock_callback.answer.assert_called_once()
 
-    async def test_my_meetings_empty(
-        self, mock_callback, mock_user, mock_auth_token
-    ):
+    async def test_my_meetings_empty(self, mock_callback, mock_user, mock_auth_token):
         """Test my meetings with no meetings."""
         with patch(
             "telegram_bot.handlers.meetings.meeting_client.get_user_meetings",
             new_callable=AsyncMock,
         ) as mock_get:
             mock_get.return_value = []
-            with patch(
-                "telegram_bot.handlers.meetings.get_my_meetings_keyboard"
-            ) as mock_kb:
+            with patch("telegram_bot.handlers.meetings.get_my_meetings_keyboard") as mock_kb:
                 mock_kb.return_value.as_markup.return_value = MagicMock()
 
                 await my_meetings(mock_callback, mock_user, mock_auth_token, locale="en")
@@ -392,21 +369,15 @@ class TestMeetingsHandlers:
             new_callable=AsyncMock,
         ) as mock_get:
             mock_get.return_value = mock_meetings
-            with patch(
-                "telegram_bot.handlers.meetings.get_meeting_details_keyboard"
-            ) as mock_kb:
+            with patch("telegram_bot.handlers.meetings.get_meeting_details_keyboard") as mock_kb:
                 mock_kb.return_value.as_markup.return_value = MagicMock()
 
-                await meeting_details(
-                    mock_callback, mock_user, mock_auth_token, locale="en"
-                )
+                await meeting_details(mock_callback, mock_user, mock_auth_token, locale="en")
 
         mock_callback.message.edit_text.assert_called_once()
         mock_callback.answer.assert_called_once()
 
-    async def test_meeting_details_not_found(
-        self, mock_callback, mock_user, mock_auth_token
-    ):
+    async def test_meeting_details_not_found(self, mock_callback, mock_user, mock_auth_token):
         """Test meeting details - not found."""
         mock_callback.data = "meeting_999"
 
@@ -416,9 +387,7 @@ class TestMeetingsHandlers:
         ) as mock_get:
             mock_get.return_value = [{"id": 1, "title": "Meeting 1"}]
 
-            await meeting_details(
-                mock_callback, mock_user, mock_auth_token, locale="en"
-            )
+            await meeting_details(mock_callback, mock_user, mock_auth_token, locale="en")
 
         mock_callback.answer.assert_called_once()
         assert "show_alert" in mock_callback.answer.call_args.kwargs
@@ -477,13 +446,9 @@ class TestMeetingsHandlers:
         ) as mock_cancel:
             mock_cancel.return_value = True
 
-            await cancel_meeting(
-                mock_callback, mock_user, mock_auth_token, locale="en"
-            )
+            await cancel_meeting(mock_callback, mock_user, mock_auth_token, locale="en")
 
-        mock_cancel.assert_called_once_with(
-            123, 1, mock_auth_token, "Cancelled via Telegram"
-        )
+        mock_cancel.assert_called_once_with(123, 1, mock_auth_token, "Cancelled via Telegram")
         mock_callback.answer.assert_called_once()
         mock_callback.message.edit_text.assert_called_once()
 
@@ -497,9 +462,7 @@ class TestMeetingsHandlers:
         ) as mock_cancel:
             mock_cancel.return_value = False
 
-            await cancel_meeting(
-                mock_callback, mock_user, mock_auth_token, locale="en"
-            )
+            await cancel_meeting(mock_callback, mock_user, mock_auth_token, locale="en")
 
         mock_callback.answer.assert_called_once()
 
@@ -511,9 +474,7 @@ class TestMeetingsHandlers:
 
         mock_callback.answer.assert_called_once()
 
-    async def test_meetings_menu_english_text(
-        self, mock_message, mock_user, mock_auth_token, mock_meetings
-    ):
+    async def test_meetings_menu_english_text(self, mock_message, mock_user, mock_auth_token, mock_meetings):
         """Test meetings menu triggered by English text."""
         mock_message.text = "Meetings"
 
@@ -526,18 +487,14 @@ class TestMeetingsHandlers:
                 "telegram_bot.handlers.meetings.format_meeting_list",
                 return_value="Meeting List",
             ):
-                with patch(
-                    "telegram_bot.handlers.meetings.get_meetings_menu_keyboard"
-                ) as mock_kb:
+                with patch("telegram_bot.handlers.meetings.get_meetings_menu_keyboard") as mock_kb:
                     mock_kb.return_value.as_markup.return_value = MagicMock()
 
                     await meetings_menu(mock_message, mock_user, mock_auth_token, locale="en")
 
         mock_message.answer.assert_called_once()
 
-    async def test_meetings_menu_russian_text(
-        self, mock_message, mock_user, mock_auth_token, mock_meetings
-    ):
+    async def test_meetings_menu_russian_text(self, mock_message, mock_user, mock_auth_token, mock_meetings):
         """Test meetings menu triggered by Russian text."""
         mock_message.text = "\u0412\u0441\u0442\u0440\u0435\u0447\u0438"
 
@@ -550,9 +507,7 @@ class TestMeetingsHandlers:
                 "telegram_bot.handlers.meetings.format_meeting_list",
                 return_value="Meeting List",
             ):
-                with patch(
-                    "telegram_bot.handlers.meetings.get_meetings_menu_keyboard"
-                ) as mock_kb:
+                with patch("telegram_bot.handlers.meetings.get_meetings_menu_keyboard") as mock_kb:
                     mock_kb.return_value.as_markup.return_value = MagicMock()
 
                     await meetings_menu(mock_message, mock_user, mock_auth_token, locale="en")

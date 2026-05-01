@@ -1,12 +1,10 @@
 """Unit tests for audit endpoints."""
 
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from fastapi import HTTPException
-
-from escalation_service.api.deps import UserInfo, get_uow
+from escalation_service.api.deps import UserInfo
 from escalation_service.api.endpoints.audit import (
     AuditResponse,
     EscalationStatusEntry,
@@ -16,7 +14,6 @@ from escalation_service.api.endpoints.audit import (
     require_hr_or_admin,
 )
 from escalation_service.core.enums import UserRole
-from escalation_service.main import app
 
 
 class TestRequireHrOrAdmin:
@@ -112,7 +109,7 @@ class TestGetEscalationStatusHistory:
         # Arrange
         from_date = datetime(2024, 1, 1, tzinfo=UTC)
         to_date = datetime(2024, 1, 31, tzinfo=UTC)
-        
+
         mock_entry = {
             "id": 1,
             "escalation_id": 10,
@@ -275,7 +272,7 @@ class TestGetMentorInterventionHistory:
         # Arrange
         from_date = datetime(2024, 1, 1, tzinfo=UTC)
         to_date = datetime(2024, 1, 31, tzinfo=UTC)
-        
+
         mock_entry = {
             "id": 1,
             "escalation_id": 10,
@@ -338,7 +335,7 @@ class TestGetMentorInterventionHistory:
         # Arrange
         from_date = datetime(2024, 1, 1, tzinfo=UTC)
         to_date = datetime(2024, 1, 31, tzinfo=UTC)
-        
+
         mock_entry = {
             "id": 3,
             "escalation_id": 10,

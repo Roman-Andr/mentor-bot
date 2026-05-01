@@ -18,12 +18,8 @@ class UserSession(Base):
     __tablename__ = "user_sessions"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    telegram_id: Mapped[int] = mapped_column(
-        BigInteger, unique=True, index=True, nullable=False
-    )
-    user_id: Mapped[int] = mapped_column(
-        Integer, index=True, nullable=True
-    )  # Reference to auth service
+    telegram_id: Mapped[int] = mapped_column(BigInteger, unique=True, index=True, nullable=False)
+    user_id: Mapped[int] = mapped_column(Integer, index=True, nullable=True)  # Reference to auth service
 
     # User preferences
     language: Mapped[str] = mapped_column(String(10), default="en")
@@ -31,18 +27,12 @@ class UserSession(Base):
     notification_time: Mapped[str] = mapped_column(String(5), default="09:00")
 
     # Session data
-    last_activity: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    last_activity: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
     session_data: Mapped[dict] = mapped_column(JSONB, default=dict)
 
     # Timestamps
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), onupdate=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), onupdate=func.now())
 
     def __repr__(self) -> str:
         """Representation of UserSession."""
@@ -59,9 +49,7 @@ class BotLog(Base):
     user_id: Mapped[int] = mapped_column(Integer, index=True, nullable=True)
 
     # Interaction details
-    action: Mapped[str] = mapped_column(
-        String(50), nullable=False
-    )  # e.g., "command", "callback", "message"
+    action: Mapped[str] = mapped_column(String(50), nullable=False)  # e.g., "command", "callback", "message"
     command: Mapped[str] = mapped_column(String(100), nullable=True)
     data: Mapped[str] = mapped_column(Text, nullable=True)
 
@@ -75,9 +63,7 @@ class BotLog(Base):
     user_agent: Mapped[str] = mapped_column(Text, nullable=True)
 
     # Timestamps
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     def __repr__(self) -> str:
         """Representation of BotLog."""
@@ -94,18 +80,12 @@ class Notification(Base):
     user_id: Mapped[int] = mapped_column(Integer, index=True, nullable=True)
 
     # Notification details
-    notification_type: Mapped[str] = mapped_column(
-        String(50), nullable=False
-    )  # e.g., "task_reminder", "meeting"
+    notification_type: Mapped[str] = mapped_column(String(50), nullable=False)  # e.g., "task_reminder", "meeting"
     message: Mapped[str] = mapped_column(Text, nullable=False)
-    scheduled_for: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False
-    )
+    scheduled_for: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
     # Status
-    status: Mapped[str] = mapped_column(
-        String(20), default="pending"
-    )  # pending, sent, failed, cancelled
+    status: Mapped[str] = mapped_column(String(20), default="pending")  # pending, sent, failed, cancelled
     sent_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
     attempts: Mapped[int] = mapped_column(Integer, default=0)
 
@@ -113,12 +93,8 @@ class Notification(Base):
     metadata_obj: Mapped[dict] = mapped_column(JSONB, default=dict)
 
     # Timestamps
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), onupdate=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), onupdate=func.now())
 
     def __repr__(self) -> str:
         """Representation of Notification."""

@@ -5,6 +5,7 @@ Revision ID: c3d4e5f6g7h8
 Revises: fd5f34b9e8c4
 Create Date: 2026-04-26 10:00:00.000000+00:00
 """
+
 from collections.abc import Sequence
 
 import sqlalchemy as sa
@@ -38,7 +39,9 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(["article_id"], ["articles.id"]),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index(op.f("ix_article_change_history_article_id_changed_at"), "article_change_history", ["article_id", "changed_at"])
+    op.create_index(
+        op.f("ix_article_change_history_article_id_changed_at"), "article_change_history", ["article_id", "changed_at"]
+    )
 
     # Article view history table
     op.create_table(
@@ -73,7 +76,11 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(["category_id"], ["categories.id"]),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index(op.f("ix_category_change_history_category_id_changed_at"), "category_change_history", ["category_id", "changed_at"])
+    op.create_index(
+        op.f("ix_category_change_history_category_id_changed_at"),
+        "category_change_history",
+        ["category_id", "changed_at"],
+    )
 
     # Dialogue scenario change history table
     op.create_table(
@@ -90,12 +97,19 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(["scenario_id"], ["dialogue_scenarios.id"]),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index(op.f("ix_dialogue_scenario_change_history_scenario_id_changed_at"), "dialogue_scenario_change_history", ["scenario_id", "changed_at"])
+    op.create_index(
+        op.f("ix_dialogue_scenario_change_history_scenario_id_changed_at"),
+        "dialogue_scenario_change_history",
+        ["scenario_id", "changed_at"],
+    )
 
 
 def downgrade() -> None:
     """Downgrade database schema."""
-    op.drop_index(op.f("ix_dialogue_scenario_change_history_scenario_id_changed_at"), table_name="dialogue_scenario_change_history")
+    op.drop_index(
+        op.f("ix_dialogue_scenario_change_history_scenario_id_changed_at"),
+        table_name="dialogue_scenario_change_history",
+    )
     op.drop_table("dialogue_scenario_change_history")
 
     op.drop_index(op.f("ix_category_change_history_category_id_changed_at"), table_name="category_change_history")

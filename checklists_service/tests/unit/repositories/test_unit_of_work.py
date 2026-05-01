@@ -3,9 +3,8 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
-
 from checklists_service.repositories.unit_of_work import SqlAlchemyUnitOfWork, sqlalchemy_uow
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 
 class TestSqlAlchemyUnitOfWork:
@@ -95,7 +94,7 @@ class TestSqlAlchemyUnitOfWork:
 
         with pytest.raises(ValueError):
             async with uow:
-                raise ValueError("Test error")  # noqa: TRY003, EM101
+                raise ValueError("Test error")
 
         # Rollback should be called on exception
         mock_session.rollback.assert_awaited_once()
@@ -244,7 +243,9 @@ class TestIUnitOfWorkInterface:
         from checklists_service.repositories.unit_of_work import IUnitOfWork, SqlAlchemyUnitOfWork
 
         # Get all methods from the protocol
-        protocol_methods = {name for name in dir(IUnitOfWork) if not name.startswith("_") or name in ("__aenter__", "__aexit__")}
+        protocol_methods = {
+            name for name in dir(IUnitOfWork) if not name.startswith("_") or name in ("__aenter__", "__aexit__")
+        }
         protocol_methods.discard("__protocol_attrs__")
         protocol_methods.discard("__parameters__")
         protocol_methods.discard("__subclasshook__")

@@ -5,7 +5,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from fastapi import UploadFile
-
 from knowledge_service.core import NotFoundException, PermissionDenied, ValidationException
 from knowledge_service.models import DepartmentDocument
 from knowledge_service.schemas import DepartmentDocumentUpdate
@@ -44,6 +43,7 @@ def mock_current_user_regular():
 def sample_document():
     """Create a sample department document."""
     from datetime import UTC, datetime
+
     return DepartmentDocument(
         id=1,
         department_id=1,
@@ -213,9 +213,7 @@ class TestListDepartmentDocuments:
 
         assert result.total == 2  # department doc + matching public doc
 
-    async def test_list_documents_as_regular_user_other_department_denied(
-        self, mock_uow, mock_current_user_regular
-    ):
+    async def test_list_documents_as_regular_user_other_department_denied(self, mock_uow, mock_current_user_regular):
         """Test listing documents from other department is denied for regular users."""
         from knowledge_service.api.endpoints.department_documents import list_department_documents
 
@@ -323,9 +321,7 @@ class TestListDepartmentDocuments:
         assert result.total == 1
         mock_uow.department_documents.get_by_category.assert_called_once_with("policy")
 
-    async def test_list_documents_hr_with_department_and_filters(
-        self, mock_uow, mock_current_user_hr, sample_document
-    ):
+    async def test_list_documents_hr_with_department_and_filters(self, mock_uow, mock_current_user_hr, sample_document):
         """Test HR listing documents with department_id, category and is_public filters."""
         mock_uow.department_documents.get_by_department.return_value = [sample_document]
 
@@ -525,7 +521,13 @@ class TestCreateDepartmentDocument:
     @patch("knowledge_service.api.endpoints.department_documents.validate_filename")
     @patch("knowledge_service.api.endpoints.department_documents.get_storage_service")
     async def test_create_document_storage_error(
-        self, mock_get_storage_service, mock_validate_filename, mock_validate_file_type, mock_validate_file_size, mock_uow, mock_current_user_hr
+        self,
+        mock_get_storage_service,
+        mock_validate_filename,
+        mock_validate_file_type,
+        mock_validate_file_size,
+        mock_uow,
+        mock_current_user_hr,
     ):
         """Test document creation with S3 storage error raises HTTPException."""
         from knowledge_service.api.endpoints.department_documents import create_department_document
@@ -760,9 +762,7 @@ class TestDownloadDepartmentDocument:
         assert result.status_code == 307
 
     @patch("knowledge_service.api.endpoints.department_documents.get_storage_service")
-    async def test_download_document_s3_error(
-        self, mock_get_storage, mock_uow, mock_current_user_hr, sample_document
-    ):
+    async def test_download_document_s3_error(self, mock_get_storage, mock_uow, mock_current_user_hr, sample_document):
         """Test download when S3 returns error."""
         mock_uow.department_documents.get_by_id.return_value = sample_document
         mock_storage = MagicMock()

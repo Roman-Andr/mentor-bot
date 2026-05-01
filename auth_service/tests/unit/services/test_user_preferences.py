@@ -1,10 +1,9 @@
 """Unit tests for user preferences in UserService."""
 
 from datetime import UTC, datetime
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock
 
 import pytest
-
 from auth_service.core.enums import UserRole
 from auth_service.models import User
 from auth_service.schemas import UserPreferencesUpdate

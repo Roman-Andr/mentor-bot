@@ -4,7 +4,6 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from aiogram.types import CallbackQuery, Message
-
 from telegram_bot.handlers.checklists import (
     _respond_with_auth_error,
     noop_callback,

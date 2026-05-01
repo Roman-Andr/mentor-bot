@@ -4,7 +4,6 @@ from datetime import UTC, datetime
 from unittest.mock import AsyncMock
 
 import pytest
-
 from auth_service.core import ConflictException, NotFoundException
 from auth_service.models import Department
 from auth_service.schemas import DepartmentCreate, DepartmentUpdate

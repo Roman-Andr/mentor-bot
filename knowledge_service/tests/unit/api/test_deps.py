@@ -5,7 +5,6 @@ from unittest.mock import AsyncMock, MagicMock, Mock, patch
 import pytest
 from fastapi import HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials
-
 from knowledge_service.api.deps import (
     AdminUser,
     ArticleServiceDep,
@@ -41,11 +40,11 @@ from knowledge_service.api.deps import (
 )
 from knowledge_service.core import AuthException, PermissionDenied
 from knowledge_service.repositories.unit_of_work import SqlAlchemyUnitOfWork
-from knowledge_service.services import DepartmentDocumentService
 from knowledge_service.services import (
     ArticleService,
     AttachmentService,
     CategoryService,
+    DepartmentDocumentService,
     DialogueService,
     SearchService,
     TagService,
@@ -267,12 +266,14 @@ class TestGetCurrentActiveUser:
 
     async def test_get_current_active_user_inactive(self) -> None:
         """Test getting inactive user raises exception."""
-        inactive_user = UserInfo({
-            "id": 1,
-            "email": "inactive@example.com",
-            "role": "MENTEE",
-            "is_active": False,
-        })
+        inactive_user = UserInfo(
+            {
+                "id": 1,
+                "email": "inactive@example.com",
+                "role": "MENTEE",
+                "is_active": False,
+            }
+        )
 
         with pytest.raises(HTTPException) as exc_info:
             await get_current_active_user(inactive_user)
@@ -334,12 +335,14 @@ class TestRequireMentorOrAbove:
 
     async def test_require_mentor_as_mentor(self) -> None:
         """Test mentor requirement with mentor user."""
-        mentor_user = UserInfo({
-            "id": 1,
-            "email": "mentor@example.com",
-            "role": "MENTOR",
-            "is_active": True,
-        })
+        mentor_user = UserInfo(
+            {
+                "id": 1,
+                "email": "mentor@example.com",
+                "role": "MENTOR",
+                "is_active": True,
+            }
+        )
 
         result = await require_mentor_or_above(mentor_user)
         assert result == mentor_user
@@ -480,6 +483,7 @@ class TestTypeAliases:
     def test_uow_dep_type(self) -> None:
         """Test UOWDep type alias - need to import it."""
         from knowledge_service.api.deps import UOWDep
+
         assert UOWDep is not None
 
     def test_article_service_dep_type(self) -> None:

@@ -4,12 +4,11 @@ from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from auth_service.core.enums import EmployeeLevel, InvitationStatus, UserRole
 from auth_service.core.exceptions import NotFoundException, ValidationException
 from auth_service.models import Department, Invitation
 from auth_service.repositories.implementations.invitation import InvitationRepository
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class TestInvitationRepository:

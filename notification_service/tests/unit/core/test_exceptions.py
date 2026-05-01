@@ -1,9 +1,7 @@
 """Unit tests for notification_service/core/exceptions.py."""
 
-
 import pytest
 from fastapi import HTTPException
-
 from notification_service.core.exceptions import (
     AuthException,
     ConflictException,

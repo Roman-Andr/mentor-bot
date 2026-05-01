@@ -6,7 +6,6 @@ from typing import Any, cast
 
 from sqlalchemy import and_, case, delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.sql import text
 
 from knowledge_service.models import SearchHistory
 from knowledge_service.repositories.implementations.base import SqlAlchemyBaseRepository

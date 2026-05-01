@@ -42,6 +42,7 @@ class AuthClient:
 
         Raises:
             AuthClientError: If request fails
+
         """
         url = f"{self._base_url}/api/v1/users/{user_id}/preferences"
         headers = {}

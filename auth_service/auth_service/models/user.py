@@ -18,11 +18,12 @@ from sqlalchemy.sql import func
 
 from auth_service.core import EmployeeLevel, UserRole
 from auth_service.database import Base
+from auth_service.models import Department, Invitation
+from auth_service.models.password_reset import PasswordResetToken
+from auth_service.models.user_mentor import UserMentor
 
 if TYPE_CHECKING:
-    from auth_service.models import Department, Invitation
-    from auth_service.models.password_reset import PasswordResetToken
-    from auth_service.models.user_mentor import UserMentor
+    pass
 
 
 class User(Base):

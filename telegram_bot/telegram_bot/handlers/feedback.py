@@ -26,18 +26,10 @@ MIN_COMMENT_LENGTH = 10
 @router.message(Command("feedback"))
 @router.message(F.text == "\U0001f4ca Feedback")
 @router.message(F.text == "Feedback")
-@router.message(
-    F.text
-    == "\U0001f4ca \u041e\u0431\u0440\u0430\u0442\u043d\u0430\u044f \u0441\u0432\u044f\u0437\u044c"
-)
-@router.message(
-    F.text
-    == "\u041e\u0431\u0440\u0430\u0442\u043d\u0430\u044f \u0441\u0432\u044f\u0437\u044c"
-)
+@router.message(F.text == "\U0001f4ca \u041e\u0431\u0440\u0430\u0442\u043d\u0430\u044f \u0441\u0432\u044f\u0437\u044c")
+@router.message(F.text == "\u041e\u0431\u0440\u0430\u0442\u043d\u0430\u044f \u0441\u0432\u044f\u0437\u044c")
 @router.callback_query(F.data == "feedback_menu")
-async def feedback_menu(
-    update: Message | CallbackQuery, state: FSMContext, *, locale: str = "en"
-) -> None:
+async def feedback_menu(update: Message | CallbackQuery, state: FSMContext, *, locale: str = "en") -> None:
     """Show feedback menu."""
     if isinstance(update, CallbackQuery):
         msg = update.message
@@ -62,9 +54,7 @@ async def feedback_menu(
 
 
 @router.callback_query(F.data == "pulse_survey")
-async def start_pulse_survey(
-    callback: CallbackQuery, state: FSMContext, *, locale: str = "en"
-) -> None:
+async def start_pulse_survey(callback: CallbackQuery, state: FSMContext, *, locale: str = "en") -> None:
     """Start daily pulse survey - first ask for anonymity choice."""
     if callback.message:
         await callback.message.edit_text(
@@ -88,9 +78,7 @@ async def process_pulse_anonymity_choice(
     try:
         is_anonymous = callback.data.split("_")[-1] == "true"
     except (IndexError, ValueError):
-        await callback.answer(
-            t("feedback.invalid_choice", locale=locale), show_alert=True
-        )
+        await callback.answer(t("feedback.invalid_choice", locale=locale), show_alert=True)
         return
 
     # Store anonymity choice in state
@@ -124,15 +112,11 @@ async def process_pulse_rating(
         rating = int(parts[1])
         is_anonymous = parts[-1] == "true" if len(parts) >= 4 else False
     except (IndexError, ValueError):
-        await callback.answer(
-            t("feedback.pulse_invalid", locale=locale), show_alert=True
-        )
+        await callback.answer(t("feedback.pulse_invalid", locale=locale), show_alert=True)
         return
 
     if not (MIN_PULSE_RATING <= rating <= MAX_PULSE_RATING):
-        await callback.answer(
-            t("feedback.pulse_invalid", locale=locale), show_alert=True
-        )
+        await callback.answer(t("feedback.pulse_invalid", locale=locale), show_alert=True)
         return
 
     if user and auth_token:
@@ -142,9 +126,7 @@ async def process_pulse_rating(
             auth_token=auth_token,
         )
         if not success:
-            await callback.answer(
-                t("feedback.submit_failed", locale=locale), show_alert=True
-            )
+            await callback.answer(t("feedback.submit_failed", locale=locale), show_alert=True)
             return
 
     # Show appropriate thank you message
@@ -159,9 +141,7 @@ async def process_pulse_rating(
 
 
 @router.callback_query(F.data == "rate_experience")
-async def start_experience_rating(
-    callback: CallbackQuery, state: FSMContext, *, locale: str = "en"
-) -> None:
+async def start_experience_rating(callback: CallbackQuery, state: FSMContext, *, locale: str = "en") -> None:
     """Start experience rating - first ask for anonymity choice."""
     if callback.message:
         await callback.message.edit_text(
@@ -185,9 +165,7 @@ async def process_experience_anonymity_choice(
     try:
         is_anonymous = callback.data.split("_")[-1] == "true"
     except (IndexError, ValueError):
-        await callback.answer(
-            t("feedback.invalid_choice", locale=locale), show_alert=True
-        )
+        await callback.answer(t("feedback.invalid_choice", locale=locale), show_alert=True)
         return
 
     # Store anonymity choice in state
@@ -218,9 +196,7 @@ async def process_experience_rating(
         rating = int(parts[1])
         is_anonymous = parts[-1] == "true" if len(parts) >= 4 else False
     except (IndexError, ValueError):
-        await callback.answer(
-            t("feedback.invalid_choice", locale=locale), show_alert=True
-        )
+        await callback.answer(t("feedback.invalid_choice", locale=locale), show_alert=True)
         return
 
     if user and auth_token:
@@ -230,9 +206,7 @@ async def process_experience_rating(
             auth_token=auth_token,
         )
         if not success:
-            await callback.answer(
-                t("feedback.submit_failed", locale=locale), show_alert=True
-            )
+            await callback.answer(t("feedback.submit_failed", locale=locale), show_alert=True)
             return
 
     # Show appropriate thank you message
@@ -247,9 +221,7 @@ async def process_experience_rating(
 
 
 @router.callback_query(F.data == "comments_suggestions")
-async def start_comments(
-    callback: CallbackQuery, state: FSMContext, *, locale: str = "en"
-) -> None:
+async def start_comments(callback: CallbackQuery, state: FSMContext, *, locale: str = "en") -> None:
     """Start comments and suggestions - first ask for anonymity choice."""
     if callback.message:
         await callback.message.edit_text(
@@ -273,9 +245,7 @@ async def process_comment_anonymity_choice(
     try:
         is_anonymous = callback.data.split("_")[-1] == "true"
     except (IndexError, ValueError):
-        await callback.answer(
-            t("feedback.invalid_choice", locale=locale), show_alert=True
-        )
+        await callback.answer(t("feedback.invalid_choice", locale=locale), show_alert=True)
         return
 
     # Store anonymity choice in state
@@ -305,9 +275,7 @@ async def process_comments(
     comment = (message.text or "").strip()
 
     if len(comment) < MIN_COMMENT_LENGTH:
-        await message.answer(
-            t("feedback.comments_too_short", locale=locale, min=MIN_COMMENT_LENGTH)
-        )
+        await message.answer(t("feedback.comments_too_short", locale=locale, min=MIN_COMMENT_LENGTH))
         return
 
     # Get anonymity choice from state

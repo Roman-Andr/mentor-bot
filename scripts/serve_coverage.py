@@ -2,11 +2,14 @@
 """Generate unified coverage dashboard and serve it via HTTP."""
 
 import http.server
+import logging
 import os
 import socketserver
 import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 SERVICES = [
     "auth_service",
@@ -268,8 +271,8 @@ def parse_coverage_xml(xml_path: str) -> tuple[int, int] | None:
             lines = int(lines_valid)
             covered = int(lines * float(line_rate))
             return (lines, covered)
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning("Failed to parse coverage XML %s: %s", xml_path, e)
     return None
 
 
@@ -307,14 +310,7 @@ def generate_dashboard() -> Path:
         else:
             link = '<span class="btn btn-disabled">N/A</span>'
 
-        rows.append(ROW_TEMPLATE.format(
-            service=svc,
-            lines=lines,
-            covered=covered,
-            pct=pct,
-            color=color,
-            link=link
-        ))
+        rows.append(ROW_TEMPLATE.format(service=svc, lines=lines, covered=covered, pct=pct, color=color, link=link))
 
     total_pct = (total_covered / total_lines * 100) if total_lines > 0 else 0
     total_color = get_color(total_pct)
@@ -328,7 +324,7 @@ def generate_dashboard() -> Path:
         service_count=service_count,
         rows="\n".join(rows),
         timestamp=timestamp,
-        port=PORT
+        port=PORT,
     )
 
     index_path = Path(REPORTS_DIR) / "index.html"

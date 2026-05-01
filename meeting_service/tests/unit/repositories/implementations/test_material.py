@@ -3,10 +3,9 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from meeting_service.models.material import MeetingMaterial
 from meeting_service.repositories.implementations.material import MaterialRepository
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 @pytest.fixture

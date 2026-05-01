@@ -5,6 +5,7 @@ Revision ID: d4e5f6g7h8i9
 Revises: 62158e46a6f2
 Create Date: 2026-04-26 10:00:00.000000+00:00
 """
+
 from collections.abc import Sequence
 
 import sqlalchemy as sa
@@ -35,8 +36,14 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(["changed_by"], ["users.id"]),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index(op.f("ix_escalation_status_history_escalation_id_changed_at"), "escalation_status_history", ["escalation_id", "changed_at"])
-    op.create_index(op.f("ix_escalation_status_history_user_id_changed_at"), "escalation_status_history", ["user_id", "changed_at"])
+    op.create_index(
+        op.f("ix_escalation_status_history_escalation_id_changed_at"),
+        "escalation_status_history",
+        ["escalation_id", "changed_at"],
+    )
+    op.create_index(
+        op.f("ix_escalation_status_history_user_id_changed_at"), "escalation_status_history", ["user_id", "changed_at"]
+    )
 
     # Mentor intervention history table
     op.create_table(
@@ -52,9 +59,13 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(["escalation_id"], ["escalations.id"]),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index(op.f("ix_mentor_intervention_history_escalation_id"), "mentor_intervention_history", ["escalation_id"])
+    op.create_index(
+        op.f("ix_mentor_intervention_history_escalation_id"), "mentor_intervention_history", ["escalation_id"]
+    )
     op.create_index(op.f("ix_mentor_intervention_history_mentor_id"), "mentor_intervention_history", ["mentor_id"])
-    op.create_index(op.f("ix_mentor_intervention_history_intervention_at"), "mentor_intervention_history", ["intervention_at"])
+    op.create_index(
+        op.f("ix_mentor_intervention_history_intervention_at"), "mentor_intervention_history", ["intervention_at"]
+    )
 
 
 def downgrade() -> None:

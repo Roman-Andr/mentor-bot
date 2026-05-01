@@ -1,10 +1,11 @@
 """Tests for category API endpoints."""
 
 from typing import TYPE_CHECKING
+from unittest.mock import AsyncMock
 
 import pytest
 from fastapi import HTTPException, status
-
+from knowledge_service.api.deps import UserInfo
 from knowledge_service.api.endpoints.categories import (
     create_category,
     delete_category,
@@ -15,13 +16,11 @@ from knowledge_service.api.endpoints.categories import (
     update_category,
 )
 from knowledge_service.core import NotFoundException, ValidationException
+from knowledge_service.models import Category
 from knowledge_service.schemas import CategoryCreate, CategoryResponse, CategoryUpdate
 
 if TYPE_CHECKING:
-    from unittest.mock import AsyncMock
-
-    from knowledge_service.api.deps import UserInfo
-    from knowledge_service.models import Category
+    pass
 
 
 class TestGetCategories:

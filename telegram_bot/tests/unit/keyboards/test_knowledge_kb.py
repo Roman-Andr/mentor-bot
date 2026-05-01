@@ -1,6 +1,5 @@
 """Unit tests for telegram_bot/keyboards/knowledge_kb.py."""
 
-
 from telegram_bot.keyboards.knowledge_kb import (
     get_admin_knowledge_keyboard,
     get_article_view_keyboard,
@@ -48,6 +47,7 @@ class TestKnowledgeBaseKeyboards:
 
     def test_get_search_results_keyboard_basic(self):
         """Test search results keyboard with basic results."""
+
         # Create mock result objects with title attribute
         class MockResult:
             def __init__(self, title) -> None:
@@ -62,14 +62,13 @@ class TestKnowledgeBaseKeyboards:
 
     def test_get_search_results_keyboard_with_pagination(self):
         """Test search results keyboard with pagination."""
+
         class MockResult:
             def __init__(self, title) -> None:
                 self.title = title
 
         results = [MockResult(f"Result {i}") for i in range(5)]
-        builder = get_search_results_keyboard(
-            results, locale="en", page=2, total_pages=3, query="test"
-        )
+        builder = get_search_results_keyboard(results, locale="en", page=2, total_pages=3, query="test")
         markup = builder.as_markup()
 
         assert markup is not None
@@ -77,14 +76,13 @@ class TestKnowledgeBaseKeyboards:
 
     def test_get_search_results_keyboard_first_page(self):
         """Test search results keyboard on first page."""
+
         class MockResult:
             def __init__(self, title) -> None:
                 self.title = title
 
         results = [MockResult("Result 1")]
-        builder = get_search_results_keyboard(
-            results, locale="en", page=1, total_pages=2, query="test"
-        )
+        builder = get_search_results_keyboard(results, locale="en", page=1, total_pages=2, query="test")
         markup = builder.as_markup()
 
         assert markup is not None
@@ -92,14 +90,13 @@ class TestKnowledgeBaseKeyboards:
 
     def test_get_search_results_keyboard_last_page(self):
         """Test search results keyboard on last page."""
+
         class MockResult:
             def __init__(self, title) -> None:
                 self.title = title
 
         results = [MockResult("Result 1")]
-        builder = get_search_results_keyboard(
-            results, locale="en", page=2, total_pages=2, query="test"
-        )
+        builder = get_search_results_keyboard(results, locale="en", page=2, total_pages=2, query="test")
         markup = builder.as_markup()
 
         assert markup is not None
@@ -185,9 +182,7 @@ class TestKnowledgeBaseKeyboards:
     def test_get_kb_category_articles_keyboard_with_pagination(self):
         """Test category articles keyboard with pagination."""
         articles = [{"id": i, "title": f"Article {i}"} for i in range(5)]
-        builder = get_kb_category_articles_keyboard(
-            articles, 1, locale="en", page=2, total_pages=3
-        )
+        builder = get_kb_category_articles_keyboard(articles, 1, locale="en", page=2, total_pages=3)
         markup = builder.as_markup()
 
         assert markup is not None
@@ -196,9 +191,7 @@ class TestKnowledgeBaseKeyboards:
     def test_get_kb_category_articles_keyboard_first_page(self):
         """Test category articles keyboard on first page."""
         articles = [{"id": 1, "title": "Article 1"}]
-        builder = get_kb_category_articles_keyboard(
-            articles, 1, locale="en", page=1, total_pages=2
-        )
+        builder = get_kb_category_articles_keyboard(articles, 1, locale="en", page=1, total_pages=2)
         markup = builder.as_markup()
 
         assert markup is not None
@@ -207,9 +200,7 @@ class TestKnowledgeBaseKeyboards:
     def test_get_kb_category_articles_keyboard_last_page(self):
         """Test category articles keyboard on last page."""
         articles = [{"id": 1, "title": "Article 1"}]
-        builder = get_kb_category_articles_keyboard(
-            articles, 1, locale="en", page=2, total_pages=2
-        )
+        builder = get_kb_category_articles_keyboard(articles, 1, locale="en", page=2, total_pages=2)
         markup = builder.as_markup()
 
         assert markup is not None

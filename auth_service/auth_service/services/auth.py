@@ -35,9 +35,7 @@ class AuthService:
         """Initialize authentication service with database session."""
         self._uow = uow
 
-    async def authenticate_user(
-        self, login_data: LoginRequest, request: Request | None = None
-    ) -> tuple[User, Token]:
+    async def authenticate_user(self, login_data: LoginRequest, request: Request | None = None) -> tuple[User, Token]:
         """Authenticate user with email and password."""
         logger.debug("Authenticating user by email: {}", login_data.email)
         # Find user by email
@@ -116,9 +114,7 @@ class AuthService:
         # Get user
         user = await self._uow.users.get_by_id(payload["user_id"])
         if not user or not user.is_active:
-            logger.warning(
-                "Refresh failed: user not found or inactive (user_id={})", payload.get("user_id")
-            )
+            logger.warning("Refresh failed: user not found or inactive (user_id={})", payload.get("user_id"))
             msg = "User not found or inactive"
             raise AuthException(msg)
 
@@ -198,9 +194,7 @@ class AuthService:
         self, invitation_token: str, telegram_data: TelegramRegistrationRequest
     ) -> User:
         """Register new user using invitation token with Telegram data."""
-        logger.debug(
-            "Registering via invitation (telegram_id={})", telegram_data.telegram_id
-        )
+        logger.debug("Registering via invitation (telegram_id={})", telegram_data.telegram_id)
         # Find valid invitation
         invitation = await self._uow.invitations.get_valid_by_token(invitation_token)
         if not invitation:
@@ -281,9 +275,7 @@ class AuthService:
         department and position, with their assigned mentor if any.
         """
         if not user.department_id and not user.position:
-            logger.debug(
-                "Skipping auto-create checklists: no department/position (user_id={})", user.id
-            )
+            logger.debug("Skipping auto-create checklists: no department/position (user_id={})", user.id)
             return
 
         # Find the user's active mentor
@@ -319,9 +311,7 @@ class AuthService:
             raise AuthException(msg)
 
         if not user.is_active:
-            logger.warning(
-                "Current user lookup failed: user is disabled (user_id={})", user.id
-            )
+            logger.warning("Current user lookup failed: user is disabled (user_id={})", user.id)
             msg = "User account is disabled"
             raise AuthException(msg)
 

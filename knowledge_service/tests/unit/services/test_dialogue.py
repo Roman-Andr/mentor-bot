@@ -4,7 +4,6 @@ from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-
 from knowledge_service.core import DialogueAnswerType, DialogueCategory, NotFoundException
 from knowledge_service.models import DialogueScenario, DialogueStep
 from knowledge_service.schemas import (

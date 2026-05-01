@@ -3,7 +3,6 @@
 from datetime import UTC, datetime, timedelta
 
 import pytest
-
 from auth_service.core import UserRole
 from auth_service.schemas import (
     ChangePasswordRequest,

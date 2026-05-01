@@ -4,13 +4,12 @@ from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from fastapi.testclient import TestClient
-
 from escalation_service.api.deps import get_current_active_user, get_escalation_service, get_uow
 from escalation_service.core.enums import EscalationSource, EscalationStatus, EscalationType
 from escalation_service.main import app
 from escalation_service.models import EscalationRequest
 from escalation_service.services.escalation import EscalationService
+from fastapi.testclient import TestClient
 
 
 @pytest.fixture(autouse=True)
@@ -56,8 +55,13 @@ class MockUserInfo:
         return self.role in roles if self.role else False
 
 
-def create_mock_escalation(escalation_id=1, user_id=100, status=EscalationStatus.PENDING,
-                           assigned_to=None, escalation_type=EscalationType.GENERAL):
+def create_mock_escalation(
+    escalation_id=1,
+    user_id=100,
+    status=EscalationStatus.PENDING,
+    assigned_to=None,
+    escalation_type=EscalationType.GENERAL,
+):
     """Create a mock escalation request for testing using actual model attributes."""
     mock = MagicMock(spec=EscalationRequest)
 
@@ -400,8 +404,9 @@ class TestGetEscalationById:
         """Assignee can get the escalation they are assigned to."""
         # Arrange - regular_user is the assignee
         mock_uow = create_mock_uow()
-        mock_escalation = create_mock_escalation(escalation_id=2, user_id=999, assigned_to=regular_user.id,
-                                                  status=EscalationStatus.ASSIGNED)
+        mock_escalation = create_mock_escalation(
+            escalation_id=2, user_id=999, assigned_to=regular_user.id, status=EscalationStatus.ASSIGNED
+        )
         mock_uow.escalations.get_by_id.return_value = mock_escalation
 
         app.dependency_overrides[get_current_active_user] = lambda: regular_user
@@ -466,8 +471,9 @@ class TestUpdateEscalation:
         """Assignee can update their escalation."""
         # Arrange - regular_user is the assignee
         mock_uow = create_mock_uow()
-        mock_escalation = create_mock_escalation(escalation_id=2, assigned_to=regular_user.id,
-                                                  status=EscalationStatus.ASSIGNED)
+        mock_escalation = create_mock_escalation(
+            escalation_id=2, assigned_to=regular_user.id, status=EscalationStatus.ASSIGNED
+        )
         mock_uow.escalations.get_by_id.return_value = mock_escalation
         mock_uow.escalations.update.return_value = mock_escalation
 
@@ -493,8 +499,7 @@ class TestUpdateEscalation:
         """HR can update any escalation."""
         # Arrange - hr_user is not the assignee
         mock_uow = create_mock_uow()
-        mock_escalation = create_mock_escalation(escalation_id=2, assigned_to=999,
-                                                  status=EscalationStatus.ASSIGNED)
+        mock_escalation = create_mock_escalation(escalation_id=2, assigned_to=999, status=EscalationStatus.ASSIGNED)
         mock_uow.escalations.get_by_id.return_value = mock_escalation
         mock_uow.escalations.update.return_value = mock_escalation
 
@@ -620,8 +625,9 @@ class TestResolveEscalation:
         """Assignee can resolve their assigned escalation."""
         # Arrange - regular_user is the assignee
         mock_uow = create_mock_uow()
-        mock_escalation = create_mock_escalation(escalation_id=2, assigned_to=regular_user.id,
-                                                  status=EscalationStatus.ASSIGNED)
+        mock_escalation = create_mock_escalation(
+            escalation_id=2, assigned_to=regular_user.id, status=EscalationStatus.ASSIGNED
+        )
         mock_uow.escalations.get_by_id.return_value = mock_escalation
         mock_uow.escalations.update.return_value = mock_escalation
 
@@ -644,8 +650,7 @@ class TestResolveEscalation:
         """HR can resolve any escalation."""
         # Arrange - hr_user is not the assignee
         mock_uow = create_mock_uow()
-        mock_escalation = create_mock_escalation(escalation_id=2, assigned_to=999,
-                                                  status=EscalationStatus.ASSIGNED)
+        mock_escalation = create_mock_escalation(escalation_id=2, assigned_to=999, status=EscalationStatus.ASSIGNED)
         mock_uow.escalations.get_by_id.return_value = mock_escalation
         mock_uow.escalations.update.return_value = mock_escalation
 
@@ -877,6 +882,7 @@ class TestRootEndpoints:
             class AsyncContextMock:
                 async def __aenter__(self):
                     return mock_conn
+
                 async def __aexit__(self, *args):
                     return False
 

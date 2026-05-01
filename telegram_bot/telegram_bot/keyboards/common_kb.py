@@ -30,9 +30,7 @@ def get_my_mentor_no_mentor_keyboard(*, locale: str = "en") -> InlineKeyboardBui
     """Build my mentor keyboard when no mentor is assigned."""
     builder = InlineKeyboardBuilder()
     builder.add(
-        create_inline_button(
-            f"\u2190 {t('common.menu_button', locale=locale)}", callback_data="menu"
-        ),
+        create_inline_button(f"\u2190 {t('common.menu_button', locale=locale)}", callback_data="menu"),
     )
     builder.adjust(1)
     return builder
@@ -57,9 +55,7 @@ def get_my_mentor_keyboard(*, locale: str = "en") -> InlineKeyboardBuilder:
             callback_data="mentor_tasks",
             style=ButtonStyle.PRIMARY,
         ),
-        create_inline_button(
-            f"\u2190 {t('common.menu_button', locale=locale)}", callback_data="menu"
-        ),
+        create_inline_button(f"\u2190 {t('common.menu_button', locale=locale)}", callback_data="menu"),
     )
     builder.adjust(1)
     return builder
@@ -102,9 +98,7 @@ def get_mentor_tasks_keyboard(*, locale: str = "en") -> InlineKeyboardBuilder:
     return builder
 
 
-def get_progress_keyboard(
-    checklist_id: int | None = None, *, locale: str = "en"
-) -> InlineKeyboardBuilder:
+def get_progress_keyboard(checklist_id: int | None = None, *, locale: str = "en") -> InlineKeyboardBuilder:
     """Build progress dashboard keyboard."""
     builder = InlineKeyboardBuilder()
     builder.add(

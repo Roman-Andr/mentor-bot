@@ -5,9 +5,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
 import pytest
-from fastapi import HTTPException, Request, status
-from fastapi.security import HTTPAuthorizationCredentials
-
 from checklists_service.api.deps import (
     ChecklistsServiceDep,
     UserInfo,
@@ -22,6 +19,8 @@ from checklists_service.api.deps import (
     verify_service_api_key,
 )
 from checklists_service.core import AuthException, PermissionDenied
+from fastapi import HTTPException, Request, status
+from fastapi.security import HTTPAuthorizationCredentials
 
 
 class TestUserInfo:
@@ -112,8 +111,10 @@ class TestGetCurrentUser:
         mock_response.status_code = status.HTTP_200_OK
         mock_response.json.return_value = user_data
 
-        with patch("httpx.AsyncClient") as mock_client_cls, \
-             patch("checklists_service.api.deps.auth_service_circuit_breaker") as mock_cb:
+        with (
+            patch("httpx.AsyncClient") as mock_client_cls,
+            patch("checklists_service.api.deps.auth_service_circuit_breaker") as mock_cb,
+        ):
             mock_client = AsyncMock()
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
             mock_client.__aexit__ = AsyncMock(return_value=None)
@@ -147,8 +148,10 @@ class TestGetCurrentUser:
         mock_response = MagicMock()
         mock_response.status_code = status.HTTP_401_UNAUTHORIZED
 
-        with patch("httpx.AsyncClient") as mock_client_cls, \
-             patch("checklists_service.api.deps.auth_service_circuit_breaker") as mock_cb:
+        with (
+            patch("httpx.AsyncClient") as mock_client_cls,
+            patch("checklists_service.api.deps.auth_service_circuit_breaker") as mock_cb,
+        ):
             mock_client = AsyncMock()
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
             mock_client.__aexit__ = AsyncMock(return_value=None)
@@ -169,8 +172,10 @@ class TestGetCurrentUser:
         credentials = MagicMock(spec=HTTPAuthorizationCredentials)
         credentials.credentials = "valid_token"
 
-        with patch("httpx.AsyncClient") as mock_client_cls, \
-             patch("checklists_service.api.deps.auth_service_circuit_breaker") as mock_cb:
+        with (
+            patch("httpx.AsyncClient") as mock_client_cls,
+            patch("checklists_service.api.deps.auth_service_circuit_breaker") as mock_cb,
+        ):
             mock_client = AsyncMock()
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
             mock_client.__aexit__ = AsyncMock(return_value=None)
@@ -190,8 +195,10 @@ class TestGetCurrentUser:
         credentials = MagicMock(spec=HTTPAuthorizationCredentials)
         credentials.credentials = "valid_token"
 
-        with patch("httpx.AsyncClient") as mock_client_cls, \
-             patch("checklists_service.api.deps.auth_service_circuit_breaker") as mock_cb:
+        with (
+            patch("httpx.AsyncClient") as mock_client_cls,
+            patch("checklists_service.api.deps.auth_service_circuit_breaker") as mock_cb,
+        ):
             mock_client = AsyncMock()
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
             mock_client.__aexit__ = AsyncMock(return_value=None)
@@ -423,6 +430,7 @@ class TestGetDB:
         class MockAsyncSessionLocal:
             async def __aenter__(self):
                 return mock_session
+
             async def __aexit__(self, exc_type, exc_val, exc_tb):
                 return False
 
@@ -448,6 +456,7 @@ class TestGetDB:
         class MockAsyncSessionLocal:
             async def __aenter__(self):
                 return mock_session
+
             async def __aexit__(self, exc_type, exc_val, exc_tb):
                 return False
 
@@ -510,7 +519,3 @@ class TestGetUOW:
             mock_uow_instance.rollback.assert_not_awaited()
             # __aexit__ should be called with the exception
             mock_uow_instance.__aexit__.assert_awaited_once()
-
-
-
-

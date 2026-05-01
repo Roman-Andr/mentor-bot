@@ -191,7 +191,7 @@ def mock_category() -> Category:
 
 
 @pytest.fixture
-def mock_child_category(mock_category: Category) -> Category:  # noqa: ARG001
+def mock_child_category(mock_category: Category) -> Category:
     """Create a mock child category."""
     return Category(
         id=2,
@@ -247,7 +247,7 @@ def mock_attachment() -> Attachment:
 
 
 @pytest.fixture
-def mock_article_service(mock_article: Article, mock_draft_article: Article) -> AsyncMock:  # noqa: ARG001
+def mock_article_service(mock_article: Article, mock_draft_article: Article) -> AsyncMock:
     """Create a mock article service."""
     service = AsyncMock()
     service.get_article_by_id.return_value = mock_article

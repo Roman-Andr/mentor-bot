@@ -3,7 +3,6 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
 from telegram_bot.services.document_client import DocumentServiceClient, document_client
 
 
@@ -54,6 +53,7 @@ class TestDocumentServiceClient:
     async def test_get_department_documents_error(self, mock_get):
         """Test getting department documents - error."""
         import httpx
+
         mock_get.side_effect = httpx.RequestError("Connection failed")
 
         with patch("telegram_bot.utils.cache.cache.get", return_value=None):
@@ -85,6 +85,7 @@ class TestDocumentServiceClient:
     async def test_get_company_policies_error(self, mock_get):
         """Test getting company policies - error."""
         import httpx
+
         mock_get.side_effect = httpx.RequestError("Connection failed")
 
         with patch("telegram_bot.utils.cache.cache.get", return_value=None):
@@ -115,6 +116,7 @@ class TestDocumentServiceClient:
     async def test_get_training_materials_error(self, mock_get):
         """Test getting training materials - error."""
         import httpx
+
         mock_get.side_effect = httpx.RequestError("Connection failed")
 
         with patch("telegram_bot.utils.cache.cache.get", return_value=None):
@@ -152,6 +154,7 @@ class TestDocumentServiceClient:
     async def test_get_article_details_error(self, mock_get):
         """Test getting article details - error."""
         import httpx
+
         mock_get.side_effect = httpx.RequestError("Connection failed")
 
         result = await self.client.get_article_details(1, self.auth_token)
@@ -196,6 +199,7 @@ class TestDocumentServiceClient:
     async def test_get_department_documents_list_error(self, mock_get):
         """Test getting department documents list - error."""
         import httpx
+
         mock_get.side_effect = httpx.RequestError("Connection failed")
 
         with patch("telegram_bot.utils.cache.cache.get", return_value=None):
@@ -208,6 +212,7 @@ class TestDocumentServiceClient:
     async def test_get_department_document_download_url_302(self, mock_get):
         """Test getting department document download URL - 302 redirect."""
         from fastapi import status
+
         mock_response = MagicMock()
         mock_response.status_code = status.HTTP_302_FOUND
         mock_response.headers = {"location": "https://example.com/file.pdf"}
@@ -221,6 +226,7 @@ class TestDocumentServiceClient:
     async def test_get_department_document_download_url_200(self, mock_get):
         """Test getting department document download URL - 200 OK."""
         from fastapi import status
+
         mock_response = MagicMock()
         mock_response.status_code = status.HTTP_200_OK
         mock_response.url = "https://example.com/file.pdf"
@@ -234,6 +240,7 @@ class TestDocumentServiceClient:
     async def test_get_department_document_download_url_error(self, mock_get):
         """Test getting department document download URL - error."""
         import httpx
+
         mock_get.side_effect = httpx.RequestError("Connection failed")
 
         result = await self.client.get_department_document_download_url(1, self.auth_token)

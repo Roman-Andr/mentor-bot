@@ -2,16 +2,16 @@
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, HTTPException, Query, status
 from loguru import logger
 
 from auth_service.api.deps import (
     AdminUser,
     CurrentUser,
+    CurrentUserOptional,
     HRUser,
     ServiceAuth,
     UserServiceDep,
-    get_current_user,
 )
 from auth_service.core import (
     ConflictException,
@@ -20,7 +20,6 @@ from auth_service.core import (
     UserRole,
     ValidationException,
 )
-from auth_service.models import User
 from auth_service.schemas import (
     MessageResponse,
     UserCreate,
@@ -133,9 +132,7 @@ async def update_user(
     current_user: CurrentUser,
 ) -> UserResponse:
     """Update user (users can update themselves, admins can update anyone)."""
-    logger.info(
-        "Update user request (caller_id={}, target_user_id={})", current_user.id, user_id
-    )
+    logger.info("Update user request (caller_id={}, target_user_id={})", current_user.id, user_id)
     if current_user.id != user_id and current_user.role not in [UserRole.HR, UserRole.ADMIN]:
         logger.warning(
             "Permission denied to update user (caller_id={}, target_user_id={})",
@@ -188,9 +185,7 @@ async def delete_user(
     _current_user: AdminUser,
 ) -> MessageResponse:
     """Permanently delete user (admin only)."""
-    logger.warning(
-        "Delete user request (admin_id={}, target_user_id={})", _current_user.id, user_id
-    )
+    logger.warning("Delete user request (admin_id={}, target_user_id={})", _current_user.id, user_id)
     try:
         await user_service.delete_user(user_id)
         return MessageResponse(message="User deleted successfully")
@@ -361,9 +356,7 @@ async def update_my_preferences(
     current_user: CurrentUser,
 ) -> UserPreferencesResponse:
     """Update current user's preferences (partial update)."""
-    logger.info(
-        "Update preferences request (caller_id={})", current_user.id
-    )
+    logger.info("Update preferences request (caller_id={})", current_user.id)
     try:
         user = await user_service.update_user_preferences(current_user.id, preferences_data)
         return UserPreferencesResponse(

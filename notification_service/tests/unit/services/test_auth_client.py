@@ -4,7 +4,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
 import pytest
-
 from notification_service.config import settings
 from notification_service.services.auth_client import AuthClient, AuthClientError, UserPreferences
 

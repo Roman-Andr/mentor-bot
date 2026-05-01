@@ -4,7 +4,6 @@ import logging
 from unittest.mock import MagicMock
 
 import httpx
-
 from telegram_bot.utils.logging import (
     InterceptHandler,
     configure_logging,

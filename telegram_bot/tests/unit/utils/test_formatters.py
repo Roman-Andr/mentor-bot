@@ -340,21 +340,25 @@ class TestAdditionalFormatters:
     def test_format_task_detail_exists(self):
         """Test that format_task_detail function exists and is importable."""
         from telegram_bot.utils.formatters import format_task_detail
+
         assert callable(format_task_detail)
 
     def test_format_search_results_exists(self):
         """Test that format_search_results function exists."""
         from telegram_bot.utils.formatters import format_search_results
+
         assert callable(format_search_results)
 
     def test_format_percentage_exists(self):
         """Test that format_percentage function exists."""
         from telegram_bot.utils.formatters import format_percentage
+
         assert callable(format_percentage)
 
     def test_format_feedback_menu_exists(self):
         """Test that format_feedback_menu function exists."""
         from telegram_bot.utils.formatters import format_feedback_menu
+
         assert callable(format_feedback_menu)
 
     def test_format_feedback_menu_output(self):
@@ -369,6 +373,7 @@ class TestAdditionalFormatters:
     def test_format_escalation_list_exists(self):
         """Test that format_escalation_list function exists."""
         from telegram_bot.utils.formatters import format_escalation_list
+
         assert callable(format_escalation_list)
 
     def test_format_percentage_output(self):
@@ -390,9 +395,7 @@ class TestAdditionalFormatters:
         """Test format_search_results with results."""
         from telegram_bot.utils.formatters import format_search_results
 
-        results = [
-            {"title": "Article 1", "snippet": "Snippet 1", "category": "Help", "relevance": 0.9}
-        ]
+        results = [{"title": "Article 1", "snippet": "Snippet 1", "category": "Help", "relevance": 0.9}]
         result = format_search_results("query", results, locale="en")
         assert "Article 1" in result
 
@@ -420,9 +423,7 @@ class TestAdditionalFormatters:
         """Test format_escalation_list with data."""
         from telegram_bot.utils.formatters import format_escalation_list
 
-        escalations = [
-            {"id": 1, "title": "Issue 1", "status": "open", "category": "Tech", "created_at": "2024-12-01"}
-        ]
+        escalations = [{"id": 1, "title": "Issue 1", "status": "open", "category": "Tech", "created_at": "2024-12-01"}]
         result = format_escalation_list(escalations, locale="en")
         assert "Issue 1" in result
 
@@ -434,9 +435,7 @@ class TestFormattersEdgeCases:
         """Test format_task_list with invalid due date format."""
         from telegram_bot.utils.formatters import format_task_list
 
-        tasks = [
-            {"id": 1, "title": "Task 1", "status": "pending", "category": "test", "due_date": "invalid-date"}
-        ]
+        tasks = [{"id": 1, "title": "Task 1", "status": "pending", "category": "test", "due_date": "invalid-date"}]
         result = format_task_list(tasks, locale="en")
         # Should not include due date for invalid format
         assert "Task 1" in result
@@ -555,8 +554,6 @@ class TestFormattersEdgeCases:
         """Test format_escalation_list with invalid created_at date."""
         from telegram_bot.utils.formatters import format_escalation_list
 
-        escalations = [
-            {"id": 1, "title": "Issue 1", "status": "open", "category": "Tech", "created_at": "not-a-date"}
-        ]
+        escalations = [{"id": 1, "title": "Issue 1", "status": "open", "category": "Tech", "created_at": "not-a-date"}]
         result = format_escalation_list(escalations, locale="en")
         assert "Issue 1" in result

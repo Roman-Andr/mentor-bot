@@ -4,13 +4,12 @@ from datetime import UTC, datetime
 from unittest.mock import MagicMock
 
 import pytest
-from sqlalchemy import select
-
 from feedback_service.models import PulseSurvey
 from feedback_service.repositories.implementations.base import (
     SqlAlchemyBaseRepository,
     apply_date_filters,
 )
+from sqlalchemy import select
 
 
 class TestGetById:

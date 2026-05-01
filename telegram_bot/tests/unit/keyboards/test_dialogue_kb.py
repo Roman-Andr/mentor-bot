@@ -1,7 +1,6 @@
 """Unit tests for telegram_bot dialogue (FAQ) keyboards."""
 
 from aiogram.types import InlineKeyboardMarkup
-
 from telegram_bot.keyboards.dialogue_kb import (
     get_dialogue_step_keyboard,
     get_faq_menu_keyboard,

@@ -9,7 +9,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from knowledge_service.models import DialogueScenarioChangeHistory
 from knowledge_service.repositories.implementations.base import SqlAlchemyBaseRepository
-from knowledge_service.repositories.interfaces.dialogue_scenario_change_history import IDialogueScenarioChangeHistoryRepository
+from knowledge_service.repositories.interfaces.dialogue_scenario_change_history import (
+    IDialogueScenarioChangeHistoryRepository,
+)
 
 
 class DialogueScenarioChangeHistoryRepository(

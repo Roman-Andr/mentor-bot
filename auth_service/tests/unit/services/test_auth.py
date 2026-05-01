@@ -4,7 +4,6 @@ from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
 from auth_service.core import AuthException, ConflictException, NotFoundException, ValidationException
 from auth_service.core.enums import EmployeeLevel, InvitationStatus, UserRole
 from auth_service.core.security import create_access_token, create_refresh_token
@@ -157,9 +156,7 @@ class TestRefreshAccessToken:
             role=UserRole.NEWBIE,
         )
 
-    async def test_refresh_token_happy_path(
-        self, mock_uow, valid_refresh_token, active_user
-    ):
+    async def test_refresh_token_happy_path(self, mock_uow, valid_refresh_token, active_user):
         """Test successful token refresh returns new token."""
         # Arrange
         mock_uow.users.get_by_id.return_value = active_user
@@ -178,9 +175,7 @@ class TestRefreshAccessToken:
     async def test_refresh_token_invalid_type_raises(self, mock_uow):
         """Test refresh with access token (wrong type) raises AuthException."""
         # Arrange - create an access token instead of refresh token
-        access_token = create_access_token(
-            {"sub": "1", "user_id": 1, "role": UserRole.NEWBIE}
-        )
+        access_token = create_access_token({"sub": "1", "user_id": 1, "role": UserRole.NEWBIE})
         service = AuthService(mock_uow)
         refresh_data = RefreshTokenRequest(refresh_token=access_token)
 
@@ -190,9 +185,7 @@ class TestRefreshAccessToken:
 
         assert "invalid token type" in str(exc_info.value.detail).lower()
 
-    async def test_refresh_token_user_not_found_raises(
-        self, mock_uow, valid_refresh_token
-    ):
+    async def test_refresh_token_user_not_found_raises(self, mock_uow, valid_refresh_token):
         """Test refresh with valid token but non-existent user raises AuthException."""
         # Arrange
         mock_uow.users.get_by_id.return_value = None
@@ -205,9 +198,7 @@ class TestRefreshAccessToken:
 
         assert "not found or inactive" in str(exc_info.value.detail).lower()
 
-    async def test_refresh_token_inactive_user_raises(
-        self, mock_uow, valid_refresh_token
-    ):
+    async def test_refresh_token_inactive_user_raises(self, mock_uow, valid_refresh_token):
         """Test refresh with valid token but inactive user raises AuthException."""
         # Arrange
         inactive_user = User(
@@ -297,9 +288,7 @@ class TestGetCurrentUser:
             role=UserRole.NEWBIE,
         )
 
-    async def test_get_current_user_happy_path(
-        self, mock_uow, valid_access_token, active_user
-    ):
+    async def test_get_current_user_happy_path(self, mock_uow, valid_access_token, active_user):
         """Test successful get_current_user returns user."""
         # Arrange
         mock_uow.users.get_by_id.return_value = active_user
@@ -312,9 +301,7 @@ class TestGetCurrentUser:
         assert user == active_user
         mock_uow.users.get_by_id.assert_called_once_with(1)
 
-    async def test_get_current_user_not_found_raises(
-        self, mock_uow, valid_access_token
-    ):
+    async def test_get_current_user_not_found_raises(self, mock_uow, valid_access_token):
         """Test get_current_user with non-existent user raises AuthException."""
         # Arrange
         mock_uow.users.get_by_id.return_value = None
@@ -509,9 +496,7 @@ class TestRegisterWithInvitationAndTelegram:
         service = AuthService(mock_uow)
 
         # Act
-        result = await service.register_with_invitation_and_telegram(
-            "invite-token-123", telegram_registration_data
-        )
+        result = await service.register_with_invitation_and_telegram("invite-token-123", telegram_registration_data)
 
         # Assert
         assert result == created_user
@@ -529,9 +514,7 @@ class TestRegisterWithInvitationAndTelegram:
 
         # Act & Assert
         with pytest.raises(ValidationException) as exc_info:
-            await service.register_with_invitation_and_telegram(
-                "invalid-token", telegram_registration_data
-            )
+            await service.register_with_invitation_and_telegram("invalid-token", telegram_registration_data)
 
         assert "invalid or expired invitation" in str(exc_info.value.detail).lower()
 
@@ -551,13 +534,13 @@ class TestRegisterWithInvitationAndTelegram:
 
         # Act & Assert
         with pytest.raises(ConflictException) as exc_info:
-            await service.register_with_invitation_and_telegram(
-                "invite-token-123", telegram_registration_data
-            )
+            await service.register_with_invitation_and_telegram("invite-token-123", telegram_registration_data)
 
         assert "user already exists" in str(exc_info.value.detail).lower()
 
-    async def test_register_telegram_already_linked_raises(self, mock_uow, valid_invitation, telegram_registration_data):
+    async def test_register_telegram_already_linked_raises(
+        self, mock_uow, valid_invitation, telegram_registration_data
+    ):
         """Test registration when Telegram already linked raises ConflictException."""
         # Arrange
         mock_uow.invitations.get_valid_by_token.return_value = valid_invitation
@@ -573,9 +556,7 @@ class TestRegisterWithInvitationAndTelegram:
 
         # Act & Assert
         with pytest.raises(ConflictException) as exc_info:
-            await service.register_with_invitation_and_telegram(
-                "invite-token-123", telegram_registration_data
-            )
+            await service.register_with_invitation_and_telegram("invite-token-123", telegram_registration_data)
 
         assert "telegram account already linked" in str(exc_info.value.detail).lower()
 
@@ -608,9 +589,7 @@ class TestRegisterWithInvitationAndTelegram:
         service = AuthService(mock_uow)
 
         # Act
-        result = await service.register_with_invitation_and_telegram(
-            "invite-token-123", telegram_data
-        )
+        result = await service.register_with_invitation_and_telegram("invite-token-123", telegram_data)
 
         # Assert - verify first_name and last_name from invitation
         call_args = mock_uow.users.create.call_args
@@ -650,9 +629,7 @@ class TestRegisterWithInvitationAndTelegram:
         service = AuthService(mock_uow)
 
         # Act
-        result = await service.register_with_invitation_and_telegram(
-            "invite-token-123", telegram_registration_data
-        )
+        result = await service.register_with_invitation_and_telegram("invite-token-123", telegram_registration_data)
 
         # Assert - verify first_name and last_name from Telegram
         call_args = mock_uow.users.create.call_args
@@ -696,9 +673,7 @@ class TestRegisterWithInvitationAndTelegram:
         service = AuthService(mock_uow)
 
         # Act
-        await service.register_with_invitation_and_telegram(
-            "invite-token-123", telegram_data_no_first_name
-        )
+        await service.register_with_invitation_and_telegram("invite-token-123", telegram_data_no_first_name)
 
         # Assert
         call_args = mock_uow.users.create.call_args
@@ -725,9 +700,7 @@ class TestRegisterWithInvitationAndTelegram:
         service = AuthService(mock_uow)
 
         # Act
-        result = await service.register_with_invitation_and_telegram(
-            "invite-token-123", telegram_registration_data
-        )
+        result = await service.register_with_invitation_and_telegram("invite-token-123", telegram_registration_data)
 
         # Assert
         assert result == created_user
@@ -738,7 +711,9 @@ class TestRegisterWithInvitationAndTelegram:
         assert user_mentor_arg.mentor_id == valid_invitation.mentor_id
         assert user_mentor_arg.is_active is True
 
-    async def test_register_no_mentor_relation_when_no_mentor_id(self, mock_uow, valid_invitation, telegram_registration_data):
+    async def test_register_no_mentor_relation_when_no_mentor_id(
+        self, mock_uow, valid_invitation, telegram_registration_data
+    ):
         """Test that user-mentor relation is not created when invitation has no mentor_id."""
         # Arrange
         valid_invitation.mentor_id = None
@@ -757,9 +732,7 @@ class TestRegisterWithInvitationAndTelegram:
         service = AuthService(mock_uow)
 
         # Act
-        result = await service.register_with_invitation_and_telegram(
-            "invite-token-123", telegram_registration_data
-        )
+        result = await service.register_with_invitation_and_telegram("invite-token-123", telegram_registration_data)
 
         # Assert
         mock_uow.user_mentors.create.assert_not_called()
@@ -1011,8 +984,6 @@ class TestRecordRoleChange:
 
     async def test_record_role_change_without_reason(self, mock_uow):
         """Test record_role_change works without optional reason parameter."""
-        from auth_service.models import RoleChangeHistory
-
         service = AuthService(mock_uow)
         mock_uow.role_change_history.create = AsyncMock()
 
@@ -1027,8 +998,6 @@ class TestRecordRoleChange:
 
     async def test_record_role_change_without_changed_by(self, mock_uow):
         """Test record_role_change works without optional changed_by parameter."""
-        from auth_service.models import RoleChangeHistory
-
         service = AuthService(mock_uow)
         mock_uow.role_change_history.create = AsyncMock()
 

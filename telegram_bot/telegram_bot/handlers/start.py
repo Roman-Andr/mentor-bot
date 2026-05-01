@@ -37,9 +37,7 @@ async def cmd_start(
         welcome_text = format_welcome_message(message.from_user, user, locale=locale)
         await message.answer(
             welcome_text,
-            reply_markup=get_main_menu_keyboard(
-                is_authenticated=True, user=user, locale=locale
-            ),
+            reply_markup=get_main_menu_keyboard(is_authenticated=True, user=user, locale=locale),
         )
         return
 
@@ -47,14 +45,10 @@ async def cmd_start(
         success, result = await register_by_token(token, message.from_user, state)
 
         if success:
-            welcome_text = format_welcome_message(
-                message.from_user, result, locale=locale
-            )
+            welcome_text = format_welcome_message(message.from_user, result, locale=locale)
             await message.answer(
                 welcome_text,
-                reply_markup=get_main_menu_keyboard(
-                    is_authenticated=True, user=result, locale=locale
-                ),
+                reply_markup=get_main_menu_keyboard(is_authenticated=True, user=result, locale=locale),
             )
         else:
             await message.answer(
@@ -67,9 +61,7 @@ async def cmd_start(
 
 
 @router.message(Command("menu"))
-async def cmd_menu(
-    message: Message, *, is_authenticated: bool, user: dict, locale: str = "en"
-) -> None:
+async def cmd_menu(message: Message, *, is_authenticated: bool, user: dict, locale: str = "en") -> None:
     """Show main menu."""
     if not is_authenticated:
         await message.answer(t("start.register_prompt", locale=locale))
@@ -84,9 +76,7 @@ async def cmd_menu(
 
 @router.callback_query(F.data == "menu")
 @router.callback_query(F.data == "main_menu")
-async def cb_menu(
-    callback: CallbackQuery, *, is_authenticated: bool, user: dict, locale: str = "en"
-) -> None:
+async def cb_menu(callback: CallbackQuery, *, is_authenticated: bool, user: dict, locale: str = "en") -> None:
     """Menu callback button."""
     if not is_authenticated:
         await callback.answer(t("common.auth_required_short", locale=locale))

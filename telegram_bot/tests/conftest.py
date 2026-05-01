@@ -84,6 +84,7 @@ _test_translations_flat = [
     ("common.back_button", "Назад [common.back_button]", "ru"),
 ]
 
+
 def _ensure_test_translations() -> None:
     """Ensure test translations are in the i18n container."""
     for key, value, locale in _test_translations_flat:
@@ -241,12 +242,14 @@ def mock_task():
 def mock_fsm_context():
     """Create a mock FSM context with data."""
     context = MagicMock()
-    context.get_data = AsyncMock(return_value={
-        "attach_task_id": 1,
-        "attach_checklist_id": 1,
-        "attach_file_id": "file_123",
-        "attach_filename": "document.pdf",
-    })
+    context.get_data = AsyncMock(
+        return_value={
+            "attach_task_id": 1,
+            "attach_checklist_id": 1,
+            "attach_file_id": "file_123",
+            "attach_filename": "document.pdf",
+        }
+    )
     context.update_data = AsyncMock()
     context.set_state = AsyncMock()
     context.clear = AsyncMock()

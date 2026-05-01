@@ -3,13 +3,12 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from notification_service.repositories.implementations.notification import (
     NotificationRepository,
     ScheduledNotificationRepository,
 )
 from notification_service.repositories.unit_of_work import IUnitOfWork, SqlAlchemyUnitOfWork
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 @pytest.fixture
@@ -136,7 +135,9 @@ class TestSqlAlchemyUowHelper:
             assert isinstance(uow, SqlAlchemyUnitOfWork)
             assert uow._session is mock_session
 
-    async def test_commits_and_closes_on_success(self, mock_session_factory: MagicMock, mock_session: MagicMock) -> None:
+    async def test_commits_and_closes_on_success(
+        self, mock_session_factory: MagicMock, mock_session: MagicMock
+    ) -> None:
         """UoW commits and closes session on successful exit."""
         from notification_service.repositories.unit_of_work import sqlalchemy_uow
 

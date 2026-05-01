@@ -7,8 +7,6 @@ pytestmark = pytest.mark.usefixtures("mock_uow")  # Use our own mock, not the au
 from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock
 
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from auth_service.core.enums import UserRole
 from auth_service.models import (
     InvitationStatusHistory,
@@ -22,6 +20,7 @@ from auth_service.repositories.implementations.login_history import LoginHistory
 from auth_service.repositories.implementations.mentor_assignment_history import MentorAssignmentHistoryRepository
 from auth_service.repositories.implementations.password_change_history import PasswordChangeHistoryRepository
 from auth_service.repositories.implementations.role_change_history import RoleChangeHistoryRepository
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class TestLoginHistoryRepository:
@@ -81,7 +80,7 @@ class TestLoginHistoryRepository:
         repo = LoginHistoryRepository(mock_session)
         from_date = datetime.now(UTC) - timedelta(days=7)
         to_date = datetime.now(UTC)
-        result, total = await repo.get_all(from_date=from_date, to_date=to_date)
+        _result, total = await repo.get_all(from_date=from_date, to_date=to_date)
         assert total == 1
 
     async def test_get_all_no_dates(self, mock_session, mock_result, sample_history):
@@ -149,7 +148,7 @@ class TestPasswordChangeHistoryRepository:
         repo = PasswordChangeHistoryRepository(mock_session)
         from_date = datetime.now(UTC) - timedelta(days=7)
         to_date = datetime.now(UTC)
-        result, total = await repo.get_all(from_date=from_date, to_date=to_date)
+        _result, total = await repo.get_all(from_date=from_date, to_date=to_date)
         assert total == 1
 
     async def test_get_all_no_dates(self, mock_session, mock_result, sample_history):
@@ -222,7 +221,7 @@ class TestRoleChangeHistoryRepository:
         repo = RoleChangeHistoryRepository(mock_session)
         from_date = datetime.now(UTC) - timedelta(days=7)
         to_date = datetime.now(UTC)
-        result, total = await repo.get_all(from_date=from_date, to_date=to_date)
+        _result, total = await repo.get_all(from_date=from_date, to_date=to_date)
         assert total == 1
 
     async def test_get_all_no_dates(self, mock_session, mock_result, sample_history):
@@ -230,7 +229,7 @@ class TestRoleChangeHistoryRepository:
         mock_result.scalar_one.return_value = 1
         mock_session.execute.return_value = mock_result
         repo = RoleChangeHistoryRepository(mock_session)
-        result, total = await repo.get_all()
+        _result, total = await repo.get_all()
         assert total == 1
 
 
@@ -292,7 +291,7 @@ class TestMentorAssignmentHistoryRepository:
         repo = MentorAssignmentHistoryRepository(mock_session)
         from_date = datetime.now(UTC) - timedelta(days=7)
         to_date = datetime.now(UTC)
-        result, total = await repo.get_all(from_date=from_date, to_date=to_date)
+        _result, total = await repo.get_all(from_date=from_date, to_date=to_date)
         assert total == 1
 
     async def test_get_all_no_dates(self, mock_session, mock_result, sample_history):
@@ -300,7 +299,7 @@ class TestMentorAssignmentHistoryRepository:
         mock_result.scalar_one.return_value = 1
         mock_session.execute.return_value = mock_result
         repo = MentorAssignmentHistoryRepository(mock_session)
-        result, total = await repo.get_all()
+        _result, total = await repo.get_all()
         assert total == 1
 
     async def test_get_by_mentor_id_with_dates(self, mock_session, mock_result, sample_history):

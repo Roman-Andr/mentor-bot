@@ -1,11 +1,11 @@
 """Tests for certificate repository."""
 
-import pytest
 from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 
-from checklists_service.repositories.implementations.certificate import CertificateRepository
+import pytest
 from checklists_service.models import Certificate
+from checklists_service.repositories.implementations.certificate import CertificateRepository
 
 
 @pytest.mark.asyncio

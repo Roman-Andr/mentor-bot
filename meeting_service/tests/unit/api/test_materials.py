@@ -6,7 +6,6 @@ from typing import Any
 import pytest
 from fastapi import FastAPI, status
 from fastapi.testclient import TestClient
-
 from meeting_service.api import deps
 from meeting_service.api.endpoints.meetings import router as meetings_router
 from meeting_service.core.enums import MaterialType, MeetingType
@@ -17,6 +16,7 @@ from meeting_service.models import Meeting, MeetingMaterial
 @pytest.fixture
 def mock_user_hr():
     """Mock HR user."""
+
     class MockUser:
         def __init__(self) -> None:
             self.id = 1
@@ -26,6 +26,7 @@ def mock_user_hr():
 
         def has_role(self, roles: list[str]) -> bool:
             return self.role in roles
+
     return MockUser()
 
 

@@ -4,11 +4,10 @@ from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from fastapi.testclient import TestClient
-
 from auth_service.core.enums import UserRole
 from auth_service.main import app
 from auth_service.models import User
+from fastapi.testclient import TestClient
 
 
 def get_test_client():
@@ -362,7 +361,9 @@ class TestPasswordResetServiceUnit:
         mock_uow.users.get_by_email = AsyncMock(return_value=active_user)
         mock_session.add = MagicMock()
         mock_session.flush = AsyncMock()
-        mock_session.execute = AsyncMock(return_value=MagicMock(scalars=MagicMock(return_value=MagicMock(all=MagicMock(return_value=[])))))
+        mock_session.execute = AsyncMock(
+            return_value=MagicMock(scalars=MagicMock(return_value=MagicMock(all=MagicMock(return_value=[]))))
+        )
 
         service = PasswordResetService(mock_uow, mock_session)
         # Mock _count_recent_requests to return 0 (not rate limited)

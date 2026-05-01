@@ -1,7 +1,6 @@
 """Unit tests for utils/http.py."""
 
 import httpx
-
 from telegram_bot.utils.http import inject_request_id, make_async_client
 from telegram_bot.utils.logging import request_id_var
 

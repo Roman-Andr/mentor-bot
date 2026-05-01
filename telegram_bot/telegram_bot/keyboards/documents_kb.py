@@ -32,9 +32,7 @@ def get_documents_menu_keyboard(*, locale: str = "en") -> InlineKeyboardMarkup:
             callback_data="training_materials",
             style=ButtonStyle.PRIMARY,
         ),
-        create_inline_button(
-            f"\u2190 {t('common.menu_button', locale=locale)}", callback_data="menu"
-        ),
+        create_inline_button(f"\u2190 {t('common.menu_button', locale=locale)}", callback_data="menu"),
     )
     builder.adjust(1)
     return builder.as_markup()
@@ -50,7 +48,7 @@ def get_article_list_keyboard(
         title = article.get("title", "Untitled")
         if is_department_docs:
             # For department documents, use download button
-            file_name = article.get("file_name", "file")
+            article.get("file_name", "file")
             emoji = _get_file_emoji(article.get("mime_type"))
             builder.add(
                 create_inline_button(
@@ -77,9 +75,7 @@ def get_article_list_keyboard(
     return builder.as_markup()
 
 
-def get_article_detail_keyboard(
-    attachments: list, article_id: int, *, locale: str = "en"
-) -> InlineKeyboardMarkup:
+def get_article_detail_keyboard(attachments: list, article_id: int, *, locale: str = "en") -> InlineKeyboardMarkup:
     """Build keyboard for article detail view with attachment downloads."""
     builder = InlineKeyboardBuilder()
     for att in attachments:

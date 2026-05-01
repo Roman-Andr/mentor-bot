@@ -58,4 +58,3 @@ async def set_language(callback: CallbackQuery, auth_token: str, user: dict) -> 
             t("settings.language_set", locale=lang),
             reply_markup=get_language_keyboard(locale=lang),
         )
-

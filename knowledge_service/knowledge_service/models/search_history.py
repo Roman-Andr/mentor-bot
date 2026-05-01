@@ -1,7 +1,6 @@
 """Search history database model."""
 
 from datetime import datetime
-from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB
@@ -9,9 +8,6 @@ from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
 
 from knowledge_service.database import Base
-
-if TYPE_CHECKING:
-    from knowledge_service.models import User
 
 
 class SearchHistory(Base):

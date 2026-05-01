@@ -15,13 +15,9 @@ class CalendarClient:
     def __init__(self, base_url: str | None = None) -> None:
         """Initialize calendar client with meeting service URL."""
         self.base_url = base_url or settings.MEETING_SERVICE_URL
-        self.client = httpx.AsyncClient(
-            base_url=self.base_url, timeout=settings.SERVICE_TIMEOUT
-        )
+        self.client = httpx.AsyncClient(base_url=self.base_url, timeout=settings.SERVICE_TIMEOUT)
 
-    async def check_connection_status(
-        self, user_id: int, auth_token: str
-    ) -> dict[str, Any]:
+    async def check_connection_status(self, user_id: int, auth_token: str) -> dict[str, Any]:
         """Check if user has connected Google Calendar."""
         logger.debug("Checking calendar connection status (user_id={})", user_id)
         try:
@@ -70,9 +66,7 @@ class CalendarClient:
         logger.debug("Google Calendar connect URL generated (user_id={})", user_id)
         return authorization_url
 
-    async def disconnect_calendar(
-        self, user_id: int, auth_token: str
-    ) -> dict[str, Any]:
+    async def disconnect_calendar(self, user_id: int, auth_token: str) -> dict[str, Any]:
         """Disconnect Google Calendar account."""
         logger.info("Disconnecting Google Calendar (user_id={})", user_id)
         try:

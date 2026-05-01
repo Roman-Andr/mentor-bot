@@ -3,7 +3,6 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
 from telegram_bot.schemas.search import SearchResponse
 from telegram_bot.services.knowledge_client import KnowledgeServiceClient, knowledge_client
 
@@ -49,6 +48,7 @@ class TestKnowledgeServiceClient:
     async def test_search_articles_error(self, mock_post):
         """Test searching articles - request error."""
         import httpx
+
         mock_post.side_effect = httpx.RequestError("Connection failed")
 
         with patch("telegram_bot.utils.cache.cache.get", return_value=None):
@@ -77,6 +77,7 @@ class TestKnowledgeServiceClient:
     async def test_get_search_suggestions_error(self, mock_get):
         """Test getting search suggestions - error."""
         import httpx
+
         mock_get.side_effect = httpx.RequestError("Connection failed")
 
         with patch("telegram_bot.utils.cache.cache.get", return_value=None):
@@ -114,6 +115,7 @@ class TestKnowledgeServiceClient:
     async def test_get_article_details_error(self, mock_get):
         """Test getting article details - error."""
         import httpx
+
         mock_get.side_effect = httpx.RequestError("Connection failed")
 
         result = await self.client.get_article_details(1, self.auth_token)
@@ -144,6 +146,7 @@ class TestKnowledgeServiceClient:
     async def test_get_article_attachments_error(self, mock_get):
         """Test getting article attachments - error."""
         import httpx
+
         mock_get.side_effect = httpx.RequestError("Connection failed")
 
         with patch("telegram_bot.utils.cache.cache.get", return_value=None):
@@ -177,11 +180,13 @@ class TestKnowledgeServiceClient:
 
     @patch("telegram_bot.services.knowledge_client.httpx.AsyncClient.get")
     async def test_download_attachment_request_error(self, mock_get):
-        """Test downloading attachment - request error.
+        """
+        Test downloading attachment - request error.
 
         Covers lines 116-117: httpx.RequestError handling in download_attachment.
         """
         import httpx
+
         mock_get.side_effect = httpx.RequestError("Connection failed")
 
         result = await self.client.download_attachment(1, "file.pdf", self.auth_token)
@@ -196,9 +201,7 @@ class TestKnowledgeServiceClient:
         mock_response.json.return_value = {"id": 1, "name": "uploaded.pdf"}
         mock_post.return_value = mock_response
 
-        result = await self.client.upload_attachment(
-            1, b"file content", "file.pdf", self.auth_token
-        )
+        result = await self.client.upload_attachment(1, b"file content", "file.pdf", self.auth_token)
 
         assert result is not None
         assert result["name"] == "uploaded.pdf"
@@ -210,24 +213,22 @@ class TestKnowledgeServiceClient:
         mock_response.status_code = 400
         mock_post.return_value = mock_response
 
-        result = await self.client.upload_attachment(
-            1, b"file content", "file.pdf", self.auth_token
-        )
+        result = await self.client.upload_attachment(1, b"file content", "file.pdf", self.auth_token)
 
         assert result is None
 
     @patch("telegram_bot.services.knowledge_client.httpx.AsyncClient.post")
     async def test_upload_attachment_request_error(self, mock_post):
-        """Test uploading attachment - request error.
+        """
+        Test uploading attachment - request error.
 
         Covers lines 140-141: httpx.RequestError handling in upload_attachment.
         """
         import httpx
+
         mock_post.side_effect = httpx.RequestError("Connection failed")
 
-        result = await self.client.upload_attachment(
-            1, b"file content", "file.pdf", self.auth_token
-        )
+        result = await self.client.upload_attachment(1, b"file content", "file.pdf", self.auth_token)
 
         assert result is None
 
@@ -262,6 +263,7 @@ class TestKnowledgeServiceClient:
     async def test_create_article_failure(self, mock_post):
         """Test creating article - failure."""
         import httpx
+
         mock_post.side_effect = httpx.RequestError("Connection failed")
 
         result = await self.client.create_article("Article", "Content", self.auth_token)
@@ -310,6 +312,7 @@ class TestKnowledgeServiceClient:
     async def test_get_active_scenarios_error(self, mock_get):
         """Test getting active scenarios - error."""
         import httpx
+
         mock_get.side_effect = httpx.RequestError("Connection failed")
 
         with patch("telegram_bot.utils.cache.cache.get", return_value=None):
@@ -342,6 +345,7 @@ class TestKnowledgeServiceClient:
     async def test_get_scenario_error(self, mock_get):
         """Test getting scenario by ID - error."""
         import httpx
+
         mock_get.side_effect = httpx.RequestError("Connection failed")
 
         with patch("telegram_bot.utils.cache.cache.get", return_value=None):
@@ -389,6 +393,7 @@ class TestKnowledgeServiceClient:
     async def test_get_categories_error(self, mock_get):
         """Test getting categories - error."""
         import httpx
+
         mock_get.side_effect = httpx.RequestError("Connection failed")
 
         with patch("telegram_bot.utils.cache.cache.get", return_value=None):
@@ -419,6 +424,7 @@ class TestKnowledgeServiceClient:
     async def test_get_articles_by_category_error(self, mock_get):
         """Test getting articles by category - error."""
         import httpx
+
         mock_get.side_effect = httpx.RequestError("Connection failed")
 
         with patch("telegram_bot.utils.cache.cache.get", return_value=None):

@@ -4,8 +4,6 @@ from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from fastapi import HTTPException
-
 from checklists_service.api.deps import UserInfo
 from checklists_service.api.endpoints import checklists
 from checklists_service.core import NotFoundException, PermissionDenied, ValidationException
@@ -16,6 +14,7 @@ from checklists_service.schemas import (
     ChecklistStats,
     ChecklistUpdate,
 )
+from fastapi import HTTPException
 
 
 @pytest.fixture
@@ -45,19 +44,15 @@ def sample_checklist_dict():
 @pytest.fixture
 def sample_user():
     """Create sample user."""
-    return UserInfo({
-        "id": 1, "email": "test@example.com", "role": "EMPLOYEE",
-        "is_active": True, "employee_id": "EMP001"
-    })
+    return UserInfo(
+        {"id": 1, "email": "test@example.com", "role": "EMPLOYEE", "is_active": True, "employee_id": "EMP001"}
+    )
 
 
 @pytest.fixture
 def sample_hr_user():
     """Create sample HR user."""
-    return UserInfo({
-        "id": 10, "email": "hr@example.com", "role": "HR",
-        "is_active": True, "employee_id": "HR001"
-    })
+    return UserInfo({"id": 10, "email": "hr@example.com", "role": "HR", "is_active": True, "employee_id": "HR001"})
 
 
 class TestGetChecklists:
@@ -88,8 +83,15 @@ class TestGetChecklists:
 
         # Use actual ChecklistStats object, not MagicMock
         stats = ChecklistStats(
-            total=1, completed=0, in_progress=1, overdue=0, not_started=0,
-            avg_completion_days=0.0, completion_rate=0.0, by_department={}, recent_completions=[]
+            total=1,
+            completed=0,
+            in_progress=1,
+            overdue=0,
+            not_started=0,
+            avg_completion_days=0.0,
+            completion_rate=0.0,
+            by_department={},
+            recent_completions=[],
         )
 
         with patch("checklists_service.api.endpoints.checklists.ChecklistService") as mock_cls:
@@ -139,8 +141,15 @@ class TestGetChecklists:
 
         # Use actual ChecklistStats object
         stats = ChecklistStats(
-            total=1, completed=0, in_progress=1, overdue=0, not_started=0,
-            avg_completion_days=0.0, completion_rate=0.0, by_department={}, recent_completions=[]
+            total=1,
+            completed=0,
+            in_progress=1,
+            overdue=0,
+            not_started=0,
+            avg_completion_days=0.0,
+            completion_rate=0.0,
+            by_department={},
+            recent_completions=[],
         )
 
         with patch("checklists_service.api.endpoints.checklists.ChecklistService") as mock_cls:
@@ -205,7 +214,7 @@ class TestCreateChecklist:
                 checklist_data=checklist_data,
                 uow=uow,
                 _current_user=sample_hr_user,
-                auth_token="mock-token",  # noqa: S106
+                auth_token="mock-token",
             )
 
             assert result.id == 1
@@ -422,12 +431,14 @@ class TestGetChecklistProgress:
             instance = MagicMock()
             mock_cls.return_value = instance
             instance.get_checklist = AsyncMock(return_value=checklist_mock)
-            instance.get_checklist_progress = AsyncMock(return_value={
-                "checklist_id": 1,
-                "completed_tasks": 3,
-                "total_tasks": 5,
-                "completion_rate": 60.0,
-            })
+            instance.get_checklist_progress = AsyncMock(
+                return_value={
+                    "checklist_id": 1,
+                    "completed_tasks": 3,
+                    "total_tasks": 5,
+                    "completion_rate": 60.0,
+                }
+            )
 
             result = await checklists.get_checklist_progress(
                 checklist_id=1,
@@ -534,10 +545,12 @@ class TestMonthlyStats:
         with patch("checklists_service.api.endpoints.checklists.ChecklistService") as mock_cls:
             instance = MagicMock()
             mock_cls.return_value = instance
-            instance.get_monthly_stats = AsyncMock(return_value=[
-                {"month": "Jan", "new_checklists": 5, "completed": 3},
-                {"month": "Feb", "new_checklists": 8, "completed": 6},
-            ])
+            instance.get_monthly_stats = AsyncMock(
+                return_value=[
+                    {"month": "Jan", "new_checklists": 5, "completed": 3},
+                    {"month": "Feb", "new_checklists": 8, "completed": 6},
+                ]
+            )
 
             result = await checklists.get_monthly_stats(
                 uow=uow,
@@ -559,10 +572,12 @@ class TestCompletionTimeStats:
         with patch("checklists_service.api.endpoints.checklists.ChecklistService") as mock_cls:
             instance = MagicMock()
             mock_cls.return_value = instance
-            instance.get_completion_time_distribution = AsyncMock(return_value=[
-                {"range": "1-7 days", "count": 5},
-                {"range": "8-14 days", "count": 10},
-            ])
+            instance.get_completion_time_distribution = AsyncMock(
+                return_value=[
+                    {"range": "1-7 days", "count": 5},
+                    {"range": "8-14 days", "count": 10},
+                ]
+            )
 
             result = await checklists.get_completion_time_stats(
                 uow=uow,
@@ -612,7 +627,7 @@ class TestChecklistEndpointsErrorHandling:
                     checklist_data=checklist_data,
                     uow=uow,
                     _current_user=sample_hr_user,
-                    auth_token="mock-token",  # noqa: S106
+                    auth_token="mock-token",
                 )
 
             assert exc_info.value.status_code == 400
@@ -626,12 +641,14 @@ class TestChecklistEndpointsErrorHandling:
         with patch("checklists_service.api.endpoints.checklists.ChecklistService") as mock_cls:
             instance = MagicMock()
             mock_cls.return_value = instance
-            instance.get_checklist = AsyncMock(return_value=MagicMock(
-                id=1,
-                user_id=999,  # Different user
-                due_date=now + timedelta(days=30),
-                status=ChecklistStatus.IN_PROGRESS,
-            ))
+            instance.get_checklist = AsyncMock(
+                return_value=MagicMock(
+                    id=1,
+                    user_id=999,  # Different user
+                    due_date=now + timedelta(days=30),
+                    status=ChecklistStatus.IN_PROGRESS,
+                )
+            )
 
             with pytest.raises(HTTPException) as exc_info:
                 await checklists.get_checklist(
@@ -651,12 +668,14 @@ class TestChecklistEndpointsErrorHandling:
         with patch("checklists_service.api.endpoints.checklists.ChecklistService") as mock_cls:
             instance = MagicMock()
             mock_cls.return_value = instance
-            instance.get_checklist = AsyncMock(return_value=MagicMock(
-                id=1,
-                user_id=999,  # Different user
-                due_date=datetime.now(UTC) + timedelta(days=30),
-                status=ChecklistStatus.IN_PROGRESS,
-            ))
+            instance.get_checklist = AsyncMock(
+                return_value=MagicMock(
+                    id=1,
+                    user_id=999,  # Different user
+                    due_date=datetime.now(UTC) + timedelta(days=30),
+                    status=ChecklistStatus.IN_PROGRESS,
+                )
+            )
 
             with pytest.raises(HTTPException) as exc_info:
                 await checklists.update_checklist(
@@ -694,12 +713,14 @@ class TestChecklistEndpointsErrorHandling:
         with patch("checklists_service.api.endpoints.checklists.ChecklistService") as mock_cls:
             instance = MagicMock()
             mock_cls.return_value = instance
-            instance.get_checklist = AsyncMock(return_value=MagicMock(
-                id=1,
-                user_id=999,  # Different user
-                due_date=now,
-                status=ChecklistStatus.IN_PROGRESS,
-            ))
+            instance.get_checklist = AsyncMock(
+                return_value=MagicMock(
+                    id=1,
+                    user_id=999,  # Different user
+                    due_date=now,
+                    status=ChecklistStatus.IN_PROGRESS,
+                )
+            )
 
             with pytest.raises(HTTPException) as exc_info:
                 await checklists.complete_checklist(
@@ -717,10 +738,12 @@ class TestChecklistEndpointsErrorHandling:
         with patch("checklists_service.api.endpoints.checklists.ChecklistService") as mock_cls:
             instance = MagicMock()
             mock_cls.return_value = instance
-            instance.get_checklist = AsyncMock(return_value=MagicMock(
-                id=1,
-                user_id=999,  # Different user
-            ))
+            instance.get_checklist = AsyncMock(
+                return_value=MagicMock(
+                    id=1,
+                    user_id=999,  # Different user
+                )
+            )
 
             with pytest.raises(HTTPException) as exc_info:
                 await checklists.get_checklist_progress(
@@ -795,8 +818,15 @@ class TestGetChecklistsAdditionalCoverage:
         checklist_mock.updated_at = None
 
         stats = ChecklistStats(
-            total=1, completed=0, in_progress=1, overdue=0, not_started=0,
-            avg_completion_days=0.0, completion_rate=0.0, by_department={}, recent_completions=[]
+            total=1,
+            completed=0,
+            in_progress=1,
+            overdue=0,
+            not_started=0,
+            avg_completion_days=0.0,
+            completion_rate=0.0,
+            by_department={},
+            recent_completions=[],
         )
 
         with patch("checklists_service.api.endpoints.checklists.ChecklistService") as mock_cls:
@@ -844,8 +874,15 @@ class TestGetChecklistsAdditionalCoverage:
         cert_mock.cert_uid = "cert-123"
 
         stats = ChecklistStats(
-            total=1, completed=1, in_progress=0, overdue=0, not_started=0,
-            avg_completion_days=0.0, completion_rate=100.0, by_department={}, recent_completions=[]
+            total=1,
+            completed=1,
+            in_progress=0,
+            overdue=0,
+            not_started=0,
+            avg_completion_days=0.0,
+            completion_rate=100.0,
+            by_department={},
+            recent_completions=[],
         )
 
         with patch("checklists_service.api.endpoints.checklists.ChecklistService") as mock_cls:
@@ -890,8 +927,15 @@ class TestGetChecklistsAdditionalCoverage:
         checklist_mock.updated_at = None
 
         stats = ChecklistStats(
-            total=1, completed=0, in_progress=1, overdue=0, not_started=0,
-            avg_completion_days=0.0, completion_rate=0.0, by_department={}, recent_completions=[]
+            total=1,
+            completed=0,
+            in_progress=1,
+            overdue=0,
+            not_started=0,
+            avg_completion_days=0.0,
+            completion_rate=0.0,
+            by_department={},
+            recent_completions=[],
         )
 
         with patch("checklists_service.api.endpoints.checklists.ChecklistService") as mock_cls:

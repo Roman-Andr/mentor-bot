@@ -1,11 +1,9 @@
 """Unit tests for audit endpoints."""
 
 from datetime import UTC, datetime
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock
 
 import pytest
-from fastapi import HTTPException
-
 from auth_service.api.endpoints.audit import (
     AuditResponse,
     InvitationHistoryEntry,
@@ -18,7 +16,6 @@ from auth_service.api.endpoints.audit import (
     get_role_change_history,
     require_hr_or_admin,
 )
-from auth_service.core import UserRole
 from auth_service.models import (
     InvitationStatusHistory,
     LoginHistory,
@@ -152,9 +149,7 @@ class TestGetLoginHistory:
         assert len(result.items) == 2
         assert result.total == 2
         assert all(isinstance(item, LoginHistoryEntry) for item in result.items)
-        mock_uow.login_history.get_all.assert_called_once_with(
-            from_date=None, to_date=None, limit=50, offset=0
-        )
+        mock_uow.login_history.get_all.assert_called_once_with(from_date=None, to_date=None, limit=50, offset=0)
 
     async def test_get_login_history_by_user_id(self, admin_user, mock_uow):
         """Test get_login_history returns records for specific user."""
@@ -185,9 +180,7 @@ class TestGetLoginHistory:
         assert len(result.items) == 1
         assert result.total == 1
         assert result.items[0].user_id == 5
-        mock_uow.login_history.get_by_user_id.assert_called_once_with(
-            user_id=5, from_date=None, to_date=None, limit=50
-        )
+        mock_uow.login_history.get_by_user_id.assert_called_once_with(user_id=5, from_date=None, to_date=None, limit=50)
 
     async def test_get_login_history_with_date_filters(self, admin_user, mock_uow):
         """Test get_login_history with date filtering."""
@@ -206,9 +199,7 @@ class TestGetLoginHistory:
             offset=0,
         )
 
-        mock_uow.login_history.get_all.assert_called_once_with(
-            from_date=from_date, to_date=to_date, limit=50, offset=0
-        )
+        mock_uow.login_history.get_all.assert_called_once_with(from_date=from_date, to_date=to_date, limit=50, offset=0)
 
     async def test_get_login_history_permission_denied(self, newbie_user, mock_uow):
         """Test get_login_history raises PermissionError for non-HR/Admin."""
@@ -295,9 +286,7 @@ class TestGetRoleChangeHistory:
         assert len(result.items) == 1
         assert result.total == 1
         assert result.items[0].user_id == 5
-        mock_uow.role_change_history.get_by_user_id.assert_called_once_with(
-            user_id=5, from_date=None, to_date=None
-        )
+        mock_uow.role_change_history.get_by_user_id.assert_called_once_with(user_id=5, from_date=None, to_date=None)
 
     async def test_get_role_change_history_permission_denied(self, newbie_user, mock_uow):
         """Test get_role_change_history raises PermissionError for non-HR/Admin."""

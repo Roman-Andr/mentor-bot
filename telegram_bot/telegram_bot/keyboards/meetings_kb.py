@@ -22,9 +22,7 @@ def get_meetings_menu_keyboard(*, locale: str = "en") -> InlineKeyboardMarkup:
             callback_data="schedule_meeting",
             style=ButtonStyle.PRIMARY,
         ),
-        create_inline_button(
-            f"\u2190 {t('common.menu_button', locale=locale)}", callback_data="menu"
-        ),
+        create_inline_button(f"\u2190 {t('common.menu_button', locale=locale)}", callback_data="menu"),
     )
     builder.adjust(1)
     return builder.as_markup()
@@ -42,9 +40,7 @@ def get_my_meetings_keyboard(*, locale: str = "en") -> InlineKeyboardMarkup:
     return builder
 
 
-def get_meeting_details_keyboard(
-    meeting_id: int, *, locale: str = "en"
-) -> InlineKeyboardMarkup:
+def get_meeting_details_keyboard(meeting_id: int, *, locale: str = "en") -> InlineKeyboardMarkup:
     """Build meeting details keyboard with confirm/cancel actions."""
     builder = InlineKeyboardBuilder()
     builder.add(

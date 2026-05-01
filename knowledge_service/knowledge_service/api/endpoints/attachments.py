@@ -124,7 +124,7 @@ async def upload_attachment(
         # Use presigned URL for immediate access
         file_url = storage.get_presigned_url(object_name, expires=settings.S3_PRESIGNED_URL_EXPIRY)
     except StorageError as e:
-        logger.error("Failed to upload file to S3: %s", e)
+        logger.exception("Failed to upload file to S3")
         raise HTTPException(status_code=500, detail=f"File upload failed: {e}") from e
 
     attachment = await attachment_service.create_attachment(

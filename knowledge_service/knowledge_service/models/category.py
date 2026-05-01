@@ -9,9 +9,10 @@ from sqlalchemy.sql import func
 
 from knowledge_service.core import EmployeeLevel
 from knowledge_service.database import Base
+from knowledge_service.models import Article
 
 if TYPE_CHECKING:
-    from knowledge_service.models import Article, Category
+    from knowledge_service.models import Category
 
 
 class Category(Base):

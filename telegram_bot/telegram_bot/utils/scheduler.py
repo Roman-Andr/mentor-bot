@@ -86,17 +86,10 @@ class Scheduler:
                     )
 
                     tasks = await checklists_client.get_assigned_tasks(access_token)
-                    pending = [
-                        t
-                        for t in tasks
-                        if t.get("status") in ("pending", "in_progress")
-                    ]
+                    pending = [t for t in tasks if t.get("status") in ("pending", "in_progress")]
 
                     if pending:
-                        task_list = "\n".join(
-                            f"  \u2022 {t.get('title', 'Untitled')}"
-                            for t in pending[:5]
-                        )
+                        task_list = "\n".join(f"  \u2022 {t.get('title', 'Untitled')}" for t in pending[:5])
                         await self.bot.send_message(
                             chat_id=telegram_id,
                             text=(
@@ -108,9 +101,7 @@ class Scheduler:
                             parse_mode="Markdown",
                         )
                 except Exception:
-                    logger.warning(
-                        "Failed to send notification to user %s", telegram_id
-                    )
+                    logger.warning("Failed to send notification to user %s", telegram_id)
         except Exception:
             logger.exception("Failed to send daily notifications")
 
@@ -133,16 +124,10 @@ class Scheduler:
                         checklists_client,
                     )
 
-                    checklists = await checklists_client.get_user_checklists(
-                        user_data.get("id", 0), access_token
-                    )
+                    checklists = await checklists_client.get_user_checklists(user_data.get("id", 0), access_token)
                     if checklists:
-                        active = len(
-                            [c for c in checklists if c.get("status") != "completed"]
-                        )
-                        completed = len(
-                            [c for c in checklists if c.get("status") == "completed"]
-                        )
+                        active = len([c for c in checklists if c.get("status") != "completed"])
+                        completed = len([c for c in checklists if c.get("status") == "completed"])
 
                         await self.bot.send_message(
                             chat_id=telegram_id,
@@ -155,9 +140,7 @@ class Scheduler:
                             parse_mode="Markdown",
                         )
                 except Exception:
-                    logger.warning(
-                        "Failed to send weekly summary to user %s", telegram_id
-                    )
+                    logger.warning("Failed to send weekly summary to user %s", telegram_id)
         except Exception:
             logger.exception("Failed to send weekly summary")
 
@@ -184,9 +167,7 @@ class Scheduler:
         """Cleanup old cached data."""
         logger.debug("Running cleanup job")
 
-    async def schedule_user_notification(
-        self, user_id: int, notification_time: datetime, message: str
-    ) -> None:
+    async def schedule_user_notification(self, user_id: int, notification_time: datetime, message: str) -> None:
         """Schedule a one-time notification for user."""
         if not self.bot:
             return
@@ -206,9 +187,7 @@ class Scheduler:
             return
 
         try:
-            await self.bot.send_message(
-                chat_id=user_id, text=message, parse_mode="Markdown"
-            )
+            await self.bot.send_message(chat_id=user_id, text=message, parse_mode="Markdown")
         except Exception:
             logger.exception("Failed to send notification to %s", user_id)
 

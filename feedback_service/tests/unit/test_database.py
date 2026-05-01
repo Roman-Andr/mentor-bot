@@ -5,9 +5,8 @@ from contextlib import suppress
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from sqlalchemy.exc import SQLAlchemyError
-
 from feedback_service.database import get_db
+from sqlalchemy.exc import SQLAlchemyError
 
 
 class TestGetDb:
@@ -135,6 +134,7 @@ class TestInitDb:
 
             # Act
             from feedback_service.database import init_db
+
             await init_db()
 
             # Assert
@@ -149,6 +149,7 @@ class TestInitDb:
         with patch("feedback_service.database.engine") as mock_engine:
             # Act
             from feedback_service.database import init_db
+
             await init_db()
 
             # Assert - empty init_db never touches engine

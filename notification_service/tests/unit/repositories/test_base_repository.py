@@ -4,11 +4,10 @@ from collections.abc import Sequence
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from notification_service.core.enums import NotificationChannel, NotificationType
 from notification_service.models import Notification
 from notification_service.repositories.implementations.base import SqlAlchemyBaseRepository
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 @pytest.fixture
@@ -71,7 +70,9 @@ class TestGetById:
         assert result is sample_notification
         mock_session.execute.assert_awaited_once()
 
-    async def test_returns_none_when_not_found(self, repository: SqlAlchemyBaseRepository, mock_session: MagicMock) -> None:
+    async def test_returns_none_when_not_found(
+        self, repository: SqlAlchemyBaseRepository, mock_session: MagicMock
+    ) -> None:
         """Returns None when entity not found."""
         mock_result = MagicMock()
         mock_result.scalar_one_or_none.return_value = None
@@ -90,7 +91,12 @@ class TestGetAll:
         self, repository: SqlAlchemyBaseRepository, mock_session: MagicMock, sample_notification: Notification
     ) -> None:
         """Returns all entities with default pagination."""
-        expected = [sample_notification, Notification(id=2, user_id=43, type=NotificationType.GENERAL, channel=NotificationChannel.TELEGRAM, body="Body 2")]
+        expected = [
+            sample_notification,
+            Notification(
+                id=2, user_id=43, type=NotificationType.GENERAL, channel=NotificationChannel.TELEGRAM, body="Body 2"
+            ),
+        ]
         mock_result = MagicMock()
         mock_scalars = MagicMock()
         mock_scalars.all.return_value = expected
@@ -120,7 +126,9 @@ class TestGetAll:
 
             mock_stmt.offset.assert_called_once_with(10)
 
-    async def test_respects_limit_parameter(self, repository: SqlAlchemyBaseRepository, mock_session: MagicMock) -> None:
+    async def test_respects_limit_parameter(
+        self, repository: SqlAlchemyBaseRepository, mock_session: MagicMock
+    ) -> None:
         """Respects limit parameter in query."""
         mock_result = MagicMock()
         mock_scalars = MagicMock()
@@ -138,7 +146,9 @@ class TestGetAll:
 
             mock_stmt.limit.assert_called_once_with(5)
 
-    async def test_returns_empty_sequence_when_no_entities(self, repository: SqlAlchemyBaseRepository, mock_session: MagicMock) -> None:
+    async def test_returns_empty_sequence_when_no_entities(
+        self, repository: SqlAlchemyBaseRepository, mock_session: MagicMock
+    ) -> None:
         """Returns empty sequence when no entities exist."""
         mock_result = MagicMock()
         mock_scalars = MagicMock()
@@ -223,7 +233,9 @@ class TestDelete:
         mock_session.delete.assert_awaited_once_with(sample_notification)
         mock_session.flush.assert_awaited_once()
 
-    async def test_returns_false_when_not_found(self, repository: SqlAlchemyBaseRepository, mock_session: MagicMock) -> None:
+    async def test_returns_false_when_not_found(
+        self, repository: SqlAlchemyBaseRepository, mock_session: MagicMock
+    ) -> None:
         """Returns False when entity not found."""
         mock_result = MagicMock()
         mock_result.scalar_one_or_none.return_value = None

@@ -3,13 +3,12 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
-
 from feedback_service.repositories.unit_of_work import (
     IUnitOfWork,
     SqlAlchemyUnitOfWork,
     sqlalchemy_uow,
 )
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 
 class TestSqlAlchemyUnitOfWork:
@@ -197,6 +196,7 @@ class TestIUnitOfWorkInterface:
 
     async def test_iunit_of_work_is_protocol(self) -> None:
         """Test IUnitOfWork is a runtime_checkable protocol."""
+
         # Arrange - Create a class that implements the protocol
         class MockUow:
             def __init__(self) -> None:

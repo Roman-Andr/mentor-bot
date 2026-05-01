@@ -99,9 +99,7 @@ def get_back_to_admin_users_keyboard(*, locale: str = "en") -> InlineKeyboardBui
     return builder
 
 
-def get_back_to_admin_checklists_keyboard(
-    *, locale: str = "en"
-) -> InlineKeyboardBuilder:
+def get_back_to_admin_checklists_keyboard(*, locale: str = "en") -> InlineKeyboardBuilder:
     """Build back button keyboard to admin checklists."""
     builder = InlineKeyboardBuilder()
     builder.add(

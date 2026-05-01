@@ -4,7 +4,6 @@ from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
 from aiogram.types import Message, User
-
 from telegram_bot.utils.file_rate_limiter import (
     FileUploadRateLimiter,
     check_file_upload_rate_limit,
@@ -93,9 +92,7 @@ class TestFileUploadRateLimiterGetSetData:
         mock_redis.set = AsyncMock(return_value=True)
 
         limiter = FileUploadRateLimiter(redis_client=mock_redis)
-        result = await limiter._set_rate_limit_data(
-            123456, {"start_time": 12345, "count": 3}, 3600
-        )
+        result = await limiter._set_rate_limit_data(123456, {"start_time": 12345, "count": 3}, 3600)
 
         assert result is True
         mock_redis.set.assert_called_once()
@@ -108,18 +105,14 @@ class TestFileUploadRateLimiterGetSetData:
         mock_redis.set = AsyncMock(side_effect=RedisError("Connection failed"))
 
         limiter = FileUploadRateLimiter(redis_client=mock_redis)
-        result = await limiter._set_rate_limit_data(
-            123456, {"start_time": 12345, "count": 3}, 3600
-        )
+        result = await limiter._set_rate_limit_data(123456, {"start_time": 12345, "count": 3}, 3600)
 
         assert result is False
 
     async def test_set_rate_limit_data_no_redis(self):
         """Test set when Redis is not connected."""
         limiter = FileUploadRateLimiter()
-        result = await limiter._set_rate_limit_data(
-            123456, {"start_time": 12345, "count": 3}, 3600
-        )
+        result = await limiter._set_rate_limit_data(123456, {"start_time": 12345, "count": 3}, 3600)
 
         assert result is False
 
@@ -134,9 +127,7 @@ class TestFileUploadRateLimiterIsRateLimited:
         mock_redis.set = AsyncMock(return_value=True)
 
         limiter = FileUploadRateLimiter(redis_client=mock_redis)
-        is_limited, remaining, retry_after = await limiter.is_rate_limited(
-            123456, calls=10, period=3600
-        )
+        is_limited, remaining, retry_after = await limiter.is_rate_limited(123456, calls=10, period=3600)
 
         assert is_limited is False
         assert remaining == 9
@@ -147,15 +138,11 @@ class TestFileUploadRateLimiterIsRateLimited:
         """Test upload within limit increments count."""
         mock_redis = MagicMock()
         start_time = datetime.now(UTC).timestamp()
-        mock_redis.get = AsyncMock(
-            return_value=f'{{"start_time": {start_time}, "count": 2}}'.encode()
-        )
+        mock_redis.get = AsyncMock(return_value=f'{{"start_time": {start_time}, "count": 2}}'.encode())
         mock_redis.set = AsyncMock(return_value=True)
 
         limiter = FileUploadRateLimiter(redis_client=mock_redis)
-        is_limited, remaining, retry_after = await limiter.is_rate_limited(
-            123456, calls=10, period=3600
-        )
+        is_limited, remaining, retry_after = await limiter.is_rate_limited(123456, calls=10, period=3600)
 
         assert is_limited is False
         assert remaining == 7
@@ -165,14 +152,10 @@ class TestFileUploadRateLimiterIsRateLimited:
         """Test when rate limit is exceeded."""
         mock_redis = MagicMock()
         start_time = datetime.now(UTC).timestamp()
-        mock_redis.get = AsyncMock(
-            return_value=f'{{"start_time": {start_time}, "count": 10}}'.encode()
-        )
+        mock_redis.get = AsyncMock(return_value=f'{{"start_time": {start_time}, "count": 10}}'.encode())
 
         limiter = FileUploadRateLimiter(redis_client=mock_redis)
-        is_limited, remaining, retry_after = await limiter.is_rate_limited(
-            123456, calls=10, period=3600
-        )
+        is_limited, remaining, retry_after = await limiter.is_rate_limited(123456, calls=10, period=3600)
 
         assert is_limited is True
         assert remaining == 0
@@ -182,15 +165,11 @@ class TestFileUploadRateLimiterIsRateLimited:
         """Test that expired window resets counter."""
         mock_redis = MagicMock()
         old_start_time = datetime.now(UTC).timestamp() - 3700  # 3700 seconds ago
-        mock_redis.get = AsyncMock(
-            return_value=f'{{"start_time": {old_start_time}, "count": 10}}'.encode()
-        )
+        mock_redis.get = AsyncMock(return_value=f'{{"start_time": {old_start_time}, "count": 10}}'.encode())
         mock_redis.set = AsyncMock(return_value=True)
 
         limiter = FileUploadRateLimiter(redis_client=mock_redis)
-        is_limited, remaining, retry_after = await limiter.is_rate_limited(
-            123456, calls=10, period=3600
-        )
+        is_limited, remaining, retry_after = await limiter.is_rate_limited(123456, calls=10, period=3600)
 
         assert is_limited is False
         assert remaining == 9
@@ -206,9 +185,7 @@ class TestFileUploadRateLimiterIsRateLimited:
         mock_redis.set = AsyncMock(return_value=True)
 
         limiter = FileUploadRateLimiter(redis_client=mock_redis)
-        is_limited, remaining, retry_after = await limiter.is_rate_limited(
-            123456, calls=10, period=3600
-        )
+        is_limited, remaining, retry_after = await limiter.is_rate_limited(123456, calls=10, period=3600)
 
         # Should allow request (fail open)
         # _get_rate_limit_data catches RedisError and returns None (lines 42-43)
@@ -220,9 +197,7 @@ class TestFileUploadRateLimiterIsRateLimited:
     async def test_is_rate_limited_no_redis(self):
         """Test is_rate_limited when Redis is not connected - line 69."""
         limiter = FileUploadRateLimiter()  # No redis client
-        is_limited, remaining, retry_after = await limiter.is_rate_limited(
-            123456, calls=10, period=3600
-        )
+        is_limited, remaining, retry_after = await limiter.is_rate_limited(123456, calls=10, period=3600)
 
         # Should fail open with full calls remaining (line 69)
         assert is_limited is False
@@ -240,9 +215,7 @@ class TestCheckFileUploadRateLimit:
         mock_user.id = 123456
         mock_message.from_user = mock_user
 
-        with patch.object(
-            file_rate_limiter, "is_rate_limited", new_callable=AsyncMock
-        ) as mock_is_limited:
+        with patch.object(file_rate_limiter, "is_rate_limited", new_callable=AsyncMock) as mock_is_limited:
             mock_is_limited.return_value = (False, 9, 0)
 
             is_limited, retry_after = await check_file_upload_rate_limit(
@@ -277,13 +250,9 @@ class TestFileUploadRateLimitDecorator:
         mock_message.from_user.id = 123456
         mock_message.answer = AsyncMock()
 
-        decorated = file_upload_rate_limit(max_uploads=10, window_seconds=3600)(
-            mock_handler
-        )
+        decorated = file_upload_rate_limit(max_uploads=10, window_seconds=3600)(mock_handler)
 
-        with patch.object(
-            file_rate_limiter, "is_rate_limited", new_callable=AsyncMock
-        ) as mock_is_limited:
+        with patch.object(file_rate_limiter, "is_rate_limited", new_callable=AsyncMock) as mock_is_limited:
             mock_is_limited.return_value = (False, 9, 0)
 
             result = await decorated(mock_message, locale="en")
@@ -300,13 +269,9 @@ class TestFileUploadRateLimitDecorator:
         mock_message.from_user.id = 123456
         mock_message.answer = AsyncMock()
 
-        decorated = file_upload_rate_limit(max_uploads=10, window_seconds=3600)(
-            mock_handler
-        )
+        decorated = file_upload_rate_limit(max_uploads=10, window_seconds=3600)(mock_handler)
 
-        with patch.object(
-            file_rate_limiter, "is_rate_limited", new_callable=AsyncMock
-        ) as mock_is_limited:
+        with patch.object(file_rate_limiter, "is_rate_limited", new_callable=AsyncMock) as mock_is_limited:
             mock_is_limited.return_value = (True, 0, 300)
 
             result = await decorated(mock_message, locale="en")
@@ -324,13 +289,9 @@ class TestFileUploadRateLimitDecorator:
         mock_message.from_user.id = 123456
         mock_message.answer = AsyncMock()
 
-        decorated = file_upload_rate_limit(max_uploads=10, window_seconds=3600)(
-            mock_handler
-        )
+        decorated = file_upload_rate_limit(max_uploads=10, window_seconds=3600)(mock_handler)
 
-        with patch.object(
-            file_rate_limiter, "is_rate_limited", new_callable=AsyncMock
-        ) as mock_is_limited:
+        with patch.object(file_rate_limiter, "is_rate_limited", new_callable=AsyncMock) as mock_is_limited:
             # retry_after less than 60 seconds should trigger seconds message
             mock_is_limited.return_value = (True, 0, 45)  # 45 seconds
 
@@ -353,13 +314,9 @@ class TestFileUploadRateLimitDecorator:
         mock_message.from_user.id = 123456
         mock_message.answer = AsyncMock()
 
-        decorated = file_upload_rate_limit(max_uploads=10, window_seconds=3600)(
-            mock_handler
-        )
+        decorated = file_upload_rate_limit(max_uploads=10, window_seconds=3600)(mock_handler)
 
-        with patch.object(
-            file_rate_limiter, "is_rate_limited", new_callable=AsyncMock
-        ) as mock_is_limited:
+        with patch.object(file_rate_limiter, "is_rate_limited", new_callable=AsyncMock) as mock_is_limited:
             mock_is_limited.return_value = (False, 9, 0)
 
             result = await decorated(some_arg="test", message=mock_message, locale="en")
@@ -374,9 +331,7 @@ class TestFileUploadRateLimitDecorator:
         mock_message = MagicMock(spec=Message)
         mock_message.from_user = None
 
-        decorated = file_upload_rate_limit(max_uploads=10, window_seconds=3600)(
-            mock_handler
-        )
+        decorated = file_upload_rate_limit(max_uploads=10, window_seconds=3600)(mock_handler)
 
         result = await decorated(mock_message, locale="en")
 

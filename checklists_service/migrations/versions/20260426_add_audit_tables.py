@@ -5,6 +5,7 @@ Revision ID: b2c3d4e5f6g7
 Revises: b29bbdf86ff8
 Create Date: 2026-04-26 10:00:00.000000+00:00
 """
+
 from collections.abc import Sequence
 
 import sqlalchemy as sa
@@ -33,8 +34,14 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(["checklist_id"], ["checklists.id"]),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index(op.f("ix_checklist_status_history_checklist_id_changed_at"), "checklist_status_history", ["checklist_id", "changed_at"])
-    op.create_index(op.f("ix_checklist_status_history_user_id_changed_at"), "checklist_status_history", ["user_id", "changed_at"])
+    op.create_index(
+        op.f("ix_checklist_status_history_checklist_id_changed_at"),
+        "checklist_status_history",
+        ["checklist_id", "changed_at"],
+    )
+    op.create_index(
+        op.f("ix_checklist_status_history_user_id_changed_at"), "checklist_status_history", ["user_id", "changed_at"]
+    )
 
     # Task completion history table
     op.create_table(
@@ -69,7 +76,11 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(["template_id"], ["templates.id"]),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index(op.f("ix_template_change_history_template_id_changed_at"), "template_change_history", ["template_id", "changed_at"])
+    op.create_index(
+        op.f("ix_template_change_history_template_id_changed_at"),
+        "template_change_history",
+        ["template_id", "changed_at"],
+    )
 
 
 def downgrade() -> None:

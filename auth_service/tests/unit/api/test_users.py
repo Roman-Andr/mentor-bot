@@ -5,8 +5,6 @@ from typing import get_args
 from unittest.mock import AsyncMock
 
 import pytest
-from fastapi.testclient import TestClient
-
 from auth_service.api import deps
 from auth_service.api.deps import AdminUser, HRUser
 from auth_service.core import ConflictException, NotFoundException
@@ -14,6 +12,7 @@ from auth_service.core.enums import UserRole
 from auth_service.core.security import create_access_token
 from auth_service.main import app
 from auth_service.models import User
+from fastapi.testclient import TestClient
 
 # Get the actual dependency callables used by FastAPI
 # So get_args returns (User, Depends(...)) and the Depends is at index 1
@@ -36,6 +35,7 @@ def create_auth_headers(user_id: int = 1, role: UserRole = UserRole.ADMIN) -> di
 def admin_user():
     """Create an admin user."""
     from datetime import UTC
+
     return User(
         id=1,
         email="admin@example.com",
@@ -56,6 +56,7 @@ def admin_user():
 def mentor_user():
     """Create a mentor user."""
     from datetime import UTC
+
     return User(
         id=2,
         email="mentor@example.com",
@@ -76,6 +77,7 @@ def mentor_user():
 def newbie_user():
     """Create a newbie user."""
     from datetime import UTC
+
     user = User(
         id=3,
         email="newbie@example.com",
@@ -92,6 +94,7 @@ def newbie_user():
     )
     # Add mentor assignment
     from auth_service.models import UserMentor
+
     mentor_relation = UserMentor(
         id=1,
         user_id=3,
@@ -215,6 +218,7 @@ class TestCreateUser:
     def test_create_user_success(self, admin_user, mock_user_service):
         """Test creating a new user as admin."""
         from datetime import UTC
+
         new_user = User(
             id=4,
             email="new@example.com",
@@ -249,9 +253,6 @@ class TestCreateUser:
                     "employee_id": "EMP004",
                     "password": "password123",
                     "role": "NEWBIE",
-                    
-                    
-                    
                 },
             )
 
@@ -370,6 +371,7 @@ class TestUpdateUser:
     def test_update_user_self(self, admin_user, mock_user_service):
         """Test user can update their own info."""
         from datetime import UTC
+
         updated_user = User(
             id=admin_user.id,
             email="updated@example.com",
@@ -400,9 +402,6 @@ class TestUpdateUser:
                 json={
                     "email": "updated@example.com",
                     "first_name": "Updated",
-                    
-                    
-                    
                 },
             )
 
@@ -416,6 +415,7 @@ class TestUpdateUser:
     def test_update_user_as_admin(self, admin_user, mock_user_service, newbie_user):
         """Test admin can update any user."""
         from datetime import UTC
+
         updated_user = User(
             id=newbie_user.id,
             email="updated@example.com",
@@ -446,9 +446,6 @@ class TestUpdateUser:
                 json={
                     "email": "updated@example.com",
                     "first_name": "Updated",
-                    
-                    
-                    
                 },
             )
 
@@ -566,6 +563,7 @@ class TestGetUserByTelegramId:
     def test_get_user_by_telegram_id_success(self, admin_user, mock_user_service):
         """Test HR/admin can get user by Telegram ID."""
         from datetime import UTC
+
         user = User(
             id=5,
             email="telegram@example.com",
@@ -632,6 +630,7 @@ class TestGetUserByEmail:
     def test_get_user_by_email_success(self, admin_user, mock_user_service):
         """Test HR/admin can get user by email."""
         from datetime import UTC
+
         user = User(
             id=6,
             email="findme@example.com",
@@ -675,6 +674,7 @@ class TestLinkTelegramAccount:
     def test_link_telegram_success(self, admin_user, mock_user_service):
         """Test linking Telegram account to user."""
         from datetime import UTC
+
         updated_user = User(
             id=admin_user.id,
             email=admin_user.email,
@@ -714,9 +714,7 @@ class TestLinkTelegramAccount:
 
     def test_link_telegram_not_found_exception(self, admin_user, mock_user_service):
         """Test linking Telegram with NotFoundException returns 400 (covers line 203-204)."""
-        mock_user_service.link_telegram_account = AsyncMock(
-            side_effect=NotFoundException("User not found")
-        )
+        mock_user_service.link_telegram_account = AsyncMock(side_effect=NotFoundException("User not found"))
 
         async def mock_get_current() -> User:
             return admin_user
@@ -739,9 +737,7 @@ class TestLinkTelegramAccount:
 
     def test_link_telegram_conflict_exception(self, admin_user, mock_user_service):
         """Test linking Telegram with ConflictException returns 400 (covers line 203-204)."""
-        mock_user_service.link_telegram_account = AsyncMock(
-            side_effect=ConflictException("Telegram ID already linked")
-        )
+        mock_user_service.link_telegram_account = AsyncMock(side_effect=ConflictException("Telegram ID already linked"))
 
         async def mock_get_current() -> User:
             return admin_user
@@ -769,6 +765,7 @@ class TestChangeUserRole:
     def test_change_user_role_success(self, admin_user, mock_user_service, newbie_user):
         """Test admin can change user role."""
         from datetime import UTC
+
         updated_user = User(
             id=newbie_user.id,
             email=newbie_user.email,
@@ -835,6 +832,7 @@ class TestChangePassword:
     def test_change_password_wrong_current(self, admin_user, mock_user_service):
         """Test change password with wrong current password returns 400."""
         from auth_service.core import ValidationException
+
         mock_user_service.change_password = AsyncMock(side_effect=ValidationException("Current password is incorrect"))
 
         async def mock_get_current() -> User:
@@ -914,6 +912,7 @@ class TestUpdateUserEdgeCases:
     def test_update_user_conflict_exception(self, admin_user, mock_user_service):
         """Test update user with ConflictException returns 409."""
         from auth_service.core import ConflictException
+
         mock_user_service.update_user = AsyncMock(side_effect=ConflictException("Email already in use"))
 
         async def mock_get_current() -> User:
@@ -1021,6 +1020,7 @@ class TestChangeUserRoleEdgeCases:
     def test_change_user_role_validation_exception(self, admin_user, mock_user_service, newbie_user):
         """Test change user role with ValidationException returns 400."""
         from auth_service.core import ValidationException
+
         mock_user_service.update_user_role = AsyncMock(
             side_effect=ValidationException("Cannot change role of inactive user")
         )
@@ -1078,7 +1078,6 @@ class TestGetUserPreferences:
     async def test_get_user_preferences_service_auth(self, admin_user, mock_user_service):
         """Test getting user preferences via service auth (covers lines 325-351)."""
         from auth_service.api.endpoints.users import get_user_preferences
-        from auth_service.core import PermissionDenied
 
         mock_user_service.get_user_by_id = AsyncMock(return_value=admin_user)
 
@@ -1159,6 +1158,7 @@ class TestUpdateMyPreferences:
     async def test_update_my_preferences_success(self, admin_user, mock_user_service):
         """Test updating current user's preferences."""
         from datetime import UTC
+
         from auth_service.api.endpoints.users import update_my_preferences
         from auth_service.schemas import UserPreferencesUpdate
 

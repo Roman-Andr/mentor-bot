@@ -4,7 +4,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from aiogram.types import CallbackQuery, Message
-
 from telegram_bot.handlers.admin import (
     add_user,
     admin_alerts,
@@ -69,9 +68,7 @@ class TestAdminHandlers:
     # Tests for cmd_admin
     async def test_cmd_admin_as_admin(self, mock_message, mock_admin_user):
         """Test admin command as admin."""
-        with patch(
-            "telegram_bot.handlers.admin.get_admin_keyboard"
-        ) as mock_kb:
+        with patch("telegram_bot.handlers.admin.get_admin_keyboard") as mock_kb:
             mock_kb.return_value.as_markup.return_value = MagicMock()
 
             await cmd_admin(mock_message, mock_admin_user, locale="en")
@@ -80,9 +77,7 @@ class TestAdminHandlers:
 
     async def test_cmd_admin_as_hr(self, mock_message, mock_hr_user):
         """Test admin command as HR."""
-        with patch(
-            "telegram_bot.handlers.admin.get_admin_keyboard"
-        ) as mock_kb:
+        with patch("telegram_bot.handlers.admin.get_admin_keyboard") as mock_kb:
             mock_kb.return_value.as_markup.return_value = MagicMock()
 
             await cmd_admin(mock_message, mock_hr_user, locale="en")
@@ -106,9 +101,7 @@ class TestAdminHandlers:
     # Tests for admin_panel
     async def test_admin_panel_as_admin(self, mock_callback, mock_admin_user):
         """Test admin panel callback as admin."""
-        with patch(
-            "telegram_bot.handlers.admin.get_admin_keyboard"
-        ) as mock_kb:
+        with patch("telegram_bot.handlers.admin.get_admin_keyboard") as mock_kb:
             mock_kb.return_value.as_markup.return_value = MagicMock()
 
             await admin_panel(mock_callback, mock_admin_user, locale="en")
@@ -141,14 +134,10 @@ class TestAdminHandlers:
                     "avg_onboarding_days": 15,
                 },
             ):
-                with patch(
-                    "telegram_bot.handlers.admin.get_admin_stats_keyboard"
-                ) as mock_kb:
+                with patch("telegram_bot.handlers.admin.get_admin_stats_keyboard") as mock_kb:
                     mock_kb.return_value.as_markup.return_value = MagicMock()
 
-                    await admin_stats(
-                        mock_callback, mock_admin_user, mock_auth_token, locale="en"
-                    )
+                    await admin_stats(mock_callback, mock_admin_user, mock_auth_token, locale="en")
 
         mock_callback.message.edit_text.assert_called_once()
         mock_callback.answer.assert_called_once()
@@ -163,9 +152,7 @@ class TestAdminHandlers:
     # Tests for admin_users
     async def test_admin_users_as_admin(self, mock_callback, mock_admin_user):
         """Test admin users as admin."""
-        with patch(
-            "telegram_bot.handlers.admin.get_admin_users_keyboard"
-        ) as mock_kb:
+        with patch("telegram_bot.handlers.admin.get_admin_users_keyboard") as mock_kb:
             mock_kb.return_value.as_markup.return_value = MagicMock()
 
             await admin_users(mock_callback, mock_admin_user, locale="en")
@@ -183,9 +170,7 @@ class TestAdminHandlers:
     # Tests for admin_checklists
     async def test_admin_checklists_as_admin(self, mock_callback, mock_admin_user):
         """Test admin checklists as admin."""
-        with patch(
-            "telegram_bot.handlers.admin.get_admin_checklists_keyboard"
-        ) as mock_kb:
+        with patch("telegram_bot.handlers.admin.get_admin_checklists_keyboard") as mock_kb:
             mock_kb.return_value.as_markup.return_value = MagicMock()
 
             await admin_checklists(mock_callback, mock_admin_user, locale="en")
@@ -216,14 +201,10 @@ class TestAdminHandlers:
             new_callable=AsyncMock,
             return_value=mock_users_data,
         ):
-            with patch(
-                "telegram_bot.handlers.admin.get_back_to_admin_users_keyboard"
-            ) as mock_kb:
+            with patch("telegram_bot.handlers.admin.get_back_to_admin_users_keyboard") as mock_kb:
                 mock_kb.return_value.as_markup.return_value = MagicMock()
 
-                await list_users(
-                    mock_callback, mock_admin_user, mock_auth_token, locale="en"
-                )
+                await list_users(mock_callback, mock_admin_user, mock_auth_token, locale="en")
 
         mock_callback.message.edit_text.assert_called_once()
         mock_callback.answer.assert_called_once()
@@ -235,14 +216,10 @@ class TestAdminHandlers:
             new_callable=AsyncMock,
             return_value=None,
         ):
-            with patch(
-                "telegram_bot.handlers.admin.get_back_to_admin_users_keyboard"
-            ) as mock_kb:
+            with patch("telegram_bot.handlers.admin.get_back_to_admin_users_keyboard") as mock_kb:
                 mock_kb.return_value.as_markup.return_value = MagicMock()
 
-                await list_users(
-                    mock_callback, mock_admin_user, mock_auth_token, locale="en"
-                )
+                await list_users(mock_callback, mock_admin_user, mock_auth_token, locale="en")
 
         mock_callback.message.edit_text.assert_called_once()
 
@@ -256,9 +233,7 @@ class TestAdminHandlers:
     # Tests for add_user
     async def test_add_user_as_admin(self, mock_callback, mock_admin_user):
         """Test add user as admin."""
-        with patch(
-            "telegram_bot.handlers.admin.get_back_to_admin_users_keyboard"
-        ) as mock_kb:
+        with patch("telegram_bot.handlers.admin.get_back_to_admin_users_keyboard") as mock_kb:
             mock_kb.return_value.as_markup.return_value = MagicMock()
 
             await add_user(mock_callback, mock_admin_user, locale="en")
@@ -276,9 +251,7 @@ class TestAdminHandlers:
     # Tests for send_invite
     async def test_send_invite_as_admin(self, mock_callback, mock_admin_user):
         """Test send invite as admin."""
-        with patch(
-            "telegram_bot.handlers.admin.get_back_to_admin_users_keyboard"
-        ) as mock_kb:
+        with patch("telegram_bot.handlers.admin.get_back_to_admin_users_keyboard") as mock_kb:
             mock_kb.return_value.as_markup.return_value = MagicMock()
 
             await send_invite(mock_callback, mock_admin_user, locale="en")
@@ -306,14 +279,10 @@ class TestAdminHandlers:
             new_callable=AsyncMock,
             return_value=mock_templates,
         ):
-            with patch(
-                "telegram_bot.handlers.admin.get_back_to_admin_checklists_keyboard"
-            ) as mock_kb:
+            with patch("telegram_bot.handlers.admin.get_back_to_admin_checklists_keyboard") as mock_kb:
                 mock_kb.return_value.as_markup.return_value = MagicMock()
 
-                await list_templates(
-                    mock_callback, mock_admin_user, mock_auth_token, locale="en"
-                )
+                await list_templates(mock_callback, mock_admin_user, mock_auth_token, locale="en")
 
         mock_callback.message.edit_text.assert_called_once()
         mock_callback.answer.assert_called_once()
@@ -325,14 +294,10 @@ class TestAdminHandlers:
             new_callable=AsyncMock,
             return_value=[],
         ):
-            with patch(
-                "telegram_bot.handlers.admin.get_back_to_admin_checklists_keyboard"
-            ) as mock_kb:
+            with patch("telegram_bot.handlers.admin.get_back_to_admin_checklists_keyboard") as mock_kb:
                 mock_kb.return_value.as_markup.return_value = MagicMock()
 
-                await list_templates(
-                    mock_callback, mock_admin_user, mock_auth_token, locale="en"
-                )
+                await list_templates(mock_callback, mock_admin_user, mock_auth_token, locale="en")
 
         mock_callback.message.edit_text.assert_called_once()
 
@@ -357,14 +322,10 @@ class TestAdminHandlers:
             new_callable=AsyncMock,
             return_value=mock_stats,
         ):
-            with patch(
-                "telegram_bot.handlers.admin.get_back_to_admin_checklists_keyboard"
-            ) as mock_kb:
+            with patch("telegram_bot.handlers.admin.get_back_to_admin_checklists_keyboard") as mock_kb:
                 mock_kb.return_value.as_markup.return_value = MagicMock()
 
-                await checklist_progress(
-                    mock_callback, mock_admin_user, mock_auth_token, locale="en"
-                )
+                await checklist_progress(mock_callback, mock_admin_user, mock_auth_token, locale="en")
 
         mock_callback.message.edit_text.assert_called_once()
         mock_callback.answer.assert_called_once()
@@ -389,14 +350,10 @@ class TestAdminHandlers:
             new_callable=AsyncMock,
             return_value=mock_tasks,
         ):
-            with patch(
-                "telegram_bot.handlers.admin.get_back_to_admin_checklists_keyboard"
-            ) as mock_kb:
+            with patch("telegram_bot.handlers.admin.get_back_to_admin_checklists_keyboard") as mock_kb:
                 mock_kb.return_value.as_markup.return_value = MagicMock()
 
-                await overdue_tasks(
-                    mock_callback, mock_admin_user, mock_auth_token, locale="en"
-                )
+                await overdue_tasks(mock_callback, mock_admin_user, mock_auth_token, locale="en")
 
         mock_callback.message.edit_text.assert_called_once()
         mock_callback.answer.assert_called_once()
@@ -408,14 +365,10 @@ class TestAdminHandlers:
             new_callable=AsyncMock,
             return_value=[],
         ):
-            with patch(
-                "telegram_bot.handlers.admin.get_back_to_admin_checklists_keyboard"
-            ) as mock_kb:
+            with patch("telegram_bot.handlers.admin.get_back_to_admin_checklists_keyboard") as mock_kb:
                 mock_kb.return_value.as_markup.return_value = MagicMock()
 
-                await overdue_tasks(
-                    mock_callback, mock_admin_user, mock_auth_token, locale="en"
-                )
+                await overdue_tasks(mock_callback, mock_admin_user, mock_auth_token, locale="en")
 
         mock_callback.message.edit_text.assert_called_once()
 
@@ -429,9 +382,7 @@ class TestAdminHandlers:
     # Tests for admin_settings
     async def test_admin_settings_as_admin(self, mock_callback, mock_admin_user):
         """Test admin settings as admin."""
-        with patch(
-            "telegram_bot.handlers.admin.get_back_to_admin_panel_keyboard"
-        ) as mock_kb:
+        with patch("telegram_bot.handlers.admin.get_back_to_admin_panel_keyboard") as mock_kb:
             mock_kb.return_value.as_markup.return_value = MagicMock()
 
             await admin_settings(mock_callback, mock_admin_user, locale="en")
@@ -449,9 +400,7 @@ class TestAdminHandlers:
     # Tests for admin_reports
     async def test_admin_reports_as_admin(self, mock_callback, mock_admin_user):
         """Test admin reports as admin."""
-        with patch(
-            "telegram_bot.handlers.admin.get_back_to_admin_panel_keyboard"
-        ) as mock_kb:
+        with patch("telegram_bot.handlers.admin.get_back_to_admin_panel_keyboard") as mock_kb:
             mock_kb.return_value.as_markup.return_value = MagicMock()
 
             await admin_reports(mock_callback, mock_admin_user, locale="en")
@@ -469,9 +418,7 @@ class TestAdminHandlers:
     # Tests for admin_alerts
     async def test_admin_alerts_as_admin(self, mock_callback, mock_admin_user):
         """Test admin alerts as admin."""
-        with patch(
-            "telegram_bot.handlers.admin.get_back_to_admin_panel_keyboard"
-        ) as mock_kb:
+        with patch("telegram_bot.handlers.admin.get_back_to_admin_panel_keyboard") as mock_kb:
             mock_kb.return_value.as_markup.return_value = MagicMock()
 
             await admin_alerts(mock_callback, mock_admin_user, locale="en")
@@ -489,9 +436,7 @@ class TestAdminHandlers:
     # Tests for detailed_report
     async def test_detailed_report_as_admin(self, mock_callback, mock_admin_user):
         """Test detailed report as admin."""
-        with patch(
-            "telegram_bot.handlers.admin.get_back_to_admin_stats_keyboard"
-        ) as mock_kb:
+        with patch("telegram_bot.handlers.admin.get_back_to_admin_stats_keyboard") as mock_kb:
             mock_kb.return_value.as_markup.return_value = MagicMock()
 
             await detailed_report(mock_callback, mock_admin_user, locale="en")
@@ -509,9 +454,7 @@ class TestAdminHandlers:
     # Tests for export_data
     async def test_export_data_as_admin(self, mock_callback, mock_admin_user):
         """Test export data as admin."""
-        with patch(
-            "telegram_bot.handlers.admin.get_back_to_admin_stats_keyboard"
-        ) as mock_kb:
+        with patch("telegram_bot.handlers.admin.get_back_to_admin_stats_keyboard") as mock_kb:
             mock_kb.return_value.as_markup.return_value = MagicMock()
 
             await export_data(mock_callback, mock_admin_user, locale="en")

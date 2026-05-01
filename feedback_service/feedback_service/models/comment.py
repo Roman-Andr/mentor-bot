@@ -1,6 +1,6 @@
 """Comment model for feedback service."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import Boolean, DateTime, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
@@ -10,7 +10,7 @@ from feedback_service.database import Base
 
 def _now() -> datetime:
     """Return a naive UTC datetime for PostgreSQL TIMESTAMP WITHOUT TIME ZONE."""
-    return datetime.now(timezone.utc).replace(tzinfo=None)
+    return datetime.now(UTC).replace(tzinfo=None)
 
 
 class Comment(Base):

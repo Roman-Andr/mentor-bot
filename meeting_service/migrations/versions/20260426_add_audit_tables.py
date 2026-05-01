@@ -5,6 +5,7 @@ Revision ID: f6g7h8i9j0k1
 Revises: 4a048ec3f254
 Create Date: 2026-04-26 10:00:00.000000+00:00
 """
+
 from collections.abc import Sequence
 
 import sqlalchemy as sa
@@ -33,7 +34,11 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(["meeting_id"], ["meetings.id"]),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index(op.f("ix_meeting_status_change_history_meeting_id_changed_at"), "meeting_status_change_history", ["meeting_id", "changed_at"])
+    op.create_index(
+        op.f("ix_meeting_status_change_history_meeting_id_changed_at"),
+        "meeting_status_change_history",
+        ["meeting_id", "changed_at"],
+    )
 
     # Meeting participant history table
     op.create_table(
@@ -58,5 +63,7 @@ def downgrade() -> None:
     op.drop_index(op.f("ix_meeting_participant_history_meeting_id"), table_name="meeting_participant_history")
     op.drop_table("meeting_participant_history")
 
-    op.drop_index(op.f("ix_meeting_status_change_history_meeting_id_changed_at"), table_name="meeting_status_change_history")
+    op.drop_index(
+        op.f("ix_meeting_status_change_history_meeting_id_changed_at"), table_name="meeting_status_change_history"
+    )
     op.drop_table("meeting_status_change_history")

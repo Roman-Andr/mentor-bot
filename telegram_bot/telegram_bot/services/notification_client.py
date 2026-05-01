@@ -13,9 +13,7 @@ class NotificationServiceClient:
     def __init__(self, base_url: str | None = None) -> None:
         """Initialize notification service HTTP client."""
         self.base_url = base_url or settings.NOTIFICATION_SERVICE_URL
-        self.client = httpx.AsyncClient(
-            base_url=self.base_url, timeout=settings.SERVICE_TIMEOUT
-        )
+        self.client = httpx.AsyncClient(base_url=self.base_url, timeout=settings.SERVICE_TIMEOUT)
 
     async def send_telegram_notification(
         self,
@@ -46,9 +44,7 @@ class NotificationServiceClient:
             logger.exception("Notification service request failed (user_id={})", user_id)
         return None
 
-    async def send_email_notification(
-        self, email: str, subject: str, message: str, auth_token: str
-    ) -> dict | None:
+    async def send_email_notification(self, email: str, subject: str, message: str, auth_token: str) -> dict | None:
         """Send email notification."""
         logger.info("Sending email notification (email={}, subject={})", email, subject)
         try:
@@ -98,9 +94,7 @@ class NotificationServiceClient:
             logger.exception("Notification service schedule request failed (user_id={})", user_id)
         return None
 
-    async def get_user_notifications(
-        self, user_id: int, auth_token: str, limit: int = 10
-    ) -> list[dict]:
+    async def get_user_notifications(self, user_id: int, auth_token: str, limit: int = 10) -> list[dict]:
         """Get user notifications."""
         logger.debug("Fetching user notifications (user_id={}, limit={})", user_id, limit)
         try:
@@ -111,7 +105,9 @@ class NotificationServiceClient:
             )
             if response.status_code == status.HTTP_200_OK:
                 data = response.json()
-                logger.debug("User notifications fetched (user_id={}, count={})", user_id, len(data.get("notifications", [])))
+                logger.debug(
+                    "User notifications fetched (user_id={}, count={})", user_id, len(data.get("notifications", []))
+                )
                 return data.get("notifications", [])
         except httpx.RequestError:
             logger.exception("Notification service get notifications failed (user_id={})", user_id)
@@ -123,9 +119,7 @@ class NotificationServiceClient:
         """Send task reminder notification."""
         logger.info("Sending task reminder (telegram_id={}, task_title={})", telegram_id, task_title)
         message = f'Reminder: Task "{task_title}" is due {due_date}.'
-        return await self.send_telegram_notification(
-            telegram_id, "Task Reminder", message, auth_token, priority="high"
-        )
+        return await self.send_telegram_notification(telegram_id, "Task Reminder", message, auth_token, priority="high")
 
     async def send_meeting_reminder(
         self, telegram_id: int, meeting_title: str, meeting_time: str, auth_token: str

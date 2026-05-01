@@ -1,10 +1,9 @@
 """Unit tests for audit API endpoints."""
 
-from datetime import datetime
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-
 from meeting_service.api.endpoints.audit import (
     AuditResponse,
     MeetingParticipantEntry,
@@ -66,7 +65,7 @@ class TestGetMeetingStatusChangeHistory:
         history_entry.action = "status_changed"
         history_entry.old_status = "SCHEDULED"
         history_entry.new_status = "COMPLETED"
-        history_entry.changed_at = datetime(2024, 1, 1, 12, 0)
+        history_entry.changed_at = datetime(2024, 1, 1, 12, 0, tzinfo=UTC)
         history_entry.changed_by = 100
         history_entry.meta_data = None
 
@@ -111,7 +110,7 @@ class TestGetMeetingStatusChangeHistory:
         history_entry.action = "status_changed"
         history_entry.old_status = "SCHEDULED"
         history_entry.new_status = "COMPLETED"
-        history_entry.changed_at = datetime(2024, 1, 1, 12, 0)
+        history_entry.changed_at = datetime(2024, 1, 1, 12, 0, tzinfo=UTC)
         history_entry.changed_by = 100
         history_entry.meta_data = None
 
@@ -148,8 +147,8 @@ class TestGetMeetingStatusChangeHistory:
         mock_uow.meeting_status_change_history.get_all = AsyncMock()
         mock_uow.meeting_status_change_history.get_all.return_value = ([], 0)
 
-        from_date = datetime(2024, 1, 1, 0, 0)
-        to_date = datetime(2024, 12, 31, 23, 59)
+        from_date = datetime(2024, 1, 1, 0, 0, tzinfo=UTC)
+        to_date = datetime(2024, 12, 31, 23, 59, tzinfo=UTC)
 
         # Act
         result = await get_meeting_status_change_history(
@@ -242,7 +241,7 @@ class TestGetMeetingParticipantHistory:
         history_entry.meeting_id = 5
         history_entry.user_id = 100
         history_entry.action = "joined"
-        history_entry.joined_at = datetime(2024, 1, 1, 12, 0)
+        history_entry.joined_at = datetime(2024, 1, 1, 12, 0, tzinfo=UTC)
         history_entry.left_at = None
         history_entry.meta_data = None
 
@@ -286,7 +285,7 @@ class TestGetMeetingParticipantHistory:
         history_entry.meeting_id = 5
         history_entry.user_id = 100
         history_entry.action = "joined"
-        history_entry.joined_at = datetime(2024, 1, 1, 12, 0)
+        history_entry.joined_at = datetime(2024, 1, 1, 12, 0, tzinfo=UTC)
         history_entry.left_at = None
         history_entry.meta_data = None
 
@@ -328,7 +327,7 @@ class TestGetMeetingParticipantHistory:
         history_entry.meeting_id = 5
         history_entry.user_id = 100
         history_entry.action = "joined"
-        history_entry.joined_at = datetime(2024, 1, 1, 12, 0)
+        history_entry.joined_at = datetime(2024, 1, 1, 12, 0, tzinfo=UTC)
         history_entry.left_at = None
         history_entry.meta_data = None
 
@@ -366,8 +365,8 @@ class TestGetMeetingParticipantHistory:
         mock_uow.meeting_participant_history.get_all = AsyncMock()
         mock_uow.meeting_participant_history.get_all.return_value = ([], 0)
 
-        from_date = datetime(2024, 1, 1, 0, 0)
-        to_date = datetime(2024, 12, 31, 23, 59)
+        from_date = datetime(2024, 1, 1, 0, 0, tzinfo=UTC)
+        to_date = datetime(2024, 12, 31, 23, 59, tzinfo=UTC)
 
         # Act
         result = await get_meeting_participant_history(

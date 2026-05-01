@@ -6,8 +6,13 @@ import sys
 import xml.etree.ElementTree as ET
 
 services = [
-    "auth_service", "checklists_service", "escalation_service",
-    "knowledge_service", "meeting_service", "notification_service", "telegram_bot"
+    "auth_service",
+    "checklists_service",
+    "escalation_service",
+    "knowledge_service",
+    "meeting_service",
+    "notification_service",
+    "telegram_bot",
 ]
 total_lines = 0
 total_covered = 0
@@ -53,8 +58,8 @@ for svc in services:
 
 print("-" * 52)
 if total_lines > 0:
-    total_pct = (total_covered / total_lines * 100)
-    print(f'{"TOTAL":<20} {total_lines:>10} {total_covered:>10} {total_pct:>9.1f}%')
+    total_pct = total_covered / total_lines * 100
+    print(f"{'TOTAL':<20} {total_lines:>10} {total_covered:>10} {total_pct:>9.1f}%")
     sys.exit(0 if total_pct > 0 else 1)
 else:
     print("No coverage data found")

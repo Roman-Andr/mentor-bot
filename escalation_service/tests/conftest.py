@@ -20,6 +20,8 @@ os.environ.setdefault("SERVICE_API_KEY", "test_service_api_key")
 os.environ.setdefault("AUTH_SERVICE_URL", "http://localhost:8001")
 
 # Now we can import from the service
+from collections.abc import AsyncGenerator, Callable, Coroutine
+
 from escalation_service.api.deps import UserInfo, get_current_active_user, get_uow
 from escalation_service.core.enums import EscalationSource, EscalationStatus, EscalationType
 from escalation_service.main import app
@@ -28,7 +30,7 @@ from escalation_service.repositories.unit_of_work import IUnitOfWork
 from escalation_service.services.escalation import EscalationService
 
 if TYPE_CHECKING:
-    from collections.abc import AsyncGenerator, Callable, Coroutine
+    pass
 
 
 @pytest.fixture
@@ -114,80 +116,95 @@ def sample_resolved_request() -> EscalationRequest:
 @pytest.fixture
 def regular_user() -> UserInfo:
     """Create a regular user for testing."""
-    return UserInfo({
-        "id": 100,
-        "email": "user@example.com",
-        "role": "USER",
-        "is_active": True,
-        "is_verified": True,
-        "first_name": "Test",
-        "last_name": "User",
-    })
+    return UserInfo(
+        {
+            "id": 100,
+            "email": "user@example.com",
+            "role": "USER",
+            "is_active": True,
+            "is_verified": True,
+            "first_name": "Test",
+            "last_name": "User",
+        }
+    )
 
 
 @pytest.fixture
 def hr_user() -> UserInfo:
     """Create an HR user for testing."""
-    return UserInfo({
-        "id": 200,
-        "email": "hr@example.com",
-        "role": "HR",
-        "is_active": True,
-        "is_verified": True,
-        "first_name": "HR",
-        "last_name": "Manager",
-    })
+    return UserInfo(
+        {
+            "id": 200,
+            "email": "hr@example.com",
+            "role": "HR",
+            "is_active": True,
+            "is_verified": True,
+            "first_name": "HR",
+            "last_name": "Manager",
+        }
+    )
 
 
 @pytest.fixture
 def admin_user() -> UserInfo:
     """Create an admin user for testing."""
-    return UserInfo({
-        "id": 300,
-        "email": "admin@example.com",
-        "role": "ADMIN",
-        "is_active": True,
-        "is_verified": True,
-        "first_name": "Admin",
-        "last_name": "User",
-    })
+    return UserInfo(
+        {
+            "id": 300,
+            "email": "admin@example.com",
+            "role": "ADMIN",
+            "is_active": True,
+            "is_verified": True,
+            "first_name": "Admin",
+            "last_name": "User",
+        }
+    )
 
 
 @pytest.fixture
 def mock_current_user(regular_user: UserInfo) -> Callable[[], Coroutine[Any, Any, UserInfo]]:
     """Override get_current_active_user to return regular user."""
+
     async def _get_current_user() -> UserInfo:
         return regular_user
+
     return _get_current_user
 
 
 @pytest.fixture
 def mock_current_hr(hr_user: UserInfo) -> Callable[[], Coroutine[Any, Any, UserInfo]]:
     """Override get_current_active_user to return HR user."""
+
     async def _get_current_user() -> UserInfo:
         return hr_user
+
     return _get_current_user
 
 
 @pytest.fixture
 def mock_current_admin(admin_user: UserInfo) -> Callable[[], Coroutine[Any, Any, UserInfo]]:
     """Override get_current_active_user to return admin user."""
+
     async def _get_current_user() -> UserInfo:
         return admin_user
+
     return _get_current_user
 
 
 @pytest.fixture
 def mock_uow_dependency(mock_uow: MagicMock) -> Callable[[], Coroutine[Any, Any, MagicMock]]:
     """Override get_uow to return mock UoW."""
+
     async def _get_mock_uow() -> MagicMock:
         return mock_uow
+
     return _get_mock_uow
 
 
 @pytest.fixture
 async def async_client_with_user(regular_user: UserInfo, mock_uow: MagicMock) -> AsyncGenerator[AsyncClient]:
     """Create an async client with regular user authenticated and mock UoW."""
+
     async def override_get_user() -> UserInfo:
         return regular_user
 
@@ -207,6 +224,7 @@ async def async_client_with_user(regular_user: UserInfo, mock_uow: MagicMock) ->
 @pytest.fixture
 async def async_client_with_hr(hr_user: UserInfo, mock_uow: MagicMock) -> AsyncGenerator[AsyncClient]:
     """Create an async client with HR user authenticated and mock UoW."""
+
     async def override_get_user() -> UserInfo:
         return hr_user
 
@@ -226,6 +244,7 @@ async def async_client_with_hr(hr_user: UserInfo, mock_uow: MagicMock) -> AsyncG
 @pytest.fixture
 async def async_client_with_admin(admin_user: UserInfo, mock_uow: MagicMock) -> AsyncGenerator[AsyncClient]:
     """Create an async client with admin user authenticated and mock UoW."""
+
     async def override_get_user() -> UserInfo:
         return admin_user
 
@@ -256,6 +275,7 @@ def client() -> TestClient:
         class AsyncContextMock:
             async def __aenter__(self):
                 return mock_conn
+
             async def __aexit__(self, *args):
                 return False
 
@@ -265,6 +285,7 @@ def client() -> TestClient:
         with patch.dict("sys.modules"):
             # Force reimport of main module to use patched engine
             import sys
+
             # Remove cached modules to force reimport
             mods_to_remove = [k for k in sys.modules if "escalation_service" in k]
             for m in mods_to_remove:

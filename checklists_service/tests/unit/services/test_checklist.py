@@ -4,10 +4,9 @@ from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
 from checklists_service.core import NotFoundException, ValidationException
 from checklists_service.core.enums import ChecklistStatus, TaskStatus, TemplateStatus
-from checklists_service.models import Checklist, Task
+from checklists_service.models import Checklist, Task, Template
 from checklists_service.schemas import ChecklistCreate, ChecklistStats, ChecklistUpdate
 from checklists_service.services import ChecklistService
 
@@ -547,8 +546,10 @@ class TestChecklistServiceCreate:
 
         # Capture created tasks to verify blocks are set
         created_tasks = []
+
         def capture_task(task):
             created_tasks.append(task)
+
         mock_uow.tasks.create.side_effect = capture_task
         mock_uow.checklists.update.return_value = created_checklist
 
@@ -613,7 +614,7 @@ class TestChecklistServiceUpdate:
         self,
         mock_uow: MagicMock,
         sample_checklist: Checklist,
-        sample_datetime: datetime,  # noqa: ARG002
+        sample_datetime: datetime,
     ) -> None:
         """Test successful checklist update."""
         mock_uow.checklists.get_by_id.return_value = sample_checklist
@@ -631,7 +632,7 @@ class TestChecklistServiceUpdate:
         self,
         mock_uow: MagicMock,
         sample_checklist: Checklist,
-        sample_datetime: datetime,  # noqa: ARG002
+        sample_datetime: datetime,
     ) -> None:
         """Test marking checklist as completed updates completed_at."""
         mock_uow.checklists.get_by_id.return_value = sample_checklist
@@ -656,26 +657,45 @@ class TestChecklistServiceUpdate:
 
         # Create tasks in different statuses that should be auto-completed
         pending_task = Task(
-            id=1, checklist_id=1, title="Pending Task", status=TaskStatus.PENDING,
-            due_date=sample_datetime, order=0, category="TEST", assignee_role="MENTOR",
-            created_at=sample_datetime
+            id=1,
+            checklist_id=1,
+            title="Pending Task",
+            status=TaskStatus.PENDING,
+            due_date=sample_datetime,
+            order=0,
+            category="TEST",
+            assignee_role="MENTOR",
+            created_at=sample_datetime,
         )
         in_progress_task = Task(
-            id=2, checklist_id=1, title="In Progress Task", status=TaskStatus.IN_PROGRESS,
-            due_date=sample_datetime, order=1, category="TEST", assignee_role="MENTOR",
-            started_at=sample_datetime, created_at=sample_datetime
+            id=2,
+            checklist_id=1,
+            title="In Progress Task",
+            status=TaskStatus.IN_PROGRESS,
+            due_date=sample_datetime,
+            order=1,
+            category="TEST",
+            assignee_role="MENTOR",
+            started_at=sample_datetime,
+            created_at=sample_datetime,
         )
         blocked_task = Task(
-            id=3, checklist_id=1, title="Blocked Task", status=TaskStatus.BLOCKED,
-            due_date=sample_datetime, order=2, category="TEST", assignee_role="MENTOR",
-            created_at=sample_datetime
+            id=3,
+            checklist_id=1,
+            title="Blocked Task",
+            status=TaskStatus.BLOCKED,
+            due_date=sample_datetime,
+            order=2,
+            category="TEST",
+            assignee_role="MENTOR",
+            created_at=sample_datetime,
         )
 
         # Mock the three separate calls for pending, in_progress, and blocked tasks
         mock_uow.tasks.find_by_checklist.side_effect = [
-            [pending_task],           # First call: pending tasks
-            [in_progress_task],       # Second call: in_progress tasks
-            [blocked_task],           # Third call: blocked tasks
+            [pending_task],  # First call: pending tasks
+            [in_progress_task],  # Second call: in_progress tasks
+            [blocked_task],  # Third call: blocked tasks
         ]
         mock_uow.checklists.update.return_value = sample_checklist
 
@@ -807,7 +827,7 @@ class TestChecklistServiceComplete:
         self,
         mock_uow: MagicMock,
         sample_checklist: Checklist,
-        sample_datetime: datetime,  # noqa: ARG002
+        sample_datetime: datetime,
     ) -> None:
         """Test successful checklist completion."""
         mock_uow.checklists.get_by_id.return_value = sample_checklist
@@ -1111,8 +1131,6 @@ class TestChecklistServiceHRAssignee:
         assert result.hr_id == 10
 
 
-
-
 class TestChecklistServiceAutoCreateLines:
     """Test auto_create_checklists specific lines (299, 319-320)."""
 
@@ -1180,8 +1198,7 @@ class TestChecklistServiceAutoCreateLines:
         assert len(result) == 1
 
 
-
-class TestChecklistServiceAutoCreate:
+class TestChecklistServiceAutoCreateAssignment:
     """Test auto_create_checklists method (lines 298-299, 319-320)."""
 
     async def test_auto_create_checklists_auto_assigns_mentor(
@@ -1389,8 +1406,10 @@ class TestChecklistServiceAutoCreate:
 
         # Capture the created tasks when tasks.create is called
         created_tasks_list: list[Task] = []
+
         def capture_task(task):
             created_tasks_list.append(task)
+
         mock_uow.tasks.create.side_effect = capture_task
 
         mock_uow.checklists.update.return_value = created_checklist
@@ -1421,7 +1440,9 @@ class TestChecklistServiceAutoCreate:
 
         # Task1 should block task2 (line 320) - blocks are built based on depends_on
         # After the service processes, task1.blocks should contain task2's template_task_id
-        assert task2.template_task_id in task1.blocks, f"Task1.blocks = {task1.blocks}, expected {task2.template_task_id}"
+        assert task2.template_task_id in task1.blocks, (
+            f"Task1.blocks = {task1.blocks}, expected {task2.template_task_id}"
+        )
 
     async def test_auto_create_checklists_skips_when_existing_checklist(
         self,

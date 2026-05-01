@@ -4,10 +4,9 @@ from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from auth_service.models import UserMentor
 from auth_service.repositories.implementations.user_mentor import UserMentorRepository
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class TestUserMentorRepository:

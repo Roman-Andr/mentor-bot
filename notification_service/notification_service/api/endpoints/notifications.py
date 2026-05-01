@@ -36,10 +36,16 @@ async def send_notification(
     current_user: CurrentUser,
 ) -> NotificationResponse:
     """Send a notification immediately."""
-    logger.info("POST /notifications/send request (user_id={}, type={})", notification_data.user_id, notification_data.type)
+    logger.info(
+        "POST /notifications/send request (user_id={}, type={})", notification_data.user_id, notification_data.type
+    )
     # Verify that the user sending is either the recipient or has HR/admin rights
     if notification_data.user_id != current_user.id and current_user.role not in ["HR", "ADMIN"]:
-        logger.warning("Send notification forbidden (current_user_id={}, requested_user_id={})", current_user.id, notification_data.user_id)
+        logger.warning(
+            "Send notification forbidden (current_user_id={}, requested_user_id={})",
+            current_user.id,
+            notification_data.user_id,
+        )
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Cannot send notifications on behalf of another user",
@@ -59,9 +65,17 @@ async def schedule_notification(
     current_user: CurrentUser,
 ) -> ScheduledNotificationResponse:
     """Schedule a notification for future sending."""
-    logger.info("POST /notifications/schedule request (user_id={}, scheduled_time={})", schedule_data.user_id, schedule_data.scheduled_time)
+    logger.info(
+        "POST /notifications/schedule request (user_id={}, scheduled_time={})",
+        schedule_data.user_id,
+        schedule_data.scheduled_time,
+    )
     if schedule_data.user_id != current_user.id and current_user.role not in ["HR", "ADMIN"]:
-        logger.warning("Schedule notification forbidden (current_user_id={}, requested_user_id={})", current_user.id, schedule_data.user_id)
+        logger.warning(
+            "Schedule notification forbidden (current_user_id={}, requested_user_id={})",
+            current_user.id,
+            schedule_data.user_id,
+        )
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Cannot schedule notifications on behalf of another user",

@@ -1,7 +1,5 @@
 """Unit tests for escalation_service/core/exceptions.py."""
 
-from fastapi import status
-
 from escalation_service.core.exceptions import (
     AuthException,
     ConflictException,
@@ -9,6 +7,7 @@ from escalation_service.core.exceptions import (
     PermissionDenied,
     ValidationException,
 )
+from fastapi import status
 
 
 class TestValidationException:

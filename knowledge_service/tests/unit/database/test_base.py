@@ -4,11 +4,10 @@ import contextlib
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
 import pytest
-from sqlalchemy import Connection
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from knowledge_service.database import AsyncSessionLocal, Base, get_db, init_db
 from knowledge_service.database.base import _create_search_indexes, engine
+from sqlalchemy import Connection
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class TestBaseMetadata:
@@ -22,6 +21,7 @@ class TestBaseMetadata:
     def test_base_metadata_is_metadata(self) -> None:
         """Test that Base.metadata is a MetaData instance."""
         from sqlalchemy import MetaData
+
         assert isinstance(Base.metadata, MetaData)
 
     def test_metadata_has_no_schema(self) -> None:
@@ -51,7 +51,7 @@ class TestGetDB:
         mock_session.__aenter__ = AsyncMock(return_value=mock_session)
         mock_session.__aexit__ = AsyncMock(return_value=None)
 
-        async for session in get_db():
+        async for _session in get_db():
             pass  # Just iterate
 
         mock_session.commit.assert_called_once()
@@ -264,6 +264,7 @@ class TestEngineConfiguration:
     def test_engine_is_async(self) -> None:
         """Test that engine is async type."""
         from sqlalchemy.ext.asyncio import AsyncEngine
+
         assert isinstance(engine, AsyncEngine)
 
 
@@ -277,4 +278,5 @@ class TestAsyncSessionLocal:
     def test_async_session_local_is_async_sessionmaker(self) -> None:
         """Test that AsyncSessionLocal is an async_sessionmaker."""
         from sqlalchemy.ext.asyncio import async_sessionmaker
+
         assert isinstance(AsyncSessionLocal, async_sessionmaker)

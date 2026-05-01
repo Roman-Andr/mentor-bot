@@ -4,7 +4,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from fastapi import HTTPException, status
-
 from notification_service.api.endpoints.email import (
     EmailSendRequest,
     _get_default_password_reset_confirmation_template,
@@ -314,5 +313,3 @@ class TestSendEmail:
 
                 assert exc_info.value.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
                 assert "Failed to send email" in exc_info.value.detail
-
-

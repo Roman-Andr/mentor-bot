@@ -106,7 +106,12 @@ class NotificationService:
         if success:
             logger.info("Immediate notification sent (notification_id={}, user_id={})", updated.id, updated.user_id)
         else:
-            logger.warning("Immediate notification failed (notification_id={}, user_id={}, error={})", updated.id, updated.user_id, error_msg)
+            logger.warning(
+                "Immediate notification failed (notification_id={}, user_id={}, error={})",
+                updated.id,
+                updated.user_id,
+                error_msg,
+            )
         return updated
 
     async def schedule(self, schedule_data: ScheduledNotificationCreate) -> ScheduledNotification:
@@ -187,11 +192,9 @@ class NotificationService:
                 )
             else:
                 # Schedule retry with exponential backoff
-                backoff_minutes = 2 ** scheduled.retry_count
+                backoff_minutes = 2**scheduled.retry_count
                 next_scheduled = now + timedelta(minutes=backoff_minutes)
-                await self._uow.scheduled_notifications.increment_retry(
-                    scheduled.id, next_scheduled
-                )
+                await self._uow.scheduled_notifications.increment_retry(scheduled.id, next_scheduled)
                 logger.info(
                     "Scheduled notification %s failed, retrying in %d minutes (attempt %d/%d)",
                     scheduled.id,
@@ -296,7 +299,12 @@ class NotificationService:
         if success:
             logger.info("Template notification sent (notification_id={}, template_name={})", updated.id, template_name)
         else:
-            logger.warning("Template notification failed (notification_id={}, template_name={}, error={})", updated.id, template_name, error_msg)
+            logger.warning(
+                "Template notification failed (notification_id={}, template_name={}, error={})",
+                updated.id,
+                template_name,
+                error_msg,
+            )
         return updated
 
     async def schedule_template(
@@ -385,7 +393,9 @@ class NotificationService:
         try:
             prefs = await self._auth_client.get_user_preferences(notification.user_id)
         except AuthClientError as e:
-            logger.warning("Failed to fetch user preferences, using fail-open (user_id={}, error={})", notification.user_id, e)
+            logger.warning(
+                "Failed to fetch user preferences, using fail-open (user_id={}, error={})", notification.user_id, e
+            )
             prefs = None
 
         if channel == NotificationChannel.TELEGRAM:
@@ -401,7 +411,11 @@ class NotificationService:
         """Send notification via Telegram."""
         # Check if telegram notifications are disabled
         if prefs and not prefs.notification_telegram_enabled:
-            logger.info("Telegram notification skipped: user disabled (notification_id={}, user_id={})", notification.id, notification.user_id)
+            logger.info(
+                "Telegram notification skipped: user disabled (notification_id={}, user_id={})",
+                notification.id,
+                notification.user_id,
+            )
             return True, None  # Return success to avoid retry
 
         if not notification.recipient_telegram_id:
@@ -424,7 +438,11 @@ class NotificationService:
         """Send notification via Email."""
         # Check if email notifications are disabled
         if prefs and not prefs.notification_email_enabled:
-            logger.info("Email notification skipped: user disabled (notification_id={}, user_id={})", notification.id, notification.user_id)
+            logger.info(
+                "Email notification skipped: user disabled (notification_id={}, user_id={})",
+                notification.id,
+                notification.user_id,
+            )
             return True, None  # Return success to avoid retry
 
         if not notification.recipient_email:
@@ -449,7 +467,11 @@ class NotificationService:
 
         # Check if both channels are disabled
         if prefs and not prefs.notification_telegram_enabled and not prefs.notification_email_enabled:
-            logger.warning("Both notification channels disabled, skipping (notification_id={}, user_id={})", notification.id, notification.user_id)
+            logger.warning(
+                "Both notification channels disabled, skipping (notification_id={}, user_id={})",
+                notification.id,
+                notification.user_id,
+            )
             return True, None  # Return success to avoid retry
 
         telegram_success, telegram_error = await self._send_telegram(notification, prefs)

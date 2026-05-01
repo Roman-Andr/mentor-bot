@@ -31,9 +31,7 @@ class Settings(BaseSettings):
     REDIS_CACHE_TTL: int = Field(default=3600, ge=1)
 
     # Database
-    DATABASE_URL: PostgresDsn = Field(
-        default="postgresql+asyncpg://user:password@localhost:5432/telegram_db"
-    )
+    DATABASE_URL: PostgresDsn = Field(default="postgresql+asyncpg://user:password@localhost:5432/telegram_db")
 
     # Services
     AUTH_SERVICE_URL: str = Field(default="http://localhost:8001")
@@ -66,13 +64,9 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_ID: str = Field(default="")
     GOOGLE_CLIENT_SECRET: str = Field(default="")
     GOOGLE_REDIRECT_URI: str = Field(default="")
-    GOOGLE_CALENDAR_SCOPES: list[str] = Field(
-        default=["https://www.googleapis.com/auth/calendar.events"]
-    )
+    GOOGLE_CALENDAR_SCOPES: list[str] = Field(default=["https://www.googleapis.com/auth/calendar.events"])
 
-    model_config = SettingsConfigDict(
-        env_file=".env", env_file_encoding="utf-8", case_sensitive=True, extra="ignore"
-    )
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", case_sensitive=True, extra="ignore")
 
 
 settings = Settings()

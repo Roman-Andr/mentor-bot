@@ -10,7 +10,8 @@ from telegram_bot.config import settings
 
 
 class EscalationServiceClient:
-    """HTTP client for escalation service integration.
+    """
+    HTTP client for escalation service integration.
 
     Maps old telegram_bot fields to escalation_service schema:
     - title -> reason
@@ -33,9 +34,7 @@ class EscalationServiceClient:
     def __init__(self, base_url: str | None = None) -> None:
         """Initialize escalation service HTTP client."""
         self.base_url = base_url or settings.ESCALATION_SERVICE_URL
-        self.client = httpx.AsyncClient(
-            base_url=self.base_url, timeout=settings.SERVICE_TIMEOUT
-        )
+        self.client = httpx.AsyncClient(base_url=self.base_url, timeout=settings.SERVICE_TIMEOUT)
 
     def _map_category_to_type(self, category: str) -> str:
         """Map old category values to escalation service types."""
@@ -49,7 +48,8 @@ class EscalationServiceClient:
         category: str,
         priority: str = "normal",
     ) -> dict[str, Any]:
-        """Build payload matching escalation_service schema.
+        """
+        Build payload matching escalation_service schema.
 
         Maps:
         - title -> reason
@@ -105,9 +105,7 @@ class EscalationServiceClient:
             logger.exception("Escalation service request failed (user_id={})", user_id)
         return None
 
-    async def get_user_escalations(
-        self, user_id: int, auth_token: str, limit: int = 10
-    ) -> list[dict]:
+    async def get_user_escalations(self, user_id: int, auth_token: str, limit: int = 10) -> list[dict]:
         """Get user escalations."""
         logger.debug("Fetching user escalations (user_id={}, limit={})", user_id, limit)
         try:
@@ -128,9 +126,7 @@ class EscalationServiceClient:
             logger.exception("Escalation service get escalations failed (user_id={})", user_id)
         return []
 
-    async def get_escalation_status(
-        self, escalation_id: int, auth_token: str
-    ) -> dict | None:
+    async def get_escalation_status(self, escalation_id: int, auth_token: str) -> dict | None:
         """Get escalation status."""
         logger.debug("Fetching escalation status (escalation_id={})", escalation_id)
         try:
@@ -164,7 +160,9 @@ class EscalationServiceClient:
             if response.status_code == http_status.HTTP_200_OK:
                 logger.info("Escalation status updated (escalation_id={})", escalation_id)
                 return response.json()
-            logger.warning("Escalation status update failed (escalation_id={}, status={})", escalation_id, response.status_code)
+            logger.warning(
+                "Escalation status update failed (escalation_id={}, status={})", escalation_id, response.status_code
+            )
         except httpx.RequestError:
             logger.exception("Escalation service update status failed (escalation_id={})", escalation_id)
         return None

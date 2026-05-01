@@ -6,7 +6,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from redis import RedisError
-
 from telegram_bot.services.cache import UserCache, user_cache
 
 
@@ -320,9 +319,11 @@ class TestUserCache:
 
     def _async_iterator(self, items):
         """Create async iterator helper."""
+
         async def gen():
             for item in items:
                 yield item
+
         return gen()
 
     async def test_get_all_users_redis_error(self, cache, mock_redis):

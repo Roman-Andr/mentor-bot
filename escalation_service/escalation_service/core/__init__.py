@@ -17,6 +17,6 @@ __all__ = [
     "EscalationType",
     "NotFoundException",
     "PermissionDenied",
-    "ValidationException",
     "UserRole",
+    "ValidationException",
 ]

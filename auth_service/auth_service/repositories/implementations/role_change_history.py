@@ -12,9 +12,7 @@ from auth_service.repositories.implementations.base import SqlAlchemyBaseReposit
 from auth_service.repositories.interfaces.role_change_history import IRoleChangeHistoryRepository
 
 
-class RoleChangeHistoryRepository(
-    SqlAlchemyBaseRepository[RoleChangeHistory, int], IRoleChangeHistoryRepository
-):
+class RoleChangeHistoryRepository(SqlAlchemyBaseRepository[RoleChangeHistory, int], IRoleChangeHistoryRepository):
     """SQLAlchemy implementation of Role change history repository."""
 
     def __init__(self, session: AsyncSession) -> None:

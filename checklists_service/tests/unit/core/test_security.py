@@ -129,8 +129,15 @@ class TestValidateFileType:
         """Test all allowed file types pass."""
         with patch("checklists_service.core.security.settings") as mock_settings:
             mock_settings.ALLOWED_FILE_TYPES = [
-                ".pdf", ".doc", ".docx", ".xls", ".xlsx",
-                ".txt", ".png", ".jpg", ".jpeg"
+                ".pdf",
+                ".doc",
+                ".docx",
+                ".xls",
+                ".xlsx",
+                ".txt",
+                ".png",
+                ".jpg",
+                ".jpeg",
             ]
 
             assert validate_file_type("document.pdf") is True

@@ -35,21 +35,16 @@ async def show_certificates(
         return
 
     text = f"*\U0001f4c6 {t('certificate.title', locale=locale)}*\n\n"
-    
+
     keyboard = InlineKeyboardBuilder()
     for cert in certificates:
         text += f"\U0001f3c7 Certificate ID: `{cert['cert_uid']}`\n"
         text += f"   Issued: {cert['issued_at'] or 'N/A'}\n\n"
         keyboard.button(
-            text=f"\U0001f4e5 Download {cert['cert_uid'][:8]}...",
-            callback_data=f"download_cert:{cert['cert_uid']}"
+            text=f"\U0001f4e5 Download {cert['cert_uid'][:8]}...", callback_data=f"download_cert:{cert['cert_uid']}"
         )
-    
-    await message.answer(
-        text,
-        reply_markup=keyboard.as_markup(),
-        parse_mode="Markdown"
-    )
+
+    await message.answer(text, reply_markup=keyboard.as_markup(), parse_mode="Markdown")
 
 
 @router.callback_query(F.data.startswith("download_cert:"))
@@ -69,17 +64,11 @@ async def download_certificate(
 
     try:
         pdf_bytes = await certificates_client.download_certificate(cert_uid, locale, auth_token)
-        
-        pdf_file = BufferedInputFile(
-            pdf_bytes,
-            filename=f"certificate_{cert_uid}.pdf"
-        )
-        
-        await callback.message.answer_document(
-            pdf_file,
-            caption=t("certificate.downloaded", locale=locale)
-        )
+
+        pdf_file = BufferedInputFile(pdf_bytes, filename=f"certificate_{cert_uid}.pdf")
+
+        await callback.message.answer_document(pdf_file, caption=t("certificate.downloaded", locale=locale))
         await callback.answer()
-    except Exception as e:
-        logger.error("Failed to download certificate: %s", e)
+    except Exception:
+        logger.exception("Failed to download certificate")
         await callback.answer(t("certificate.download_error", locale=locale))

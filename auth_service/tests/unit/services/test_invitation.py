@@ -4,7 +4,6 @@ from datetime import UTC, datetime, timedelta
 from unittest.mock import patch
 
 import pytest
-
 from auth_service.core import ConflictException, NotFoundException, ValidationException
 from auth_service.core.enums import InvitationStatus, UserRole
 from auth_service.models import Invitation, User

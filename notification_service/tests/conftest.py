@@ -30,7 +30,7 @@ os.environ.setdefault("SMTP_PASSWORD", "testpassword")
 from notification_service.core.enums import NotificationChannel, NotificationStatus, NotificationType
 from notification_service.models import Notification, ScheduledNotification
 from notification_service.repositories.unit_of_work import IUnitOfWork
-from notification_service.services.auth_client import AuthClient, UserPreferences
+from notification_service.services.auth_client import UserPreferences
 
 
 @pytest.fixture(autouse=True)

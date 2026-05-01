@@ -49,9 +49,7 @@ def _get_file_emoji(mime_type: str | None) -> str:
 
 @router.message(Command("documents"))
 @router.message(F.text == "\U0001f4c1 Documents")
-@router.message(
-    F.text == "\U0001f4c1 \u0414\u043e\u043a\u0443\u043c\u0435\u043d\u0442\u044b"
-)
+@router.message(F.text == "\U0001f4c1 \u0414\u043e\u043a\u0443\u043c\u0435\u043d\u0442\u044b")
 @router.message(F.text == "\u0414\u043e\u043a\u0443\u043c\u0435\u043d\u0442\u044b")
 @router.callback_query(F.data == "documents_menu")
 async def documents_menu(
@@ -89,17 +87,13 @@ async def documents_menu(
 
     keyboard = get_documents_menu_keyboard(locale=locale)
     if isinstance(update, CallbackQuery) and isinstance(msg, Message):
-        await msg.edit_text(
-            text, reply_markup=keyboard, parse_mode="Markdown"
-        )
+        await msg.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
     else:
         await msg.answer(text, reply_markup=keyboard, parse_mode="Markdown")
 
 
 @router.callback_query(F.data == "dept_docs")
-async def department_docs(
-    callback: CallbackQuery, user: dict, auth_token: str, *, locale: str = "en"
-) -> None:
+async def department_docs(callback: CallbackQuery, user: dict, auth_token: str, *, locale: str = "en") -> None:
     """Show department documents."""
     if callback.message is None or not isinstance(callback.message, Message):
         await callback.answer(t("common.error_generic", locale=locale))
@@ -126,18 +120,14 @@ async def department_docs(
 
     await msg.edit_text(
         text,
-        reply_markup=get_article_list_keyboard(
-            docs, "documents_menu", locale=locale
-        ),
+        reply_markup=get_article_list_keyboard(docs, "documents_menu", locale=locale),
         parse_mode="Markdown",
     )
     await callback.answer()
 
 
 @router.callback_query(F.data == "department_docs_list")
-async def department_docs_list(
-    callback: CallbackQuery, user: dict, auth_token: str, *, locale: str = "en"
-) -> None:
+async def department_docs_list(callback: CallbackQuery, user: dict, auth_token: str, *, locale: str = "en") -> None:
     """Show department documents list from new API."""
     if callback.message is None or not isinstance(callback.message, Message):
         await callback.answer(t("common.error_generic", locale=locale))
@@ -160,9 +150,7 @@ async def department_docs_list(
 
     await msg.edit_text(
         text,
-        reply_markup=get_article_list_keyboard(
-            docs, "documents_menu", locale=locale, is_department_docs=True
-        ),
+        reply_markup=get_article_list_keyboard(docs, "documents_menu", locale=locale, is_department_docs=True),
         parse_mode="Markdown",
     )
     await callback.answer()
@@ -214,9 +202,7 @@ async def download_department_document(
 
 
 @router.callback_query(F.data == "company_policies")
-async def company_policies(
-    callback: CallbackQuery, user: dict, auth_token: str, *, locale: str = "en"
-) -> None:
+async def company_policies(callback: CallbackQuery, user: dict, auth_token: str, *, locale: str = "en") -> None:
     """Show company policies."""
     if callback.message is None or not isinstance(callback.message, Message):
         await callback.answer(t("common.error_generic", locale=locale))
@@ -238,18 +224,14 @@ async def company_policies(
 
     await msg.edit_text(
         text,
-        reply_markup=get_article_list_keyboard(
-            policies, "documents_menu", locale=locale
-        ),
+        reply_markup=get_article_list_keyboard(policies, "documents_menu", locale=locale),
         parse_mode="Markdown",
     )
     await callback.answer()
 
 
 @router.callback_query(F.data == "training_materials")
-async def training_materials(
-    callback: CallbackQuery, user: dict, auth_token: str, *, locale: str = "en"
-) -> None:
+async def training_materials(callback: CallbackQuery, user: dict, auth_token: str, *, locale: str = "en") -> None:
     """Show training materials."""
     if callback.message is None or not isinstance(callback.message, Message):
         await callback.answer(t("common.error_generic", locale=locale))
@@ -271,18 +253,14 @@ async def training_materials(
 
     await msg.edit_text(
         text,
-        reply_markup=get_article_list_keyboard(
-            materials, "documents_menu", locale=locale
-        ),
+        reply_markup=get_article_list_keyboard(materials, "documents_menu", locale=locale),
         parse_mode="Markdown",
     )
     await callback.answer()
 
 
 @router.callback_query(F.data.startswith("view_article_"))
-async def view_article_detail(
-    callback: CallbackQuery, user: dict, auth_token: str, *, locale: str = "en"
-) -> None:
+async def view_article_detail(callback: CallbackQuery, user: dict, auth_token: str, *, locale: str = "en") -> None:
     """Show article details with attachments."""
     if callback.message is None or not isinstance(callback.message, Message):
         await callback.answer(t("common.error_generic", locale=locale))
@@ -302,9 +280,7 @@ async def view_article_detail(
 
     article = await knowledge_client.get_article_details(article_id, auth_token)
     if not article:
-        await callback.answer(
-            t("knowledge.article_not_found", locale=locale), show_alert=True
-        )
+        await callback.answer(t("knowledge.article_not_found", locale=locale), show_alert=True)
         return
 
     title = article.get("title", "Untitled")
@@ -332,9 +308,7 @@ async def view_article_detail(
 
     await msg.edit_text(
         text,
-        reply_markup=get_article_detail_keyboard(
-            attachments, article_id, locale=locale
-        ),
+        reply_markup=get_article_detail_keyboard(attachments, article_id, locale=locale),
         parse_mode="Markdown",
     )
     await callback.answer()
@@ -377,9 +351,7 @@ async def download_attachment(
 
     filename = attachment.get("name", "file")
 
-    file_content = await knowledge_client.download_attachment(
-        article_id, filename, auth_token
-    )
+    file_content = await knowledge_client.download_attachment(article_id, filename, auth_token)
     if not file_content:
         await callback.answer(t("common.failed", locale=locale), show_alert=True)
         return

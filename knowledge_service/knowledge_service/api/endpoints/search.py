@@ -41,9 +41,7 @@ async def search_articles(
             "category_id": search_query.category_id,
             "tag_ids": search_query.tag_ids,
             "department_id": (
-                search_query.department_id
-                if current_user.has_role(["HR", "ADMIN"])
-                else current_user.department_id
+                search_query.department_id if current_user.has_role(["HR", "ADMIN"]) else current_user.department_id
             ),
             "position": search_query.position,
             "level": search_query.level,

@@ -10,10 +10,9 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from fastapi import FastAPI, Request, Response
-from starlette.middleware.base import BaseHTTPMiddleware
-
 from knowledge_service.middleware import AuthTokenMiddleware
 from knowledge_service.middleware.auth import AuthTokenMiddleware as AuthMiddlewareClass
+from starlette.middleware.base import BaseHTTPMiddleware
 
 
 class TestMiddlewareInit:

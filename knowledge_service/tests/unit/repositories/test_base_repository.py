@@ -4,11 +4,10 @@ from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from knowledge_service.core import EmployeeLevel
 from knowledge_service.models import Article, Category
 from knowledge_service.repositories.implementations.base import SqlAlchemyBaseRepository
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class TestSqlAlchemyBaseRepository:

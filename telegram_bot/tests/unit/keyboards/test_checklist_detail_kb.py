@@ -1,6 +1,5 @@
 """Unit tests for telegram_bot/keyboards/checklist_detail.py."""
 
-
 from telegram_bot.keyboards.checklist_detail import (
     get_attach_task_keyboard,
     get_back_to_task_keyboard,

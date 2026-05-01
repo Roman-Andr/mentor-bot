@@ -106,6 +106,7 @@ class TestHealthEndpoint:
             class AsyncContextMock:
                 async def __aenter__(self):
                     return mock_conn
+
                 async def __aexit__(self, *args):
                     return False
 
@@ -152,6 +153,7 @@ class TestIntegration:
             class AsyncContextMock:
                 async def __aenter__(self):
                     return mock_conn
+
                 async def __aexit__(self, *args):
                     return False
 
@@ -193,8 +195,6 @@ class TestAppConfiguration:
         response = client.post(f"{settings.API_V1_PREFIX}/notifications/send")
         # Should not be 404 - may be 401/403/422 due to auth/validation requirements
         assert response.status_code != 404
-
-
 
 
 class TestMiddleware:

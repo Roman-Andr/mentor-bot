@@ -53,7 +53,9 @@ class IUnitOfWork(Protocol):
         """Enter async context manager."""
         ...
 
-    async def __aexit__(self, exc_type: type[BaseException] | None, exc_val: BaseException | None, exc_tb: object) -> None:
+    async def __aexit__(
+        self, exc_type: type[BaseException] | None, exc_val: BaseException | None, exc_tb: object
+    ) -> None:
         """Exit async context manager."""
         ...
 
@@ -86,9 +88,7 @@ class SqlAlchemyUnitOfWork(IUnitOfWork):
         """Exit async context manager and clean up session."""
         if self._session:
             if exc_type:
-                logger.warning(
-                    "UoW rollback on exit due to exception: {}", exc_type.__name__
-                )
+                logger.warning("UoW rollback on exit due to exception: {}", exc_type.__name__)
                 await self._session.rollback()
             await self._session.close()
             self._session = None

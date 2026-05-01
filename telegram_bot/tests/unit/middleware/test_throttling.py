@@ -4,7 +4,6 @@ from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
 import pytest
-
 from telegram_bot.middlewares.throttling import (
     ThrottlingMiddleware,
     ThrottlingService,
@@ -92,9 +91,7 @@ class TestThrottlingMiddlewareGetSetData:
         mock_redis.set = AsyncMock(return_value=True)
 
         middleware = ThrottlingMiddleware(redis_client=mock_redis)
-        result = await middleware._set_rate_limit_data(
-            123456, {"start_time": 12345, "count": 3}, 60
-        )
+        result = await middleware._set_rate_limit_data(123456, {"start_time": 12345, "count": 3}, 60)
 
         assert result is True
         mock_redis.set.assert_called_once()
@@ -107,18 +104,14 @@ class TestThrottlingMiddlewareGetSetData:
         mock_redis.set = AsyncMock(side_effect=RedisError("Connection failed"))
 
         middleware = ThrottlingMiddleware(redis_client=mock_redis)
-        result = await middleware._set_rate_limit_data(
-            123456, {"start_time": 12345, "count": 3}, 60
-        )
+        result = await middleware._set_rate_limit_data(123456, {"start_time": 12345, "count": 3}, 60)
 
         assert result is False
 
     async def test_set_rate_limit_data_no_redis(self):
         """Test set when Redis is not connected."""
         middleware = ThrottlingMiddleware()
-        result = await middleware._set_rate_limit_data(
-            123456, {"start_time": 12345, "count": 3}, 60
-        )
+        result = await middleware._set_rate_limit_data(123456, {"start_time": 12345, "count": 3}, 60)
 
         assert result is False
 
@@ -143,9 +136,7 @@ class TestThrottlingMiddlewareIsRateLimited:
         """Test call within limit increments count."""
         mock_redis = MagicMock()
         start_time = datetime.now(UTC).timestamp()
-        mock_redis.get = AsyncMock(
-            return_value=f'{{"start_time": {start_time}, "count": 2}}'.encode()
-        )
+        mock_redis.get = AsyncMock(return_value=f'{{"start_time": {start_time}, "count": 2}}'.encode())
         mock_redis.set = AsyncMock(return_value=True)
 
         middleware = ThrottlingMiddleware(redis_client=mock_redis)
@@ -158,9 +149,7 @@ class TestThrottlingMiddlewareIsRateLimited:
         """Test when rate limit is exceeded."""
         mock_redis = MagicMock()
         start_time = datetime.now(UTC).timestamp()
-        mock_redis.get = AsyncMock(
-            return_value=f'{{"start_time": {start_time}, "count": 5}}'.encode()
-        )
+        mock_redis.get = AsyncMock(return_value=f'{{"start_time": {start_time}, "count": 5}}'.encode())
 
         middleware = ThrottlingMiddleware(redis_client=mock_redis)
         is_limited, remaining = await middleware._is_rate_limited(123456, 5, 60)
@@ -172,9 +161,7 @@ class TestThrottlingMiddlewareIsRateLimited:
         """Test that expired window resets counter."""
         mock_redis = MagicMock()
         old_start_time = datetime.now(UTC).timestamp() - 70  # 70 seconds ago
-        mock_redis.get = AsyncMock(
-            return_value=f'{{"start_time": {old_start_time}, "count": 5}}'.encode()
-        )
+        mock_redis.get = AsyncMock(return_value=f'{{"start_time": {old_start_time}, "count": 5}}'.encode())
         mock_redis.set = AsyncMock(return_value=True)
 
         middleware = ThrottlingMiddleware(redis_client=mock_redis)
@@ -243,9 +230,7 @@ class TestThrottlingMiddlewareCall:
         """Test handler is called when rate limit not exceeded."""
         mock_redis = MagicMock()
         start_time = datetime.now(UTC).timestamp()
-        mock_redis.get = AsyncMock(
-            return_value=f'{{"start_time": {start_time}, "count": 2}}'.encode()
-        )
+        mock_redis.get = AsyncMock(return_value=f'{{"start_time": {start_time}, "count": 2}}'.encode())
         mock_redis.set = AsyncMock(return_value=True)
 
         middleware = ThrottlingMiddleware(redis_client=mock_redis)
@@ -271,9 +256,7 @@ class TestThrottlingMiddlewareCall:
         """Test throttling when rate limit exceeded."""
         mock_redis = MagicMock()
         start_time = datetime.now(UTC).timestamp()
-        mock_redis.get = AsyncMock(
-            return_value=f'{{"start_time": {start_time}, "count": 5}}'.encode()
-        )
+        mock_redis.get = AsyncMock(return_value=f'{{"start_time": {start_time}, "count": 5}}'.encode())
 
         middleware = ThrottlingMiddleware(redis_client=mock_redis)
 
@@ -348,9 +331,7 @@ class TestThrottlingMiddlewareCall:
         """Test custom rate limit from flag."""
         mock_redis = MagicMock()
         start_time = datetime.now(UTC).timestamp()
-        mock_redis.get = AsyncMock(
-            return_value=f'{{"start_time": {start_time}, "count": 3}}'.encode()
-        )
+        mock_redis.get = AsyncMock(return_value=f'{{"start_time": {start_time}, "count": 3}}'.encode())
         mock_redis.set = AsyncMock(return_value=True)
 
         middleware = ThrottlingMiddleware(redis_client=mock_redis)
@@ -375,9 +356,7 @@ class TestThrottlingMiddlewareCall:
         """Test throttling when event has no answer method."""
         mock_redis = MagicMock()
         start_time = datetime.now(UTC).timestamp()
-        mock_redis.get = AsyncMock(
-            return_value=f'{{"start_time": {start_time}, "count": 5}}'.encode()
-        )
+        mock_redis.get = AsyncMock(return_value=f'{{"start_time": {start_time}, "count": 5}}'.encode())
 
         middleware = ThrottlingMiddleware(redis_client=mock_redis)
 
@@ -405,9 +384,7 @@ class TestThrottlingMiddlewareCall:
         """Test extracting user from callback_query - line 117."""
         mock_redis = MagicMock()
         start_time = datetime.now(UTC).timestamp()
-        mock_redis.get = AsyncMock(
-            return_value=f'{{"start_time": {start_time}, "count": 5}}'.encode()
-        )
+        mock_redis.get = AsyncMock(return_value=f'{{"start_time": {start_time}, "count": 5}}'.encode())
 
         middleware = ThrottlingMiddleware(redis_client=mock_redis)
 

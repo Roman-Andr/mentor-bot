@@ -20,7 +20,8 @@ DEFAULT_LOCALE = "en"
 
 
 def t(key: str, locale: str = DEFAULT_LOCALE, **kwargs: object) -> str:
-    """Translate a key to the given locale.
+    """
+    Translate a key to the given locale.
 
     Args:
         key: Translation key (dot-separated namespace).

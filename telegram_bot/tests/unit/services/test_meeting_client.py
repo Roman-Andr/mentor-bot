@@ -5,7 +5,6 @@ from typing import Never
 import pytest
 from fastapi import status
 from httpx import RequestError, Response
-
 from telegram_bot.services.meeting_client import MeetingServiceClient
 
 

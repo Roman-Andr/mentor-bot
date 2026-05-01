@@ -66,14 +66,23 @@ async def assign_meeting(
     _current_user: HRUser,
 ) -> UserMeetingResponse:
     """Assign a meeting to a user (HR/Admin only)."""
-    logger.info("POST /user-meetings/assign request (user_id={}, meeting_id={})", assignment_data.user_id, assignment_data.meeting_id)
+    logger.info(
+        "POST /user-meetings/assign request (user_id={}, meeting_id={})",
+        assignment_data.user_id,
+        assignment_data.meeting_id,
+    )
     service = MeetingService(uow)
     try:
         assignment = await service.assign_meeting(assignment_data)
         logger.info("Meeting assigned via API (assignment_id={})", assignment.id)
         return _to_response(assignment)
     except (NotFoundException, ConflictException) as e:
-        logger.warning("Assign meeting failed via API: {} (user_id={}, meeting_id={})", e.detail, assignment_data.user_id, assignment_data.meeting_id)
+        logger.warning(
+            "Assign meeting failed via API: {} (user_id={}, meeting_id={})",
+            e.detail,
+            assignment_data.user_id,
+            assignment_data.meeting_id,
+        )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e.detail),
@@ -127,7 +136,9 @@ async def get_assignment(
     try:
         assignment = await service.get_assignment(assignment_id)
         if assignment.user_id != current_user.id and not current_user.has_role(["HR", "ADMIN"]):
-            logger.warning("Get assignment forbidden (current_user_id={}, assignment_id={})", current_user.id, assignment_id)
+            logger.warning(
+                "Get assignment forbidden (current_user_id={}, assignment_id={})", current_user.id, assignment_id
+            )
             raise PermissionDenied
         return _to_response(assignment)
     except NotFoundException as e:
@@ -151,7 +162,9 @@ async def update_assignment(
     try:
         assignment = await service.get_assignment(assignment_id)
         if assignment.user_id != current_user.id and not current_user.has_role(["HR", "ADMIN"]):
-            logger.warning("Update assignment forbidden (current_user_id={}, assignment_id={})", current_user.id, assignment_id)
+            logger.warning(
+                "Update assignment forbidden (current_user_id={}, assignment_id={})", current_user.id, assignment_id
+            )
             raise PermissionDenied
         updated = await service.update_assignment(assignment_id, update_data)
         logger.info("Assignment updated via API (assignment_id={})", updated.id)
@@ -177,14 +190,18 @@ async def complete_meeting(
     try:
         assignment = await service.get_assignment(assignment_id)
         if assignment.user_id != current_user.id:
-            logger.warning("Complete meeting forbidden (current_user_id={}, assignment_id={})", current_user.id, assignment_id)
+            logger.warning(
+                "Complete meeting forbidden (current_user_id={}, assignment_id={})", current_user.id, assignment_id
+            )
             raise PermissionDenied
         completed = await service.complete_meeting(assignment_id, completion)
         logger.info("Meeting completed via API (assignment_id={})", completed.id)
         return _to_response(completed)
     except (NotFoundException, ValidationException, PermissionDenied) as e:
         if isinstance(e, PermissionDenied):
-            logger.warning("Complete meeting forbidden (current_user_id={}, assignment_id={})", current_user.id, assignment_id)
+            logger.warning(
+                "Complete meeting forbidden (current_user_id={}, assignment_id={})", current_user.id, assignment_id
+            )
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="You can only complete your own meetings",

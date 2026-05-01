@@ -12,13 +12,17 @@ from feedback_service.repositories.implementations.feedback import (
     ExperienceRatingRepository,
     PulseSurveyRepository,
 )
-from feedback_service.repositories.implementations.feedback_status_change_history import FeedbackStatusChangeHistoryRepository
+from feedback_service.repositories.implementations.feedback_status_change_history import (
+    FeedbackStatusChangeHistoryRepository,
+)
 from feedback_service.repositories.interfaces.feedback import (
     ICommentRepository,
     IExperienceRatingRepository,
     IPulseSurveyRepository,
 )
-from feedback_service.repositories.interfaces.feedback_status_change_history import IFeedbackStatusChangeHistoryRepository
+from feedback_service.repositories.interfaces.feedback_status_change_history import (
+    IFeedbackStatusChangeHistoryRepository,
+)
 
 
 @runtime_checkable

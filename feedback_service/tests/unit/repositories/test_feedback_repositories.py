@@ -125,9 +125,7 @@ class TestPulseSurveyRepository:
         mock_db.execute.return_value = mock_result
 
         # Act
-        result, total = await pulse_survey_repo.get_by_user(
-            user_id=1, skip=0, limit=50, sort_order="asc"
-        )
+        result, total = await pulse_survey_repo.get_by_user(user_id=1, skip=0, limit=50, sort_order="asc")
 
         # Assert
         assert result == []
@@ -276,9 +274,7 @@ class TestCommentRepository:
         assert result == comments
         mock_db.execute.assert_called_once()
 
-    async def test_find_by_user_returns_empty_list(
-        self, comment_repo: CommentRepository, mock_db: MagicMock
-    ) -> None:
+    async def test_find_by_user_returns_empty_list(self, comment_repo: CommentRepository, mock_db: MagicMock) -> None:
         """Test find_by_user returns empty list when user has no comments."""
         # Arrange
         mock_scalars = MagicMock()
@@ -293,9 +289,7 @@ class TestCommentRepository:
         # Assert
         assert result == []
 
-    async def test_find_by_user_respects_skip_limit(
-        self, comment_repo: CommentRepository, mock_db: MagicMock
-    ) -> None:
+    async def test_find_by_user_respects_skip_limit(self, comment_repo: CommentRepository, mock_db: MagicMock) -> None:
         """Test find_by_user applies skip and limit parameters."""
         # Arrange
         mock_scalars = MagicMock()
@@ -359,9 +353,7 @@ class TestPulseSurveyRepositoryGetByUser:
         assert result == []
         assert total == 0
 
-    async def test_get_by_user_with_search(
-        self, pulse_survey_repo: PulseSurveyRepository, mock_db: MagicMock
-    ) -> None:
+    async def test_get_by_user_with_search(self, pulse_survey_repo: PulseSurveyRepository, mock_db: MagicMock) -> None:
         """Test get_by_user applies search filter and escapes special characters."""
         # Arrange
         mock_scalars = MagicMock()
@@ -372,9 +364,7 @@ class TestPulseSurveyRepositoryGetByUser:
         mock_db.execute.return_value = mock_result
 
         # Act - use a search with special characters to test escaping
-        result, total = await pulse_survey_repo.get_by_user(
-            user_id=1, search="Engineer%_", skip=0, limit=50
-        )
+        result, total = await pulse_survey_repo.get_by_user(user_id=1, search="Engineer%_", skip=0, limit=50)
 
         # Assert
         assert result == []
@@ -453,9 +443,7 @@ class TestPulseSurveyRepositoryStats:
         assert stats["average_rating"] == 7.0
         assert stats["total_responses"] == 30
 
-    async def test_get_stats_no_data(
-        self, pulse_survey_repo: PulseSurveyRepository, mock_db: MagicMock
-    ) -> None:
+    async def test_get_stats_no_data(self, pulse_survey_repo: PulseSurveyRepository, mock_db: MagicMock) -> None:
         """Test get_stats handles no data gracefully."""
         # Arrange
         mock_row = MagicMock()
@@ -474,9 +462,7 @@ class TestPulseSurveyRepositoryStats:
         assert stats["average_rating"] is None
         assert stats["total_responses"] == 0
 
-    async def test_get_rating_distribution(
-        self, pulse_survey_repo: PulseSurveyRepository, mock_db: MagicMock
-    ) -> None:
+    async def test_get_rating_distribution(self, pulse_survey_repo: PulseSurveyRepository, mock_db: MagicMock) -> None:
         """Test get_rating_distribution returns rating counts."""
         # Arrange
         mock_row1 = MagicMock()
@@ -511,9 +497,7 @@ class TestPulseSurveyRepositoryStats:
         to_date = datetime(2024, 12, 31, tzinfo=UTC)
 
         # Act
-        distribution = await pulse_survey_repo.get_rating_distribution(
-            user_id=1, from_date=from_date, to_date=to_date
-        )
+        distribution = await pulse_survey_repo.get_rating_distribution(user_id=1, from_date=from_date, to_date=to_date)
 
         # Assert
         assert distribution == {9: 10}
@@ -556,9 +540,7 @@ class TestExperienceRatingRepositoryGetByUser:
         mock_db.execute.return_value = mock_result
 
         # Act
-        result, total = await experience_rating_repo.get_by_user(
-            user_id=1, skip=0, limit=50, sort_order="asc"
-        )
+        result, total = await experience_rating_repo.get_by_user(user_id=1, skip=0, limit=50, sort_order="asc")
 
         # Assert
         assert result == []
@@ -708,9 +690,7 @@ class TestExperienceRatingRepositoryStats:
 class TestCommentRepositoryGetByUser:
     """Tests for CommentRepository.get_by_user method."""
 
-    async def test_get_by_user_with_search(
-        self, comment_repo: CommentRepository, mock_db: MagicMock
-    ) -> None:
+    async def test_get_by_user_with_search(self, comment_repo: CommentRepository, mock_db: MagicMock) -> None:
         """Test get_by_user applies search filter."""
         # Arrange
         mock_scalars = MagicMock()
@@ -721,9 +701,7 @@ class TestCommentRepositoryGetByUser:
         mock_db.execute.return_value = mock_result
 
         # Act
-        result, total = await comment_repo.get_by_user(
-            user_id=1, search="feedback", skip=0, limit=50
-        )
+        result, total = await comment_repo.get_by_user(user_id=1, search="feedback", skip=0, limit=50)
 
         # Assert
         assert result == []
@@ -742,9 +720,7 @@ class TestCommentRepositoryGetByUser:
         mock_db.execute.return_value = mock_result
 
         # Act
-        result, total = await comment_repo.get_by_user(
-            user_id=1, has_reply=True, skip=0, limit=50
-        )
+        result, total = await comment_repo.get_by_user(user_id=1, has_reply=True, skip=0, limit=50)
 
         # Assert
         assert result == []
@@ -763,17 +739,13 @@ class TestCommentRepositoryGetByUser:
         mock_db.execute.return_value = mock_result
 
         # Act
-        result, total = await comment_repo.get_by_user(
-            user_id=1, has_reply=False, skip=0, limit=50
-        )
+        result, total = await comment_repo.get_by_user(user_id=1, has_reply=False, skip=0, limit=50)
 
         # Assert
         assert result == []
         assert total == 0
 
-    async def test_get_by_user_with_asc_sort(
-        self, comment_repo: CommentRepository, mock_db: MagicMock
-    ) -> None:
+    async def test_get_by_user_with_asc_sort(self, comment_repo: CommentRepository, mock_db: MagicMock) -> None:
         """Test get_by_user with ascending sort order (line 374)."""
         # Arrange
         mock_scalars = MagicMock()
@@ -784,17 +756,13 @@ class TestCommentRepositoryGetByUser:
         mock_db.execute.return_value = mock_result
 
         # Act
-        result, total = await comment_repo.get_by_user(
-            user_id=1, skip=0, limit=50, sort_order="asc"
-        )
+        result, total = await comment_repo.get_by_user(user_id=1, skip=0, limit=50, sort_order="asc")
 
         # Assert
         assert result == []
         assert total == 0
 
-    async def test_get_by_user_with_date_filters(
-        self, comment_repo: CommentRepository, mock_db: MagicMock
-    ) -> None:
+    async def test_get_by_user_with_date_filters(self, comment_repo: CommentRepository, mock_db: MagicMock) -> None:
         """Test get_by_user applies date filters."""
         # Arrange
         mock_scalars = MagicMock()

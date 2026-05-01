@@ -3,7 +3,6 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
 from escalation_service.clients.notification_client import NotificationClient
 from escalation_service.core.enums import EscalationSource, EscalationStatus, EscalationType
 from escalation_service.models import EscalationRequest
@@ -566,9 +565,9 @@ class TestNotificationClientSendNotification:
         mock_response.raise_for_status.return_value = None
 
         with patch("escalation_service.clients.notification_client.httpx.AsyncClient") as mock_http:
-            mock_http.return_value.__aenter__ = AsyncMock(return_value=MagicMock(
-                post=AsyncMock(return_value=mock_response)
-            ))
+            mock_http.return_value.__aenter__ = AsyncMock(
+                return_value=MagicMock(post=AsyncMock(return_value=mock_response))
+            )
             mock_http.return_value.__aexit__ = AsyncMock(return_value=None)
 
             # Act
@@ -588,9 +587,9 @@ class TestNotificationClientSendNotification:
         client = NotificationClient()
 
         with patch("escalation_service.clients.notification_client.httpx.AsyncClient") as mock_http:
-            mock_http.return_value.__aenter__ = AsyncMock(return_value=MagicMock(
-                post=AsyncMock(side_effect=Exception("Connection error"))
-            ))
+            mock_http.return_value.__aenter__ = AsyncMock(
+                return_value=MagicMock(post=AsyncMock(side_effect=Exception("Connection error")))
+            )
             mock_http.return_value.__aexit__ = AsyncMock(return_value=None)
 
             # Act

@@ -4,7 +4,6 @@ from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
 from checklists_service.models import Certificate
 from checklists_service.services.certificate_generator import CertificateGenerator
 
@@ -184,9 +183,7 @@ class TestGenerateCertificateFromChecklist:
 
     @patch("checklists_service.services.certificate_generator.HTML")
     @patch("checklists_service.services.certificate_generator.auth_service_client")
-    async def test_generate_certificate_from_checklist_success(
-        self, mock_auth_client, mock_html
-    ) -> None:
+    async def test_generate_certificate_from_checklist_success(self, mock_auth_client, mock_html) -> None:
         """Test successful certificate generation from checklist."""
         user_mock = MagicMock()
         user_mock.id = 1
@@ -221,9 +218,7 @@ class TestGenerateCertificateFromChecklist:
         assert result == b"pdf bytes"
 
     @patch("checklists_service.services.certificate_generator.auth_service_client")
-    async def test_generate_certificate_from_checklist_checklist_not_found(
-        self, mock_auth_client
-    ) -> None:
+    async def test_generate_certificate_from_checklist_checklist_not_found(self, mock_auth_client) -> None:
         """Test certificate generation when checklist not found."""
         mock_auth_client.get_user = AsyncMock(return_value=None)
 
@@ -248,9 +243,7 @@ class TestGenerateCertificateFromChecklist:
 
     @patch("checklists_service.services.certificate_generator.HTML")
     @patch("checklists_service.services.certificate_generator.auth_service_client")
-    async def test_generate_certificate_from_checklist_user_not_found(
-        self, mock_auth_client, mock_html
-    ) -> None:
+    async def test_generate_certificate_from_checklist_user_not_found(self, mock_auth_client, mock_html) -> None:
         """Test certificate generation when user not found."""
         mock_auth_client.get_user = AsyncMock(return_value=None)
 
@@ -279,9 +272,7 @@ class TestGenerateCertificateFromChecklist:
 
     @patch("checklists_service.services.certificate_generator.HTML")
     @patch("checklists_service.services.certificate_generator.auth_service_client")
-    async def test_generate_certificate_from_checklist_russian_locale(
-        self, mock_auth_client, mock_html
-    ) -> None:
+    async def test_generate_certificate_from_checklist_russian_locale(self, mock_auth_client, mock_html) -> None:
         """Test certificate generation with Russian locale."""
         user_mock = MagicMock()
         user_mock.id = 1

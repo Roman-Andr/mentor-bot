@@ -3,8 +3,6 @@
 from datetime import timedelta
 
 import pytest
-from fastapi import HTTPException, status
-
 from auth_service.config import settings
 from auth_service.core.security import (
     create_access_token,
@@ -14,6 +12,7 @@ from auth_service.core.security import (
     hash_password,
     verify_password,
 )
+from fastapi import HTTPException, status
 
 
 class TestHashPassword:

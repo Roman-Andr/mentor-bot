@@ -1,7 +1,6 @@
 """Unit tests for telegram_bot calendar keyboards."""
 
 from aiogram.types import InlineKeyboardMarkup
-
 from telegram_bot.keyboards.calendar_kb import (
     get_calendar_connect_keyboard,
     get_calendar_connected_keyboard,

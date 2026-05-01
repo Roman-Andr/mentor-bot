@@ -4,14 +4,13 @@ from datetime import UTC, datetime
 from unittest.mock import AsyncMock
 
 import pytest
-from fastapi.testclient import TestClient
-
 from auth_service.api import deps
 from auth_service.core import ConflictException, NotFoundException
 from auth_service.core.enums import UserRole
 from auth_service.core.security import create_access_token
 from auth_service.main import app
 from auth_service.models import Department, User
+from fastapi.testclient import TestClient
 
 
 def create_auth_headers(user_id: int = 1, role: UserRole = UserRole.ADMIN) -> dict:

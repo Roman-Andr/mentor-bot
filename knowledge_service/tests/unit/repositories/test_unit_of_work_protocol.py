@@ -4,11 +4,11 @@ from typing import Self
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession
 
 # Import the module to trigger coverage on Protocol definition lines (41, 45, 49, 53, 57)
 # These are the ... placeholders in the Protocol abstract methods
 from knowledge_service.repositories.unit_of_work import IUnitOfWork, SqlAlchemyUnitOfWork
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 def test_protocol_import_triggers_coverage():

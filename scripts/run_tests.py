@@ -21,6 +21,7 @@ SERVICES = [
 def check_uv_available():
     """Check if uv is available."""
     import shutil
+
     return shutil.which("uv") is not None
 
 
@@ -35,7 +36,10 @@ async def run_service_tests(service: str, results: dict) -> None:
 
     env = {k: v for k, v in os.environ.items() if k != "VIRTUAL_ENV"}
     proc = await asyncio.create_subprocess_exec(
-        "uv", "run", "pytest", "-q",
+        "uv",
+        "run",
+        "pytest",
+        "-q",
         cwd=service,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,
@@ -71,7 +75,7 @@ async def main() -> int:
     skipped = 0
 
     for service in SERVICES:
-        status, output, code = results.get(service, ("UNKNOWN", "", 1))
+        status, output, _code = results.get(service, ("UNKNOWN", "", 1))
 
         if status == "PASSED":
             print(f"✅ {service}: PASSED")

@@ -4,10 +4,9 @@ from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from knowledge_service.models import ArticleViewHistory
 from knowledge_service.repositories.implementations.article_view_history import ArticleViewHistoryRepository
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class TestArticleViewHistoryRepository:

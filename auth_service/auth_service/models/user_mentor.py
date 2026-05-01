@@ -10,7 +10,7 @@ from sqlalchemy.sql import func
 from auth_service.database import Base
 
 if TYPE_CHECKING:
-    from auth_service.models import User
+    from auth_service.models.user import User
 
 
 class UserMentor(Base):

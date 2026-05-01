@@ -6,7 +6,6 @@ from typing import Any
 import pytest
 from fastapi import FastAPI, status
 from fastapi.testclient import TestClient
-
 from meeting_service.api import deps
 from meeting_service.api.endpoints.meetings import router as meetings_router
 from meeting_service.core.enums import MeetingStatus, MeetingType
@@ -17,6 +16,7 @@ from meeting_service.models import Meeting, UserMeeting
 @pytest.fixture
 def mock_user_hr():
     """Mock HR user."""
+
     class MockUser:
         def __init__(self) -> None:
             self.id = 1
@@ -26,12 +26,14 @@ def mock_user_hr():
 
         def has_role(self, roles: list[str]) -> bool:
             return self.role in roles
+
     return MockUser()
 
 
 @pytest.fixture
 def mock_user_employee():
     """Mock employee user."""
+
     class MockUser:
         def __init__(self) -> None:
             self.id = 100
@@ -41,6 +43,7 @@ def mock_user_employee():
 
         def has_role(self, roles: list[str]) -> bool:
             return self.role in roles
+
     return MockUser()
 
 
@@ -73,12 +76,24 @@ class TestGetMeetings:
         now = datetime.now(UTC)
         meetings = [
             Meeting(
-                id=1, title="HR Meeting", type=MeetingType.HR,
-                is_mandatory=True, order=0, deadline_days=7, duration_minutes=60, created_at=now
+                id=1,
+                title="HR Meeting",
+                type=MeetingType.HR,
+                is_mandatory=True,
+                order=0,
+                deadline_days=7,
+                duration_minutes=60,
+                created_at=now,
             ),
             Meeting(
-                id=2, title="Security Meeting", type=MeetingType.SECURITY,
-                is_mandatory=True, order=1, deadline_days=7, duration_minutes=60, created_at=now
+                id=2,
+                title="Security Meeting",
+                type=MeetingType.SECURITY,
+                is_mandatory=True,
+                order=1,
+                deadline_days=7,
+                duration_minutes=60,
+                created_at=now,
             ),
         ]
         mock_uow.meetings.find_meetings.return_value = (meetings, 2)
@@ -103,8 +118,15 @@ class TestGetMeetings:
         now = datetime.now(UTC)
         meetings = [
             Meeting(
-                id=1, title="HR Meeting", type=MeetingType.HR,
-                department_id=1, is_mandatory=True, order=0, deadline_days=7, duration_minutes=60, created_at=now
+                id=1,
+                title="HR Meeting",
+                type=MeetingType.HR,
+                department_id=1,
+                is_mandatory=True,
+                order=0,
+                deadline_days=7,
+                duration_minutes=60,
+                created_at=now,
             ),
         ]
         mock_uow.meetings.find_meetings.return_value = (meetings, 1)
@@ -113,9 +135,7 @@ class TestGetMeetings:
         client = TestClient(app)
 
         # Act
-        response = client.get(
-            "/api/v1/meetings?meeting_type=HR&department_id=1&is_mandatory=true"
-        )
+        response = client.get("/api/v1/meetings?meeting_type=HR&department_id=1&is_mandatory=true")
 
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -406,8 +426,14 @@ class TestDeleteMeeting:
         """Test deleting a meeting successfully."""
         # Arrange
         meeting = Meeting(
-            id=1, title="Test Meeting", type=MeetingType.HR,
-            is_mandatory=True, order=0, deadline_days=7, duration_minutes=60, created_at=datetime.now(UTC)
+            id=1,
+            title="Test Meeting",
+            type=MeetingType.HR,
+            is_mandatory=True,
+            order=0,
+            deadline_days=7,
+            duration_minutes=60,
+            created_at=datetime.now(UTC),
         )
         mock_uow.meetings.get_by_id.return_value = meeting
 
@@ -544,8 +570,14 @@ class TestGetUserMeetings:
         # Arrange
         now = datetime.now(UTC)
         meeting = Meeting(
-            id=1, title="Test Meeting", type=MeetingType.HR,
-            is_mandatory=True, order=0, deadline_days=7, duration_minutes=60, created_at=now
+            id=1,
+            title="Test Meeting",
+            type=MeetingType.HR,
+            is_mandatory=True,
+            order=0,
+            deadline_days=7,
+            duration_minutes=60,
+            created_at=now,
         )
         user_meeting = UserMeeting(
             id=1,
@@ -575,8 +607,14 @@ class TestGetUserMeetings:
         # Arrange
         now = datetime.now(UTC)
         meeting = Meeting(
-            id=1, title="Upcoming Meeting", type=MeetingType.HR,
-            is_mandatory=True, order=0, deadline_days=7, duration_minutes=60, created_at=now
+            id=1,
+            title="Upcoming Meeting",
+            type=MeetingType.HR,
+            is_mandatory=True,
+            order=0,
+            deadline_days=7,
+            duration_minutes=60,
+            created_at=now,
         )
         user_meeting = UserMeeting(
             id=1,
@@ -614,5 +652,8 @@ class TestGetUserMeetings:
         # Assert
         assert response.status_code == status.HTTP_200_OK
         mock_uow.user_meetings.find_by_user.assert_called_once_with(
-            user_id=100, skip=0, limit=10, status=None,
+            user_id=100,
+            skip=0,
+            limit=10,
+            status=None,
         )

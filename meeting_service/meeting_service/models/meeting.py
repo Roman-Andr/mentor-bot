@@ -25,9 +25,7 @@ class Meeting(Base):
     # Core fields
     title: Mapped[str] = mapped_column(String(200), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
-    type: Mapped[MeetingType] = mapped_column(
-        Enum(MeetingType, name="meetingtype"), nullable=False, index=True
-    )
+    type: Mapped[MeetingType] = mapped_column(Enum(MeetingType, name="meetingtype"), nullable=False, index=True)
 
     # Targeting (who this meeting is for)
     department_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)

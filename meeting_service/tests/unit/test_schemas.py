@@ -1,9 +1,8 @@
 """Unit tests for schemas."""
 
 import pytest
-from pydantic import ValidationError
-
 from meeting_service.schemas.user_meeting import UserMeetingComplete
+from pydantic import ValidationError
 
 
 class TestUserMeetingCompleteRatingValidation:

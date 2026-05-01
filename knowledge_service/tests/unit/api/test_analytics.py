@@ -1,10 +1,9 @@
 """Tests for knowledge analytics API endpoints."""
 
-from datetime import datetime
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock
 
 import pytest
-
 from knowledge_service.api.deps import UserInfo
 from knowledge_service.api.endpoints.analytics import (
     get_knowledge_summary,
@@ -97,8 +96,8 @@ class TestGetTopArticles:
         mock_hr_user: UserInfo,
     ) -> None:
         """Test retrieval of top articles with date range filter."""
-        from_date = datetime(2026, 1, 1)
-        to_date = datetime(2026, 1, 31)
+        from_date = datetime(2026, 1, 1, tzinfo=UTC)
+        to_date = datetime(2026, 1, 31, tzinfo=UTC)
 
         await get_top_articles(
             uow=mock_uow,
@@ -276,8 +275,8 @@ class TestGetKnowledgeSummary:
         mock_hr_user: UserInfo,
     ) -> None:
         """Test retrieval of knowledge summary with date range filter."""
-        from_date = datetime(2026, 1, 1)
-        to_date = datetime(2026, 1, 31)
+        from_date = datetime(2026, 1, 1, tzinfo=UTC)
+        to_date = datetime(2026, 1, 31, tzinfo=UTC)
 
         mock_uow.article_views.get_summary_stats.return_value = {
             "total_views": 1000,

@@ -2,9 +2,8 @@
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import pytest
 import httpx
-
+import pytest
 from telegram_bot.services.certificates_client import CertificatesClient, certificates_client
 
 

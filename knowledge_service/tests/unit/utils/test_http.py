@@ -1,7 +1,6 @@
 """Unit tests for utils/http.py."""
 
 import httpx
-
 from knowledge_service.utils.http import make_async_client
 from knowledge_service.utils.logging import inject_request_id
 

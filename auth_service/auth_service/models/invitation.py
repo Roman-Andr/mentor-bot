@@ -17,7 +17,8 @@ from auth_service.core import EmployeeLevel, InvitationStatus, UserRole
 from auth_service.database import Base
 
 if TYPE_CHECKING:
-    from auth_service.models import Department, User
+    from auth_service.models.department import Department
+    from auth_service.models.user import User
 
 
 class Invitation(Base):

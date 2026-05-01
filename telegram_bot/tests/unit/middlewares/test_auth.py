@@ -5,7 +5,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from aiogram import Bot
 from aiogram.types import CallbackQuery, InlineQuery, Message, User
-
 from telegram_bot.middlewares import auth as auth_module
 from telegram_bot.middlewares.auth import AuthMiddleware
 
@@ -157,7 +156,9 @@ class TestAuthMiddleware:
         mock_set_user = AsyncMock(return_value=True)
         with patch.object(auth_module.user_cache, "get_user", AsyncMock(return_value=None)):
             with patch.object(auth_module.user_cache, "set_user", mock_set_user):
-                with patch.object(auth_module.auth_client, "authenticate_with_telegram", AsyncMock(return_value=auth_result)):
+                with patch.object(
+                    auth_module.auth_client, "authenticate_with_telegram", AsyncMock(return_value=auth_result)
+                ):
                     with patch.object(auth_module.auth_client, "get_current_user", AsyncMock(return_value=user_data)):
                         result = await middleware.__call__(mock_handler, event, data)
 
@@ -201,7 +202,11 @@ class TestAuthMiddleware:
         data = {}
 
         with patch.object(auth_module.user_cache, "get_user", AsyncMock(return_value=None)):
-            with patch.object(auth_module.auth_client, "authenticate_with_telegram", AsyncMock(return_value={"refresh_token": "refresh_123"})):
+            with patch.object(
+                auth_module.auth_client,
+                "authenticate_with_telegram",
+                AsyncMock(return_value={"refresh_token": "refresh_123"}),
+            ):
                 result = await middleware.__call__(mock_handler, event, data)
 
         assert result == "handler_result"
@@ -224,7 +229,9 @@ class TestAuthMiddleware:
         }
 
         with patch.object(auth_module.user_cache, "get_user", AsyncMock(return_value=None)):
-            with patch.object(auth_module.auth_client, "authenticate_with_telegram", AsyncMock(return_value=auth_result)):
+            with patch.object(
+                auth_module.auth_client, "authenticate_with_telegram", AsyncMock(return_value=auth_result)
+            ):
                 with patch.object(auth_module.auth_client, "get_current_user", AsyncMock(return_value=None)):
                     result = await middleware.__call__(mock_handler, event, data)
 

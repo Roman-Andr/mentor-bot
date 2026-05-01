@@ -8,10 +8,11 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
 from knowledge_service.database import Base
+from knowledge_service.models import Article
 from knowledge_service.models.association import article_tags
 
 if TYPE_CHECKING:
-    from knowledge_service.models import Article
+    pass
 
 
 class Tag(Base):

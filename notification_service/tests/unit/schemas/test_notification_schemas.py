@@ -3,8 +3,6 @@
 from datetime import UTC, datetime, timedelta
 
 import pytest
-from pydantic import ValidationError
-
 from notification_service.core.enums import NotificationChannel, NotificationStatus, NotificationType
 from notification_service.schemas.notification import (
     NotificationBase,
@@ -13,6 +11,7 @@ from notification_service.schemas.notification import (
     ScheduledNotificationCreate,
     ScheduledNotificationResponse,
 )
+from pydantic import ValidationError
 
 
 class TestNotificationBase:
@@ -129,6 +128,7 @@ class TestNotificationResponse:
         assert result.created_at == now
         assert result.sent_at == now
 
+
 class TestScheduledNotificationCreate:
     """Tests for ScheduledNotificationCreate schema."""
 
@@ -188,4 +188,3 @@ class TestScheduledNotificationResponse:
         assert result.retry_count == 0
         assert result.max_retries == 3
         assert result.failed_at is None
-

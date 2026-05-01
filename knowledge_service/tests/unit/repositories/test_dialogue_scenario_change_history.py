@@ -4,12 +4,11 @@ from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from knowledge_service.models import DialogueScenarioChangeHistory
 from knowledge_service.repositories.implementations.dialogue_scenario_change_history import (
     DialogueScenarioChangeHistoryRepository,
 )
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class TestDialogueScenarioChangeHistoryRepository:
@@ -91,9 +90,7 @@ class TestDialogueScenarioChangeHistoryRepository:
         assert len(result) == 3
         mock_session.execute.assert_called_once()
 
-    async def test_get_by_scenario_id_with_date_filter(
-        self, mock_session, sample_change_histories
-    ):
+    async def test_get_by_scenario_id_with_date_filter(self, mock_session, sample_change_histories):
         """Test getting change history with date filtering."""
         filtered_histories = [sample_change_histories[1], sample_change_histories[2]]
         mock_result = MagicMock()
@@ -127,9 +124,7 @@ class TestDialogueScenarioChangeHistoryRepository:
         assert result[0].new_name == "Scenario"
         mock_session.execute.assert_called_once()
 
-    async def test_get_by_scenario_id_with_date_range(
-        self, mock_session, sample_change_histories
-    ):
+    async def test_get_by_scenario_id_with_date_range(self, mock_session, sample_change_histories):
         """Test getting change history with date range."""
         filtered_histories = [sample_change_histories[1]]
         mock_result = MagicMock()

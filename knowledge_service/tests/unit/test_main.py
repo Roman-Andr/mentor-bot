@@ -15,9 +15,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from knowledge_service.config import settings
 
 from knowledge_service import main
-from knowledge_service.config import settings
 
 
 @pytest.fixture
@@ -40,8 +40,10 @@ class TestLifespan:
         """Test lifespan startup and shutdown."""
         mock_app = MagicMock(spec=FastAPI)
 
-        with patch("knowledge_service.main.init_db") as mock_init_db, \
-             patch("knowledge_service.main.cache") as mock_cache:
+        with (
+            patch("knowledge_service.main.init_db") as mock_init_db,
+            patch("knowledge_service.main.cache") as mock_cache,
+        ):
             mock_init_db.return_value = AsyncMock()
             mock_cache.connect = AsyncMock()
             mock_cache.disconnect = AsyncMock()
@@ -49,6 +51,7 @@ class TestLifespan:
 
             # Use async context manager
             from knowledge_service.main import lifespan
+
             async with lifespan(mock_app) as _:
                 # Startup
                 mock_init_db.assert_called_once()
@@ -65,15 +68,18 @@ class TestLifespan:
         async def mock_cleanup_func():
             return 5
 
-        with patch("knowledge_service.main.init_db") as mock_init_db, \
-             patch("knowledge_service.main.cache") as mock_cache, \
-             patch("knowledge_service.main.cleanup_old_search_history", side_effect=mock_cleanup_func):
+        with (
+            patch("knowledge_service.main.init_db") as mock_init_db,
+            patch("knowledge_service.main.cache") as mock_cache,
+            patch("knowledge_service.main.cleanup_old_search_history", side_effect=mock_cleanup_func),
+        ):
             mock_init_db.return_value = AsyncMock()
             mock_cache.connect = AsyncMock()
             mock_cache.disconnect = AsyncMock()
             mock_cache.is_connected = False
 
             from knowledge_service.main import lifespan
+
             async with lifespan(mock_app) as _:
                 # Startup
                 mock_init_db.assert_called_once()
@@ -147,6 +153,7 @@ class TestHealthEndpoint:
                 class AsyncContextMock:
                     async def __aenter__(self):
                         return mock_conn
+
                     async def __aexit__(self, *args):
                         return False
 

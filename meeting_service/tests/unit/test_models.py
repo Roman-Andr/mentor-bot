@@ -1,6 +1,5 @@
 """Unit tests for model __repr__ methods."""
 
-
 from meeting_service.core.enums import MeetingStatus, MeetingType
 from meeting_service.models import Meeting, MeetingMaterial, UserMeeting
 from meeting_service.models.google_calendar_account import GoogleCalendarAccount

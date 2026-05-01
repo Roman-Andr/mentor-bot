@@ -3,7 +3,6 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
-
 from auth_service.middleware.request_id import RequestIDMiddleware
 
 

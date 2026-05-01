@@ -23,10 +23,8 @@ class StorageError(Exception):
     """Base exception for storage operations."""
 
 
-
 class FileNotFoundError(StorageError):
     """Raised when a file is not found in storage."""
-
 
 
 class StorageService:
@@ -102,10 +100,10 @@ class StorageService:
                     self.client.create_bucket(Bucket=self.bucket_name)
                     logger.info("Created bucket: %s", self.bucket_name)
                 except ClientError as create_error:
-                    logger.error("Failed to create bucket %s: %s", self.bucket_name, create_error)
+                    logger.exception("Failed to create bucket")
                     raise StorageError(f"Failed to initialize bucket: {create_error}") from create_error
             else:
-                logger.error("Failed to check bucket %s: %s", self.bucket_name, e)
+                logger.exception("Failed to check bucket")
                 raise StorageError(f"Failed to initialize bucket: {e}") from e
 
     async def upload_file(
@@ -147,17 +145,15 @@ class StorageService:
             loop = asyncio.get_event_loop()
             await loop.run_in_executor(
                 self._executor,
-                lambda: self.client.upload_fileobj(
-                    file_stream, self.bucket_name, object_name, ExtraArgs=extra_args
-                ),
+                lambda: self.client.upload_fileobj(file_stream, self.bucket_name, object_name, ExtraArgs=extra_args),
             )
 
             logger.info("Uploaded file to s3://%s/%s", self.bucket_name, object_name)
-            return object_name
-
         except ClientError as e:
-            logger.error("Failed to upload file %s: %s", object_name, e)
+            logger.exception("Failed to upload file")
             raise StorageError(f"Upload failed: {e}") from e
+        else:
+            return object_name
 
     async def download_file(self, object_name: str) -> BytesIO:
         """
@@ -182,14 +178,14 @@ class StorageService:
                 lambda: self.client.download_fileobj(self.bucket_name, object_name, buffer),
             )
             buffer.seek(0)
-            return buffer
-
         except ClientError as e:
             error_code = e.response.get("Error", {}).get("Code", "Unknown")
             if error_code in ("404", "NoSuchKey"):
                 raise FileNotFoundError(f"File not found: {object_name}") from e
-            logger.error("Failed to download file %s: %s", object_name, e)
+            logger.exception("Failed to download file")
             raise StorageError(f"Download failed: {e}") from e
+        else:
+            return buffer
 
     async def delete_file(self, object_name: str) -> bool:
         """
@@ -212,14 +208,14 @@ class StorageService:
                 lambda: self.client.delete_object(Bucket=self.bucket_name, Key=object_name),
             )
             logger.info("Deleted file s3://%s/%s", self.bucket_name, object_name)
-            return True
-
         except ClientError as e:
             error_code = e.response.get("Error", {}).get("Code", "Unknown")
             if error_code in ("404", "NoSuchKey"):
                 return False
-            logger.error("Failed to delete file %s: %s", object_name, e)
+            logger.exception("Failed to delete file")
             raise StorageError(f"Delete failed: {e}") from e
+        else:
+            return True
 
     async def file_exists(self, object_name: str) -> bool:
         """
@@ -238,12 +234,13 @@ class StorageService:
                 self._executor,
                 lambda: self.client.head_object(Bucket=self.bucket_name, Key=object_name),
             )
-            return True
         except ClientError as e:
             error_code = e.response.get("Error", {}).get("Code", "Unknown")
             if error_code in ("404", "NoSuchKey"):
                 return False
             raise
+        else:
+            return True
 
     def get_presigned_url(
         self,
@@ -278,12 +275,11 @@ class StorageService:
             # For non-secure mode (local development), convert HTTPS to HTTP
             if not self.secure_mode and url.startswith("https://"):
                 url = url.replace("https://", "http://", 1)
-
-            return url
-
         except ClientError as e:
-            logger.error("Failed to generate presigned URL for %s: %s", object_name, e)
+            logger.exception("Failed to generate presigned URL")
             raise StorageError(f"URL generation failed: {e}") from e
+        else:
+            return url
 
     def get_public_url(self, object_name: str) -> str:
         """

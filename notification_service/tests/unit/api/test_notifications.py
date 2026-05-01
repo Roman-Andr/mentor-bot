@@ -6,7 +6,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from fastapi import HTTPException, status
-
 from notification_service.api.endpoints.notifications import (
     get_notification_history,
     get_user_notification_history,
@@ -149,17 +148,13 @@ class TestSendNotification:
 
         mock_response = create_mock_notification_response(regular_user.id)
 
-        with patch(
-            "notification_service.api.endpoints.notifications.SqlAlchemyUnitOfWork"
-        ) as mock_uow_cls:
+        with patch("notification_service.api.endpoints.notifications.SqlAlchemyUnitOfWork") as mock_uow_cls:
             mock_uow = MagicMock()
             mock_uow.__aenter__ = AsyncMock(return_value=mock_uow)
             mock_uow.__aexit__ = AsyncMock(return_value=None)
             mock_uow_cls.return_value = mock_uow
 
-            with patch(
-                "notification_service.api.endpoints.notifications.NotificationService"
-            ) as mock_service_cls:
+            with patch("notification_service.api.endpoints.notifications.NotificationService") as mock_service_cls:
                 mock_service = MagicMock()
                 mock_service.send_immediate = AsyncMock(return_value=mock_response)
                 mock_service_cls.return_value = mock_service
@@ -182,17 +177,13 @@ class TestSendNotification:
 
         mock_response = create_mock_notification_response(99)
 
-        with patch(
-            "notification_service.api.endpoints.notifications.SqlAlchemyUnitOfWork"
-        ) as mock_uow_cls:
+        with patch("notification_service.api.endpoints.notifications.SqlAlchemyUnitOfWork") as mock_uow_cls:
             mock_uow = MagicMock()
             mock_uow.__aenter__ = AsyncMock(return_value=mock_uow)
             mock_uow.__aexit__ = AsyncMock(return_value=None)
             mock_uow_cls.return_value = mock_uow
 
-            with patch(
-                "notification_service.api.endpoints.notifications.NotificationService"
-            ) as mock_service_cls:
+            with patch("notification_service.api.endpoints.notifications.NotificationService") as mock_service_cls:
                 mock_service = MagicMock()
                 mock_service.send_immediate = AsyncMock(return_value=mock_response)
                 mock_service_cls.return_value = mock_service
@@ -214,17 +205,13 @@ class TestSendNotification:
 
         mock_response = create_mock_notification_response(99)
 
-        with patch(
-            "notification_service.api.endpoints.notifications.SqlAlchemyUnitOfWork"
-        ) as mock_uow_cls:
+        with patch("notification_service.api.endpoints.notifications.SqlAlchemyUnitOfWork") as mock_uow_cls:
             mock_uow = MagicMock()
             mock_uow.__aenter__ = AsyncMock(return_value=mock_uow)
             mock_uow.__aexit__ = AsyncMock(return_value=None)
             mock_uow_cls.return_value = mock_uow
 
-            with patch(
-                "notification_service.api.endpoints.notifications.NotificationService"
-            ) as mock_service_cls:
+            with patch("notification_service.api.endpoints.notifications.NotificationService") as mock_service_cls:
                 mock_service = MagicMock()
                 mock_service.send_immediate = AsyncMock(return_value=mock_response)
                 mock_service_cls.return_value = mock_service
@@ -263,17 +250,13 @@ class TestScheduleNotification:
 
         mock_response = create_mock_scheduled_response(regular_user.id)
 
-        with patch(
-            "notification_service.api.endpoints.notifications.SqlAlchemyUnitOfWork"
-        ) as mock_uow_cls:
+        with patch("notification_service.api.endpoints.notifications.SqlAlchemyUnitOfWork") as mock_uow_cls:
             mock_uow = MagicMock()
             mock_uow.__aenter__ = AsyncMock(return_value=mock_uow)
             mock_uow.__aexit__ = AsyncMock(return_value=None)
             mock_uow_cls.return_value = mock_uow
 
-            with patch(
-                "notification_service.api.endpoints.notifications.NotificationService"
-            ) as mock_service_cls:
+            with patch("notification_service.api.endpoints.notifications.NotificationService") as mock_service_cls:
                 mock_service = MagicMock()
                 mock_service.schedule = AsyncMock(return_value=mock_response)
                 mock_service_cls.return_value = mock_service
@@ -295,17 +278,13 @@ class TestScheduleNotification:
 
         mock_response = create_mock_scheduled_response(99)
 
-        with patch(
-            "notification_service.api.endpoints.notifications.SqlAlchemyUnitOfWork"
-        ) as mock_uow_cls:
+        with patch("notification_service.api.endpoints.notifications.SqlAlchemyUnitOfWork") as mock_uow_cls:
             mock_uow = MagicMock()
             mock_uow.__aenter__ = AsyncMock(return_value=mock_uow)
             mock_uow.__aexit__ = AsyncMock(return_value=None)
             mock_uow_cls.return_value = mock_uow
 
-            with patch(
-                "notification_service.api.endpoints.notifications.NotificationService"
-            ) as mock_service_cls:
+            with patch("notification_service.api.endpoints.notifications.NotificationService") as mock_service_cls:
                 mock_service = MagicMock()
                 mock_service.schedule = AsyncMock(return_value=mock_response)
                 mock_service_cls.return_value = mock_service
@@ -354,17 +333,13 @@ class TestGetNotificationHistory:
             ),
         ]
 
-        with patch(
-            "notification_service.api.endpoints.notifications.SqlAlchemyUnitOfWork"
-        ) as mock_uow_cls:
+        with patch("notification_service.api.endpoints.notifications.SqlAlchemyUnitOfWork") as mock_uow_cls:
             mock_uow = MagicMock()
             mock_uow.__aenter__ = AsyncMock(return_value=mock_uow)
             mock_uow.__aexit__ = AsyncMock(return_value=None)
             mock_uow_cls.return_value = mock_uow
 
-            with patch(
-                "notification_service.api.endpoints.notifications.NotificationService"
-            ) as mock_service_cls:
+            with patch("notification_service.api.endpoints.notifications.NotificationService") as mock_service_cls:
                 mock_service = MagicMock()
                 mock_service.find_notifications = AsyncMock(return_value=(mock_notifications, len(mock_notifications)))
                 mock_service_cls.return_value = mock_service
@@ -383,17 +358,13 @@ class TestGetNotificationHistory:
         regular_user: MagicMock,
     ) -> None:
         """Pagination parameters are passed correctly to service."""
-        with patch(
-            "notification_service.api.endpoints.notifications.SqlAlchemyUnitOfWork"
-        ) as mock_uow_cls:
+        with patch("notification_service.api.endpoints.notifications.SqlAlchemyUnitOfWork") as mock_uow_cls:
             mock_uow = MagicMock()
             mock_uow.__aenter__ = AsyncMock(return_value=mock_uow)
             mock_uow.__aexit__ = AsyncMock(return_value=None)
             mock_uow_cls.return_value = mock_uow
 
-            with patch(
-                "notification_service.api.endpoints.notifications.NotificationService"
-            ) as mock_service_cls:
+            with patch("notification_service.api.endpoints.notifications.NotificationService") as mock_service_cls:
                 mock_service = MagicMock()
                 mock_service.find_notifications = AsyncMock(return_value=([], 0))
                 mock_service_cls.return_value = mock_service
@@ -424,26 +395,20 @@ class TestGetUserNotificationHistory:
             ),
         ]
 
-        with patch(
-            "notification_service.api.endpoints.notifications.SqlAlchemyUnitOfWork"
-        ) as mock_uow_cls:
+        with patch("notification_service.api.endpoints.notifications.SqlAlchemyUnitOfWork") as mock_uow_cls:
             mock_uow = MagicMock()
             mock_uow.__aenter__ = AsyncMock(return_value=mock_uow)
             mock_uow.__aexit__ = AsyncMock(return_value=None)
             mock_uow_cls.return_value = mock_uow
 
-            with patch(
-                "notification_service.api.endpoints.notifications.NotificationService"
-            ) as mock_service_cls:
+            with patch("notification_service.api.endpoints.notifications.NotificationService") as mock_service_cls:
                 mock_service = MagicMock()
                 mock_service.find_notifications = AsyncMock(return_value=(mock_notifications, len(mock_notifications)))
                 mock_service_cls.return_value = mock_service
 
                 # HR user is passed as _current_user (dependency injected)
                 with patch.object(NotificationResponse, "model_validate", side_effect=lambda x: x):
-                    result = await get_user_notification_history(
-                        target_user_id, mock_db, hr_user, skip=0, limit=50
-                    )
+                    result = await get_user_notification_history(target_user_id, mock_db, hr_user, skip=0, limit=50)
 
                     assert len(result) == 1
                     assert result[0].user_id == target_user_id
@@ -459,17 +424,13 @@ class TestGetUserNotificationHistory:
         """Admin user can retrieve notification history for any user."""
         target_user_id = 99
 
-        with patch(
-            "notification_service.api.endpoints.notifications.SqlAlchemyUnitOfWork"
-        ) as mock_uow_cls:
+        with patch("notification_service.api.endpoints.notifications.SqlAlchemyUnitOfWork") as mock_uow_cls:
             mock_uow = MagicMock()
             mock_uow.__aenter__ = AsyncMock(return_value=mock_uow)
             mock_uow.__aexit__ = AsyncMock(return_value=None)
             mock_uow_cls.return_value = mock_uow
 
-            with patch(
-                "notification_service.api.endpoints.notifications.NotificationService"
-            ) as mock_service_cls:
+            with patch("notification_service.api.endpoints.notifications.NotificationService") as mock_service_cls:
                 mock_service = MagicMock()
                 mock_service.find_notifications = AsyncMock(return_value=([], 0))
                 mock_service_cls.return_value = mock_service
@@ -498,35 +459,40 @@ class TestListNotifications:
             create_mock_notification_response(43, id=2, status=NotificationStatus.PENDING),
         ]
 
-        with patch(
-            "notification_service.api.endpoints.notifications.SqlAlchemyUnitOfWork"
-        ) as mock_uow_cls:
+        with patch("notification_service.api.endpoints.notifications.SqlAlchemyUnitOfWork") as mock_uow_cls:
             mock_uow = MagicMock()
             mock_uow.__aenter__ = AsyncMock(return_value=mock_uow)
             mock_uow.__aexit__ = AsyncMock(return_value=None)
             mock_uow_cls.return_value = mock_uow
 
-            with patch(
-                "notification_service.api.endpoints.notifications.NotificationService"
-            ) as mock_service_cls:
+            with patch("notification_service.api.endpoints.notifications.NotificationService") as mock_service_cls:
                 mock_service = MagicMock()
                 mock_service.find_notifications = AsyncMock(return_value=(mock_notifications, 2))
                 mock_service_cls.return_value = mock_service
 
                 with patch.object(NotificationResponse, "model_validate", side_effect=lambda x: x):
                     result = await list_notifications(
-                        mock_db, hr_user, skip=0, limit=50,
-                        user_id=42, notification_type=NotificationType.GENERAL,
-                        status=NotificationStatus.SENT, sort_by="created_at", sort_order="desc"
+                        mock_db,
+                        hr_user,
+                        skip=0,
+                        limit=50,
+                        user_id=42,
+                        notification_type=NotificationType.GENERAL,
+                        status=NotificationStatus.SENT,
+                        sort_by="created_at",
+                        sort_order="desc",
                     )
 
                     assert result.total == 2
                     assert len(result.notifications) == 2
                     mock_service.find_notifications.assert_awaited_once_with(
-                        skip=0, limit=50, user_id=42,
+                        skip=0,
+                        limit=50,
+                        user_id=42,
                         notification_type=NotificationType.GENERAL,
                         status=NotificationStatus.SENT,
-                        sort_by="created_at", sort_order="desc"
+                        sort_by="created_at",
+                        sort_order="desc",
                     )
 
     async def test_list_notifications_pagination(
@@ -537,17 +503,13 @@ class TestListNotifications:
         """List notifications with pagination."""
         from notification_service.api.endpoints.notifications import list_notifications
 
-        with patch(
-            "notification_service.api.endpoints.notifications.SqlAlchemyUnitOfWork"
-        ) as mock_uow_cls:
+        with patch("notification_service.api.endpoints.notifications.SqlAlchemyUnitOfWork") as mock_uow_cls:
             mock_uow = MagicMock()
             mock_uow.__aenter__ = AsyncMock(return_value=mock_uow)
             mock_uow.__aexit__ = AsyncMock(return_value=None)
             mock_uow_cls.return_value = mock_uow
 
-            with patch(
-                "notification_service.api.endpoints.notifications.NotificationService"
-            ) as mock_service_cls:
+            with patch("notification_service.api.endpoints.notifications.NotificationService") as mock_service_cls:
                 mock_service = MagicMock()
                 mock_service.find_notifications = AsyncMock(return_value=([], 0))
                 mock_service_cls.return_value = mock_service
@@ -574,17 +536,13 @@ class TestSendTemplateNotification:
             42, id=1, status=NotificationStatus.SENT, channel=NotificationChannel.EMAIL
         )
 
-        with patch(
-            "notification_service.api.endpoints.notifications.SqlAlchemyUnitOfWork"
-        ) as mock_uow_cls:
+        with patch("notification_service.api.endpoints.notifications.SqlAlchemyUnitOfWork") as mock_uow_cls:
             mock_uow = MagicMock()
             mock_uow.__aenter__ = AsyncMock(return_value=mock_uow)
             mock_uow.__aexit__ = AsyncMock(return_value=None)
             mock_uow_cls.return_value = mock_uow
 
-            with patch(
-                "notification_service.api.endpoints.notifications.NotificationService"
-            ) as mock_service_cls:
+            with patch("notification_service.api.endpoints.notifications.NotificationService") as mock_service_cls:
                 mock_service = MagicMock()
                 mock_service.send_template = AsyncMock(return_value=mock_notification)
                 mock_service_cls.return_value = mock_service
@@ -624,21 +582,15 @@ class TestSendTemplateNotification:
         from notification_service.api.endpoints.notifications import send_template_notification
         from notification_service.services.template import TemplateNotFoundError
 
-        with patch(
-            "notification_service.api.endpoints.notifications.SqlAlchemyUnitOfWork"
-        ) as mock_uow_cls:
+        with patch("notification_service.api.endpoints.notifications.SqlAlchemyUnitOfWork") as mock_uow_cls:
             mock_uow = MagicMock()
             mock_uow.__aenter__ = AsyncMock(return_value=mock_uow)
             mock_uow.__aexit__ = AsyncMock(return_value=None)
             mock_uow_cls.return_value = mock_uow
 
-            with patch(
-                "notification_service.api.endpoints.notifications.NotificationService"
-            ) as mock_service_cls:
+            with patch("notification_service.api.endpoints.notifications.NotificationService") as mock_service_cls:
                 mock_service = MagicMock()
-                mock_service.send_template = AsyncMock(
-                    side_effect=TemplateNotFoundError("missing", "email", "en")
-                )
+                mock_service.send_template = AsyncMock(side_effect=TemplateNotFoundError("missing", "email", "en"))
                 mock_service_cls.return_value = mock_service
 
                 with pytest.raises(HTTPException) as exc_info:
@@ -662,21 +614,15 @@ class TestSendTemplateNotification:
         from notification_service.api.endpoints.notifications import send_template_notification
         from notification_service.services.template import MissingTemplateVariablesError
 
-        with patch(
-            "notification_service.api.endpoints.notifications.SqlAlchemyUnitOfWork"
-        ) as mock_uow_cls:
+        with patch("notification_service.api.endpoints.notifications.SqlAlchemyUnitOfWork") as mock_uow_cls:
             mock_uow = MagicMock()
             mock_uow.__aenter__ = AsyncMock(return_value=mock_uow)
             mock_uow.__aexit__ = AsyncMock(return_value=None)
             mock_uow_cls.return_value = mock_uow
 
-            with patch(
-                "notification_service.api.endpoints.notifications.NotificationService"
-            ) as mock_service_cls:
+            with patch("notification_service.api.endpoints.notifications.NotificationService") as mock_service_cls:
                 mock_service = MagicMock()
-                mock_service.send_template = AsyncMock(
-                    side_effect=MissingTemplateVariablesError({"user_name"})
-                )
+                mock_service.send_template = AsyncMock(side_effect=MissingTemplateVariablesError({"user_name"}))
                 mock_service_cls.return_value = mock_service
 
                 with pytest.raises(HTTPException) as exc_info:
@@ -705,21 +651,15 @@ class TestScheduleTemplateNotification:
 
         from notification_service.api.endpoints.notifications import schedule_template_notification
 
-        mock_scheduled = create_mock_scheduled_response(
-            42, id=1, processed=False
-        )
+        mock_scheduled = create_mock_scheduled_response(42, id=1, processed=False)
 
-        with patch(
-            "notification_service.api.endpoints.notifications.SqlAlchemyUnitOfWork"
-        ) as mock_uow_cls:
+        with patch("notification_service.api.endpoints.notifications.SqlAlchemyUnitOfWork") as mock_uow_cls:
             mock_uow = MagicMock()
             mock_uow.__aenter__ = AsyncMock(return_value=mock_uow)
             mock_uow.__aexit__ = AsyncMock(return_value=None)
             mock_uow_cls.return_value = mock_uow
 
-            with patch(
-                "notification_service.api.endpoints.notifications.NotificationService"
-            ) as mock_service_cls:
+            with patch("notification_service.api.endpoints.notifications.NotificationService") as mock_service_cls:
                 mock_service = MagicMock()
                 mock_service.schedule_template = AsyncMock(return_value=mock_scheduled)
                 mock_service_cls.return_value = mock_service
@@ -764,17 +704,13 @@ class TestScheduleTemplateNotification:
         from notification_service.api.endpoints.notifications import schedule_template_notification
         from notification_service.services.template import TemplateNotFoundError
 
-        with patch(
-            "notification_service.api.endpoints.notifications.SqlAlchemyUnitOfWork"
-        ) as mock_uow_cls:
+        with patch("notification_service.api.endpoints.notifications.SqlAlchemyUnitOfWork") as mock_uow_cls:
             mock_uow = MagicMock()
             mock_uow.__aenter__ = AsyncMock(return_value=mock_uow)
             mock_uow.__aexit__ = AsyncMock(return_value=None)
             mock_uow_cls.return_value = mock_uow
 
-            with patch(
-                "notification_service.api.endpoints.notifications.NotificationService"
-            ) as mock_service_cls:
+            with patch("notification_service.api.endpoints.notifications.NotificationService") as mock_service_cls:
                 mock_service = MagicMock()
                 mock_service.schedule_template = AsyncMock(
                     side_effect=TemplateNotFoundError("missing", "telegram", "en")
@@ -805,21 +741,15 @@ class TestScheduleTemplateNotification:
         from notification_service.api.endpoints.notifications import schedule_template_notification
         from notification_service.services.template import MissingTemplateVariablesError
 
-        with patch(
-            "notification_service.api.endpoints.notifications.SqlAlchemyUnitOfWork"
-        ) as mock_uow_cls:
+        with patch("notification_service.api.endpoints.notifications.SqlAlchemyUnitOfWork") as mock_uow_cls:
             mock_uow = MagicMock()
             mock_uow.__aenter__ = AsyncMock(return_value=mock_uow)
             mock_uow.__aexit__ = AsyncMock(return_value=None)
             mock_uow_cls.return_value = mock_uow
 
-            with patch(
-                "notification_service.api.endpoints.notifications.NotificationService"
-            ) as mock_service_cls:
+            with patch("notification_service.api.endpoints.notifications.NotificationService") as mock_service_cls:
                 mock_service = MagicMock()
-                mock_service.schedule_template = AsyncMock(
-                    side_effect=MissingTemplateVariablesError({"due_date"})
-                )
+                mock_service.schedule_template = AsyncMock(side_effect=MissingTemplateVariablesError({"due_date"}))
                 mock_service_cls.return_value = mock_service
 
                 with pytest.raises(HTTPException) as exc_info:

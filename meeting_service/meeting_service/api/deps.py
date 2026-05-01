@@ -140,7 +140,6 @@ class MeetingServiceDep:
     """Simple marker for service-to-service calls."""
 
 
-
 async def get_meeting_service_dep() -> MeetingServiceDep:
     """Dependency for service-to-service calls."""
     return MeetingServiceDep()

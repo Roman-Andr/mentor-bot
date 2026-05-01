@@ -23,9 +23,7 @@ calendar_client = CalendarClient()
 @router.message(Command("calendar"))
 @router.message(F.text == "\U0001f4c5 Calendar")
 @router.message(F.text == "Calendar")
-@router.message(
-    F.text == "\U0001f4c5 \u041a\u0430\u043b\u0435\u043d\u0434\u0430\u0440\u044c"
-)
+@router.message(F.text == "\U0001f4c5 \u041a\u0430\u043b\u0435\u043d\u0434\u0430\u0440\u044c")
 @router.message(F.text == "\u041a\u0430\u043b\u0435\u043d\u0434\u0430\u0440\u044c")
 @router.callback_query(F.data == "calendar_menu")
 async def calendar_menu(
@@ -87,9 +85,7 @@ async def calendar_menu(
 
 
 @router.callback_query(F.data == "calendar_connect")
-async def connect_calendar(
-    callback: CallbackQuery, user: dict, *, locale: str = "en"
-) -> None:
+async def connect_calendar(callback: CallbackQuery, user: dict, *, locale: str = "en") -> None:
     """Initiate Google Calendar connection."""
     if not user:
         await callback.answer(t("common.auth_required_short", locale=locale))
@@ -108,9 +104,7 @@ async def connect_calendar(
         if callback.message:
             await callback.message.edit_text(
                 text,
-                reply_markup=get_calendar_connect_keyboard(
-                    connect_url, locale=locale
-                ),
+                reply_markup=get_calendar_connect_keyboard(connect_url, locale=locale),
                 parse_mode="Markdown",
             )
         await callback.answer()
@@ -121,9 +115,7 @@ async def connect_calendar(
 
 
 @router.callback_query(F.data == "calendar_disconnect")
-async def disconnect_calendar(
-    callback: CallbackQuery, user: dict, auth_token: str, *, locale: str = "en"
-) -> None:
+async def disconnect_calendar(callback: CallbackQuery, user: dict, auth_token: str, *, locale: str = "en") -> None:
     """Disconnect Google Calendar account."""
     if not user:
         await callback.answer(t("common.auth_required_short", locale=locale))
@@ -135,16 +127,10 @@ async def disconnect_calendar(
         if result.get("status") == "success":
             await callback.answer(t("calendar.disconnected", locale=locale))
             if callback.message:
-                await callback.message.edit_text(
-                    t("calendar.disconnected", locale=locale)
-                )
+                await callback.message.edit_text(t("calendar.disconnected", locale=locale))
         else:
-            await callback.answer(
-                t("calendar.disconnect_failed", locale=locale), show_alert=True
-            )
+            await callback.answer(t("calendar.disconnect_failed", locale=locale), show_alert=True)
 
     except Exception:
         logger.exception("Failed to disconnect calendar")
-        await callback.answer(
-            t("calendar.disconnect_failed", locale=locale), show_alert=True
-        )
+        await callback.answer(t("calendar.disconnect_failed", locale=locale), show_alert=True)

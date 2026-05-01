@@ -14,9 +14,7 @@ MAX_DISPLAYED_MEETINGS = 5
 MAX_DISPLAYED_ESCALATIONS = 5
 
 
-def format_welcome_message(
-    tg_user: TgUser, user_data: dict[str, Any] | None = None, *, locale: str = "en"
-) -> str:
+def format_welcome_message(tg_user: TgUser, user_data: dict[str, Any] | None = None, *, locale: str = "en") -> str:
     """Format welcome message for user."""
     name = tg_user.first_name or ""
     if tg_user.last_name:
@@ -80,9 +78,7 @@ def format_task_list(tasks: list[dict[str, Any]], *, locale: str = "en") -> str:
     text = f"\U0001f4cb *{t('checklists.tasks_title', locale=locale)}*\n\n"
 
     for i, task in enumerate(tasks[:MAX_DISPLAYED_TASKS], 1):
-        title = task.get(
-            "title", t("tasks.fallback_title", locale=locale, id=task["id"])
-        )
+        title = task.get("title", t("tasks.fallback_title", locale=locale, id=task["id"]))
         status = task.get("status", "pending").lower()
         category = task.get("category", "general")
 
@@ -138,9 +134,7 @@ def format_task_detail(task: dict[str, Any], *, locale: str = "en") -> str:
     )
 
     text = f"\U0001f4cb *{title}*\n\n"
-    text += (
-        f"*{t('tasks.status_label', locale=locale)}:* {status_emoji} {status_text}\n"
-    )
+    text += f"*{t('tasks.status_label', locale=locale)}:* {status_emoji} {status_text}\n"
 
     due_date = task.get("due_date")
     if due_date:
@@ -171,9 +165,7 @@ def format_task_detail(task: dict[str, Any], *, locale: str = "en") -> str:
     return text
 
 
-def format_search_results(
-    query: str, results: list[dict[str, Any]], *, locale: str = "en"
-) -> str:
+def format_search_results(query: str, results: list[dict[str, Any]], *, locale: str = "en") -> str:
     """Format search results for display."""
     if not results:
         return f"\U0001f50d No results found for '*{query}*'"
@@ -268,9 +260,7 @@ def format_meeting_list(meetings: list[dict[str, Any]], *, locale: str = "en") -
     return text
 
 
-def format_escalation_list(
-    escalations: list[dict[str, Any]], *, locale: str = "en"
-) -> str:
+def format_escalation_list(escalations: list[dict[str, Any]], *, locale: str = "en") -> str:
     """Format escalation list for display."""
     if not escalations:
         return t("escalation.no_escalations", locale=locale)

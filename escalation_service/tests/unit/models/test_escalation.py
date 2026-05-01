@@ -1,7 +1,5 @@
 """Unit tests for escalation_service/models/escalation.py."""
 
-
-
 from escalation_service.core.enums import EscalationSource, EscalationStatus, EscalationType
 from escalation_service.models import EscalationRequest
 

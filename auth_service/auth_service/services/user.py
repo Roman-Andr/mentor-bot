@@ -109,9 +109,7 @@ class UserService:
         if user_data.email and user_data.email != user.email:
             existing_user = await self._uow.users.get_by_email(user_data.email)
             if existing_user:
-                logger.warning(
-                    "Update user conflict: email already registered ({})", user_data.email
-                )
+                logger.warning("Update user conflict: email already registered ({})", user_data.email)
                 msg = "Email already registered"
                 raise ConflictException(msg)
             user.email = user_data.email
@@ -183,9 +181,7 @@ class UserService:
 
     async def link_telegram_account(self, user_id: int, telegram_id: int, username: str | None = None) -> User:
         """Link Telegram account to user."""
-        logger.debug(
-            "Linking telegram account (user_id={}, telegram_id={})", user_id, telegram_id
-        )
+        logger.debug("Linking telegram account (user_id={}, telegram_id={})", user_id, telegram_id)
         # Check if telegram_id is already linked to another user
         existing_user = await self._uow.users.get_by_telegram_id(telegram_id)
         if existing_user and existing_user.id != user_id:
@@ -203,9 +199,7 @@ class UserService:
         user.updated_at = datetime.now(UTC)
 
         updated = await self._uow.users.update(user)
-        logger.info(
-            "Telegram account linked (user_id={}, telegram_id={})", updated.id, telegram_id
-        )
+        logger.info("Telegram account linked (user_id={}, telegram_id={})", updated.id, telegram_id)
         return updated
 
     async def change_password(self, user_id: int, current_password: str, new_password: str) -> None:

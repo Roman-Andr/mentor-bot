@@ -61,12 +61,12 @@ def require_hr_or_admin(current_user: CurrentUser) -> None:
 async def get_escalation_status_history(
     current_user: Annotated[CurrentUser, Depends()],
     uow: UnitOfWorkDep,
-    escalation_id: int | None = Query(None),
-    user_id: int | None = Query(None),
-    from_date: datetime | None = Query(None),
-    to_date: datetime | None = Query(None),
-    limit: int = Query(50, ge=1, le=100),
-    offset: int = Query(0, ge=0),
+    escalation_id: Annotated[int | None, Query()] = None,
+    user_id: Annotated[int | None, Query()] = None,
+    from_date: Annotated[datetime | None, Query()] = None,
+    to_date: Annotated[datetime | None, Query()] = None,
+    limit: Annotated[int, Query(ge=1, le=100)] = 50,
+    offset: Annotated[int, Query(ge=0)] = 0,
 ) -> AuditResponse:
     """Get escalation status history for audit purposes (HR/Admin only)."""
     require_hr_or_admin(current_user)
@@ -96,12 +96,12 @@ async def get_escalation_status_history(
 async def get_mentor_intervention_history(
     current_user: Annotated[CurrentUser, Depends()],
     uow: UnitOfWorkDep,
-    escalation_id: int | None = Query(None),
-    mentor_id: int | None = Query(None),
-    from_date: datetime | None = Query(None),
-    to_date: datetime | None = Query(None),
-    limit: int = Query(50, ge=1, le=100),
-    offset: int = Query(0, ge=0),
+    escalation_id: Annotated[int | None, Query()] = None,
+    mentor_id: Annotated[int | None, Query()] = None,
+    from_date: Annotated[datetime | None, Query()] = None,
+    to_date: Annotated[datetime | None, Query()] = None,
+    limit: Annotated[int, Query(ge=1, le=100)] = 50,
+    offset: Annotated[int, Query(ge=0)] = 0,
 ) -> AuditResponse:
     """Get mentor intervention history for audit purposes (HR/Admin only)."""
     require_hr_or_admin(current_user)

@@ -4,11 +4,10 @@ from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from checklists_service.core.enums import TemplateStatus
 from checklists_service.models import TaskTemplate, Template
 from checklists_service.repositories.implementations.template import TaskTemplateRepository, TemplateRepository
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class TestTemplateRepository:

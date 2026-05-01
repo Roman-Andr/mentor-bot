@@ -2,8 +2,6 @@
 
 from datetime import UTC, datetime, timedelta
 
-from freezegun import freeze_time
-
 from checklists_service.utils.datetime import (
     format_datetime,
     from_timestamp,
@@ -13,6 +11,7 @@ from checklists_service.utils.datetime import (
     parse_datetime,
     to_timestamp,
 )
+from freezegun import freeze_time
 
 YEAR_2024 = 2024
 MONTH_6 = 6

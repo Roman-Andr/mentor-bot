@@ -36,7 +36,9 @@ class NotificationClient:
             return True
 
         # Truncate preview if too long
-        preview = original_comment_preview[:100] + "..." if len(original_comment_preview) > 100 else original_comment_preview
+        preview = (
+            original_comment_preview[:100] + "..." if len(original_comment_preview) > 100 else original_comment_preview
+        )
 
         variables = {
             "original_comment_preview": preview,

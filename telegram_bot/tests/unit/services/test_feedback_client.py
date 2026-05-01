@@ -5,7 +5,6 @@ from typing import Never
 import pytest
 from fastapi import status
 from httpx import RequestError, Response
-
 from telegram_bot.services.feedback_client import FeedbackServiceClient
 
 
@@ -140,7 +139,8 @@ class TestSubmitComment:
         assert result is False
 
     async def test_submit_comment_with_contact_email_anonymous(self, feedback_client, monkeypatch):
-        """Test comment submission with contact_email when anonymous and allow_contact=True.
+        """
+        Test comment submission with contact_email when anonymous and allow_contact=True.
 
         Covers line 71: when is_anonymous=True, allow_contact=True, and contact_email is provided,
         the payload should include contact_email.
@@ -158,7 +158,7 @@ class TestSubmitComment:
             is_anonymous=True,
             auth_token="test-token",
             allow_contact=True,
-            contact_email="user@example.com"
+            contact_email="user@example.com",
         )
 
         assert result is True

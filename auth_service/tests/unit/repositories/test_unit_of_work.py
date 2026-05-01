@@ -3,8 +3,6 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
-
 from auth_service.repositories.implementations.department import DepartmentRepository
 from auth_service.repositories.implementations.invitation import InvitationRepository
 from auth_service.repositories.implementations.user import UserRepository
@@ -14,6 +12,7 @@ from auth_service.repositories.unit_of_work import (
     SqlAlchemyUnitOfWork,
     sqlalchemy_uow,
 )
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 
 class TestSqlAlchemyUnitOfWork:

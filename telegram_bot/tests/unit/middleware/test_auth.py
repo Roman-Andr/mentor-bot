@@ -3,7 +3,6 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
 from telegram_bot.middlewares.auth import AuthMiddleware
 
 
@@ -41,9 +40,7 @@ class TestAuthMiddleware:
         }
         mock_cache.get_user = AsyncMock(return_value=user_data)
 
-        await self.middleware.__call__(
-            self.mock_handler, self.mock_event_message, self.data
-        )
+        await self.middleware.__call__(self.mock_handler, self.mock_event_message, self.data)
 
         assert self.data["user"] == user_data
         assert self.data["auth_token"] == "cached_token_123"
@@ -55,9 +52,7 @@ class TestAuthMiddleware:
         """Test middleware when user not in cache."""
         mock_cache.get_user = AsyncMock(return_value=None)
 
-        await self.middleware.__call__(
-            self.mock_handler, self.mock_event_message, self.data
-        )
+        await self.middleware.__call__(self.mock_handler, self.mock_event_message, self.data)
 
         assert self.data["is_authenticated"] is False
         self.mock_handler.assert_called_once()
@@ -69,9 +64,7 @@ class TestAuthMiddleware:
         mock_event_no_user.callback_query = None
         mock_event_no_user.inline_query = None
 
-        await self.middleware.__call__(
-            self.mock_handler, mock_event_no_user, self.data
-        )
+        await self.middleware.__call__(self.mock_handler, mock_event_no_user, self.data)
 
         # Should still call handler
         self.mock_handler.assert_called_once()

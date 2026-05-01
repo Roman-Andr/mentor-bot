@@ -5,7 +5,6 @@ from unittest.mock import AsyncMock
 
 import httpx
 import pytest
-
 from checklists_service.services.circuit_breaker import (
     CircuitBreaker,
     CircuitBreakerOpenError,
@@ -323,7 +322,7 @@ class TestCircuitBreakerIntegration:
     async def test_httpx_request_error_trips_breaker(self) -> None:
         """Verify that httpx.RequestError is handled by default circuit breaker."""
         # Import at top of function to avoid PLC0415 - function-level import needed for test isolation
-        from checklists_service.services.circuit_breaker import auth_service_circuit_breaker  # noqa: PLC0415
+        from checklists_service.services.circuit_breaker import auth_service_circuit_breaker
 
         assert auth_service_circuit_breaker.expected_exceptions == (httpx.RequestError, httpx.HTTPStatusError)
 
@@ -337,14 +336,12 @@ class TestCircuitBreakerIntegration:
     async def test_httpx_http_status_error_trips_breaker(self) -> None:
         """Verify that httpx.HTTPStatusError (5xx errors) trips the circuit breaker."""
         # Import at top of function to avoid PLC0415 - function-level import needed for test isolation
-        from checklists_service.services.circuit_breaker import auth_service_circuit_breaker  # noqa: PLC0415
+        from checklists_service.services.circuit_breaker import auth_service_circuit_breaker
 
         # Create a mock response for HTTPStatusError
         mock_response = httpx.Response(500, text="Internal Server Error")
         mock_func = AsyncMock(
-            side_effect=httpx.HTTPStatusError(
-                "Server error", request=httpx.Request("GET", "/"), response=mock_response
-            )
+            side_effect=httpx.HTTPStatusError("Server error", request=httpx.Request("GET", "/"), response=mock_response)
         )
 
         with pytest.raises(httpx.HTTPStatusError, match="Server error"):

@@ -39,9 +39,7 @@ async def register_by_token(
         "phone": None,
     }
 
-    registration_result = await auth_client.register_with_invitation(
-        token, telegram_data
-    )
+    registration_result = await auth_client.register_with_invitation(token, telegram_data)
 
     if not registration_result:
         return False, "❌ Registration failed. Please try again or contact HR."

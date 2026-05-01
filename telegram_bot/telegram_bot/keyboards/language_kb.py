@@ -11,12 +11,8 @@ def get_language_keyboard(*, locale: str = "en") -> InlineKeyboardBuilder:
     """Build language selection keyboard."""
     builder = InlineKeyboardBuilder()
     builder.add(
-        create_inline_button(
-            "English", callback_data="set_lang_en", style=ButtonStyle.PRIMARY
-        ),
-        create_inline_button(
-            "Русский", callback_data="set_lang_ru", style=ButtonStyle.PRIMARY
-        ),
+        create_inline_button("English", callback_data="set_lang_en", style=ButtonStyle.PRIMARY),
+        create_inline_button("Русский", callback_data="set_lang_ru", style=ButtonStyle.PRIMARY),
     )
     builder.add(
         create_inline_button(

@@ -16,9 +16,7 @@ class ChecklistsServiceClient:
     def __init__(self, base_url: str | None = None) -> None:
         """Initialize checklists service HTTP client."""
         self.base_url = base_url or settings.CHECKLISTS_SERVICE_URL
-        self.client = httpx.AsyncClient(
-            base_url=self.base_url, timeout=settings.SERVICE_TIMEOUT
-        )
+        self.client = httpx.AsyncClient(base_url=self.base_url, timeout=settings.SERVICE_TIMEOUT)
 
     @cached(ttl=60, key_prefix="checklists_user")
     async def get_user_checklists(self, user_id: int, auth_token: str) -> list[dict]:
@@ -38,9 +36,7 @@ class ChecklistsServiceClient:
             logger.exception("Checklists service request failed (user_id={})", user_id)
         return []
 
-    async def get_checklist_tasks(
-        self, checklist_id: int, auth_token: str
-    ) -> list[dict]:
+    async def get_checklist_tasks(self, checklist_id: int, auth_token: str) -> list[dict]:
         """Get tasks for checklist (cached)."""
         logger.debug("Fetching checklist tasks (checklist_id={})", checklist_id)
         try:
@@ -70,9 +66,7 @@ class ChecklistsServiceClient:
             logger.exception("Checklists service assigned tasks request failed")
         return []
 
-    async def update_task_status(
-        self, task_id: int, new_status: str, auth_token: str
-    ) -> dict | None:
+    async def update_task_status(self, task_id: int, new_status: str, auth_token: str) -> dict | None:
         """Update task status."""
         logger.debug("Updating task status (task_id={}, status={})", task_id, new_status)
         try:
@@ -97,9 +91,7 @@ class ChecklistsServiceClient:
             logger.exception("Checklists service update task failed (task_id={})", task_id)
         return None
 
-    async def complete_task(
-        self, task_id: int, auth_token: str, notes: str | None = None
-    ) -> dict | None:
+    async def complete_task(self, task_id: int, auth_token: str, notes: str | None = None) -> dict | None:
         """Mark task as completed."""
         logger.info("Completing task (task_id={})", task_id)
         try:
@@ -124,9 +116,7 @@ class ChecklistsServiceClient:
         return None
 
     @cached(ttl=60, key_prefix="checklist_progress")
-    async def get_checklist_progress(
-        self, checklist_id: int, auth_token: str
-    ) -> dict | None:
+    async def get_checklist_progress(self, checklist_id: int, auth_token: str) -> dict | None:
         """Get checklist progress details (cached)."""
         logger.debug("Fetching checklist progress (checklist_id={})", checklist_id)
         try:
@@ -141,9 +131,7 @@ class ChecklistsServiceClient:
             logger.exception("Checklists service progress request failed (checklist_id={})", checklist_id)
         return None
 
-    async def get_task_details(
-        self, task_id: int, auth_token: str, checklist_id: int | None = None
-    ) -> dict | None:
+    async def get_task_details(self, task_id: int, auth_token: str, checklist_id: int | None = None) -> dict | None:
         """Get detailed task information."""
         logger.debug("Fetching task details (task_id={})", task_id)
         # Try to find task in assigned tasks first
@@ -268,9 +256,7 @@ class ChecklistsServiceClient:
             logger.exception("Checklists service get attachments failed (task_id={})", task_id)
         return []
 
-    async def download_task_attachment(
-        self, task_id: int, filename: str, auth_token: str
-    ) -> bytes | None:
+    async def download_task_attachment(self, task_id: int, filename: str, auth_token: str) -> bytes | None:
         """Download a task attachment file."""
         logger.debug("Downloading task attachment (task_id={}, filename={})", task_id, filename)
         # Sanitize filename to prevent path traversal
@@ -291,9 +277,7 @@ class ChecklistsServiceClient:
             logger.exception("Checklists service download attachment failed (task_id={})", task_id)
         return None
 
-    async def invalidate_task_cache(
-        self, auth_token: str, checklist_id: int | None = None
-    ) -> None:
+    async def invalidate_task_cache(self, auth_token: str, checklist_id: int | None = None) -> None:
         """Invalidate task-related caches after status changes."""
         logger.debug(
             "Invalidating cache for token {} checklist={}",
@@ -316,7 +300,7 @@ class ChecklistsServiceClient:
                 "Invalidated checklist_tasks cache: {} keys deleted with pattern {}",
                 deleted2,
                 pattern2,
-        )
+            )
 
 
 # Singleton instance

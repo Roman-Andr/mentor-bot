@@ -5,7 +5,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import httpx
 import pytest
 from fastapi import HTTPException, status
-
 from meeting_service.api import deps
 from meeting_service.config import settings
 from meeting_service.core.exceptions import AuthException, PermissionDenied
@@ -175,6 +174,7 @@ class TestGetCurrentActiveUser:
         current_user = deps.UserInfo({"id": 1, "email": "test@example.com", "is_active": False})
 
         from fastapi import HTTPException
+
         with pytest.raises(HTTPException) as exc_info:
             await deps.get_current_active_user(current_user)
         assert exc_info.value.status_code == status.HTTP_400_BAD_REQUEST
@@ -335,6 +335,7 @@ class TestVerifyServiceApiKey:
 
         try:
             from fastapi import HTTPException
+
             with pytest.raises(HTTPException) as exc_info:
                 await deps.verify_service_api_key("invalid-key")
             assert exc_info.value.status_code == status.HTTP_401_UNAUTHORIZED
@@ -350,6 +351,7 @@ class TestVerifyServiceApiKey:
 
         try:
             from fastapi import HTTPException
+
             with pytest.raises(HTTPException) as exc_info:
                 await deps.verify_service_api_key(None)
             assert exc_info.value.status_code == status.HTTP_401_UNAUTHORIZED

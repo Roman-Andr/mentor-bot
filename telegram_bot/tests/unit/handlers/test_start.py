@@ -4,7 +4,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from aiogram.fsm.context import FSMContext
-
 from telegram_bot.handlers.start import cb_menu, cmd_menu, cmd_start
 from telegram_bot.states.auth_states import RegistrationStates
 

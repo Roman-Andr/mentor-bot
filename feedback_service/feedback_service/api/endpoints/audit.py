@@ -48,11 +48,11 @@ def require_hr_or_admin(current_user: CurrentUser) -> None:
 async def get_feedback_status_change_history(
     current_user: Annotated[CurrentUser, Depends()],
     uow: UnitOfWorkDep,
-    feedback_id: int | None = Query(None),
-    from_date: datetime | None = Query(None),
-    to_date: datetime | None = Query(None),
-    limit: int = Query(50, ge=1, le=100),
-    offset: int = Query(0, ge=0),
+    feedback_id: Annotated[int | None, Query()] = None,
+    from_date: Annotated[datetime | None, Query()] = None,
+    to_date: Annotated[datetime | None, Query()] = None,
+    limit: Annotated[int, Query(ge=1, le=100)] = 50,
+    offset: Annotated[int, Query(ge=0)] = 0,
 ) -> AuditResponse:
     """Get feedback status change history for audit purposes (HR/Admin only)."""
     require_hr_or_admin(current_user)

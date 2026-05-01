@@ -4,10 +4,9 @@ from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from auth_service.models import Department
 from auth_service.repositories.implementations.department import DepartmentRepository
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class TestDepartmentRepository:

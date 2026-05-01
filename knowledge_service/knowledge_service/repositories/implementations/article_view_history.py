@@ -12,9 +12,7 @@ from knowledge_service.repositories.implementations.base import SqlAlchemyBaseRe
 from knowledge_service.repositories.interfaces.article_view_history import IArticleViewHistoryRepository
 
 
-class ArticleViewHistoryRepository(
-    SqlAlchemyBaseRepository[ArticleViewHistory, int], IArticleViewHistoryRepository
-):
+class ArticleViewHistoryRepository(SqlAlchemyBaseRepository[ArticleViewHistory, int], IArticleViewHistoryRepository):
     """SQLAlchemy implementation of Article view history repository."""
 
     def __init__(self, session: AsyncSession) -> None:

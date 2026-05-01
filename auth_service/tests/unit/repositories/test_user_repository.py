@@ -4,12 +4,11 @@ from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from auth_service.core.enums import UserRole
 from auth_service.core.exceptions import NotFoundException
 from auth_service.models import User
 from auth_service.repositories.implementations.user import UserRepository
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class TestUserRepository:

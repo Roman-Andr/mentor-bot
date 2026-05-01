@@ -36,6 +36,8 @@ class Department:
         self.description = description
         self.created_at = created_at
         self.updated_at = updated_at
+
+
 from checklists_service.repositories.unit_of_work import IUnitOfWork
 from checklists_service.schemas import (
     ChecklistCreate,
@@ -512,7 +514,7 @@ def service_api_key() -> str:
 async def async_session():
     """Create an async database session for testing."""
     from checklists_service.database.base import AsyncSessionLocal
-    
+
     async with AsyncSessionLocal() as session:
         yield session
         await session.rollback()
@@ -521,13 +523,10 @@ async def async_session():
 @pytest.fixture
 async def async_client(async_session):
     """Create an async HTTP client for testing."""
-    from httpx import AsyncClient, ASGITransport
     from checklists_service.main import app
-    
-    async with AsyncClient(
-        transport=ASGITransport(app=app),
-        base_url="http://test"
-    ) as client:
+    from httpx import ASGITransport, AsyncClient
+
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         yield client
 
 

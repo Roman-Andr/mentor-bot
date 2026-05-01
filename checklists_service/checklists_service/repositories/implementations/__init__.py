@@ -12,9 +12,9 @@ __all__ = [
     "CertificateRepository",
     "ChecklistRepository",
     "ChecklistStatusHistoryRepository",
-    "TaskRepository",
     "TaskCompletionHistoryRepository",
+    "TaskRepository",
     "TaskTemplateRepository",
-    "TemplateRepository",
     "TemplateChangeHistoryRepository",
+    "TemplateRepository",
 ]

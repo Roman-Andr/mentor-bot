@@ -3,7 +3,6 @@
 from datetime import UTC, datetime, timedelta
 
 from freezegun import freeze_time
-
 from knowledge_service.utils.datetime import (
     format_datetime,
     from_timestamp,

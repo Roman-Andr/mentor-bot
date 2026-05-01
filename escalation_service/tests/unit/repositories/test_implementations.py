@@ -1,16 +1,17 @@
 """Unit tests for escalation_service/repositories/implementations."""
 
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-
 from escalation_service.core.enums import EscalationStatus, EscalationType
 from escalation_service.models import EscalationRequest, EscalationStatusHistory, MentorInterventionHistory
 from escalation_service.repositories.implementations import EscalationRepository
 from escalation_service.repositories.implementations.base import SqlAlchemyBaseRepository
 from escalation_service.repositories.implementations.escalation_status_history import EscalationStatusHistoryRepository
-from escalation_service.repositories.implementations.mentor_intervention_history import MentorInterventionHistoryRepository
+from escalation_service.repositories.implementations.mentor_intervention_history import (
+    MentorInterventionHistoryRepository,
+)
 
 
 class TestEscalationRepository:
@@ -213,9 +214,11 @@ class TestSqlAlchemyBaseRepository:
     @pytest.fixture
     def base_repo(self, mock_session):
         """Create a base repository with mock session."""
+
         # Create a concrete class for testing
         class TestRepo(SqlAlchemyBaseRepository[EscalationRequest, int]):
             pass
+
         return TestRepo(mock_session, EscalationRequest)
 
     @pytest.mark.asyncio
@@ -393,9 +396,7 @@ class TestEscalationStatusHistoryRepository:
         # Act
         from_date = datetime.now(tz=UTC)
         to_date = datetime.now(tz=UTC)
-        result = await status_history_repo.get_by_escalation_id(
-            escalation_id=1, from_date=from_date, to_date=to_date
-        )
+        result = await status_history_repo.get_by_escalation_id(escalation_id=1, from_date=from_date, to_date=to_date)
 
         # Assert
         assert result == []
@@ -426,9 +427,7 @@ class TestEscalationStatusHistoryRepository:
         # Act
         from_date = datetime.now(tz=UTC)
         to_date = datetime.now(tz=UTC)
-        result = await status_history_repo.get_by_user_id(
-            user_id=100, from_date=from_date, to_date=to_date
-        )
+        result = await status_history_repo.get_by_user_id(user_id=100, from_date=from_date, to_date=to_date)
 
         # Assert
         assert result == []
@@ -461,9 +460,7 @@ class TestEscalationStatusHistoryRepository:
         # Act
         from_date = datetime.now(tz=UTC)
         to_date = datetime.now(tz=UTC)
-        result, total = await status_history_repo.get_all(
-            from_date=from_date, to_date=to_date, limit=10, offset=5
-        )
+        result, total = await status_history_repo.get_all(from_date=from_date, to_date=to_date, limit=10, offset=5)
 
         # Assert
         assert result == []
@@ -525,9 +522,7 @@ class TestMentorInterventionHistoryRepository:
         # Act
         from_date = datetime.now(tz=UTC)
         to_date = datetime.now(tz=UTC)
-        result = await intervention_repo.get_by_escalation_id(
-            escalation_id=1, from_date=from_date, to_date=to_date
-        )
+        result = await intervention_repo.get_by_escalation_id(escalation_id=1, from_date=from_date, to_date=to_date)
 
         # Assert
         assert result == []
@@ -558,9 +553,7 @@ class TestMentorInterventionHistoryRepository:
         # Act
         from_date = datetime.now(tz=UTC)
         to_date = datetime.now(tz=UTC)
-        result = await intervention_repo.get_by_mentor_id(
-            mentor_id=200, from_date=from_date, to_date=to_date
-        )
+        result = await intervention_repo.get_by_mentor_id(mentor_id=200, from_date=from_date, to_date=to_date)
 
         # Assert
         assert result == []
@@ -593,9 +586,7 @@ class TestMentorInterventionHistoryRepository:
         # Act
         from_date = datetime.now(tz=UTC)
         to_date = datetime.now(tz=UTC)
-        result, total = await intervention_repo.get_all(
-            from_date=from_date, to_date=to_date, limit=10, offset=5
-        )
+        result, total = await intervention_repo.get_all(from_date=from_date, to_date=to_date, limit=10, offset=5)
 
         # Assert
         assert result == []

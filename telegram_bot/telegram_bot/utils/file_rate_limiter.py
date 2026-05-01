@@ -1,6 +1,7 @@
 """File upload rate limiting using Redis."""
 
 import json
+import logging
 from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime
 from functools import wraps
@@ -11,6 +12,8 @@ from redis.asyncio import Redis
 from redis.exceptions import RedisError
 
 from telegram_bot.config import settings
+
+logger = logging.getLogger(__name__)
 
 T = TypeVar("T")
 
@@ -43,24 +46,22 @@ class FileUploadRateLimiter:
             return None
         return None
 
-    async def _set_rate_limit_data(
-        self, user_id: int, data: dict[str, Any], ttl: int
-    ) -> bool:
+    async def _set_rate_limit_data(self, user_id: int, data: dict[str, Any], ttl: int) -> bool:
         """Set rate limit data in Redis with TTL."""
         if not self.redis:
             return False
         try:
-            await self.redis.set(
-                self._make_key(user_id), json.dumps(data), ex=max(ttl, 1)
-            )
-            return True
+            await self.redis.set(self._make_key(user_id), json.dumps(data), ex=max(ttl, 1))
         except RedisError:
             return False
+        else:
+            return True
 
     async def is_rate_limited(
         self, user_id: int, calls: int = DEFAULT_UPLOAD_CALLS, period: int = DEFAULT_UPLOAD_PERIOD
     ) -> tuple[bool, int, int]:
-        """Check if user is rate limited for file uploads.
+        """
+        Check if user is rate limited for file uploads.
 
         Returns:
             tuple of (is_limited, remaining_calls, retry_after_seconds)
@@ -75,9 +76,7 @@ class FileUploadRateLimiter:
 
         if data is None:
             # First upload in this window
-            await self._set_rate_limit_data(
-                user_id, {"start_time": now, "count": 1}, period
-            )
+            await self._set_rate_limit_data(user_id, {"start_time": now, "count": 1}, period)
             return False, calls - 1, 0
 
         start_time = data.get("start_time", now)
@@ -87,9 +86,7 @@ class FileUploadRateLimiter:
         # Check if window has expired
         if elapsed >= period:
             # Reset window
-            await self._set_rate_limit_data(
-                user_id, {"start_time": now, "count": 1}, period
-            )
+            await self._set_rate_limit_data(user_id, {"start_time": now, "count": 1}, period)
             return False, calls - 1, 0
 
         # Within window, check count
@@ -98,9 +95,7 @@ class FileUploadRateLimiter:
             return True, 0, retry_after
 
         # Increment count
-        await self._set_rate_limit_data(
-            user_id, {"start_time": start_time, "count": count + 1}, period - elapsed
-        )
+        await self._set_rate_limit_data(user_id, {"start_time": start_time, "count": count + 1}, period - elapsed)
         return False, calls - count - 1, 0
 
 
@@ -113,7 +108,8 @@ async def check_file_upload_rate_limit(
     max_uploads: int = DEFAULT_UPLOAD_CALLS,
     window_seconds: int = DEFAULT_UPLOAD_PERIOD,
 ) -> tuple[bool, int]:
-    """Check if user has exceeded file upload rate limit.
+    """
+    Check if user has exceeded file upload rate limit.
 
     Args:
         message: The message containing the file upload
@@ -138,7 +134,8 @@ def file_upload_rate_limit(
     max_uploads: int = DEFAULT_UPLOAD_CALLS,
     window_seconds: int = DEFAULT_UPLOAD_PERIOD,
 ) -> Callable[[Callable[..., Awaitable[T]]], Callable[..., Awaitable[T]]]:
-    """Apply file upload rate limiting to a handler.
+    """
+    Apply file upload rate limiting to a handler.
 
     Args:
         max_uploads: Maximum number of uploads allowed in the window
@@ -162,9 +159,7 @@ def file_upload_rate_limit(
             # Try to check rate limit, but fail open on any errors (e.g., test mocks)
             try:
                 if message and message.from_user:
-                    is_limited, retry_after = await check_file_upload_rate_limit(
-                        message, max_uploads, window_seconds
-                    )
+                    is_limited, retry_after = await check_file_upload_rate_limit(message, max_uploads, window_seconds)
 
                     if is_limited:
                         # Rate limit exceeded - send error message
@@ -186,9 +181,9 @@ def file_upload_rate_limit(
                             )
                         await message.answer(error_msg)
                         return None
-            except Exception:
+            except Exception as e:
                 # Fail open on any error (e.g., test mocks, Redis errors)
-                pass
+                logger.debug("Rate limiter check failed, failing open: %s", e)
 
             return await func(*args, **kwargs)
 

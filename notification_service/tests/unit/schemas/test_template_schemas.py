@@ -3,8 +3,6 @@
 from datetime import UTC, datetime
 
 import pytest
-from pydantic import ValidationError
-
 from notification_service.schemas.template import (
     TemplateBase,
     TemplateCreate,
@@ -15,6 +13,7 @@ from notification_service.schemas.template import (
     TemplateResponse,
     TemplateUpdate,
 )
+from pydantic import ValidationError
 
 
 class TestTemplateBase:

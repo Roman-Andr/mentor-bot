@@ -55,7 +55,6 @@ class TestArticleProperties:
 
         assert article.is_published is False
 
-
     def test_article_repr(self) -> None:
         """Test Article __repr__ method."""
         article = Article(

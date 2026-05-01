@@ -183,12 +183,12 @@ See you there!""",
         },
         ("comment_reply", "telegram", "en"): {
             "subject": None,
-            "body_text": "💬 Reply to your comment\n\nYour comment: \"{{ original_comment_preview }}\"\n\nReply from {{ replied_by_name }}:\n{{ reply_text }}",
+            "body_text": '💬 Reply to your comment\n\nYour comment: "{{ original_comment_preview }}"\n\nReply from {{ replied_by_name }}:\n{{ reply_text }}',
             "variables": ["original_comment_preview", "reply_text", "replied_by_name"],
         },
         ("comment_reply", "telegram", "ru"): {
             "subject": None,
-            "body_text": "💬 Ответ на ваш комментарий\n\nВаш комментарий: \"{{ original_comment_preview }}\"\n\nОтвет от {{ replied_by_name }}:\n{{ reply_text }}",
+            "body_text": '💬 Ответ на ваш комментарий\n\nВаш комментарий: "{{ original_comment_preview }}"\n\nОтвет от {{ replied_by_name }}:\n{{ reply_text }}',
             "variables": ["original_comment_preview", "reply_text", "replied_by_name"],
         },
         ("comment_reply", "email", "en"): {
@@ -237,12 +237,12 @@ This is an automated message from Mentor Bot.""",
         # Certificate templates
         ("certificate_issued", "telegram", "en"): {
             "subject": None,
-            "body_text": "🎉 Congratulations, {{ employee_name }}!\n\nYou have been issued a certificate for completing the onboarding program \"{{ program_name }}\".\n\nCertificate ID: {{ cert_uid }}\n\nDownload your certificate: /certificate",
+            "body_text": '🎉 Congratulations, {{ employee_name }}!\n\nYou have been issued a certificate for completing the onboarding program "{{ program_name }}".\n\nCertificate ID: {{ cert_uid }}\n\nDownload your certificate: /certificate',
             "variables": ["employee_name", "program_name", "cert_uid"],
         },
         ("certificate_issued", "telegram", "ru"): {
             "subject": None,
-            "body_text": "🎉 Поздравляем, {{ employee_name }}!\n\nВам выдан сертификат за завершение программы онбординга \"{{ program_name }}\".\n\nID сертификата: {{ cert_uid }}\n\nСкачать сертификат: /certificate",
+            "body_text": '🎉 Поздравляем, {{ employee_name }}!\n\nВам выдан сертификат за завершение программы онбординга "{{ program_name }}".\n\nID сертификата: {{ cert_uid }}\n\nСкачать сертификат: /certificate',
             "variables": ["employee_name", "program_name", "cert_uid"],
         },
         # Password reset
@@ -271,9 +271,7 @@ This is an automated message from Mentor Bot.""",
         self._uow = uow
         self._env = Environment(loader=BaseLoader(), autoescape=True)
 
-    async def get_template(
-        self, name: str, channel: str, language: str = "en"
-    ) -> NotificationTemplate | None:
+    async def get_template(self, name: str, channel: str, language: str = "en") -> NotificationTemplate | None:
         """
         Get template by name, channel, and language.
 

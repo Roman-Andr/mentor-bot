@@ -5,12 +5,12 @@ import logging
 from typing import TYPE_CHECKING
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
+from checklists_service.utils.cache import CacheManager, cached
 from redis import RedisError
 
-from checklists_service.utils.cache import CacheManager, cached
-
 if TYPE_CHECKING:
-    import pytest
+    pass
 
 DEFAULT_TTL = 3600
 TTL_300 = 300
@@ -245,6 +245,7 @@ class TestCachedDecorator:
         mock_cache.set = AsyncMock()
 
         with patch("checklists_service.utils.cache.cache", mock_cache):
+
             @cached(ttl=TTL_600, key_prefix="custom")
             async def my_function(arg1: str, arg2: int = 0) -> str:
                 return f"{arg1}-{arg2}"
@@ -265,6 +266,7 @@ class TestCachedDecorator:
         mock_cache.set = AsyncMock()
 
         with patch("checklists_service.utils.cache.cache", mock_cache):
+
             @cached(ttl=300)
             async def documented_function(x: int) -> int:
                 """Return double the input value."""

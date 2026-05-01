@@ -3,7 +3,6 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
 from telegram_bot.services.auth_client import AuthServiceClient, auth_client
 
 
@@ -46,6 +45,7 @@ class TestAuthServiceClient:
     async def test_get_user_by_telegram_id_request_error(self, mock_get):
         """Test getting user by Telegram ID - request error."""
         import httpx
+
         mock_get.side_effect = httpx.RequestError("Connection failed")
 
         result = await self.client.get_user_by_telegram_id(self.telegram_id, self.auth_token)
@@ -60,7 +60,7 @@ class TestAuthServiceClient:
         mock_response.json.return_value = {
             "access_token": "token_123",
             "refresh_token": "refresh_123",
-            "user": {"id": 1, "first_name": "John"}
+            "user": {"id": 1, "first_name": "John"},
         }
         mock_post.return_value = mock_response
 
@@ -201,6 +201,7 @@ class TestAuthServiceClient:
     async def test_get_total_users_error(self, mock_get):
         """Test getting total user count - error."""
         import httpx
+
         mock_get.side_effect = httpx.RequestError("Connection failed")
 
         result = await self.client.get_total_users(self.auth_token)
@@ -278,6 +279,7 @@ class TestAuthServiceClientEdgeCases:
     async def test_authenticate_with_telegram_request_error(self, mock_post):
         """Test Telegram authentication with request error."""
         import httpx
+
         mock_post.side_effect = httpx.RequestError("Connection failed")
 
         telegram_data = {"api_key": "test_key", "telegram_id": 123456}
@@ -303,6 +305,7 @@ class TestAuthServiceClientEdgeCases:
     async def test_register_with_invitation_request_error(self, mock_post):
         """Test registration with request error."""
         import httpx
+
         mock_post.side_effect = httpx.RequestError("Network error")
 
         telegram_data = {"telegram_id": 123456}
@@ -327,6 +330,7 @@ class TestAuthServiceClientEdgeCases:
     async def test_validate_invitation_token_request_error(self, mock_get):
         """Test token validation with request error."""
         import httpx
+
         mock_get.side_effect = httpx.RequestError("Timeout")
 
         result = await self.client.validate_invitation_token("token123")
@@ -350,6 +354,7 @@ class TestAuthServiceClientEdgeCases:
     async def test_get_current_user_request_error(self, mock_get):
         """Test getting current user with request error."""
         import httpx
+
         mock_get.side_effect = httpx.RequestError("Connection lost")
 
         result = await self.client.get_current_user(self.auth_token)
@@ -383,6 +388,7 @@ class TestAuthServiceClientEdgeCases:
     async def test_get_mentor_info_request_error(self, mock_get):
         """Test getting mentor info with request error."""
         import httpx
+
         mock_get.side_effect = httpx.RequestError("Error")
 
         result = await self.client.get_mentor_info(2, self.auth_token)
@@ -405,6 +411,7 @@ class TestAuthServiceClientEdgeCases:
     async def test_list_users_request_error(self, mock_get):
         """Test listing users with request error."""
         import httpx
+
         mock_get.side_effect = httpx.RequestError("Network error")
 
         result = await self.client.list_users(self.auth_token)
@@ -442,6 +449,7 @@ class TestAuthServiceClientEdgeCases:
     async def test_get_total_users_request_error(self, mock_get):
         """Test getting total users with request error."""
         import httpx
+
         mock_get.side_effect = httpx.RequestError("Connection failed")
 
         result = await self.client.get_total_users(self.auth_token)
@@ -576,6 +584,7 @@ class TestAuthServiceClientEdgeCases:
     async def test_get_user_preferences_request_error(self, mock_get):
         """Test getting user preferences - request error."""
         import httpx
+
         mock_get.side_effect = httpx.RequestError("Connection failed")
 
         result = await self.client.get_user_preferences(1, self.auth_token)
@@ -612,6 +621,7 @@ class TestAuthServiceClientEdgeCases:
     async def test_update_user_preferences_request_error(self, mock_put):
         """Test updating user preferences - request error."""
         import httpx
+
         mock_put.side_effect = httpx.RequestError("Connection failed")
 
         preferences = {"notification_telegram_enabled": False}

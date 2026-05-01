@@ -1,7 +1,6 @@
 """Unit tests for telegram_bot/keyboards/checklist.py."""
 
 from aiogram.types import InlineKeyboardMarkup
-
 from telegram_bot.keyboards.checklist import (
     get_checklists_keyboard,
     get_task_detail_keyboard,

@@ -3,10 +3,9 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from notification_service.models import NotificationTemplate
 from notification_service.repositories.implementations.template import NotificationTemplateRepository
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 @pytest.fixture
@@ -46,7 +45,10 @@ class TestNotificationTemplateRepositoryGetByNameChannelLanguage:
     """Tests for NotificationTemplateRepository.get_by_name_channel_language."""
 
     async def test_get_existing_template(
-        self, template_repo: NotificationTemplateRepository, mock_session: MagicMock, sample_template: NotificationTemplate
+        self,
+        template_repo: NotificationTemplateRepository,
+        mock_session: MagicMock,
+        sample_template: NotificationTemplate,
     ) -> None:
         """Get template by name, channel, and language."""
         mock_result = MagicMock()
@@ -73,7 +75,10 @@ class TestNotificationTemplateRepositoryGetByNameChannelLanguage:
         assert result is None
 
     async def test_get_uses_language_parameter(
-        self, template_repo: NotificationTemplateRepository, mock_session: MagicMock, sample_template: NotificationTemplate
+        self,
+        template_repo: NotificationTemplateRepository,
+        mock_session: MagicMock,
+        sample_template: NotificationTemplate,
     ) -> None:
         """Uses the language parameter correctly."""
         sample_template.language = "ru"
@@ -91,7 +96,10 @@ class TestNotificationTemplateRepositoryFindTemplates:
     """Tests for NotificationTemplateRepository.find_templates."""
 
     async def test_find_without_filters(
-        self, template_repo: NotificationTemplateRepository, mock_session: MagicMock, sample_template: NotificationTemplate
+        self,
+        template_repo: NotificationTemplateRepository,
+        mock_session: MagicMock,
+        sample_template: NotificationTemplate,
     ) -> None:
         """Find templates without any filters."""
         mock_count_result = MagicMock()
@@ -111,7 +119,10 @@ class TestNotificationTemplateRepositoryFindTemplates:
         assert templates[0].name == "welcome"
 
     async def test_find_with_name_filter(
-        self, template_repo: NotificationTemplateRepository, mock_session: MagicMock, sample_template: NotificationTemplate
+        self,
+        template_repo: NotificationTemplateRepository,
+        mock_session: MagicMock,
+        sample_template: NotificationTemplate,
     ) -> None:
         """Find templates filtered by name (using ilike)."""
         mock_count_result = MagicMock()
@@ -130,7 +141,10 @@ class TestNotificationTemplateRepositoryFindTemplates:
         assert len(templates) == 1
 
     async def test_find_with_channel_filter(
-        self, template_repo: NotificationTemplateRepository, mock_session: MagicMock, sample_template: NotificationTemplate
+        self,
+        template_repo: NotificationTemplateRepository,
+        mock_session: MagicMock,
+        sample_template: NotificationTemplate,
     ) -> None:
         """Find templates filtered by channel."""
         mock_count_result = MagicMock()
@@ -149,7 +163,10 @@ class TestNotificationTemplateRepositoryFindTemplates:
         assert len(templates) == 1
 
     async def test_find_with_language_filter(
-        self, template_repo: NotificationTemplateRepository, mock_session: MagicMock, sample_template: NotificationTemplate
+        self,
+        template_repo: NotificationTemplateRepository,
+        mock_session: MagicMock,
+        sample_template: NotificationTemplate,
     ) -> None:
         """Find templates filtered by language."""
         mock_count_result = MagicMock()
@@ -168,7 +185,10 @@ class TestNotificationTemplateRepositoryFindTemplates:
         assert len(templates) == 1
 
     async def test_find_with_is_active_filter(
-        self, template_repo: NotificationTemplateRepository, mock_session: MagicMock, sample_template: NotificationTemplate
+        self,
+        template_repo: NotificationTemplateRepository,
+        mock_session: MagicMock,
+        sample_template: NotificationTemplate,
     ) -> None:
         """Find templates filtered by is_active status."""
         mock_count_result = MagicMock()
@@ -187,7 +207,10 @@ class TestNotificationTemplateRepositoryFindTemplates:
         assert len(templates) == 1
 
     async def test_find_with_all_filters(
-        self, template_repo: NotificationTemplateRepository, mock_session: MagicMock, sample_template: NotificationTemplate
+        self,
+        template_repo: NotificationTemplateRepository,
+        mock_session: MagicMock,
+        sample_template: NotificationTemplate,
     ) -> None:
         """Find templates with all filters applied."""
         mock_count_result = MagicMock()
@@ -227,7 +250,10 @@ class TestNotificationTemplateRepositoryFindTemplates:
         assert templates == []
 
     async def test_respects_pagination_parameters(
-        self, template_repo: NotificationTemplateRepository, mock_session: MagicMock, sample_template: NotificationTemplate
+        self,
+        template_repo: NotificationTemplateRepository,
+        mock_session: MagicMock,
+        sample_template: NotificationTemplate,
     ) -> None:
         """Respects skip and limit parameters."""
         mock_count_result = MagicMock()
@@ -250,7 +276,10 @@ class TestNotificationTemplateRepositoryGetAllVersions:
     """Tests for NotificationTemplateRepository.get_all_versions."""
 
     async def test_get_all_versions_returns_list(
-        self, template_repo: NotificationTemplateRepository, mock_session: MagicMock, sample_template: NotificationTemplate
+        self,
+        template_repo: NotificationTemplateRepository,
+        mock_session: MagicMock,
+        sample_template: NotificationTemplate,
     ) -> None:
         """Get all versions of a template including inactive."""
         version2 = NotificationTemplate(

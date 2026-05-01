@@ -1,7 +1,6 @@
 """Unit tests for telegram_bot admin keyboards."""
 
 from aiogram.types import InlineKeyboardMarkup
-
 from telegram_bot.keyboards.admin import get_admin_keyboard
 
 

@@ -3,8 +3,6 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from aiogram.types import User as TgUser
-
 from telegram_bot.handlers.language import cb_language_menu, cmd_language, set_language
 
 
@@ -88,7 +86,9 @@ class TestLanguageHandlers:
         """Test setting language to English."""
         mock_callback.data = "set_lang_en"
 
-        with patch("telegram_bot.handlers.language.auth_client.update_user_preferences", new_callable=AsyncMock) as mock_update:
+        with patch(
+            "telegram_bot.handlers.language.auth_client.update_user_preferences", new_callable=AsyncMock
+        ) as mock_update:
             with patch("telegram_bot.handlers.language.get_language_keyboard") as mock_kb:
                 mock_kb.return_value = MagicMock()
 
@@ -101,7 +101,9 @@ class TestLanguageHandlers:
         """Test setting language to Russian."""
         mock_callback.data = "set_lang_ru"
 
-        with patch("telegram_bot.handlers.language.auth_client.update_user_preferences", new_callable=AsyncMock) as mock_update:
+        with patch(
+            "telegram_bot.handlers.language.auth_client.update_user_preferences", new_callable=AsyncMock
+        ) as mock_update:
             with patch("telegram_bot.handlers.language.get_language_keyboard") as mock_kb:
                 mock_kb.return_value = MagicMock()
 
@@ -122,7 +124,9 @@ class TestLanguageHandlers:
         """Test setting language when user has no id."""
         mock_callback.data = "set_lang_en"
 
-        with patch("telegram_bot.handlers.language.auth_client.update_user_preferences", new_callable=AsyncMock) as mock_update:
+        with patch(
+            "telegram_bot.handlers.language.auth_client.update_user_preferences", new_callable=AsyncMock
+        ) as mock_update:
             with patch("telegram_bot.handlers.language.get_language_keyboard") as mock_kb:
                 mock_kb.return_value = MagicMock()
 

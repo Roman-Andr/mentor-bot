@@ -3,11 +3,10 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from meeting_service.core.enums import EmployeeLevel, MeetingType
 from meeting_service.models.meeting import Meeting
 from meeting_service.repositories.implementations.meeting import MeetingRepository
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 @pytest.fixture
@@ -174,7 +173,9 @@ class TestFindMeetings:
     async def test_find_meetings_with_search(self, mock_session, repository):
         """Test find_meetings with search filter."""
         # Arrange
-        meetings = [Meeting(id=1, title="Security Training", description="Important security info", type=MeetingType.SECURITY)]
+        meetings = [
+            Meeting(id=1, title="Security Training", description="Important security info", type=MeetingType.SECURITY)
+        ]
 
         mock_count_result = MagicMock()
         mock_count_result.scalar_one.return_value = 1

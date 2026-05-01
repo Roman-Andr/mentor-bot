@@ -1,7 +1,6 @@
 """Unit tests for custom exceptions."""
 
 from fastapi import status
-
 from meeting_service.core.exceptions import (
     AuthException,
     ConflictException,

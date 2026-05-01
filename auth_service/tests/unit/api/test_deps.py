@@ -5,7 +5,6 @@ from typing import get_origin
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
 from auth_service.api import deps
 from auth_service.core import AuthException, PermissionDenied, UserRole
 from auth_service.models import User

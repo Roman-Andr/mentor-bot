@@ -4,31 +4,26 @@ from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from fastapi import HTTPException, status
-
 from checklists_service.api.deps import UserInfo
 from checklists_service.api.endpoints import certificates
+from checklists_service.api.endpoints import certificates as cert_module
 from checklists_service.core.enums import ChecklistStatus
 from checklists_service.models import Certificate
-from checklists_service.api.endpoints import certificates as cert_module
+from fastapi import HTTPException, status
 
 
 @pytest.fixture
 def sample_user():
     """Create sample user."""
-    return UserInfo({
-        "id": 1, "email": "user@example.com", "role": "EMPLOYEE",
-        "is_active": True, "employee_id": "EMP001"
-    })
+    return UserInfo(
+        {"id": 1, "email": "user@example.com", "role": "EMPLOYEE", "is_active": True, "employee_id": "EMP001"}
+    )
 
 
 @pytest.fixture
 def sample_hr_user():
     """Create sample HR user."""
-    return UserInfo({
-        "id": 10, "email": "hr@example.com", "role": "HR",
-        "is_active": True, "employee_id": "HR001"
-    })
+    return UserInfo({"id": 10, "email": "hr@example.com", "role": "HR", "is_active": True, "employee_id": "HR001"})
 
 
 @pytest.fixture
@@ -254,9 +249,7 @@ class TestDownloadCertificate:
         with patch("checklists_service.api.endpoints.certificates.CertificateGenerator") as mock_gen_cls:
             mock_gen = MagicMock()
             mock_gen_cls.return_value = mock_gen
-            mock_gen.generate_certificate_from_checklist = AsyncMock(
-                side_effect=ValueError("Invalid data")
-            )
+            mock_gen.generate_certificate_from_checklist = AsyncMock(side_effect=ValueError("Invalid data"))
 
             with pytest.raises(HTTPException) as exc_info:
                 await certificates.download_certificate(
@@ -284,9 +277,7 @@ class TestDownloadCertificate:
         with patch("checklists_service.api.endpoints.certificates.CertificateGenerator") as mock_gen_cls:
             mock_gen = MagicMock()
             mock_gen_cls.return_value = mock_gen
-            mock_gen.generate_certificate_from_checklist = AsyncMock(
-                side_effect=RuntimeError("Unexpected error")
-            )
+            mock_gen.generate_certificate_from_checklist = AsyncMock(side_effect=RuntimeError("Unexpected error"))
 
             with patch.object(cert_module, "logger") as mock_logger:
                 with pytest.raises(HTTPException) as exc_info:

@@ -3,10 +3,9 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from auth_service.models import Department, User
 from auth_service.repositories.implementations.base import SqlAlchemyBaseRepository
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class TestSqlAlchemyBaseRepository:

@@ -1,7 +1,6 @@
 """Unit tests for telegram_bot/keyboards/common_kb.py."""
 
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-
 from telegram_bot.keyboards.common_kb import (
     get_help_keyboard,
     get_mentor_tasks_keyboard,

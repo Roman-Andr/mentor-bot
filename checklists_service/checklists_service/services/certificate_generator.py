@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 TEMPLATES_DIR = Path(__file__).parent.parent.parent / "templates"
 
 # Jinja2 environment
-jinja_env = Environment(loader=FileSystemLoader(TEMPLATES_DIR))
+jinja_env = Environment(loader=FileSystemLoader(TEMPLATES_DIR), autoescape=True)
 
 
 class CertificateGenerator:
@@ -43,8 +43,18 @@ class CertificateGenerator:
         if locale == "ru":
             # Russian month names
             months_ru = [
-                "января", "февраля", "марта", "апреля", "мая", "июня",
-                "июля", "августа", "сентября", "октября", "ноября", "декабря"
+                "января",
+                "февраля",
+                "марта",
+                "апреля",
+                "мая",
+                "июня",
+                "июля",
+                "августа",
+                "сентября",
+                "октября",
+                "ноября",
+                "декабря",
             ]
             return f"{date.day} {months_ru[date.month - 1]} {date.year}"
         return date.strftime("%B %d, %Y")
@@ -56,7 +66,7 @@ class CertificateGenerator:
                 "title": "Сертификат о Завершении",
                 "subtitle": "Онбординг успешно завершён",
                 "presentedTo": "Вручается",
-                "achievement": "За успешное завершение программы онбординга \"{program_name}\"",
+                "achievement": 'За успешное завершение программы онбординга "{program_name}"',
                 "completedOn": "Дата завершения",
                 "hr_signature": "Подпись HR",
                 "mentor_signature": "Подпись наставника",
@@ -68,7 +78,7 @@ class CertificateGenerator:
             "title": "Certificate of Completion",
             "subtitle": "Onboarding Successfully Completed",
             "presentedTo": "Presented to",
-            "achievement": "For successfully completing the \"{program_name}\" onboarding program",
+            "achievement": 'For successfully completing the "{program_name}" onboarding program',
             "completedOn": "Completed on",
             "hr_signature": "HR Signature",
             "mentor_signature": "Mentor Signature",
@@ -86,7 +96,8 @@ class CertificateGenerator:
         mentor_data: dict[str, Any] | None,
         locale: str = "en",
     ) -> bytes:
-        """Generate certificate PDF.
+        """
+        Generate certificate PDF.
 
         Args:
             certificate: Certificate model instance
@@ -98,6 +109,7 @@ class CertificateGenerator:
 
         Returns:
             PDF as bytes
+
         """
         translations = self._get_translations(locale)
 
@@ -105,11 +117,15 @@ class CertificateGenerator:
         context = {
             "employee_name": f"{employee_data.get('first_name', '')} {employee_data.get('last_name', '')}".strip(),
             "employee_position": employee_data.get("position", ""),
-            "employee_department": employee_data.get("department", {}).get("name", "") if employee_data.get("department") else "",
+            "employee_department": employee_data.get("department", {}).get("name", "")
+            if employee_data.get("department")
+            else "",
             "program_name": template_name,
             "completion_date": self._format_date(certificate.issued_at, locale),
             "hr_name": f"{hr_data.get('first_name', '')} {hr_data.get('last_name', '')}".strip() if hr_data else "",
-            "mentor_name": f"{mentor_data.get('first_name', '')} {mentor_data.get('last_name', '')}".strip() if mentor_data else "",
+            "mentor_name": f"{mentor_data.get('first_name', '')} {mentor_data.get('last_name', '')}".strip()
+            if mentor_data
+            else "",
             "cert_uid": certificate.cert_uid,
             "cert_id": str(certificate.id).zfill(8),
             **translations,
@@ -131,7 +147,8 @@ class CertificateGenerator:
         checklist_data: dict[str, Any],
         locale: str = "en",
     ) -> bytes:
-        """Generate certificate PDF from checklist data.
+        """
+        Generate certificate PDF from checklist data.
 
         Args:
             certificate: Certificate model instance
@@ -140,6 +157,7 @@ class CertificateGenerator:
 
         Returns:
             PDF as bytes
+
         """
         # Fetch user data
         employee_data = await self._get_user_data(certificate.user_id)

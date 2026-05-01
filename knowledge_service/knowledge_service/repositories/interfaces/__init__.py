@@ -9,21 +9,23 @@ from knowledge_service.repositories.interfaces.base import BaseRepository
 from knowledge_service.repositories.interfaces.category import ICategoryRepository
 from knowledge_service.repositories.interfaces.category_change_history import ICategoryChangeHistoryRepository
 from knowledge_service.repositories.interfaces.dialogue import IDialogueScenarioRepository, IDialogueStepRepository
-from knowledge_service.repositories.interfaces.dialogue_scenario_change_history import IDialogueScenarioChangeHistoryRepository
+from knowledge_service.repositories.interfaces.dialogue_scenario_change_history import (
+    IDialogueScenarioChangeHistoryRepository,
+)
 from knowledge_service.repositories.interfaces.search_history import ISearchHistoryRepository
 from knowledge_service.repositories.interfaces.tag import ITagRepository
 
 __all__ = [
     "BaseRepository",
-    "IArticleRepository",
     "IArticleChangeHistoryRepository",
-    "IArticleViewRepository",
+    "IArticleRepository",
     "IArticleViewHistoryRepository",
+    "IArticleViewRepository",
     "IAttachmentRepository",
-    "ICategoryRepository",
     "ICategoryChangeHistoryRepository",
-    "IDialogueScenarioRepository",
+    "ICategoryRepository",
     "IDialogueScenarioChangeHistoryRepository",
+    "IDialogueScenarioRepository",
     "IDialogueStepRepository",
     "ISearchHistoryRepository",
     "ITagRepository",

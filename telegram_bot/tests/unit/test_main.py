@@ -58,8 +58,12 @@ class TestLifespan:
         self.mock_settings = patch_settings.start()
 
         self.patches = [
-            patch_init_db, patch_user_cache, patch_redis_cache,
-            patch_setup_bot_commands, patch_scheduler, patch_settings
+            patch_init_db,
+            patch_user_cache,
+            patch_redis_cache,
+            patch_setup_bot_commands,
+            patch_scheduler,
+            patch_settings,
         ]
 
         self.mock_settings.ENABLE_NOTIFICATIONS = True
@@ -177,7 +181,6 @@ class TestSetupBotCommands:
     async def test_setup_bot_commands_verifies_command_structure(self, setup_settings):
         """Test that commands have proper description and command fields."""
         from aiogram.types import BotCommand
-
         from telegram_bot.main import setup_bot_commands
 
         mock_bot = MagicMock()
@@ -201,14 +204,15 @@ class TestMainFunction:
     @pytest.fixture(autouse=True)
     def setup_mocks(self, mock_modules):
         """Set up all necessary mocks."""
-        with patch("telegram_bot.main.Redis") as mock_redis_class, \
-             patch("telegram_bot.main.RedisStorage") as mock_storage_class, \
-             patch("telegram_bot.main.Bot") as mock_bot_class, \
-             patch("telegram_bot.main.Dispatcher") as mock_dispatcher_class, \
-             patch("telegram_bot.main.setup_bot") as mock_setup_bot, \
-             patch("telegram_bot.main.lifespan") as mock_lifespan, \
-             patch("telegram_bot.main.settings") as mock_settings:
-
+        with (
+            patch("telegram_bot.main.Redis") as mock_redis_class,
+            patch("telegram_bot.main.RedisStorage") as mock_storage_class,
+            patch("telegram_bot.main.Bot") as mock_bot_class,
+            patch("telegram_bot.main.Dispatcher") as mock_dispatcher_class,
+            patch("telegram_bot.main.setup_bot") as mock_setup_bot,
+            patch("telegram_bot.main.lifespan") as mock_lifespan,
+            patch("telegram_bot.main.settings") as mock_settings,
+        ):
             self.mock_redis_class = mock_redis_class
             self.mock_storage_class = mock_storage_class
             self.mock_bot_class = mock_bot_class
@@ -288,15 +292,19 @@ class TestMainModule:
             mock_settings.TELEGRAM_PROXY = ""
 
             # Import fresh to check logging setup
-            with patch.dict(sys.modules, {
-                "telegram_bot.database": MagicMock(),
-                "telegram_bot.database.connection": MagicMock(),
-                "telegram_bot.services.cache": MagicMock(),
-                "telegram_bot.utils.cache": MagicMock(),
-                "telegram_bot.utils.scheduler": MagicMock(),
-                "telegram_bot.bot": MagicMock(),
-            }):
+            with patch.dict(
+                sys.modules,
+                {
+                    "telegram_bot.database": MagicMock(),
+                    "telegram_bot.database.connection": MagicMock(),
+                    "telegram_bot.services.cache": MagicMock(),
+                    "telegram_bot.utils.cache": MagicMock(),
+                    "telegram_bot.utils.scheduler": MagicMock(),
+                    "telegram_bot.bot": MagicMock(),
+                },
+            ):
                 import logging
+
                 # Force reimport by clearing cache
                 if "telegram_bot.main" in sys.modules:
                     del sys.modules["telegram_bot.main"]
@@ -306,14 +314,17 @@ class TestMainModule:
     def test_main_entry_point_exists(self, mock_modules):
         """Test that __main__ entry point exists."""
         # Just verify the pattern exists in the code
-        with patch.dict(sys.modules, {
-            "telegram_bot.database": MagicMock(),
-            "telegram_bot.database.connection": MagicMock(),
-            "telegram_bot.services.cache": MagicMock(),
-            "telegram_bot.utils.cache": MagicMock(),
-            "telegram_bot.utils.scheduler": MagicMock(),
-            "telegram_bot.bot": MagicMock(),
-        }):
+        with patch.dict(
+            sys.modules,
+            {
+                "telegram_bot.database": MagicMock(),
+                "telegram_bot.database.connection": MagicMock(),
+                "telegram_bot.services.cache": MagicMock(),
+                "telegram_bot.utils.cache": MagicMock(),
+                "telegram_bot.utils.scheduler": MagicMock(),
+                "telegram_bot.bot": MagicMock(),
+            },
+        ):
             if "telegram_bot.main" in sys.modules:
                 del sys.modules["telegram_bot.main"]
             import telegram_bot.main as main_module

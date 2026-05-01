@@ -4,8 +4,6 @@ from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from notification_service.core.enums import NotificationChannel, NotificationStatus, NotificationType
 from notification_service.core.exceptions import NotFoundException
 from notification_service.models import Notification, ScheduledNotification
@@ -13,6 +11,7 @@ from notification_service.repositories.implementations.notification import (
     NotificationRepository,
     ScheduledNotificationRepository,
 )
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 @pytest.fixture
@@ -215,9 +214,7 @@ class TestNotificationRepositoryFindNotifications:
 
         mock_session.execute.side_effect = [mock_count_result, mock_data_result]
 
-        notifications, total = await notification_repo.find_notifications(
-            sort_by="created_at", sort_order="asc"
-        )
+        notifications, total = await notification_repo.find_notifications(sort_by="created_at", sort_order="asc")
 
         assert total == 1
         assert len(notifications) == 1
@@ -275,7 +272,10 @@ class TestScheduledNotificationRepositoryFindPendingBefore:
     """Tests for ScheduledNotificationRepository.find_pending_before."""
 
     async def test_returns_pending_notifications_before_time(
-        self, scheduled_repo: ScheduledNotificationRepository, mock_session: MagicMock, sample_scheduled_notification: ScheduledNotification
+        self,
+        scheduled_repo: ScheduledNotificationRepository,
+        mock_session: MagicMock,
+        sample_scheduled_notification: ScheduledNotification,
     ) -> None:
         """Returns pending notifications scheduled before given time."""
         before_time = datetime.now(UTC)
@@ -312,7 +312,10 @@ class TestScheduledNotificationRepositoryMarkProcessed:
     """Tests for ScheduledNotificationRepository.mark_processed."""
 
     async def test_marks_notification_as_processed(
-        self, scheduled_repo: ScheduledNotificationRepository, mock_session: MagicMock, sample_scheduled_notification: ScheduledNotification
+        self,
+        scheduled_repo: ScheduledNotificationRepository,
+        mock_session: MagicMock,
+        sample_scheduled_notification: ScheduledNotification,
     ) -> None:
         """Marks notification as processed and sets processed_at time."""
         mock_result = MagicMock()

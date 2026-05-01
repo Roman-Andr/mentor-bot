@@ -4,8 +4,6 @@ from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from fastapi import HTTPException
-
 from knowledge_service.api.endpoints.audit import (
     get_article_change_history,
     get_article_view_history,
@@ -109,7 +107,9 @@ class TestGetArticleChangeHistory:
         assert result.items[0].id == 1
         assert result.items[0].article_id == 1
         assert result.items[0].action == "created"
-        mock_uow.article_change_history.get_by_article_id.assert_called_once_with(article_id=1, from_date=None, to_date=None)
+        mock_uow.article_change_history.get_by_article_id.assert_called_once_with(
+            article_id=1, from_date=None, to_date=None
+        )
 
     async def test_get_history_with_date_filters(self, mock_uow, mock_hr_user):
         """Test getting history with date filters."""
@@ -187,7 +187,9 @@ class TestGetArticleViewHistory:
         assert result.items[0].id == 1
         assert result.items[0].article_id == 1
         assert result.items[0].user_id == 1
-        mock_uow.article_view_history.get_by_article_id.assert_called_once_with(article_id=1, from_date=None, to_date=None)
+        mock_uow.article_view_history.get_by_article_id.assert_called_once_with(
+            article_id=1, from_date=None, to_date=None
+        )
 
     async def test_get_view_history_by_user_id(self, mock_uow, mock_hr_user, mock_article_view_history):
         """Test getting view history for specific user."""
@@ -347,7 +349,9 @@ class TestGetDialogueScenarioChangeHistory:
 
     async def test_get_scenario_history_by_id(self, mock_uow, mock_hr_user, mock_dialogue_scenario_change_history):
         """Test getting history for specific scenario."""
-        mock_uow.dialogue_scenario_change_history.get_by_scenario_id.return_value = [mock_dialogue_scenario_change_history]
+        mock_uow.dialogue_scenario_change_history.get_by_scenario_id.return_value = [
+            mock_dialogue_scenario_change_history
+        ]
 
         result = await get_dialogue_scenario_change_history(
             current_user=mock_hr_user,

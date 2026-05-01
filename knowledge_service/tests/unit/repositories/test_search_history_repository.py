@@ -4,10 +4,9 @@ from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from knowledge_service.models import SearchHistory
 from knowledge_service.repositories.implementations.search_history import SearchHistoryRepository
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class TestSearchHistoryRepository:
@@ -350,7 +349,7 @@ class TestSearchHistoryRepository:
         """Test getting search summary with date filters."""
         from_date = datetime(2024, 1, 1, tzinfo=UTC)
         to_date = datetime(2024, 12, 31, tzinfo=UTC)
-        
+
         mock_result = MagicMock()
         mock_result.scalar_one.return_value = 50
         mock_session.execute.return_value = mock_result
@@ -574,7 +573,6 @@ class TestSearchHistoryRepository:
     async def test_base_repository_methods(self, mock_session, sample_search_history):
         """Test base repository methods inherited from SqlAlchemyBaseRepository."""
         # Test get_by_id - skip this as it's inherited and tested in base repository tests
-        pass
 
     async def test_base_repository_get_all(self, mock_session, sample_search_histories):
         """Test base repository get_all method."""

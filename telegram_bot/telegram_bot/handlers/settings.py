@@ -14,9 +14,7 @@ router = Router()
 @router.message(Command("settings"))
 @router.message(F.text == "\u2699\ufe0f Settings")
 @router.message(F.text == "Settings")
-@router.message(
-    F.text == "\u2699\ufe0f \u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438"
-)
+@router.message(F.text == "\u2699\ufe0f \u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438")
 @router.message(F.text == "\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438")
 async def cmd_settings(message: Message, auth_token: str, user: dict, *, locale: str = "en") -> None:
     """Show settings menu."""
@@ -31,13 +29,12 @@ async def cmd_settings(message: Message, auth_token: str, user: dict, *, locale:
                 telegram_enabled = prefs.get("notification_telegram_enabled", True)
                 email_enabled = prefs.get("notification_email_enabled", True)
 
-    text = (
-        f"*\u2699\ufe0f {t('settings.title', locale=locale)}*\n\n"
-        f"{t('settings.description', locale=locale)}"
-    )
+    text = f"*\u2699\ufe0f {t('settings.title', locale=locale)}*\n\n{t('settings.description', locale=locale)}"
     await message.answer(
         text,
-        reply_markup=get_settings_keyboard(locale=locale, telegram_enabled=telegram_enabled, email_enabled=email_enabled),
+        reply_markup=get_settings_keyboard(
+            locale=locale, telegram_enabled=telegram_enabled, email_enabled=email_enabled
+        ),
         parse_mode="Markdown",
     )
 
@@ -60,13 +57,12 @@ async def cb_settings_menu(callback: CallbackQuery, auth_token: str, user: dict,
                 telegram_enabled = prefs.get("notification_telegram_enabled", True)
                 email_enabled = prefs.get("notification_email_enabled", True)
 
-    text = (
-        f"*\u2699\ufe0f {t('settings.title', locale=locale)}*\n\n"
-        f"{t('settings.description', locale=locale)}"
-    )
+    text = f"*\u2699\ufe0f {t('settings.title', locale=locale)}*\n\n{t('settings.description', locale=locale)}"
     await callback.message.edit_text(
         text,
-        reply_markup=get_settings_keyboard(locale=locale, telegram_enabled=telegram_enabled, email_enabled=email_enabled),
+        reply_markup=get_settings_keyboard(
+            locale=locale, telegram_enabled=telegram_enabled, email_enabled=email_enabled
+        ),
         parse_mode="Markdown",
     )
     await callback.answer()
@@ -96,7 +92,9 @@ async def cb_notifications_menu(callback: CallbackQuery, auth_token: str, user: 
     )
     await callback.message.edit_text(
         text,
-        reply_markup=get_notifications_keyboard(locale=locale, telegram_enabled=telegram_enabled, email_enabled=email_enabled),
+        reply_markup=get_notifications_keyboard(
+            locale=locale, telegram_enabled=telegram_enabled, email_enabled=email_enabled
+        ),
         parse_mode="Markdown",
     )
     await callback.answer()
@@ -138,7 +136,9 @@ async def cb_toggle_telegram(callback: CallbackQuery, auth_token: str, user: dic
     )
     await callback.message.edit_text(
         text,
-        reply_markup=get_notifications_keyboard(locale=locale, telegram_enabled=new_telegram_enabled, email_enabled=email_enabled),
+        reply_markup=get_notifications_keyboard(
+            locale=locale, telegram_enabled=new_telegram_enabled, email_enabled=email_enabled
+        ),
         parse_mode="Markdown",
     )
     await callback.answer(t("settings.telegram_toggled", locale=locale))
@@ -180,8 +180,9 @@ async def cb_toggle_email(callback: CallbackQuery, auth_token: str, user: dict, 
     )
     await callback.message.edit_text(
         text,
-        reply_markup=get_notifications_keyboard(locale=locale, telegram_enabled=telegram_enabled, email_enabled=new_email_enabled),
+        reply_markup=get_notifications_keyboard(
+            locale=locale, telegram_enabled=telegram_enabled, email_enabled=new_email_enabled
+        ),
         parse_mode="Markdown",
     )
     await callback.answer(t("settings.email_toggled", locale=locale))
-

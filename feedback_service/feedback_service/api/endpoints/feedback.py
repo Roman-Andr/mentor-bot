@@ -9,7 +9,6 @@ from loguru import logger
 
 from feedback_service.api.deps import AuthUser, CurrentUser, HRAdminUser, ServiceAuth, UOWDep, check_user_access
 from feedback_service.models import Comment, ExperienceRating, PulseSurvey
-from feedback_service.services.notification_client import NotificationClient
 from feedback_service.schemas import (
     CommentCreate,
     CommentListResponse,
@@ -24,6 +23,7 @@ from feedback_service.schemas import (
     PulseSurveyListResponse,
     PulseSurveyResponse,
 )
+from feedback_service.services.notification_client import NotificationClient
 
 router = APIRouter()
 
@@ -31,6 +31,7 @@ router = APIRouter()
 # ============================================================================
 # Pulse Survey Endpoints
 # ============================================================================
+
 
 @router.post("/pulse", status_code=status.HTTP_201_CREATED)
 async def submit_pulse_survey(
@@ -175,7 +176,9 @@ async def get_pulse_stats(
             from_date=from_date,
             to_date=to_date,
         )
-        logger.debug("Pulse stats fetched (current_user_id={}, effective_user_id={})", current_user.id, effective_user_id)
+        logger.debug(
+            "Pulse stats fetched (current_user_id={}, effective_user_id={})", current_user.id, effective_user_id
+        )
 
         return PulseStatsResponse(
             **stats,
@@ -210,18 +213,20 @@ async def get_pulse_anonymity_stats(
             to_date=to_date,
         )
         logger.debug("Pulse anonymity stats fetched (current_user_id={})", current_user.id)
-        return stats
     except Exception:
         logger.exception("Failed to get pulse anonymity stats")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to get anonymity stats",
+            detail="Failed to get pulse anonymity stats",
         ) from None
+    else:
+        return stats
 
 
 # ============================================================================
 # Experience Rating Endpoints
 # ============================================================================
+
 
 @router.post("/experience", status_code=status.HTTP_201_CREATED)
 async def submit_experience_rating(
@@ -387,6 +392,7 @@ async def get_experience_stats(
 # Comment Endpoints
 # ============================================================================
 
+
 @router.post("/comments", status_code=status.HTTP_201_CREATED)
 async def submit_comment(
     data: CommentCreate,
@@ -546,7 +552,8 @@ async def reply_to_comment(
 
         # Send notification to comment author (fire-and-forget)
         notification_client = NotificationClient()
-        asyncio.create_task(
+        _background_tasks = set()
+        task = asyncio.create_task(
             notification_client.notify_comment_reply(
                 comment_id=comment_id,
                 original_comment_preview=comment.comment,
@@ -555,6 +562,8 @@ async def reply_to_comment(
                 user_id=comment.user_id if not comment.is_anonymous else None,
             )
         )
+        _background_tasks.add(task)
+        task.add_done_callback(_background_tasks.discard)
 
         return CommentResponse.model_validate(comment)
     except HTTPException:

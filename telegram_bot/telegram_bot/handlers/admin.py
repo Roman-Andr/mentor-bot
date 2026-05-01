@@ -49,9 +49,7 @@ async def cmd_admin(message: Message, user: dict, *, locale: str = "en") -> None
 
 
 @router.callback_query(F.data == "admin_panel")
-async def admin_panel(
-    callback: CallbackQuery, user: dict, *, locale: str = "en"
-) -> None:
+async def admin_panel(callback: CallbackQuery, user: dict, *, locale: str = "en") -> None:
     """Admin panel callback."""
     if not user or user.get("role") not in ("HR", "ADMIN"):
         await callback.answer(t("common.access_denied", locale=locale), show_alert=True)
@@ -67,9 +65,7 @@ async def admin_panel(
 
 
 @router.callback_query(F.data == "admin_stats")
-async def admin_stats(
-    callback: CallbackQuery, user: dict, auth_token: str, *, locale: str = "en"
-) -> None:
+async def admin_stats(callback: CallbackQuery, user: dict, auth_token: str, *, locale: str = "en") -> None:
     """Show admin statistics with real data from services."""
     if not user or user.get("role") not in ("HR", "ADMIN"):
         await callback.answer(t("common.access_denied", locale=locale), show_alert=True)
@@ -104,9 +100,7 @@ async def admin_stats(
 
 
 @router.callback_query(F.data == "admin_users")
-async def admin_users(
-    callback: CallbackQuery, user: dict, *, locale: str = "en"
-) -> None:
+async def admin_users(callback: CallbackQuery, user: dict, *, locale: str = "en") -> None:
     """Manage users."""
     if not user or user.get("role") not in ("HR", "ADMIN"):
         await callback.answer(t("common.access_denied", locale=locale), show_alert=True)
@@ -122,9 +116,7 @@ async def admin_users(
 
 
 @router.callback_query(F.data == "admin_checklists")
-async def admin_checklists(
-    callback: CallbackQuery, user: dict, *, locale: str = "en"
-) -> None:
+async def admin_checklists(callback: CallbackQuery, user: dict, *, locale: str = "en") -> None:
     """Manage checklists."""
     if not user or user.get("role") not in ("HR", "ADMIN"):
         await callback.answer(t("common.access_denied", locale=locale), show_alert=True)
@@ -142,9 +134,7 @@ async def admin_checklists(
 
 
 @router.callback_query(F.data == "list_users")
-async def list_users(
-    callback: CallbackQuery, user: dict, auth_token: str, *, locale: str = "en"
-) -> None:
+async def list_users(callback: CallbackQuery, user: dict, auth_token: str, *, locale: str = "en") -> None:
     """List system users."""
     if not user or user.get("role") not in ("HR", "ADMIN"):
         await callback.answer(t("common.access_denied", locale=locale), show_alert=True)
@@ -188,9 +178,7 @@ async def add_user(callback: CallbackQuery, user: dict, *, locale: str = "en") -
 
 
 @router.callback_query(F.data == "send_invite")
-async def send_invite(
-    callback: CallbackQuery, user: dict, *, locale: str = "en"
-) -> None:
+async def send_invite(callback: CallbackQuery, user: dict, *, locale: str = "en") -> None:
     """Send invite placeholder."""
     if not user or user.get("role") not in ("HR", "ADMIN"):
         await callback.answer(t("common.access_denied", locale=locale), show_alert=True)
@@ -206,9 +194,7 @@ async def send_invite(
 
 
 @router.callback_query(F.data == "list_templates")
-async def list_templates(
-    callback: CallbackQuery, user: dict, auth_token: str, *, locale: str = "en"
-) -> None:
+async def list_templates(callback: CallbackQuery, user: dict, auth_token: str, *, locale: str = "en") -> None:
     """List checklist templates."""
     if not user or user.get("role") not in ("HR", "ADMIN"):
         await callback.answer(t("common.access_denied", locale=locale), show_alert=True)
@@ -228,18 +214,14 @@ async def list_templates(
     if callback.message:
         await callback.message.edit_text(
             text,
-            reply_markup=get_back_to_admin_checklists_keyboard(
-                locale=locale
-            ),
+            reply_markup=get_back_to_admin_checklists_keyboard(locale=locale),
             parse_mode="Markdown",
         )
     await callback.answer()
 
 
 @router.callback_query(F.data == "checklist_progress")
-async def checklist_progress(
-    callback: CallbackQuery, user: dict, auth_token: str, *, locale: str = "en"
-) -> None:
+async def checklist_progress(callback: CallbackQuery, user: dict, auth_token: str, *, locale: str = "en") -> None:
     """Show overall checklist progress."""
     if not user or user.get("role") not in ("HR", "ADMIN"):
         await callback.answer(t("common.access_denied", locale=locale), show_alert=True)
@@ -257,18 +239,14 @@ async def checklist_progress(
     if callback.message:
         await callback.message.edit_text(
             text,
-            reply_markup=get_back_to_admin_checklists_keyboard(
-                locale=locale
-            ),
+            reply_markup=get_back_to_admin_checklists_keyboard(locale=locale),
             parse_mode="Markdown",
         )
     await callback.answer()
 
 
 @router.callback_query(F.data == "overdue_tasks")
-async def overdue_tasks(
-    callback: CallbackQuery, user: dict, auth_token: str, *, locale: str = "en"
-) -> None:
+async def overdue_tasks(callback: CallbackQuery, user: dict, auth_token: str, *, locale: str = "en") -> None:
     """Show overdue tasks."""
     if not user or user.get("role") not in ("HR", "ADMIN"):
         await callback.answer(t("common.access_denied", locale=locale), show_alert=True)
@@ -288,18 +266,14 @@ async def overdue_tasks(
     if callback.message:
         await callback.message.edit_text(
             text,
-            reply_markup=get_back_to_admin_checklists_keyboard(
-                locale=locale
-            ),
+            reply_markup=get_back_to_admin_checklists_keyboard(locale=locale),
             parse_mode="Markdown",
         )
     await callback.answer()
 
 
 @router.callback_query(F.data == "admin_settings")
-async def admin_settings(
-    callback: CallbackQuery, user: dict, *, locale: str = "en"
-) -> None:
+async def admin_settings(callback: CallbackQuery, user: dict, *, locale: str = "en") -> None:
     """Admin settings placeholder."""
     if not user or user.get("role") not in ("HR", "ADMIN"):
         await callback.answer(t("common.access_denied", locale=locale), show_alert=True)
@@ -315,9 +289,7 @@ async def admin_settings(
 
 
 @router.callback_query(F.data == "admin_reports")
-async def admin_reports(
-    callback: CallbackQuery, user: dict, *, locale: str = "en"
-) -> None:
+async def admin_reports(callback: CallbackQuery, user: dict, *, locale: str = "en") -> None:
     """Admin reports placeholder."""
     if not user or user.get("role") not in ("HR", "ADMIN"):
         await callback.answer(t("common.access_denied", locale=locale), show_alert=True)
@@ -333,9 +305,7 @@ async def admin_reports(
 
 
 @router.callback_query(F.data == "admin_alerts")
-async def admin_alerts(
-    callback: CallbackQuery, user: dict, *, locale: str = "en"
-) -> None:
+async def admin_alerts(callback: CallbackQuery, user: dict, *, locale: str = "en") -> None:
     """Admin alerts placeholder."""
     if not user or user.get("role") not in ("HR", "ADMIN"):
         await callback.answer(t("common.access_denied", locale=locale), show_alert=True)
@@ -351,9 +321,7 @@ async def admin_alerts(
 
 
 @router.callback_query(F.data == "detailed_report")
-async def detailed_report(
-    callback: CallbackQuery, user: dict, *, locale: str = "en"
-) -> None:
+async def detailed_report(callback: CallbackQuery, user: dict, *, locale: str = "en") -> None:
     """Detailed report placeholder."""
     if not user or user.get("role") not in ("HR", "ADMIN"):
         await callback.answer(t("common.access_denied", locale=locale), show_alert=True)
@@ -369,9 +337,7 @@ async def detailed_report(
 
 
 @router.callback_query(F.data == "export_data")
-async def export_data(
-    callback: CallbackQuery, user: dict, *, locale: str = "en"
-) -> None:
+async def export_data(callback: CallbackQuery, user: dict, *, locale: str = "en") -> None:
     """Export data placeholder."""
     if not user or user.get("role") not in ("HR", "ADMIN"):
         await callback.answer(t("common.access_denied", locale=locale), show_alert=True)

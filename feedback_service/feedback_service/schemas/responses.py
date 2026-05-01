@@ -29,6 +29,7 @@ class HealthCheck(BaseModel):
 
 # List response schemas
 
+
 class PulseSurveyListResponse(BaseModel):
     """Response schema for paginated pulse survey list."""
 
@@ -57,6 +58,7 @@ class CommentListResponse(BaseModel):
 
 
 # Stats response schemas
+
 
 class PulseStatsResponse(BaseModel):
     """Response schema for pulse survey statistics."""

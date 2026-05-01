@@ -102,9 +102,7 @@ class ChecklistService:
         if checklist_data.hr_id:
             hr_data = await auth_service_client.get_user(checklist_data.hr_id, auth_token)
             if not hr_data:
-                logger.warning(
-                    "Create checklist: HR not found (hr_id={})", checklist_data.hr_id
-                )
+                logger.warning("Create checklist: HR not found (hr_id={})", checklist_data.hr_id)
                 msg = f"HR {checklist_data.hr_id} not found"
                 raise ValidationException(msg)
             if hr_data.get("role") not in ["HR", "ADMIN"]:
@@ -137,7 +135,7 @@ class ChecklistService:
         task_templates = list(await self._uow.task_templates.find_by_template(template.id))
 
         tasks: list[Task] = []
-        for idx, task_template in enumerate(task_templates):
+        for _idx, task_template in enumerate(task_templates):
             task_due_date = start_date + timedelta(days=task_template.due_days)
             task_due_date = min(task_due_date, due_date)
 
@@ -234,9 +232,7 @@ class ChecklistService:
         checklist = await self.get_checklist(checklist_id)
 
         if checklist.status == ChecklistStatus.IN_PROGRESS:
-            logger.warning(
-                "Delete rejected: checklist is IN_PROGRESS (checklist_id={})", checklist_id
-            )
+            logger.warning("Delete rejected: checklist is IN_PROGRESS (checklist_id={})", checklist_id)
             msg = "Cannot delete in-progress checklist"
             raise ValidationException(msg)
 
@@ -277,9 +273,7 @@ class ChecklistService:
         checklist = await self.get_checklist(checklist_id)
 
         if checklist.status == ChecklistStatus.COMPLETED:
-            logger.debug(
-                "complete_checklist: already completed (checklist_id={})", checklist_id
-            )
+            logger.debug("complete_checklist: already completed (checklist_id={})", checklist_id)
             return checklist
 
         status_counts = await self._uow.tasks.count_by_status(checklist_id)
@@ -321,17 +315,19 @@ class ChecklistService:
                 checklist_id,
                 updated.user_id,
             )
-            
+
             # Send notification via notification service
             try:
                 # Fetch employee data for notification
                 employee_data = await auth_service_client.get_user(updated.user_id, self.auth_token)
                 if employee_data:
-                    employee_name = f"{employee_data.get('first_name', '')} {employee_data.get('last_name', '')}".strip()
+                    employee_name = (
+                        f"{employee_data.get('first_name', '')} {employee_data.get('last_name', '')}".strip()
+                    )
                     # Fetch template name
                     template = await self._uow.templates.get_by_id(updated.template_id)
                     template_name = template.name if template else "Onboarding"
-                    
+
                     await notification_service_client.send_notification(
                         user_id=updated.user_id,
                         notification_type="certificate_issued",
@@ -344,7 +340,9 @@ class ChecklistService:
                         },
                         auth_token=self.auth_token,
                     )
-                    logger.info("Certificate notification sent (user_id={}, cert_uid={})", updated.user_id, certificate.cert_uid)
+                    logger.info(
+                        "Certificate notification sent (user_id={}, cert_uid={})", updated.user_id, certificate.cert_uid
+                    )
             except Exception as e:
                 logger.error("Failed to send certificate notification: %s", e)
 
@@ -395,9 +393,7 @@ class ChecklistService:
         )
         matching_templates = list(await self._uow.templates.find_matching(department_id, position))
         if not matching_templates:
-            logger.info(
-                "Auto-create checklists: no matching templates (user_id={})", user_id
-            )
+            logger.info("Auto-create checklists: no matching templates (user_id={})", user_id)
             return []
 
         created_checklists: list[Checklist] = []
@@ -431,7 +427,7 @@ class ChecklistService:
             task_templates = list(await self._uow.task_templates.find_by_template(template.id))
 
             tasks: list[Task] = []
-            for idx, task_template in enumerate(task_templates):
+            for _idx, task_template in enumerate(task_templates):
                 task_due_date = start_date + timedelta(days=task_template.due_days)
                 task_due_date = min(task_due_date, due_date)
 

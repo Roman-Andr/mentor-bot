@@ -4,7 +4,6 @@ import contextlib
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
 from escalation_service.database import get_db, init_db
 
 

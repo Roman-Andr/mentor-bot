@@ -3,7 +3,6 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-
 from telegram_bot.middlewares.request_id import RequestIDMiddleware
 from telegram_bot.utils.logging import request_id_var
 

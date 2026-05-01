@@ -1,9 +1,9 @@
 """Tests for certificate generator service."""
 
-import pytest
-from datetime import datetime, UTC
-from unittest.mock import AsyncMock, MagicMock, patch
+from datetime import UTC, datetime
+from unittest.mock import MagicMock, patch
 
+import pytest
 from checklists_service.models import Certificate
 from checklists_service.services.certificate_generator import CertificateGenerator
 

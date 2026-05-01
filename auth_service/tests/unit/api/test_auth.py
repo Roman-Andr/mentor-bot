@@ -4,14 +4,13 @@ from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from fastapi.testclient import TestClient
-
 from auth_service.api import deps
 from auth_service.core.enums import UserRole
 from auth_service.core.security import create_access_token
 from auth_service.main import app
 from auth_service.models import User
 from auth_service.schemas import Token
+from fastapi.testclient import TestClient
 
 
 def get_test_client():
@@ -75,6 +74,7 @@ class TestLoginEndpoint:
     def test_login_invalid_credentials(self, mock_auth_service):
         """Test login with invalid credentials returns 401."""
         from auth_service.core import AuthException
+
         mock_auth_service.authenticate_user = AsyncMock(side_effect=AuthException("Invalid email or password"))
 
         app.dependency_overrides[deps.get_auth_service] = lambda: mock_auth_service
@@ -126,6 +126,7 @@ class TestRefreshTokenEndpoint:
     def test_refresh_invalid_token(self, mock_auth_service):
         """Test refresh with invalid token returns 401."""
         from auth_service.core import AuthException
+
         mock_auth_service.refresh_access_token = AsyncMock(side_effect=AuthException("Invalid refresh token"))
 
         app.dependency_overrides[deps.get_auth_service] = lambda: mock_auth_service
@@ -218,6 +219,7 @@ class TestGetCurrentUserEndpoint:
     def test_get_current_user_success(self):
         """Test getting current user info."""
         from datetime import UTC, datetime
+
         user = User(
             id=1,
             email="user@example.com",
@@ -335,9 +337,8 @@ class TestTelegramAuthEdgeCases:
     def test_telegram_auth_not_found_exception(self, mock_auth_service):
         """Test Telegram auth with NotFoundException returns 401."""
         from auth_service.core import NotFoundException
-        mock_auth_service.authenticate_with_telegram = AsyncMock(
-            side_effect=NotFoundException("User not found")
-        )
+
+        mock_auth_service.authenticate_with_telegram = AsyncMock(side_effect=NotFoundException("User not found"))
 
         app.dependency_overrides[deps.get_auth_service] = lambda: mock_auth_service
 
@@ -362,6 +363,7 @@ class TestRefreshTokenEdgeCases:
     def test_refresh_exception_path_caught_as_auth_exception(self, mock_auth_service):
         """Test refresh token with exception raises 401."""
         from auth_service.core import AuthException
+
         mock_auth_service.refresh_access_token = AsyncMock(side_effect=AuthException("Token expired"))
 
         app.dependency_overrides[deps.get_auth_service] = lambda: mock_auth_service
@@ -385,6 +387,7 @@ class TestRegisterWithInvitationEdgeCases:
     def test_register_auto_create_checklists_exception(self, mock_auth_service):
         """Test registration when auto_create_user_checklists raises exception."""
         from datetime import UTC
+
         user = User(
             id=2,
             email="new@example.com",
@@ -438,6 +441,7 @@ class TestRegisterWithInvitationEdgeCases:
     def test_register_validation_exception(self, mock_auth_service):
         """Test registration with ValidationException returns 400."""
         from auth_service.core import ValidationException
+
         mock_auth_service.register_with_invitation_and_telegram = AsyncMock(
             side_effect=ValidationException("Invalid invitation token")
         )
@@ -466,6 +470,7 @@ class TestRegisterWithInvitationEdgeCases:
     def test_register_conflict_exception(self, mock_auth_service):
         """Test registration with ConflictException returns 400."""
         from auth_service.core import ConflictException
+
         mock_auth_service.register_with_invitation_and_telegram = AsyncMock(
             side_effect=ConflictException("User already registered")
         )
@@ -503,5 +508,3 @@ class TestLogoutEndpoint:
         assert response.status_code == 200
         data = response.json()
         assert data["message"] == "Successfully logged out"
-
-

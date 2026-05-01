@@ -1,16 +1,12 @@
 """Category change history database model."""
 
 from datetime import datetime
-from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
 
 from knowledge_service.database import Base
-
-if TYPE_CHECKING:
-    from knowledge_service.models import Category, User
 
 
 class CategoryChangeHistory(Base):

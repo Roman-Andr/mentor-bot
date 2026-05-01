@@ -176,7 +176,6 @@ class KnowledgeServiceDep:
     """Simple marker for service-to-service calls."""
 
 
-
 async def get_knowledge_service_dep() -> KnowledgeServiceDep:
     """Dependency for service-to-service calls."""
     return KnowledgeServiceDep()

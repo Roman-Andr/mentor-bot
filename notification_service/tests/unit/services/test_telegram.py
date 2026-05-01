@@ -4,7 +4,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
 from _pytest.logging import LogCaptureFixture
-
 from notification_service.config import settings
 from notification_service.services.telegram import TelegramService
 
@@ -309,11 +308,7 @@ class TestTelegramServiceErrorHandling:
 
         mock_response = MagicMock()
         mock_response.raise_for_status = MagicMock()
-        mock_response.json.return_value = {
-            "ok": False,
-            "error_code": 400,
-            "description": "Bad Request: chat not found"
-        }
+        mock_response.json.return_value = {"ok": False, "error_code": 400, "description": "Bad Request: chat not found"}
 
         mock_client = MagicMock()
         mock_client.__aenter__ = AsyncMock(return_value=mock_client)

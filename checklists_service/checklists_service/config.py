@@ -58,7 +58,22 @@ class Settings(BaseSettings):
     # File Storage - S3/MinIO
     MAX_FILE_SIZE_MB: int = Field(default=10, ge=1)
     ALLOWED_FILE_TYPES: list[str] = Field(
-        default=[".pdf", ".doc", ".docx", ".xls", ".xlsx", ".txt", ".png", ".jpg", ".jpeg", ".pptx", ".py", ".md", ".ics", ".zip"]
+        default=[
+            ".pdf",
+            ".doc",
+            ".docx",
+            ".xls",
+            ".xlsx",
+            ".txt",
+            ".png",
+            ".jpg",
+            ".jpeg",
+            ".pptx",
+            ".py",
+            ".md",
+            ".ics",
+            ".zip",
+        ]
     )
     S3_ENDPOINT: str = Field(default="http://minio:9000")
     S3_ACCESS_KEY: str = Field(default="")

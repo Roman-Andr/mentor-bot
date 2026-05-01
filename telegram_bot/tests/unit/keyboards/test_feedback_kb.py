@@ -1,6 +1,5 @@
 """Unit tests for telegram_bot/keyboards/feedback_kb.py."""
 
-
 from telegram_bot.keyboards.feedback_kb import (
     get_anonymity_choice_keyboard,
     get_experience_rating_keyboard,

@@ -1,6 +1,5 @@
 """Unit tests for telegram_bot/keyboards/admin_detail.py."""
 
-
 from telegram_bot.keyboards.admin_detail import (
     get_admin_checklists_keyboard,
     get_admin_stats_keyboard,

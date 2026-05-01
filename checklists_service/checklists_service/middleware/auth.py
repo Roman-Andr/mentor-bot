@@ -24,9 +24,7 @@ class AuthTokenMiddleware(BaseHTTPMiddleware):
             token = auth_header[7:]
             logger.debug("Auth token extracted from header (path={})", request.url.path)
         else:
-            logger.debug(
-                "No bearer auth token in request (path={})", request.url.path
-            )
+            logger.debug("No bearer auth token in request (path={})", request.url.path)
 
         request.state.auth_token = token
 

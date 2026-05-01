@@ -2,11 +2,11 @@
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
+from checklists_service.config import settings
 from fastapi import Request
 from fastapi.exceptions import RequestValidationError
 
 from checklists_service import main
-from checklists_service.config import settings
 
 
 class TestLifespan:
@@ -16,8 +16,10 @@ class TestLifespan:
         """Test lifespan startup initializes database and cache."""
         mock_app = MagicMock()
 
-        with patch("checklists_service.main.init_db") as mock_init_db, \
-             patch("checklists_service.main.cache") as mock_cache:
+        with (
+            patch("checklists_service.main.init_db") as mock_init_db,
+            patch("checklists_service.main.cache") as mock_cache,
+        ):
             mock_init_db.return_value = AsyncMock()
             mock_cache.connect = AsyncMock()
             mock_cache.disconnect = AsyncMock()
@@ -59,8 +61,10 @@ class TestHealthCheck:
 
     async def test_health_check_connected(self):
         """Test health check when cache is connected."""
-        with patch("checklists_service.main.cache") as mock_cache, \
-             patch("checklists_service.main.engine") as mock_engine:
+        with (
+            patch("checklists_service.main.cache") as mock_cache,
+            patch("checklists_service.main.engine") as mock_engine,
+        ):
             mock_cache.is_connected = True
             mock_conn = AsyncMock()
             mock_conn.execute = AsyncMock()
@@ -78,8 +82,10 @@ class TestHealthCheck:
 
     async def test_health_check_disconnected(self):
         """Test health check when cache is disconnected."""
-        with patch("checklists_service.main.cache") as mock_cache, \
-             patch("checklists_service.main.engine") as mock_engine:
+        with (
+            patch("checklists_service.main.cache") as mock_cache,
+            patch("checklists_service.main.engine") as mock_engine,
+        ):
             mock_cache.is_connected = False
             mock_conn = AsyncMock()
             mock_conn.execute = AsyncMock()
@@ -93,8 +99,10 @@ class TestHealthCheck:
 
     async def test_health_check_database_disconnected(self):
         """Test health check when database is disconnected (lines 119-120)."""
-        with patch("checklists_service.main.cache") as mock_cache, \
-             patch("checklists_service.main.engine") as mock_engine:
+        with (
+            patch("checklists_service.main.cache") as mock_cache,
+            patch("checklists_service.main.engine") as mock_engine,
+        ):
             mock_cache.is_connected = True
             # Simulate database connection failure
             mock_engine.connect.return_value.__aenter__ = AsyncMock(side_effect=Exception("DB connection failed"))
@@ -115,9 +123,7 @@ class TestValidationExceptionHandler:
         mock_request = MagicMock(spec=Request)
 
         # Create a validation error
-        errors = [
-            {"loc": ["body", "name"], "msg": "field required", "type": "value_error.missing"}
-        ]
+        errors = [{"loc": ["body", "name"], "msg": "field required", "type": "value_error.missing"}]
         exc = RequestValidationError(errors=errors)
 
         with patch("checklists_service.main.logger") as mock_logger:
@@ -166,23 +172,20 @@ class TestMiddlewareConfiguration:
     def test_cors_middleware_exists(self):
         """Test CORS middleware is configured."""
         cors_middlewares = [
-            middleware for middleware in main.app.user_middleware
-            if "CORSMiddleware" in str(middleware.cls)
+            middleware for middleware in main.app.user_middleware if "CORSMiddleware" in str(middleware.cls)
         ]
         assert len(cors_middlewares) > 0
 
     def test_trusted_host_middleware_exists(self):
         """Test TrustedHost middleware is configured."""
         host_middlewares = [
-            middleware for middleware in main.app.user_middleware
-            if "TrustedHostMiddleware" in str(middleware.cls)
+            middleware for middleware in main.app.user_middleware if "TrustedHostMiddleware" in str(middleware.cls)
         ]
         assert len(host_middlewares) > 0
 
     def test_auth_middleware_exists(self):
         """Test AuthToken middleware is configured."""
         auth_middlewares = [
-            middleware for middleware in main.app.user_middleware
-            if "AuthTokenMiddleware" in str(middleware.cls)
+            middleware for middleware in main.app.user_middleware if "AuthTokenMiddleware" in str(middleware.cls)
         ]
         assert len(auth_middlewares) > 0

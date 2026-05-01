@@ -8,9 +8,7 @@ from telegram_bot.i18n import t
 from telegram_bot.keyboards.utils import create_inline_button
 
 
-def get_checklists_keyboard(
-    checklists: list[dict], *, locale: str = "en"
-) -> InlineKeyboardMarkup:
+def get_checklists_keyboard(checklists: list[dict], *, locale: str = "en") -> InlineKeyboardMarkup:
     """Create keyboard for checklist selection."""
     builder = InlineKeyboardBuilder()
 
@@ -18,13 +16,7 @@ def get_checklists_keyboard(
         title = checklist.get("name", f"Checklist #{checklist['id']}")
         status = checklist.get("status", "unknown")
 
-        emoji = (
-            "\u2705"
-            if status == "completed"
-            else "\U0001f4cb"
-            if status == "in_progress"
-            else "\u23f3"
-        )
+        emoji = "\u2705" if status == "completed" else "\U0001f4cb" if status == "in_progress" else "\u23f3"
 
         builder.add(
             create_inline_button(
@@ -35,9 +27,7 @@ def get_checklists_keyboard(
         )
 
     builder.add(
-        create_inline_button(
-            f"\u2190 {t('common.menu_button', locale=locale)}", callback_data="menu"
-        ),
+        create_inline_button(f"\u2190 {t('common.menu_button', locale=locale)}", callback_data="menu"),
     )
 
     builder.adjust(1)
@@ -160,9 +150,7 @@ def get_task_detail_keyboard(
             ),
         )
 
-    back_callback = (
-        f"checklist_{checklist_id}" if checklist_id is not None else "my_tasks"
-    )
+    back_callback = f"checklist_{checklist_id}" if checklist_id is not None else "my_tasks"
     builder.add(
         create_inline_button(
             f"\u2190 {t('checklists.btn_back', locale=locale)}",

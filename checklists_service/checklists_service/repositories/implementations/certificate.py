@@ -82,7 +82,7 @@ class CertificateRepository(SqlAlchemyBaseRepository[Certificate, int]):
 
         # Get total count
         total_result = await self._session.execute(count_query)
-        total = cast(int, total_result.scalar())
+        total = cast("int", total_result.scalar())
 
         # Get paginated results
         query = base_query.order_by(Certificate.issued_at.desc()).offset(skip).limit(limit)

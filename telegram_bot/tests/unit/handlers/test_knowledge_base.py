@@ -5,7 +5,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from aiogram.types import CallbackQuery, Message
-
 from telegram_bot.handlers.knowledge_base import (
     _format_file_size,
     _get_knowledge_base_menu,
@@ -139,7 +138,7 @@ class TestProcessSearchQuery:
         self.mock_state.clear = AsyncMock()
 
         self.mock_user = {"id": 1, "first_name": "John"}
-        self.auth_token = "test_token_123"  # noqa: S105
+        self.auth_token = "test_token_123"
 
     async def test_process_search_query_too_short(self):
         """Test search query too short."""
@@ -165,9 +164,7 @@ class TestProcessSearchQuery:
             new_callable=AsyncMock,
         ) as mock_search:
             mock_search.return_value = mock_results
-            with patch(
-                "telegram_bot.handlers.knowledge_base.get_search_no_results_keyboard"
-            ) as mock_kb:
+            with patch("telegram_bot.handlers.knowledge_base.get_search_no_results_keyboard") as mock_kb:
                 mock_kb.return_value.as_markup.return_value = MagicMock()
 
                 await process_search_query(
@@ -201,9 +198,7 @@ class TestProcessSearchQuery:
                     "telegram_bot.handlers.knowledge_base.format_search_results",
                     return_value="Search results",
                 ):
-                    with patch(
-                        "telegram_bot.handlers.knowledge_base.get_search_results_keyboard"
-                    ) as mock_kb:
+                    with patch("telegram_bot.handlers.knowledge_base.get_search_results_keyboard") as mock_kb:
                         mock_kb.return_value.as_markup.return_value = MagicMock()
 
                         await process_search_query(
@@ -228,7 +223,7 @@ class TestHandleSearchPagination:
         self.mock_callback.message = MagicMock(spec=Message)
         self.mock_callback.message.edit_text = AsyncMock()
 
-        self.auth_token = "test_token_123"  # noqa: S105
+        self.auth_token = "test_token_123"
 
     async def test_handle_search_pagination_no_auth(self):
         """Test pagination without auth."""
@@ -259,14 +254,10 @@ class TestHandleSearchPagination:
             new_callable=AsyncMock,
         ) as mock_search:
             mock_search.return_value = mock_results
-            with patch(
-                "telegram_bot.handlers.knowledge_base.get_search_no_results_keyboard"
-            ) as mock_kb:
+            with patch("telegram_bot.handlers.knowledge_base.get_search_no_results_keyboard") as mock_kb:
                 mock_kb.return_value.as_markup.return_value = MagicMock()
 
-                await handle_search_pagination(
-                    self.mock_callback, None, self.auth_token, locale="en"
-                )
+                await handle_search_pagination(self.mock_callback, None, self.auth_token, locale="en")
 
                 self.mock_callback.message.edit_text.assert_called_once()
 
@@ -295,14 +286,10 @@ class TestHandleSearchPagination:
                     "telegram_bot.handlers.knowledge_base.format_search_results",
                     return_value="Results",
                 ):
-                    with patch(
-                        "telegram_bot.handlers.knowledge_base.get_search_results_keyboard"
-                    ) as mock_kb:
+                    with patch("telegram_bot.handlers.knowledge_base.get_search_results_keyboard") as mock_kb:
                         mock_kb.return_value.as_markup.return_value = MagicMock()
 
-                        await handle_search_pagination(
-                            self.mock_callback, None, self.auth_token, locale="en"
-                        )
+                        await handle_search_pagination(self.mock_callback, None, self.auth_token, locale="en")
 
                         self.mock_callback.message.edit_text.assert_called_once()
 
@@ -335,7 +322,7 @@ class TestBackToSearchResults:
         self.mock_callback.message = MagicMock(spec=Message)
         self.mock_callback.message.edit_text = AsyncMock()
 
-        self.auth_token = "test_token_123"  # noqa: S105
+        self.auth_token = "test_token_123"
 
     async def test_back_to_search_no_auth(self):
         """Test back to search without auth."""
@@ -376,8 +363,12 @@ class TestBackToSearchResults:
                 mock_results = MagicMock()
                 mock_results.results = [
                     MagicMock(
-                        id=1, title="Test", excerpt="Summary",
-                        highlighted_content="Content", category_name="General", relevance_score=0.9
+                        id=1,
+                        title="Test",
+                        excerpt="Summary",
+                        highlighted_content="Content",
+                        category_name="General",
+                        relevance_score=0.9,
                     )
                 ]
                 mock_results.page = 1
@@ -388,14 +379,10 @@ class TestBackToSearchResults:
                         "telegram_bot.handlers.knowledge_base.format_search_results",
                         return_value="Results",
                     ):
-                        with patch(
-                            "telegram_bot.handlers.knowledge_base.get_search_results_keyboard"
-                        ) as mock_kb:
+                        with patch("telegram_bot.handlers.knowledge_base.get_search_results_keyboard") as mock_kb:
                             mock_kb.return_value.as_markup.return_value = MagicMock()
 
-                            await back_to_search_results(
-                                self.mock_callback, None, self.auth_token, locale="en"
-                            )
+                            await back_to_search_results(self.mock_callback, None, self.auth_token, locale="en")
 
                             # Should use default page=1 when parse fails
                             self.mock_callback.message.edit_text.assert_called_once()
@@ -416,9 +403,7 @@ class TestBackToSearchResults:
         mock_results = MagicMock()
         mock_results.results = []
 
-        with patch(
-            "telegram_bot.handlers.knowledge_base.cache.get", new_callable=AsyncMock
-        ) as mock_cache:
+        with patch("telegram_bot.handlers.knowledge_base.cache.get", new_callable=AsyncMock) as mock_cache:
             mock_cache.return_value = {
                 "results": [{"id": 1, "title": "Test"}],
                 "query": "test",
@@ -429,14 +414,10 @@ class TestBackToSearchResults:
                 new_callable=AsyncMock,
             ) as mock_search:
                 mock_search.return_value = mock_results
-                with patch(
-                    "telegram_bot.handlers.knowledge_base.get_search_no_results_keyboard"
-                ) as mock_kb:
+                with patch("telegram_bot.handlers.knowledge_base.get_search_no_results_keyboard") as mock_kb:
                     mock_kb.return_value.as_markup.return_value = MagicMock()
 
-                    await back_to_search_results(
-                        self.mock_callback, None, self.auth_token, locale="en"
-                    )
+                    await back_to_search_results(self.mock_callback, None, self.auth_token, locale="en")
 
                     self.mock_callback.message.edit_text.assert_called_once()
 
@@ -455,9 +436,7 @@ class TestBackToSearchResults:
         mock_results.page = 1
         mock_results.pages = 1
 
-        with patch(
-            "telegram_bot.handlers.knowledge_base.cache.get", new_callable=AsyncMock
-        ) as mock_cache:
+        with patch("telegram_bot.handlers.knowledge_base.cache.get", new_callable=AsyncMock) as mock_cache:
             mock_cache.return_value = {
                 "results": [{"id": 1, "title": "Test"}],
                 "query": "test",
@@ -473,14 +452,10 @@ class TestBackToSearchResults:
                         "telegram_bot.handlers.knowledge_base.format_search_results",
                         return_value="Results",
                     ):
-                        with patch(
-                            "telegram_bot.handlers.knowledge_base.get_search_results_keyboard"
-                        ) as mock_kb:
+                        with patch("telegram_bot.handlers.knowledge_base.get_search_results_keyboard") as mock_kb:
                             mock_kb.return_value.as_markup.return_value = MagicMock()
 
-                            await back_to_search_results(
-                                self.mock_callback, None, self.auth_token, locale="en"
-                            )
+                            await back_to_search_results(self.mock_callback, None, self.auth_token, locale="en")
 
                             self.mock_callback.message.edit_text.assert_called_once()
 
@@ -500,7 +475,7 @@ class TestViewSearchResult:
         self.mock_callback.message = MagicMock(spec=Message)
         self.mock_callback.message.edit_text = AsyncMock()
 
-        self.auth_token = "test_token_123"  # noqa: S105
+        self.auth_token = "test_token_123"
 
     async def test_view_search_result_no_auth(self):
         """Test view result without auth."""
@@ -543,9 +518,7 @@ class TestViewSearchResult:
 
     async def test_view_search_result_article_not_found(self):
         """Test view result when article not found."""
-        with patch(
-            "telegram_bot.handlers.knowledge_base.cache.get", new_callable=AsyncMock
-        ) as mock_cache:
+        with patch("telegram_bot.handlers.knowledge_base.cache.get", new_callable=AsyncMock) as mock_cache:
             mock_cache.return_value = {"results": [{"id": 1}]}
             with patch(
                 "telegram_bot.handlers.knowledge_base.knowledge_client.get_article_details",
@@ -553,9 +526,7 @@ class TestViewSearchResult:
             ) as mock_get:
                 mock_get.return_value = None
 
-                await view_search_result(
-                    self.mock_callback, None, self.auth_token, locale="en"
-                )
+                await view_search_result(self.mock_callback, None, self.auth_token, locale="en")
 
                 self.mock_callback.answer.assert_called_once()
 
@@ -566,26 +537,20 @@ class TestViewSearchResult:
             "title": "Test Article",
             "content": "A" * 1000,  # Long content to trigger preview
             "excerpt": "",  # Empty excerpt triggers content preview
-            "attachments": []
+            "attachments": [],
         }
 
-        with patch(
-            "telegram_bot.handlers.knowledge_base.cache.get", new_callable=AsyncMock
-        ) as mock_cache:
+        with patch("telegram_bot.handlers.knowledge_base.cache.get", new_callable=AsyncMock) as mock_cache:
             mock_cache.return_value = {"results": [{"id": 1}]}
             with patch(
                 "telegram_bot.handlers.knowledge_base.knowledge_client.get_article_details",
                 new_callable=AsyncMock,
             ) as mock_get:
                 mock_get.return_value = article
-                with patch(
-                    "telegram_bot.handlers.knowledge_base.get_article_view_keyboard"
-                ) as mock_kb:
+                with patch("telegram_bot.handlers.knowledge_base.get_article_view_keyboard") as mock_kb:
                     mock_kb.return_value.as_markup.return_value = MagicMock()
 
-                    await view_search_result(
-                        self.mock_callback, None, self.auth_token, locale="en"
-                    )
+                    await view_search_result(self.mock_callback, None, self.auth_token, locale="en")
 
                     self.mock_callback.message.edit_text.assert_called_once()
                     # Check that the preview with "..." was generated
@@ -599,26 +564,20 @@ class TestViewSearchResult:
             "title": "Test Article",
             "content": "Content",
             "excerpt": "Excerpt",
-            "attachments": [{"id": 1, "name": "file.pdf", "file_size": 1024}]
+            "attachments": [{"id": 1, "name": "file.pdf", "file_size": 1024}],
         }
 
-        with patch(
-            "telegram_bot.handlers.knowledge_base.cache.get", new_callable=AsyncMock
-        ) as mock_cache:
+        with patch("telegram_bot.handlers.knowledge_base.cache.get", new_callable=AsyncMock) as mock_cache:
             mock_cache.return_value = {"results": [{"id": 1}]}
             with patch(
                 "telegram_bot.handlers.knowledge_base.knowledge_client.get_article_details",
                 new_callable=AsyncMock,
             ) as mock_get:
                 mock_get.return_value = article
-                with patch(
-                    "telegram_bot.handlers.knowledge_base.get_article_view_keyboard"
-                ) as mock_kb:
+                with patch("telegram_bot.handlers.knowledge_base.get_article_view_keyboard") as mock_kb:
                     mock_kb.return_value.as_markup.return_value = MagicMock()
 
-                    await view_search_result(
-                        self.mock_callback, None, self.auth_token, locale="en"
-                    )
+                    await view_search_result(self.mock_callback, None, self.auth_token, locale="en")
 
                     self.mock_callback.message.edit_text.assert_called_once()
 
@@ -639,7 +598,7 @@ class TestDownloadKbAttachment:
         self.mock_bot = MagicMock()
         self.mock_bot.send_document = AsyncMock()
 
-        self.auth_token = "test_token_123"  # noqa: S105
+        self.auth_token = "test_token_123"
 
     async def test_download_kb_attachment_no_auth(self):
         """Test download without auth."""
@@ -668,9 +627,7 @@ class TestDownloadKbAttachment:
         ) as mock_get:
             mock_get.return_value = [{"id": 999, "name": "other.pdf"}]
 
-            await download_kb_attachment(
-                self.mock_callback, self.mock_bot, self.auth_token, locale="en"
-            )
+            await download_kb_attachment(self.mock_callback, self.mock_bot, self.auth_token, locale="en")
 
             # Handler calls answer() for loading, then for error alert
             assert self.mock_callback.answer.call_count >= 1
@@ -688,9 +645,7 @@ class TestDownloadKbAttachment:
             ) as mock_dl:
                 mock_dl.return_value = None
 
-                await download_kb_attachment(
-                    self.mock_callback, self.mock_bot, self.auth_token, locale="en"
-                )
+                await download_kb_attachment(self.mock_callback, self.mock_bot, self.auth_token, locale="en")
 
                 # Handler calls answer() for loading, then for error alert
                 assert self.mock_callback.answer.call_count >= 1
@@ -709,9 +664,7 @@ class TestDownloadKbAttachment:
                 mock_dl.return_value = b"file content"
                 self.mock_bot.send_document = AsyncMock(side_effect=Exception("Send failed"))
 
-                await download_kb_attachment(
-                    self.mock_callback, self.mock_bot, self.auth_token, locale="en"
-                )
+                await download_kb_attachment(self.mock_callback, self.mock_bot, self.auth_token, locale="en")
 
                 # Should answer with error when exception occurs
                 assert self.mock_callback.answer.call_count >= 1
@@ -729,9 +682,7 @@ class TestDownloadKbAttachment:
             ) as mock_dl:
                 mock_dl.return_value = b"file content"
 
-                await download_kb_attachment(
-                    self.mock_callback, self.mock_bot, self.auth_token, locale="en"
-                )
+                await download_kb_attachment(self.mock_callback, self.mock_bot, self.auth_token, locale="en")
 
                 self.mock_bot.send_document.assert_called_once()
 
@@ -751,7 +702,7 @@ class TestKbCategories:
         self.mock_state = MagicMock()
         self.mock_state.clear = AsyncMock()
 
-        self.auth_token = "test_token_123"  # noqa: S105
+        self.auth_token = "test_token_123"
 
     async def test_kb_categories_no_auth(self):
         """Test categories without auth."""
@@ -770,14 +721,10 @@ class TestKbCategories:
                     {"id": 2, "name": "Technical"},
                 ]
             }
-            with patch(
-                "telegram_bot.handlers.knowledge_base.get_kb_categories_keyboard"
-            ) as mock_kb:
+            with patch("telegram_bot.handlers.knowledge_base.get_kb_categories_keyboard") as mock_kb:
                 mock_kb.return_value.as_markup.return_value = MagicMock()
 
-                await kb_categories(
-                    self.mock_callback, self.mock_state, self.auth_token, locale="en"
-                )
+                await kb_categories(self.mock_callback, self.mock_state, self.auth_token, locale="en")
 
                 self.mock_callback.message.edit_text.assert_called_once()
 
@@ -788,14 +735,10 @@ class TestKbCategories:
             new_callable=AsyncMock,
         ) as mock_get:
             mock_get.return_value = {"categories": []}
-            with patch(
-                "telegram_bot.handlers.knowledge_base.get_kb_categories_keyboard"
-            ) as mock_kb:
+            with patch("telegram_bot.handlers.knowledge_base.get_kb_categories_keyboard") as mock_kb:
                 mock_kb.return_value.as_markup.return_value = MagicMock()
 
-                await kb_categories(
-                    self.mock_callback, self.mock_state, self.auth_token, locale="en"
-                )
+                await kb_categories(self.mock_callback, self.mock_state, self.auth_token, locale="en")
 
                 self.mock_callback.message.edit_text.assert_called_once()
 
@@ -823,7 +766,7 @@ class TestKbCategoryArticles:
         self.mock_state = MagicMock()
         self.mock_state.clear = AsyncMock()
 
-        self.auth_token = "test_token_123"  # noqa: S105
+        self.auth_token = "test_token_123"
 
     async def test_kb_category_articles_no_auth(self):
         """Test category articles without auth."""
@@ -863,14 +806,10 @@ class TestKbCategoryArticles:
                 ],
                 "pages": 1,
             }
-            with patch(
-                "telegram_bot.handlers.knowledge_base.get_kb_category_articles_keyboard"
-            ) as mock_kb:
+            with patch("telegram_bot.handlers.knowledge_base.get_kb_category_articles_keyboard") as mock_kb:
                 mock_kb.return_value.as_markup.return_value = MagicMock()
 
-                await kb_category_articles(
-                    self.mock_callback, self.mock_state, self.auth_token, locale="en"
-                )
+                await kb_category_articles(self.mock_callback, self.mock_state, self.auth_token, locale="en")
 
                 self.mock_callback.message.edit_text.assert_called_once()
 
@@ -883,14 +822,10 @@ class TestKbCategoryArticles:
             new_callable=AsyncMock,
         ) as mock_get:
             mock_get.return_value = {"articles": [], "pages": 1}
-            with patch(
-                "telegram_bot.handlers.knowledge_base.get_kb_category_articles_keyboard"
-            ) as mock_kb:
+            with patch("telegram_bot.handlers.knowledge_base.get_kb_category_articles_keyboard") as mock_kb:
                 mock_kb.return_value.as_markup.return_value = MagicMock()
 
-                await kb_category_articles(
-                    self.mock_callback, self.mock_state, self.auth_token, locale="en"
-                )
+                await kb_category_articles(self.mock_callback, self.mock_state, self.auth_token, locale="en")
 
                 self.mock_callback.message.edit_text.assert_called_once()
 
@@ -919,7 +854,7 @@ class TestKbCategoryPagination:
         self.mock_callback.message = MagicMock()
         self.mock_callback.message.edit_text = AsyncMock()
 
-        self.auth_token = "test_token_123"  # noqa: S105
+        self.auth_token = "test_token_123"
 
     async def test_kb_category_pagination_no_auth(self):
         """Test pagination without auth."""
@@ -955,14 +890,10 @@ class TestKbCategoryPagination:
                 "articles": [],
                 "pages": 1,
             }
-            with patch(
-                "telegram_bot.handlers.knowledge_base.get_kb_category_articles_keyboard"
-            ) as mock_kb:
+            with patch("telegram_bot.handlers.knowledge_base.get_kb_category_articles_keyboard") as mock_kb:
                 mock_kb.return_value.as_markup.return_value = MagicMock()
 
-                await kb_category_pagination(
-                    self.mock_callback, self.auth_token, locale="en"
-                )
+                await kb_category_pagination(self.mock_callback, self.auth_token, locale="en")
 
                 self.mock_callback.message.edit_text.assert_called_once()
 
@@ -978,14 +909,10 @@ class TestKbCategoryPagination:
                 "articles": [{"id": 1, "title": "Article 1"}],
                 "pages": 2,
             }
-            with patch(
-                "telegram_bot.handlers.knowledge_base.get_kb_category_articles_keyboard"
-            ) as mock_kb:
+            with patch("telegram_bot.handlers.knowledge_base.get_kb_category_articles_keyboard") as mock_kb:
                 mock_kb.return_value.as_markup.return_value = MagicMock()
 
-                await kb_category_pagination(
-                    self.mock_callback, self.auth_token, locale="en"
-                )
+                await kb_category_pagination(self.mock_callback, self.auth_token, locale="en")
 
                 self.mock_callback.message.edit_text.assert_called_once()
 
@@ -1008,7 +935,7 @@ class TestViewCategoryArticle:
         self.mock_state.clear = AsyncMock()
 
         self.mock_user = {"id": 1}
-        self.auth_token = "test_token_123"  # noqa: S105
+        self.auth_token = "test_token_123"
 
     async def test_view_category_article_no_message(self):
         """Test view article with no message."""
@@ -1028,9 +955,7 @@ class TestViewCategoryArticle:
         """Test view article with invalid data."""
         self.mock_callback.data = "kb_cat_article_invalid"
 
-        await view_category_article(
-            self.mock_callback, self.mock_state, self.mock_user, self.auth_token, locale="en"
-        )
+        await view_category_article(self.mock_callback, self.mock_state, self.mock_user, self.auth_token, locale="en")
         self.mock_callback.answer.assert_called_once()
 
     async def test_view_category_article_not_found(self):
@@ -1058,7 +983,7 @@ class TestViewCategoryArticle:
             "title": "Test Article",
             "content": "A" * 1000,  # Long content to trigger preview
             "excerpt": "",  # Empty excerpt triggers content preview
-            "attachments": []
+            "attachments": [],
         }
 
         with patch(
@@ -1066,9 +991,7 @@ class TestViewCategoryArticle:
             new_callable=AsyncMock,
         ) as mock_get:
             mock_get.return_value = article
-            with patch(
-                "telegram_bot.handlers.knowledge_base.get_kb_category_article_view_keyboard"
-            ) as mock_kb:
+            with patch("telegram_bot.handlers.knowledge_base.get_kb_category_article_view_keyboard") as mock_kb:
                 mock_kb.return_value.as_markup.return_value = MagicMock()
 
                 await view_category_article(
@@ -1089,7 +1012,7 @@ class TestViewCategoryArticle:
             "title": "Test Article",
             "content": "Content",
             "excerpt": "Excerpt",
-            "attachments": [{"id": 1, "name": "file.pdf", "file_size": 1024}]
+            "attachments": [{"id": 1, "name": "file.pdf", "file_size": 1024}],
         }
 
         with patch(
@@ -1097,9 +1020,7 @@ class TestViewCategoryArticle:
             new_callable=AsyncMock,
         ) as mock_get:
             mock_get.return_value = article
-            with patch(
-                "telegram_bot.handlers.knowledge_base.get_kb_category_article_view_keyboard"
-            ) as mock_kb:
+            with patch("telegram_bot.handlers.knowledge_base.get_kb_category_article_view_keyboard") as mock_kb:
                 mock_kb.return_value.as_markup.return_value = MagicMock()
 
                 await view_category_article(
@@ -1196,7 +1117,7 @@ class TestViewFaqScenario:
         self.mock_state.clear = AsyncMock()
 
         self.mock_user = {"id": 1}
-        self.auth_token = "test_token_123"  # noqa: S105
+        self.auth_token = "test_token_123"
 
     async def test_view_faq_scenario_no_message(self):
         """Test view scenario with no message."""
@@ -1223,9 +1144,7 @@ class TestViewFaqScenario:
         ) as mock_get:
             mock_get.return_value = None
 
-            await view_faq_scenario(
-                self.mock_callback, self.mock_state, self.mock_user, self.auth_token, locale="en"
-            )
+            await view_faq_scenario(self.mock_callback, self.mock_state, self.mock_user, self.auth_token, locale="en")
 
             # Handler calls answer() for loading, then for scenario_not_found alert
             assert self.mock_callback.answer.call_count >= 1
@@ -1258,8 +1177,8 @@ class TestViewFaqScenario:
             "description": "Description",
             "steps": [
                 {"id": 2, "step_number": 2, "question": "Q2"},  # No step with step_number=1
-                {"id": 3, "step_number": 3, "question": "Q3"}
-            ]
+                {"id": 3, "step_number": 3, "question": "Q3"},
+            ],
         }
 
         with patch(
@@ -1267,9 +1186,7 @@ class TestViewFaqScenario:
             new_callable=AsyncMock,
         ) as mock_get:
             mock_get.return_value = scenario
-            with patch(
-                "telegram_bot.handlers.knowledge_base.get_faq_scenario_keyboard"
-            ) as mock_kb:
+            with patch("telegram_bot.handlers.knowledge_base.get_faq_scenario_keyboard") as mock_kb:
                 mock_kb.return_value.as_markup.return_value = MagicMock()
 
                 await view_faq_scenario(
@@ -1287,10 +1204,7 @@ class TestViewFaqScenario:
             "id": 1,
             "title": "Test Scenario",
             "description": "Description",
-            "steps": [
-                {"id": 1, "step_number": 1, "question": "Q1"},
-                {"id": 2, "step_number": 2, "question": "Q2"}
-            ]
+            "steps": [{"id": 1, "step_number": 1, "question": "Q1"}, {"id": 2, "step_number": 2, "question": "Q2"}],
         }
 
         with patch(
@@ -1298,9 +1212,7 @@ class TestViewFaqScenario:
             new_callable=AsyncMock,
         ) as mock_get:
             mock_get.return_value = scenario
-            with patch(
-                "telegram_bot.handlers.knowledge_base.get_faq_scenario_keyboard"
-            ) as mock_kb:
+            with patch("telegram_bot.handlers.knowledge_base.get_faq_scenario_keyboard") as mock_kb:
                 mock_kb.return_value.as_markup.return_value = MagicMock()
 
                 await view_faq_scenario(
@@ -1345,11 +1257,9 @@ class TestNavigateFaqStep:
         """Test navigate step back to menu (100)."""
         self.mock_callback.data = "kb_faq_step_1_1_100"
 
-        self.mock_state.get_data = AsyncMock(return_value={
-            "faq_step_map": {
-                1: {"id": 1, "step_number": 1, "question": "Q1"}
-            }
-        })
+        self.mock_state.get_data = AsyncMock(
+            return_value={"faq_step_map": {1: {"id": 1, "step_number": 1, "question": "Q1"}}}
+        )
 
         # Patch where it's imported from, not where it's defined
         with patch("telegram_bot.keyboards.main_menu.get_inline_main_menu") as mock_kb:
@@ -1366,11 +1276,9 @@ class TestNavigateFaqStep:
         """Test navigate step contact HR (101)."""
         self.mock_callback.data = "kb_faq_step_1_1_101"
 
-        self.mock_state.get_data = AsyncMock(return_value={
-            "faq_step_map": {
-                1: {"id": 1, "step_number": 1, "question": "Q1"}
-            }
-        })
+        self.mock_state.get_data = AsyncMock(
+            return_value={"faq_step_map": {1: {"id": 1, "step_number": 1, "question": "Q1"}}}
+        )
 
         with patch("telegram_bot.handlers.knowledge_base.get_faq_scenario_keyboard") as mock_kb:
             mock_kb.return_value.as_markup.return_value = MagicMock()
@@ -1383,11 +1291,9 @@ class TestNavigateFaqStep:
         """Test navigate step when next step not found."""
         self.mock_callback.data = "kb_faq_step_1_1_999"
 
-        self.mock_state.get_data = AsyncMock(return_value={
-            "faq_step_map": {
-                1: {"id": 1, "step_number": 1, "question": "Q1"}
-            }
-        })
+        self.mock_state.get_data = AsyncMock(
+            return_value={"faq_step_map": {1: {"id": 1, "step_number": 1, "question": "Q1"}}}
+        )
 
         await navigate_faq_step(self.mock_callback, self.mock_state, locale="en")
         self.mock_callback.answer.assert_called_once()
@@ -1396,12 +1302,14 @@ class TestNavigateFaqStep:
         """Test navigate step success."""
         self.mock_callback.data = "kb_faq_step_1_1_2"
 
-        self.mock_state.get_data = AsyncMock(return_value={
-            "faq_step_map": {
-                1: {"id": 1, "step_number": 1, "question": "Q1"},
-                2: {"id": 2, "step_number": 2, "question": "Q2"}
+        self.mock_state.get_data = AsyncMock(
+            return_value={
+                "faq_step_map": {
+                    1: {"id": 1, "step_number": 1, "question": "Q1"},
+                    2: {"id": 2, "step_number": 2, "question": "Q2"},
+                }
             }
-        })
+        )
 
         with patch("telegram_bot.handlers.knowledge_base.get_faq_scenario_keyboard") as mock_kb:
             mock_kb.return_value.as_markup.return_value = MagicMock()
@@ -1650,7 +1558,7 @@ class TestSaveArticle:
         self.mock_state.clear = AsyncMock()
 
         self.mock_user = {"id": 1, "department": "Engineering"}
-        self.auth_token = "test_token_123"  # noqa: S105
+        self.auth_token = "test_token_123"
 
     async def test_save_article_no_auth(self):
         """Test save without auth."""
@@ -1659,11 +1567,7 @@ class TestSaveArticle:
 
     async def test_save_article_create_failed(self):
         """Test save when create fails."""
-        self.mock_state.get_data = AsyncMock(return_value={
-            "title": "Test",
-            "content": "Content",
-            "files": []
-        })
+        self.mock_state.get_data = AsyncMock(return_value={"title": "Test", "content": "Content", "files": []})
 
         with patch(
             "telegram_bot.handlers.knowledge_base.knowledge_client.create_article",
@@ -1671,19 +1575,13 @@ class TestSaveArticle:
         ) as mock_create:
             mock_create.return_value = None
 
-            await save_article(
-                self.mock_callback, self.mock_state, self.mock_user, self.auth_token, locale="en"
-            )
+            await save_article(self.mock_callback, self.mock_state, self.mock_user, self.auth_token, locale="en")
 
             self.mock_state.clear.assert_called_once()
 
     async def test_save_article_no_article_id(self):
         """Test save when article has no ID."""
-        self.mock_state.get_data = AsyncMock(return_value={
-            "title": "Test",
-            "content": "Content",
-            "files": []
-        })
+        self.mock_state.get_data = AsyncMock(return_value={"title": "Test", "content": "Content", "files": []})
 
         with patch(
             "telegram_bot.handlers.knowledge_base.knowledge_client.create_article",
@@ -1691,19 +1589,19 @@ class TestSaveArticle:
         ) as mock_create:
             mock_create.return_value = {"title": "Test"}  # No id
 
-            await save_article(
-                self.mock_callback, self.mock_state, self.mock_user, self.auth_token, locale="en"
-            )
+            await save_article(self.mock_callback, self.mock_state, self.mock_user, self.auth_token, locale="en")
 
             self.mock_state.clear.assert_called_once()
 
     async def test_save_article_success(self):
         """Test save success."""
-        self.mock_state.get_data = AsyncMock(return_value={
-            "title": "Test",
-            "content": "Content",
-            "files": [{"filename": "file.pdf", "content": b"content", "content_type": "application/pdf"}]
-        })
+        self.mock_state.get_data = AsyncMock(
+            return_value={
+                "title": "Test",
+                "content": "Content",
+                "files": [{"filename": "file.pdf", "content": b"content", "content_type": "application/pdf"}],
+            }
+        )
 
         with patch(
             "telegram_bot.handlers.knowledge_base.knowledge_client.create_article",
@@ -1715,9 +1613,7 @@ class TestSaveArticle:
                 new_callable=AsyncMock,
             ) as mock_upload:
                 mock_upload.return_value = {"id": 1}
-                with patch(
-                    "telegram_bot.handlers.knowledge_base.get_kb_article_saved_keyboard"
-                ) as mock_kb:
+                with patch("telegram_bot.handlers.knowledge_base.get_kb_article_saved_keyboard") as mock_kb:
                     mock_kb.return_value.as_markup.return_value = MagicMock()
 
                     await save_article(
@@ -1814,7 +1710,7 @@ class TestProcessUploadArticleId:
         self.mock_state.set_state = AsyncMock()
         self.mock_state.clear = AsyncMock()
 
-        self.auth_token = "test_token_123"  # noqa: S105
+        self.auth_token = "test_token_123"
 
     async def test_process_upload_article_id_invalid(self):
         """Test process invalid article ID."""
@@ -1836,9 +1732,7 @@ class TestProcessUploadArticleId:
         ) as mock_get:
             mock_get.return_value = None
 
-            await process_upload_article_id(
-                self.mock_message, self.mock_state, self.auth_token, locale="en"
-            )
+            await process_upload_article_id(self.mock_message, self.mock_state, self.auth_token, locale="en")
             self.mock_message.answer.assert_called_once()
 
     async def test_process_upload_article_id_success(self):
@@ -1848,14 +1742,10 @@ class TestProcessUploadArticleId:
             new_callable=AsyncMock,
         ) as mock_get:
             mock_get.return_value = {"id": 123, "title": "Test Article"}
-            with patch(
-                "telegram_bot.handlers.knowledge_base.get_kb_upload_files_keyboard"
-            ) as mock_kb:
+            with patch("telegram_bot.handlers.knowledge_base.get_kb_upload_files_keyboard") as mock_kb:
                 mock_kb.return_value.as_markup.return_value = MagicMock()
 
-                await process_upload_article_id(
-                    self.mock_message, self.mock_state, self.auth_token, locale="en"
-                )
+                await process_upload_article_id(self.mock_message, self.mock_state, self.auth_token, locale="en")
 
                 self.mock_state.update_data.assert_called_once()
                 self.mock_state.set_state.assert_called_once()
@@ -1939,13 +1829,15 @@ class TestSaveUploadedFiles:
         self.mock_callback.message.edit_text = AsyncMock()
 
         self.mock_state = MagicMock()
-        self.mock_state.get_data = AsyncMock(return_value={
-            "article_id": 1,
-            "files": [{"filename": "file.pdf", "content": b"content", "content_type": "application/pdf"}]
-        })
+        self.mock_state.get_data = AsyncMock(
+            return_value={
+                "article_id": 1,
+                "files": [{"filename": "file.pdf", "content": b"content", "content_type": "application/pdf"}],
+            }
+        )
         self.mock_state.clear = AsyncMock()
 
-        self.auth_token = "test_token_123"  # noqa: S105
+        self.auth_token = "test_token_123"
 
     async def test_save_uploaded_files_no_auth(self):
         """Test save without auth."""
@@ -1966,14 +1858,10 @@ class TestSaveUploadedFiles:
             new_callable=AsyncMock,
         ) as mock_upload:
             mock_upload.return_value = {"id": 1}
-            with patch(
-                "telegram_bot.handlers.knowledge_base.get_kb_upload_complete_keyboard"
-            ) as mock_kb:
+            with patch("telegram_bot.handlers.knowledge_base.get_kb_upload_complete_keyboard") as mock_kb:
                 mock_kb.return_value.as_markup.return_value = MagicMock()
 
-                await save_uploaded_files(
-                    self.mock_callback, self.mock_state, self.auth_token, locale="en"
-                )
+                await save_uploaded_files(self.mock_callback, self.mock_state, self.auth_token, locale="en")
 
                 self.mock_state.clear.assert_called_once()
                 self.mock_callback.message.edit_text.assert_called_once()

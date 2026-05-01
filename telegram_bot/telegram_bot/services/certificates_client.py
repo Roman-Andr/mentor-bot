@@ -29,11 +29,11 @@ class CertificatesClient:
             )
             response.raise_for_status()
             return response.json()
-        except httpx.RequestError as e:
-            logger.error("Failed to fetch certificates: %s", e)
+        except httpx.RequestError:
+            logger.exception("Failed to fetch certificates")
             return []
-        except httpx.HTTPStatusError as e:
-            logger.error("Certificates service error: %s", e)
+        except httpx.HTTPStatusError:
+            logger.exception("Certificates service error")
             return []
 
     async def download_certificate(self, cert_uid: str, locale: str, auth_token: str) -> bytes:
@@ -45,13 +45,14 @@ class CertificatesClient:
                 params={"locale": locale},
             )
             response.raise_for_status()
+        except httpx.RequestError:
+            logger.exception("Failed to download certificate")
+            raise
+        except httpx.HTTPStatusError:
+            logger.exception("Certificate download error")
+            raise
+        else:
             return response.content
-        except httpx.RequestError as e:
-            logger.error("Failed to download certificate: %s", e)
-            raise
-        except httpx.HTTPStatusError as e:
-            logger.error("Certificate download error: %s", e)
-            raise
 
 
 certificates_client = CertificatesClient()

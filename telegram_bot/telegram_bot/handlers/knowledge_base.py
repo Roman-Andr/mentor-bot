@@ -68,12 +68,8 @@ async def _get_knowledge_base_menu() -> dict:
 @router.message(Command("knowledge"))
 @router.message(F.text == "\U0001f50d Knowledge Base")
 @router.message(F.text == "Knowledge Base")
-@router.message(
-    F.text == "\U0001f50d \u0411\u0430\u0437\u0430 \u0437\u043d\u0430\u043d\u0438\u0439"
-)
-@router.message(
-    F.text == "\u0411\u0430\u0437\u0430 \u0437\u043d\u0430\u043d\u0438\u0439"
-)
+@router.message(F.text == "\U0001f50d \u0411\u0430\u0437\u0430 \u0437\u043d\u0430\u043d\u0438\u0439")
+@router.message(F.text == "\u0411\u0430\u0437\u0430 \u0437\u043d\u0430\u043d\u0438\u0439")
 @router.callback_query(F.data == "knowledge_base")
 async def knowledge_base_menu(
     update: Message | CallbackQuery,
@@ -110,9 +106,7 @@ async def knowledge_base_menu(
 
 
 @router.callback_query(F.data == "search_kb")
-async def start_search(
-    callback: CallbackQuery, state: FSMContext, *, locale: str = "en"
-) -> None:
+async def start_search(callback: CallbackQuery, state: FSMContext, *, locale: str = "en") -> None:
     """Start knowledge base search."""
     if callback.message:
         await callback.message.edit_text(
@@ -431,24 +425,18 @@ async def view_search_result(
     search_data = await cache.get(f"kb_search:{user_id}")
 
     if not search_data or not isinstance(search_data, dict):
-        await callback.answer(
-            t("knowledge.result_unavailable", locale=locale), show_alert=True
-        )
+        await callback.answer(t("knowledge.result_unavailable", locale=locale), show_alert=True)
         return
 
     results = search_data.get("results", [])
     if idx >= len(results):
-        await callback.answer(
-            t("knowledge.result_unavailable", locale=locale), show_alert=True
-        )
+        await callback.answer(t("knowledge.result_unavailable", locale=locale), show_alert=True)
         return
 
     article_id = results[idx]["id"]
     article = await knowledge_client.get_article_details(article_id, auth_token)
     if not article:
-        await callback.answer(
-            t("knowledge.article_not_found", locale=locale), show_alert=True
-        )
+        await callback.answer(t("knowledge.article_not_found", locale=locale), show_alert=True)
         return
 
     title = article.get("title", "Untitled")
@@ -522,9 +510,7 @@ async def download_kb_attachment(
         return
 
     filename = attachment.get("name", "file")
-    file_content = await knowledge_client.download_attachment(
-        article_id, filename, auth_token
-    )
+    file_content = await knowledge_client.download_attachment(article_id, filename, auth_token)
 
     if not file_content:
         await callback.answer(t("common.failed", locale=locale), show_alert=True)
@@ -564,9 +550,7 @@ async def kb_categories(
     await callback.answer(t("common.loading", locale=locale))
 
     # Fetch categories from API
-    categories_data = await knowledge_client.get_categories(
-        auth_token, skip=0, limit=50
-    )
+    categories_data = await knowledge_client.get_categories(auth_token, skip=0, limit=50)
     categories = categories_data.get("categories", [])
 
     if categories:
@@ -587,9 +571,7 @@ async def kb_categories(
 
 @router.callback_query(
     F.data.startswith("kb_cat_"),
-    ~F.data.startswith("kb_cat_article_")
-    & ~F.data.startswith("kb_cat_page_")
-    & ~F.data.startswith("kb_cat_nop"),
+    ~F.data.startswith("kb_cat_article_") & ~F.data.startswith("kb_cat_page_") & ~F.data.startswith("kb_cat_nop"),
 )
 async def kb_category_articles(
     callback: CallbackQuery,
@@ -626,9 +608,7 @@ async def kb_category_articles(
 
     # Fetch articles for this category
     skip = (page - 1) * 10
-    articles_data = await knowledge_client.get_articles_by_category(
-        category_id, auth_token, skip=skip, limit=10
-    )
+    articles_data = await knowledge_client.get_articles_by_category(category_id, auth_token, skip=skip, limit=10)
     articles = articles_data.get("articles", [])
     total_pages = articles_data.get("pages", 1)
 
@@ -683,9 +663,7 @@ async def kb_category_pagination(
     await callback.answer(t("common.loading", locale=locale))
 
     skip = (page - 1) * 10
-    articles_data = await knowledge_client.get_articles_by_category(
-        category_id, auth_token, skip=skip, limit=10
-    )
+    articles_data = await knowledge_client.get_articles_by_category(category_id, auth_token, skip=skip, limit=10)
     articles = articles_data.get("articles", [])
     total_pages = articles_data.get("pages", 1)
 
@@ -740,9 +718,7 @@ async def view_category_article(
 
     article = await knowledge_client.get_article_details(article_id, auth_token)
     if not article:
-        await callback.answer(
-            t("knowledge.article_not_found", locale=locale), show_alert=True
-        )
+        await callback.answer(t("knowledge.article_not_found", locale=locale), show_alert=True)
         return
 
     title = article.get("title", "Untitled")
@@ -794,9 +770,7 @@ def _format_file_size(size_bytes: int | None) -> str:
 
 @router.callback_query(F.data == "show_faq")
 @router.callback_query(F.data == "faq_menu")
-async def show_faq(
-    callback: CallbackQuery, state: FSMContext, *, locale: str = "en"
-) -> None:
+async def show_faq(callback: CallbackQuery, state: FSMContext, *, locale: str = "en") -> None:
     """Show frequently asked questions from API scenarios."""
     if callback.message is None:
         return
@@ -861,9 +835,7 @@ async def view_faq_scenario(
     # Fetch scenario details
     scenario = await knowledge_client.get_scenario(scenario_id)
     if not scenario or not scenario.get("id"):
-        await callback.answer(
-            t("knowledge.scenario_not_found", locale=locale), show_alert=True
-        )
+        await callback.answer(t("knowledge.scenario_not_found", locale=locale), show_alert=True)
         return
 
     title = scenario.get("title", "Untitled")
@@ -871,9 +843,7 @@ async def view_faq_scenario(
     steps = scenario.get("steps", [])
 
     if not steps:
-        text = (
-            f"\u2753 *{title}*\n\n_{t('knowledge.steps_not_found', locale=locale)}_\n"
-        )
+        text = f"\u2753 *{title}*\n\n_{t('knowledge.steps_not_found', locale=locale)}_\n"
         await callback.message.edit_text(
             text,
             reply_markup=get_faq_keyboard(locale=locale).as_markup(),
@@ -904,9 +874,7 @@ async def view_faq_scenario(
 
     await callback.message.edit_text(
         text,
-        reply_markup=get_faq_scenario_keyboard(
-            scenario_id, steps, current_step_id, locale=locale
-        ).as_markup(),
+        reply_markup=get_faq_scenario_keyboard(scenario_id, steps, current_step_id, locale=locale).as_markup(),
         parse_mode="Markdown",
     )
     await callback.answer()
@@ -974,14 +942,10 @@ async def navigate_faq_step(
         return
 
     # Find next step by step_number
-    next_step = next(
-        (s for s in step_map.values() if s.get("step_number") == next_step_number), None
-    )
+    next_step = next((s for s in step_map.values() if s.get("step_number") == next_step_number), None)
 
     if not next_step:
-        await callback.answer(
-            t("knowledge.step_not_found", locale=locale), show_alert=True
-        )
+        await callback.answer(t("knowledge.step_not_found", locale=locale), show_alert=True)
         return
 
     next_step_id = next_step.get("id")
@@ -1018,9 +982,7 @@ def _is_allowed_file(filename: str) -> bool:
 
 
 @router.callback_query(F.data == "admin_knowledge")
-async def admin_knowledge_menu(
-    callback: CallbackQuery, user: dict, *, locale: str = "en"
-) -> None:
+async def admin_knowledge_menu(callback: CallbackQuery, user: dict, *, locale: str = "en") -> None:
     """Show admin knowledge base management menu."""
     if not user or user.get("role") not in ("HR", "ADMIN"):
         await callback.answer(t("common.access_denied", locale=locale), show_alert=True)
@@ -1040,9 +1002,7 @@ async def admin_knowledge_menu(
 
 
 @router.callback_query(F.data == "kb_create_article")
-async def start_article_create(
-    callback: CallbackQuery, state: FSMContext, user: dict, *, locale: str = "en"
-) -> None:
+async def start_article_create(callback: CallbackQuery, state: FSMContext, user: dict, *, locale: str = "en") -> None:
     """Start creating a new article."""
     if not user or user.get("role") not in ("HR", "ADMIN"):
         await callback.answer(t("common.access_denied", locale=locale), show_alert=True)
@@ -1104,9 +1064,7 @@ async def process_article_file(message: Message, state: FSMContext) -> None:
         return
 
     if not document.file_name or not _is_allowed_file(document.file_name):
-        await message.answer(
-            f"File type not allowed. Accepted: {', '.join(sorted(ALLOWED_FILE_EXTENSIONS))}"
-        )
+        await message.answer(f"File type not allowed. Accepted: {', '.join(sorted(ALLOWED_FILE_EXTENSIONS))}")
         return
 
     if document.file_size and document.file_size > MAX_FILE_SIZE:
@@ -1116,9 +1074,7 @@ async def process_article_file(message: Message, state: FSMContext) -> None:
     if not message.bot:
         return
     file = await message.bot.get_file(document.file_id)
-    file_bytes = (
-        await message.bot.download_file(file.file_path) if file.file_path else None
-    )
+    file_bytes = await message.bot.download_file(file.file_path) if file.file_path else None
 
     if not file_bytes:
         await message.answer("Failed to download file.")
@@ -1141,9 +1097,7 @@ async def process_article_file(message: Message, state: FSMContext) -> None:
     )
 
 
-@router.callback_query(
-    ArticleCreateStates.waiting_for_files, F.data == "kb_create_save"
-)
+@router.callback_query(ArticleCreateStates.waiting_for_files, F.data == "kb_create_save")
 async def save_article(
     callback: CallbackQuery,
     state: FSMContext,
@@ -1211,9 +1165,7 @@ async def save_article(
         )
 
 
-@router.callback_query(
-    ArticleCreateStates.waiting_for_files, F.data == "kb_create_cancel"
-)
+@router.callback_query(ArticleCreateStates.waiting_for_files, F.data == "kb_create_cancel")
 async def cancel_article_create(callback: CallbackQuery, state: FSMContext) -> None:
     """Cancel article creation."""
     await state.clear()
@@ -1223,9 +1175,7 @@ async def cancel_article_create(callback: CallbackQuery, state: FSMContext) -> N
 
 
 @router.callback_query(F.data == "kb_upload_file")
-async def start_file_upload(
-    callback: CallbackQuery, state: FSMContext, user: dict, *, locale: str = "en"
-) -> None:
+async def start_file_upload(callback: CallbackQuery, state: FSMContext, user: dict, *, locale: str = "en") -> None:
     """Start uploading files to an existing article."""
     if not user or user.get("role") not in ("HR", "ADMIN"):
         await callback.answer(t("common.access_denied", locale=locale), show_alert=True)
@@ -1290,9 +1240,7 @@ async def process_upload_file(message: Message, state: FSMContext) -> None:
         return
 
     if not document.file_name or not _is_allowed_file(document.file_name):
-        await message.answer(
-            f"File type not allowed. Accepted: {', '.join(sorted(ALLOWED_FILE_EXTENSIONS))}"
-        )
+        await message.answer(f"File type not allowed. Accepted: {', '.join(sorted(ALLOWED_FILE_EXTENSIONS))}")
         return
 
     if document.file_size and document.file_size > MAX_FILE_SIZE:
@@ -1302,9 +1250,7 @@ async def process_upload_file(message: Message, state: FSMContext) -> None:
     if not message.bot:
         return
     file = await message.bot.get_file(document.file_id)
-    file_bytes = (
-        await message.bot.download_file(file.file_path) if file.file_path else None
-    )
+    file_bytes = await message.bot.download_file(file.file_path) if file.file_path else None
 
     if not file_bytes:
         await message.answer("Failed to download file.")

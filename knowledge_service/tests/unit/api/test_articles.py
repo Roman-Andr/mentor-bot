@@ -1,10 +1,11 @@
 """Tests for article API endpoints."""
 
 from typing import TYPE_CHECKING
+from unittest.mock import AsyncMock
 
 import pytest
 from fastapi import HTTPException, status
-
+from knowledge_service.api.deps import UserInfo
 from knowledge_service.api.endpoints.articles import (
     create_article,
     delete_article,
@@ -25,9 +26,7 @@ from knowledge_service.schemas import (
 )
 
 if TYPE_CHECKING:
-    from unittest.mock import AsyncMock
-
-    from knowledge_service.api.deps import UserInfo
+    pass
 
 
 class TestGetArticles:

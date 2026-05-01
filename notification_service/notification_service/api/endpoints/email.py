@@ -135,7 +135,7 @@ async def send_email(
         return EmailSendResponse(success=True, message="Email sent successfully")
 
     except ValueError as e:
-        logger.error("Template error: %s", e)
+        logger.exception("Template error")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Template error: {e!s}",

@@ -5,8 +5,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
 import pytest
-from fastapi import HTTPException
-
 from escalation_service.api.deps import (
     UserInfo,
     get_current_active_user,
@@ -18,6 +16,7 @@ from escalation_service.api.deps import (
 from escalation_service.core.exceptions import AuthException, NotFoundException, PermissionDenied
 from escalation_service.repositories.unit_of_work import SqlAlchemyUnitOfWork
 from escalation_service.services.escalation import EscalationService
+from fastapi import HTTPException
 
 
 class TestUserInfo:
@@ -356,12 +355,14 @@ class TestRequireAnyAssigneeOrHR:
         from escalation_service.api.deps import require_any_assignee_or_hr
 
         # Create a mock user who is the assignee
-        user = UserInfo({
-            "id": 200,  # Same as assigned_to
-            "email": "assignee@example.com",
-            "role": "USER",
-            "is_active": True,
-        })
+        user = UserInfo(
+            {
+                "id": 200,  # Same as assigned_to
+                "email": "assignee@example.com",
+                "role": "USER",
+                "is_active": True,
+            }
+        )
 
         # Create mock escalation
         mock_escalation = MagicMock()
@@ -385,12 +386,14 @@ class TestRequireAnyAssigneeOrHR:
         from escalation_service.api.deps import require_any_assignee_or_hr
 
         # Create HR user (different from assignee)
-        user = UserInfo({
-            "id": 300,
-            "email": "hr@example.com",
-            "role": "HR",
-            "is_active": True,
-        })
+        user = UserInfo(
+            {
+                "id": 300,
+                "email": "hr@example.com",
+                "role": "HR",
+                "is_active": True,
+            }
+        )
 
         # Create mock escalation assigned to someone else
         mock_escalation = MagicMock()
@@ -413,12 +416,14 @@ class TestRequireAnyAssigneeOrHR:
         from escalation_service.api.deps import require_any_assignee_or_hr
 
         # Create admin user (different from assignee)
-        user = UserInfo({
-            "id": 300,
-            "email": "admin@example.com",
-            "role": "ADMIN",
-            "is_active": True,
-        })
+        user = UserInfo(
+            {
+                "id": 300,
+                "email": "admin@example.com",
+                "role": "ADMIN",
+                "is_active": True,
+            }
+        )
 
         # Create mock escalation assigned to someone else
         mock_escalation = MagicMock()
@@ -440,12 +445,14 @@ class TestRequireAnyAssigneeOrHR:
         """Test that NotFoundException is raised when escalation doesn't exist."""
         from escalation_service.api.deps import require_any_assignee_or_hr
 
-        user = UserInfo({
-            "id": 200,
-            "email": "user@example.com",
-            "role": "USER",
-            "is_active": True,
-        })
+        user = UserInfo(
+            {
+                "id": 200,
+                "email": "user@example.com",
+                "role": "USER",
+                "is_active": True,
+            }
+        )
 
         # Create mock UoW that returns None
         mock_uow = MagicMock()
@@ -464,12 +471,14 @@ class TestRequireAnyAssigneeOrHR:
         from escalation_service.api.deps import require_any_assignee_or_hr
 
         # Create regular user (different from assignee, not HR/ADMIN)
-        user = UserInfo({
-            "id": 100,  # Different from assigned_to
-            "email": "user@example.com",
-            "role": "USER",
-            "is_active": True,
-        })
+        user = UserInfo(
+            {
+                "id": 100,  # Different from assigned_to
+                "email": "user@example.com",
+                "role": "USER",
+                "is_active": True,
+            }
+        )
 
         # Create mock escalation assigned to someone else
         mock_escalation = MagicMock()

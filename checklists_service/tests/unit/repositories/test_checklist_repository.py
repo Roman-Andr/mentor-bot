@@ -4,11 +4,10 @@ from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from checklists_service.core.enums import ChecklistStatus
 from checklists_service.models import Checklist
 from checklists_service.repositories.implementations.checklist import ChecklistRepository
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class TestChecklistRepository:
@@ -181,9 +180,7 @@ class TestChecklistRepository:
         mock_result4 = MagicMock()
         mock_result4.scalar_one.return_value = 0
 
-        mock_session.execute.side_effect = [
-            mock_result1, mock_result2, mock_result3, mock_result4
-        ]
+        mock_session.execute.side_effect = [mock_result1, mock_result2, mock_result3, mock_result4]
 
         result = await repository.get_progress(1)
 
@@ -223,9 +220,7 @@ class TestChecklistRepository:
         mock_blocked_task.title = "Blocked Task"
         mock_result5.scalars.return_value.all.return_value = [mock_blocked_task]
 
-        mock_session.execute.side_effect = [
-            mock_result1, mock_result2, mock_result3, mock_result4, mock_result5
-        ]
+        mock_session.execute.side_effect = [mock_result1, mock_result2, mock_result3, mock_result4, mock_result5]
 
         result = await repository.get_progress(1)
 

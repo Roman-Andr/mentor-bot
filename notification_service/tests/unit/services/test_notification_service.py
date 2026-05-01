@@ -5,7 +5,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from _pytest.logging import LogCaptureFixture
-
 from notification_service.core.enums import NotificationChannel, NotificationStatus, NotificationType
 from notification_service.models import Notification, ScheduledNotification
 from notification_service.schemas import NotificationCreate, ScheduledNotificationCreate
@@ -532,14 +531,18 @@ class TestNotificationServiceProcessScheduled:
         ]
 
         mock_uow.scheduled_notifications.find_pending_before.return_value = scheduled_list
-        mock_uow.notifications.create = AsyncMock(side_effect=[
-            Notification(id=1),
-            Notification(id=2),
-        ])
-        mock_uow.notifications.update = AsyncMock(side_effect=[
-            Notification(id=1, status=NotificationStatus.FAILED, error_message="Error"),
-            Notification(id=2, status=NotificationStatus.SENT, sent_at=now),
-        ])
+        mock_uow.notifications.create = AsyncMock(
+            side_effect=[
+                Notification(id=1),
+                Notification(id=2),
+            ]
+        )
+        mock_uow.notifications.update = AsyncMock(
+            side_effect=[
+                Notification(id=1, status=NotificationStatus.FAILED, error_message="Error"),
+                Notification(id=2, status=NotificationStatus.SENT, sent_at=now),
+            ]
+        )
         mock_uow.scheduled_notifications.increment_retry = AsyncMock()
 
         # First send fails, second succeeds
@@ -1042,7 +1045,9 @@ class TestNotificationServiceSendTemplate:
 
         service = NotificationService(mock_uow)
 
-        with patch.object(service._template_service, "render", side_effect=TemplateNotFoundError("missing", "email", "en")):
+        with patch.object(
+            service._template_service, "render", side_effect=TemplateNotFoundError("missing", "email", "en")
+        ):
             with pytest.raises(TemplateNotFoundError):
                 await service.send_template(
                     template_name="missing",
@@ -1059,7 +1064,9 @@ class TestNotificationServiceSendTemplate:
 
         service = NotificationService(mock_uow)
 
-        with patch.object(service._template_service, "render", side_effect=MissingTemplateVariablesError({"user_name"})):
+        with patch.object(
+            service._template_service, "render", side_effect=MissingTemplateVariablesError({"user_name"})
+        ):
             with pytest.raises(MissingTemplateVariablesError):
                 await service.send_template(
                     template_name="welcome",
@@ -1172,7 +1179,9 @@ class TestNotificationServiceScheduleTemplate:
 
         service = NotificationService(mock_uow)
 
-        with patch.object(service._template_service, "render", side_effect=TemplateNotFoundError("missing", "telegram", "en")):
+        with patch.object(
+            service._template_service, "render", side_effect=TemplateNotFoundError("missing", "telegram", "en")
+        ):
             with pytest.raises(TemplateNotFoundError):
                 await service.schedule_template(
                     template_name="missing",

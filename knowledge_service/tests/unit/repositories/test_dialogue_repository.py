@@ -4,14 +4,13 @@ from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from knowledge_service.core import DialogueCategory
 from knowledge_service.models import DialogueScenario, DialogueStep
 from knowledge_service.repositories.implementations.dialogue import (
     DialogueScenarioRepository,
     DialogueStepRepository,
 )
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class TestDialogueScenarioRepository:

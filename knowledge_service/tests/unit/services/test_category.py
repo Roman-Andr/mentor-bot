@@ -4,7 +4,6 @@ from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-
 from knowledge_service.core import NotFoundException, ValidationException
 from knowledge_service.models import Article, Category
 from knowledge_service.schemas import CategoryCreate, CategoryUpdate
@@ -44,7 +43,7 @@ def sample_category():
 
 
 @pytest.fixture
-def sample_child_category(sample_category):  # noqa: ARG001
+def sample_child_category(sample_category):
     """Create a sample child category for testing."""
     child = Category(
         id=2,

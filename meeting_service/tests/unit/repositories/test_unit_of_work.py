@@ -3,12 +3,11 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
-
 from meeting_service.repositories.unit_of_work import (
     SqlAlchemyUnitOfWork,
     sqlalchemy_uow,
 )
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 
 class TestSqlAlchemyUnitOfWork:

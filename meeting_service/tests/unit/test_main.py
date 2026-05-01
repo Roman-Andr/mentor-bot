@@ -81,7 +81,6 @@ class TestRootEndpoints:
         with patch("meeting_service.main.settings", mock_settings):
             with patch("meeting_service.main.init_db", mock_init_db):
                 from fastapi.testclient import TestClient
-
                 from meeting_service.main import app
 
                 # Create client
@@ -108,6 +107,7 @@ class TestRootEndpoints:
             class AsyncContextMock:
                 async def __aenter__(self):
                     return mock_conn
+
                 async def __aexit__(self, *args):
                     return False
 

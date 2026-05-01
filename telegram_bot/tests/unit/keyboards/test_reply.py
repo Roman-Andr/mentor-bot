@@ -1,7 +1,6 @@
 """Unit tests for telegram_bot reply keyboards."""
 
 from aiogram.types import ReplyKeyboardMarkup
-
 from telegram_bot.keyboards.main_menu import get_main_menu_keyboard
 from telegram_bot.keyboards.utils import create_keyboard_button
 

@@ -1,7 +1,6 @@
 """Unit tests for utils/http.py."""
 
 import httpx
-
 from feedback_service.utils.http import make_async_client
 from feedback_service.utils.logging import inject_request_id
 

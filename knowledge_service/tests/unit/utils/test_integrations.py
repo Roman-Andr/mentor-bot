@@ -7,11 +7,10 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import httpx
 import pytest
 from fastapi import status
-
 from knowledge_service.utils.integrations import AuthServiceClient, auth_service_client
 
 if TYPE_CHECKING:
-    import pytest
+    pass
 
 
 class TestAuthServiceClientValidateToken:

@@ -5,7 +5,6 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from botocore.exceptions import ClientError
-
 from checklists_service.utils.storage import (
     StorageError,
     StorageFileNotFoundError,
@@ -19,9 +18,7 @@ class TestStorageServiceInit:
 
     def test_init_creates_client(self) -> None:
         """Test initialization creates boto3 client."""
-        with patch("boto3.client") as mock_boto_client, \
-             patch("checklists_service.utils.storage.ThreadPoolExecutor"):
-
+        with patch("boto3.client") as mock_boto_client, patch("checklists_service.utils.storage.ThreadPoolExecutor"):
             mock_client = MagicMock()
             mock_boto_client.return_value = mock_client
             mock_client.head_bucket.return_value = None  # Bucket exists
@@ -39,9 +36,7 @@ class TestStorageServiceInit:
 
     def test_init_creates_bucket_if_not_exists(self) -> None:
         """Test bucket is created if it doesn't exist."""
-        with patch("boto3.client") as mock_boto_client, \
-             patch("checklists_service.utils.storage.ThreadPoolExecutor"):
-
+        with patch("boto3.client") as mock_boto_client, patch("checklists_service.utils.storage.ThreadPoolExecutor"):
             mock_client = MagicMock()
             mock_boto_client.return_value = mock_client
 
@@ -61,9 +56,7 @@ class TestStorageServiceInit:
 
     def test_init_raises_on_bucket_create_failure(self) -> None:
         """Test StorageError is raised when bucket creation fails."""
-        with patch("boto3.client") as mock_boto_client, \
-             patch("checklists_service.utils.storage.ThreadPoolExecutor"):
-
+        with patch("boto3.client") as mock_boto_client, patch("checklists_service.utils.storage.ThreadPoolExecutor"):
             mock_client = MagicMock()
             mock_boto_client.return_value = mock_client
 
@@ -85,9 +78,7 @@ class TestStorageServiceInit:
 
     def test_init_raises_on_head_bucket_failure(self) -> None:
         """Test StorageError is raised when head_bucket fails with non-404 error."""
-        with patch("boto3.client") as mock_boto_client, \
-             patch("checklists_service.utils.storage.ThreadPoolExecutor"):
-
+        with patch("boto3.client") as mock_boto_client, patch("checklists_service.utils.storage.ThreadPoolExecutor"):
             mock_client = MagicMock()
             mock_boto_client.return_value = mock_client
 
@@ -104,9 +95,7 @@ class TestStorageServiceInit:
 
     def test_init_raises_on_unknown_error_code(self) -> None:
         """Test StorageError is raised when head_bucket fails with unknown error code."""
-        with patch("boto3.client") as mock_boto_client, \
-             patch("checklists_service.utils.storage.ThreadPoolExecutor"):
-
+        with patch("boto3.client") as mock_boto_client, patch("checklists_service.utils.storage.ThreadPoolExecutor"):
             mock_client = MagicMock()
             mock_boto_client.return_value = mock_client
 
@@ -128,9 +117,7 @@ class TestStorageServiceUpload:
     @pytest.fixture
     def mock_service(self):
         """Create a storage service with mocked boto3 client."""
-        with patch("boto3.client") as mock_boto_client, \
-             patch("checklists_service.utils.storage.ThreadPoolExecutor"):
-
+        with patch("boto3.client") as mock_boto_client, patch("checklists_service.utils.storage.ThreadPoolExecutor"):
             mock_client = MagicMock()
             mock_boto_client.return_value = mock_client
             mock_client.head_bucket.return_value = None
@@ -209,9 +196,7 @@ class TestStorageServiceDownload:
     @pytest.fixture
     def mock_service(self):
         """Create a storage service with mocked boto3 client."""
-        with patch("boto3.client") as mock_boto_client, \
-             patch("checklists_service.utils.storage.ThreadPoolExecutor"):
-
+        with patch("boto3.client") as mock_boto_client, patch("checklists_service.utils.storage.ThreadPoolExecutor"):
             mock_client = MagicMock()
             mock_boto_client.return_value = mock_client
             mock_client.head_bucket.return_value = None
@@ -228,6 +213,7 @@ class TestStorageServiceDownload:
 
     async def test_download_file_success(self, mock_service: StorageService) -> None:
         """Test successful download (lines 171-178)."""
+
         def mock_download(bucket, key, buffer):
             buffer.write(b"file content")
 
@@ -293,9 +279,7 @@ class TestStorageServiceDelete:
     @pytest.fixture
     def mock_service(self):
         """Create a storage service with mocked boto3 client."""
-        with patch("boto3.client") as mock_boto_client, \
-             patch("checklists_service.utils.storage.ThreadPoolExecutor"):
-
+        with patch("boto3.client") as mock_boto_client, patch("checklists_service.utils.storage.ThreadPoolExecutor"):
             mock_client = MagicMock()
             mock_boto_client.return_value = mock_client
             mock_client.head_bucket.return_value = None
@@ -376,9 +360,7 @@ class TestStorageServiceFileExists:
     @pytest.fixture
     def mock_service(self):
         """Create a storage service with mocked boto3 client."""
-        with patch("boto3.client") as mock_boto_client, \
-             patch("checklists_service.utils.storage.ThreadPoolExecutor"):
-
+        with patch("boto3.client") as mock_boto_client, patch("checklists_service.utils.storage.ThreadPoolExecutor"):
             mock_client = MagicMock()
             mock_boto_client.return_value = mock_client
             mock_client.head_bucket.return_value = None
@@ -458,9 +440,7 @@ class TestStorageServicePresignedUrl:
     @pytest.fixture
     def mock_service(self):
         """Create a storage service with mocked boto3 client."""
-        with patch("boto3.client") as mock_boto_client, \
-             patch("checklists_service.utils.storage.ThreadPoolExecutor"):
-
+        with patch("boto3.client") as mock_boto_client, patch("checklists_service.utils.storage.ThreadPoolExecutor"):
             mock_client = MagicMock()
             mock_boto_client.return_value = mock_client
             mock_client.head_bucket.return_value = None
@@ -518,9 +498,7 @@ class TestStorageServicePublicUrl:
     @pytest.fixture
     def mock_service(self):
         """Create a storage service with mocked boto3 client."""
-        with patch("boto3.client") as mock_boto_client, \
-             patch("checklists_service.utils.storage.ThreadPoolExecutor"):
-
+        with patch("boto3.client") as mock_boto_client, patch("checklists_service.utils.storage.ThreadPoolExecutor"):
             mock_client = MagicMock()
             mock_boto_client.return_value = mock_client
             mock_client.head_bucket.return_value = None
@@ -579,6 +557,7 @@ class TestGetStorageService:
 
             # Reset the singleton
             import checklists_service.utils.storage as storage_module
+
             storage_module._storage_instance = None
 
             with patch("checklists_service.config.settings") as mock_settings:
@@ -604,6 +583,7 @@ class TestGetStorageService:
 
             # Reset the singleton
             import checklists_service.utils.storage as storage_module
+
             storage_module._storage_instance = None
 
             with patch("checklists_service.config.settings") as mock_settings:
@@ -706,6 +686,7 @@ class TestStorageShutdown:
 
                 # Call shutdown_storage
                 from checklists_service.utils.storage import shutdown_storage
+
                 shutdown_storage()
 
                 # Verify executor was shutdown and instance is None
@@ -721,6 +702,7 @@ class TestStorageShutdown:
 
         # Call shutdown_storage - should not raise
         from checklists_service.utils.storage import shutdown_storage
+
         shutdown_storage()
 
         # Instance should remain None

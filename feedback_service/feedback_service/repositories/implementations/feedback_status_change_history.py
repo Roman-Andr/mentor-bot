@@ -9,7 +9,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from feedback_service.models import FeedbackStatusChangeHistory
 from feedback_service.repositories.implementations.base import SqlAlchemyBaseRepository
-from feedback_service.repositories.interfaces.feedback_status_change_history import IFeedbackStatusChangeHistoryRepository
+from feedback_service.repositories.interfaces.feedback_status_change_history import (
+    IFeedbackStatusChangeHistoryRepository,
+)
 
 
 class FeedbackStatusChangeHistoryRepository(

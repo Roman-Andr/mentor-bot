@@ -1,44 +1,38 @@
 """Unit tests for audit API endpoints."""
 
 from datetime import UTC, datetime
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-
 from checklists_service.api.deps import UserInfo
+from checklists_service.api.endpoints import audit
 from checklists_service.api.endpoints.audit import (
     ChecklistStatusEntry,
     TaskCompletionEntry,
     TemplateChangeEntry,
 )
-from checklists_service.api.endpoints import audit
 
 
 @pytest.fixture
 def sample_hr_user():
     """Create sample HR user."""
-    return UserInfo({
-        "id": 10, "email": "hr@example.com", "role": "HR",
-        "is_active": True, "employee_id": "HR001"
-    })
+    return UserInfo({"id": 10, "email": "hr@example.com", "role": "HR", "is_active": True, "employee_id": "HR001"})
 
 
 @pytest.fixture
 def sample_admin_user():
     """Create sample admin user."""
-    return UserInfo({
-        "id": 11, "email": "admin@example.com", "role": "ADMIN",
-        "is_active": True, "employee_id": "ADM001"
-    })
+    return UserInfo(
+        {"id": 11, "email": "admin@example.com", "role": "ADMIN", "is_active": True, "employee_id": "ADM001"}
+    )
 
 
 @pytest.fixture
 def sample_employee_user():
     """Create sample employee user."""
-    return UserInfo({
-        "id": 1, "email": "employee@example.com", "role": "EMPLOYEE",
-        "is_active": True, "employee_id": "EMP001"
-    })
+    return UserInfo(
+        {"id": 1, "email": "employee@example.com", "role": "EMPLOYEE", "is_active": True, "employee_id": "EMP001"}
+    )
 
 
 class TestRequireHrOrAdmin:

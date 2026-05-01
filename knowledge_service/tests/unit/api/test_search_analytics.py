@@ -5,7 +5,6 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from fastapi import HTTPException
-
 from knowledge_service.api.endpoints.search_analytics import (
     cleanup_search_history,
     get_search_by_department,
@@ -195,9 +194,7 @@ class TestGetSearchByDepartment:
             to_date=to_date,
         )
 
-        mock_search_history_repo.get_by_department.assert_called_once_with(
-            from_date=from_date, to_date=to_date
-        )
+        mock_search_history_repo.get_by_department.assert_called_once_with(from_date=from_date, to_date=to_date)
 
     async def test_get_search_by_department_non_hr_denied(self, mock_regular_user, mock_search_history_repo):
         """Test non-HR user is denied access."""
@@ -320,9 +317,7 @@ class TestGetSearchSummary:
             to_date=None,
         )
 
-        mock_search_history_repo.get_search_summary.assert_called_once_with(
-            from_date=from_date, to_date=None
-        )
+        mock_search_history_repo.get_search_summary.assert_called_once_with(from_date=from_date, to_date=None)
 
     async def test_get_search_summary_non_hr_denied(self, mock_regular_user, mock_search_history_repo):
         """Test non-HR user is denied access."""
@@ -344,7 +339,9 @@ class TestCleanupSearchHistory:
         """Test admin can trigger cleanup successfully."""
         from unittest.mock import AsyncMock, patch
 
-        with patch("knowledge_service.api.endpoints.search_analytics.cleanup_old_search_history", new_callable=AsyncMock) as mock_cleanup:
+        with patch(
+            "knowledge_service.api.endpoints.search_analytics.cleanup_old_search_history", new_callable=AsyncMock
+        ) as mock_cleanup:
             mock_cleanup.return_value = 100
 
             result = await cleanup_search_history(current_user=mock_admin_user)

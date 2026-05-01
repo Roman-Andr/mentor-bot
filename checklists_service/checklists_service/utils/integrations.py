@@ -35,9 +35,7 @@ class AuthServiceClient:
     async def validate_token(self, token: str) -> dict[str, Any] | None:
         """Validate JWT token with auth service (cached) with circuit breaker protection."""
         try:
-            result = await auth_service_circuit_breaker.call(
-                self._make_validate_token_request, token
-            )
+            result = await auth_service_circuit_breaker.call(self._make_validate_token_request, token)
             return result if isinstance(result, dict) else None
         except httpx.RequestError:
             logger.exception("Auth service request failed")
@@ -59,9 +57,7 @@ class AuthServiceClient:
     async def get_user(self, user_id: int, auth_token: str) -> dict[str, Any] | None:
         """Get user details from auth service (cached) with circuit breaker protection."""
         try:
-            result = await auth_service_circuit_breaker.call(
-                self._make_get_user_request, user_id, auth_token
-            )
+            result = await auth_service_circuit_breaker.call(self._make_get_user_request, user_id, auth_token)
             return result if isinstance(result, dict) else None
         except httpx.RequestError:
             logger.exception("Auth service request failed")
@@ -119,12 +115,13 @@ class NotificationServiceClient:
             if response.status_code == status.HTTP_200_OK:
                 return response.json()
             logger.error("Notification service error: %s", response.text)
+        except httpx.RequestError:
+            logger.exception("Failed to send notification")
             return None
-        except httpx.RequestError as e:
-            logger.error("Failed to send notification: %s", e)
-            return None
-        except Exception as e:
+        except Exception:
             logger.exception("Notification send error")
+            return None
+        else:
             return None
 
 

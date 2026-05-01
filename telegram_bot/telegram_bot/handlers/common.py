@@ -111,13 +111,9 @@ async def cmd_about(message: Message, *, locale: str = "en") -> None:
 @router.message(F.text == "\U0001f468\u200d\U0001f3eb My Mentor")
 @router.message(F.text == "My Mentor")
 @router.message(
-    F.text
-    == "\U0001f468\u200d\U0001f3eb \u041c\u043e\u0439 \u043d\u0430\u0441\u0442\u0430\u0432\u043d\u0438\u043a"
+    F.text == "\U0001f468\u200d\U0001f3eb \u041c\u043e\u0439 \u043d\u0430\u0441\u0442\u0430\u0432\u043d\u0438\u043a"
 )
-@router.message(
-    F.text
-    == "\u041c\u043e\u0439 \u043d\u0430\u0441\u0442\u0430\u0432\u043d\u0438\u043a"
-)
+@router.message(F.text == "\u041c\u043e\u0439 \u043d\u0430\u0441\u0442\u0430\u0432\u043d\u0438\u043a")
 @router.callback_query(F.data == "my_mentor")
 async def my_mentor(
     update: Message | CallbackQuery,
@@ -141,7 +137,6 @@ async def my_mentor(
         await msg.answer(t("common.auth_required", locale=locale))
         return
 
-
     mentor_id = user.get("mentor_id")
 
     if not mentor_id:
@@ -155,9 +150,7 @@ async def my_mentor(
         if mentor_info:
             mentor_name = f"{mentor_info.get('first_name', '')} {mentor_info.get('last_name', '')}"
             dept = mentor_info.get("department")
-            dept_name = (
-                dept.get("name", "N/A") if isinstance(dept, dict) else (dept or "N/A")
-            )
+            dept_name = dept.get("name", "N/A") if isinstance(dept, dict) else (dept or "N/A")
             mentor_text = (
                 f"*\U0001f468\u200d\U0001f3eb {t('mentor.title', locale=locale)}*\n\n"
                 f"{t('mentor.name', locale=locale, name=mentor_name)}\n"
@@ -185,19 +178,13 @@ async def my_mentor(
         keyboard = get_my_mentor_keyboard(locale=locale)
 
     if isinstance(update, CallbackQuery) and isinstance(msg, Message):
-        await msg.edit_text(
-            mentor_text, reply_markup=keyboard.as_markup(), parse_mode="Markdown"
-        )
+        await msg.edit_text(mentor_text, reply_markup=keyboard.as_markup(), parse_mode="Markdown")
     else:
-        await msg.answer(
-            mentor_text, reply_markup=keyboard.as_markup(), parse_mode="Markdown"
-        )
+        await msg.answer(mentor_text, reply_markup=keyboard.as_markup(), parse_mode="Markdown")
 
 
 @router.callback_query(F.data == "message_mentor")
-async def message_mentor(
-    callback: CallbackQuery, state: FSMContext, *, locale: str = "en"
-) -> None:
+async def message_mentor(callback: CallbackQuery, state: FSMContext, *, locale: str = "en") -> None:
     """Start sending a message to mentor."""
     if callback.message is None:
         return
@@ -228,9 +215,7 @@ async def schedule_mentor(callback: CallbackQuery, *, locale: str = "en") -> Non
 
 
 @router.callback_query(F.data == "mentor_tasks")
-async def mentor_tasks(
-    callback: CallbackQuery, auth_token: str, *, locale: str = "en"
-) -> None:
+async def mentor_tasks(callback: CallbackQuery, auth_token: str, *, locale: str = "en") -> None:
     """Show tasks shared with mentor."""
     if callback.message is None:
         return
@@ -264,9 +249,7 @@ async def mentor_tasks(
 @router.message(F.text == "\u041f\u0440\u043e\u0433\u0440\u0435\u0441\u0441")
 @router.callback_query(F.data == "progress")
 @router.callback_query(F.data.startswith("progress_"))
-async def progress(
-    update: Message | CallbackQuery, user: dict, auth_token: str, *, locale: str = "en"
-) -> None:
+async def progress(update: Message | CallbackQuery, user: dict, auth_token: str, *, locale: str = "en") -> None:
     """Show progress dashboard."""
     msg = None
     specific_checklist_id = None
@@ -309,9 +292,7 @@ async def progress(
 
     checklist_id = active_checklist["id"]
 
-    progress_info = await checklists_client.get_checklist_progress(
-        checklist_id, auth_token
-    )
+    progress_info = await checklists_client.get_checklist_progress(checklist_id, auth_token)
 
     tasks = await checklists_client.get_checklist_tasks(checklist_id, auth_token)
     next_task = "View tasks for details"
@@ -342,11 +323,7 @@ async def progress(
             "upcoming_deadline": upcoming_deadline,
         }
     else:
-        start_date = (
-            datetime.fromisoformat(progress_info["start_date"])
-            if progress_info.get("start_date")
-            else None
-        )
+        start_date = datetime.fromisoformat(progress_info["start_date"]) if progress_info.get("start_date") else None
         days_passed = (datetime.now(UTC) - start_date).days if start_date else 0
 
         # Format the due date nicely

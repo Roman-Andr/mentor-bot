@@ -6,7 +6,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from _pytest.logging import LogCaptureFixture
-
 from notification_service.core.enums import NotificationChannel, NotificationStatus, NotificationType
 from notification_service.models import Notification, ScheduledNotification
 from notification_service.services.scheduler import Scheduler

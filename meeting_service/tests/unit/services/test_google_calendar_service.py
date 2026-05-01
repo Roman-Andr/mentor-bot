@@ -1,12 +1,10 @@
 """Unit tests for GoogleCalendarService."""
-# ruff: noqa: S105, S106
 
 from datetime import UTC, datetime, timedelta
 from unittest.mock import MagicMock, patch
 
 import pytest
 from googleapiclient.errors import HttpError  # type: ignore[import-untyped]
-
 from meeting_service.core import NotFoundException, ValidationException
 from meeting_service.models.google_calendar_account import GoogleCalendarAccount
 from meeting_service.services.google_calendar_service import GoogleCalendarService
@@ -102,9 +100,7 @@ class TestSaveCredentials:
         mock_uow.google_calendar_accounts.update.return_value = updated_account
 
         # Act
-        result = await service.save_credentials(
-            100, "updated_token", "updated_refresh", new_expiry
-        )
+        result = await service.save_credentials(100, "updated_token", "updated_refresh", new_expiry)
 
         # Assert
         assert result.access_token == "updated_token"

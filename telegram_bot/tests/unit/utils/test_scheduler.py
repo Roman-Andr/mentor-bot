@@ -6,7 +6,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from apscheduler.schedulers.asyncio import AsyncIOScheduler  # type: ignore[import-untyped]
 from apscheduler.triggers.cron import CronTrigger  # type: ignore[import-untyped]
-
 from telegram_bot.utils.scheduler import Scheduler, scheduler
 
 
@@ -282,9 +281,7 @@ class TestSendDailyNotifications:
         users = {"123": {"id": 1, "access_token": "valid_token"}}
         tasks = [{"id": 1, "title": "Task 1", "status": "pending"}]
 
-        scheduler_with_bot.bot.send_message = AsyncMock(
-            side_effect=Exception("Send failed")
-        )
+        scheduler_with_bot.bot.send_message = AsyncMock(side_effect=Exception("Send failed"))
 
         with patch(
             "telegram_bot.utils.scheduler.user_cache.get_all_users",
@@ -314,10 +311,7 @@ class TestSendDailyNotifications:
     async def test_send_daily_notifications_task_limit(self, scheduler_with_bot):
         """Test send_daily_notifications limits tasks display to 5."""
         users = {"123": {"id": 1, "access_token": "valid_token"}}
-        tasks = [
-            {"id": i, "title": f"Task {i}", "status": "pending"}
-            for i in range(10)
-        ]
+        tasks = [{"id": i, "title": f"Task {i}", "status": "pending"} for i in range(10)]
 
         with patch(
             "telegram_bot.utils.scheduler.user_cache.get_all_users",
@@ -423,9 +417,7 @@ class TestSendWeeklySummary:
         users = {"123": {"id": 1, "access_token": "valid_token"}}
         checklists = [{"id": 1, "status": "completed"}]
 
-        scheduler_with_bot.bot.send_message = AsyncMock(
-            side_effect=Exception("Send failed")
-        )
+        scheduler_with_bot.bot.send_message = AsyncMock(side_effect=Exception("Send failed"))
 
         with patch(
             "telegram_bot.utils.scheduler.user_cache.get_all_users",
@@ -509,9 +501,7 @@ class TestSendTaskReminder:
     async def test_send_task_reminder_send_error(self, scheduler_with_bot):
         """Test send_task_reminder handles send errors gracefully."""
         task = {"id": 1, "title": "Test Task"}
-        scheduler_with_bot.bot.send_message = AsyncMock(
-            side_effect=Exception("Send failed")
-        )
+        scheduler_with_bot.bot.send_message = AsyncMock(side_effect=Exception("Send failed"))
 
         # Should not raise
         await scheduler_with_bot.send_task_reminder(123, task)
@@ -556,9 +546,7 @@ class TestScheduleUserNotification:
         """Test schedule_user_notification adds job to scheduler."""
         notification_time = datetime.now(UTC) + timedelta(hours=1)
 
-        await scheduler_with_bot.schedule_user_notification(
-            123, notification_time, "Test message"
-        )
+        await scheduler_with_bot.schedule_user_notification(123, notification_time, "Test message")
 
         scheduler_with_bot.scheduler.add_job.assert_called_once()
         # Check the call was made with correct arguments
@@ -603,9 +591,7 @@ class TestSendUserNotification:
 
     async def test_send_user_notification_error(self, scheduler_with_bot):
         """Test send_user_notification handles send errors gracefully."""
-        scheduler_with_bot.bot.send_message = AsyncMock(
-            side_effect=Exception("Send failed")
-        )
+        scheduler_with_bot.bot.send_message = AsyncMock(side_effect=Exception("Send failed"))
 
         # Should not raise
         await scheduler_with_bot.send_user_notification(123, "Test message")
@@ -693,9 +679,7 @@ class TestSchedulerErrorRecovery:
         }
         checklists = [{"id": 1, "status": "completed"}]
 
-        scheduler_with_bot.bot.send_message = AsyncMock(
-            side_effect=Exception("Send failed")
-        )
+        scheduler_with_bot.bot.send_message = AsyncMock(side_effect=Exception("Send failed"))
 
         with patch(
             "telegram_bot.utils.scheduler.user_cache.get_all_users",

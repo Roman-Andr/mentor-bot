@@ -10,10 +10,10 @@ from checklists_service.models.template_change_history import TemplateChangeHist
 __all__ = [
     "Certificate",
     "Checklist",
+    "ChecklistStatusHistory",
     "Task",
+    "TaskCompletionHistory",
     "TaskTemplate",
     "Template",
-    "ChecklistStatusHistory",
-    "TaskCompletionHistory",
     "TemplateChangeHistory",
 ]

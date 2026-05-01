@@ -2,12 +2,12 @@
 
 import io
 from typing import TYPE_CHECKING
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from fastapi import HTTPException, UploadFile
 from fastapi.responses import RedirectResponse
-
+from knowledge_service.api.deps import UserInfo
 from knowledge_service.api.endpoints.attachments import (
     batch_upload_attachments,
     delete_attachment,
@@ -16,12 +16,10 @@ from knowledge_service.api.endpoints.attachments import (
     upload_attachment,
 )
 from knowledge_service.core import ArticleStatus, NotFoundException, PermissionDenied, ValidationException
+from knowledge_service.models import Article, Attachment
 
 if TYPE_CHECKING:
-    from unittest.mock import AsyncMock
-
-    from knowledge_service.api.deps import UserInfo
-    from knowledge_service.models import Article, Attachment
+    pass
 
 
 class TestListArticleAttachments:
@@ -40,7 +38,9 @@ class TestListArticleAttachments:
         mock_article.department_id = mock_user.department_id
         mock_article_service.get_article_by_id.return_value = mock_article
 
-        with patch("knowledge_service.api.endpoints.attachments.get_storage_service", return_value=mock_storage_service):
+        with patch(
+            "knowledge_service.api.endpoints.attachments.get_storage_service", return_value=mock_storage_service
+        ):
             result = await list_article_attachments(
                 article_id=1,
                 article_service=mock_article_service,
@@ -67,7 +67,9 @@ class TestListArticleAttachments:
         mock_article.department_id = mock_user.department_id
         mock_article_service.get_article_by_id.return_value = mock_article
 
-        with patch("knowledge_service.api.endpoints.attachments.get_storage_service", return_value=mock_storage_service):
+        with patch(
+            "knowledge_service.api.endpoints.attachments.get_storage_service", return_value=mock_storage_service
+        ):
             result = await list_article_attachments(
                 article_id=1,
                 article_service=mock_article_service,
@@ -142,7 +144,9 @@ class TestUploadAttachment:
         mock_file.content_type = "application/pdf"
         mock_file.file = io.BytesIO(file_content)
 
-        with patch("knowledge_service.api.endpoints.attachments.get_storage_service", return_value=mock_storage_service):
+        with patch(
+            "knowledge_service.api.endpoints.attachments.get_storage_service", return_value=mock_storage_service
+        ):
             result = await upload_attachment(
                 article_service=mock_article_service,
                 attachment_service=mock_attachment_service,
@@ -173,7 +177,9 @@ class TestUploadAttachment:
         mock_file.content_type = "application/pdf"
         mock_file.file = io.BytesIO(b"admin content")
 
-        with patch("knowledge_service.api.endpoints.attachments.get_storage_service", return_value=mock_storage_service):
+        with patch(
+            "knowledge_service.api.endpoints.attachments.get_storage_service", return_value=mock_storage_service
+        ):
             result = await upload_attachment(
                 article_service=mock_article_service,
                 attachment_service=mock_attachment_service,
@@ -288,7 +294,9 @@ class TestBatchUploadAttachments:
         mock_file2.content_type = "image/png"
         mock_file2.file = io.BytesIO(b"content2")
 
-        with patch("knowledge_service.api.endpoints.attachments.get_storage_service", return_value=mock_storage_service):
+        with patch(
+            "knowledge_service.api.endpoints.attachments.get_storage_service", return_value=mock_storage_service
+        ):
             result = await batch_upload_attachments(
                 article_service=mock_article_service,
                 attachment_service=mock_attachment_service,
@@ -324,7 +332,9 @@ class TestBatchUploadAttachments:
         invalid_file.content_type = "application/x-msdownload"
         invalid_file.file = io.BytesIO(b"invalid content")
 
-        with patch("knowledge_service.api.endpoints.attachments.get_storage_service", return_value=mock_storage_service):
+        with patch(
+            "knowledge_service.api.endpoints.attachments.get_storage_service", return_value=mock_storage_service
+        ):
             result = await batch_upload_attachments(
                 article_service=mock_article_service,
                 attachment_service=mock_attachment_service,
@@ -357,7 +367,9 @@ class TestGetAttachmentFile:
             "http://localhost:9000/test-bucket/articles/1/test_file.pdf?signature=abc"
         )
 
-        with patch("knowledge_service.api.endpoints.attachments.get_storage_service", return_value=mock_storage_service):
+        with patch(
+            "knowledge_service.api.endpoints.attachments.get_storage_service", return_value=mock_storage_service
+        ):
             result = await get_attachment_file(
                 article_id=1,
                 filename="test_file.pdf",
@@ -367,9 +379,7 @@ class TestGetAttachmentFile:
 
         assert isinstance(result, RedirectResponse)
         assert "test_file.pdf" in result.headers["location"]
-        mock_storage_service.get_presigned_url.assert_called_once_with(
-            "articles/1/test_file.pdf", expires=3600
-        )
+        mock_storage_service.get_presigned_url.assert_called_once_with("articles/1/test_file.pdf", expires=3600)
 
     async def test_get_attachment_file_not_found(
         self,
@@ -387,7 +397,9 @@ class TestGetAttachmentFile:
 
         mock_storage_service.get_presigned_url.side_effect = StorageError("File not found")
 
-        with patch("knowledge_service.api.endpoints.attachments.get_storage_service", return_value=mock_storage_service):
+        with patch(
+            "knowledge_service.api.endpoints.attachments.get_storage_service", return_value=mock_storage_service
+        ):
             with pytest.raises(NotFoundException):
                 await get_attachment_file(
                     article_id=1,
@@ -417,7 +429,9 @@ class TestDeleteAttachment:
         mock_article.author_id = mock_user.id
         mock_article_service.get_article_by_id.return_value = mock_article
 
-        with patch("knowledge_service.api.endpoints.attachments.get_storage_service", return_value=mock_storage_service):
+        with patch(
+            "knowledge_service.api.endpoints.attachments.get_storage_service", return_value=mock_storage_service
+        ):
             result = await delete_attachment(
                 attachment_id=1,
                 article_service=mock_article_service,
@@ -446,7 +460,9 @@ class TestDeleteAttachment:
         mock_article.author_id = 999  # Different user
         mock_article_service.get_article_by_id.return_value = mock_article
 
-        with patch("knowledge_service.api.endpoints.attachments.get_storage_service", return_value=mock_storage_service):
+        with patch(
+            "knowledge_service.api.endpoints.attachments.get_storage_service", return_value=mock_storage_service
+        ):
             result = await delete_attachment(
                 attachment_id=1,
                 article_service=mock_article_service,
@@ -473,7 +489,9 @@ class TestDeleteAttachment:
         mock_article.author_id = 999  # Different user
         mock_article_service.get_article_by_id.return_value = mock_article
 
-        with patch("knowledge_service.api.endpoints.attachments.get_storage_service", return_value=mock_storage_service):
+        with patch(
+            "knowledge_service.api.endpoints.attachments.get_storage_service", return_value=mock_storage_service
+        ):
             with pytest.raises(PermissionDenied):
                 await delete_attachment(
                     attachment_id=1,
@@ -511,7 +529,9 @@ class TestUploadAttachmentFileSaveError:
 
         mock_storage_service.upload_file.side_effect = StorageError("S3 upload failed")
 
-        with patch("knowledge_service.api.endpoints.attachments.get_storage_service", return_value=mock_storage_service):
+        with patch(
+            "knowledge_service.api.endpoints.attachments.get_storage_service", return_value=mock_storage_service
+        ):
             with pytest.raises(HTTPException) as exc_info:
                 await upload_attachment(
                     article_service=mock_article_service,
@@ -545,7 +565,9 @@ class TestGetAttachmentFileAccessControl:
             "http://localhost:9000/test-bucket/articles/1/test_file.pdf?signature=abc"
         )
 
-        with patch("knowledge_service.api.endpoints.attachments.get_storage_service", return_value=mock_storage_service):
+        with patch(
+            "knowledge_service.api.endpoints.attachments.get_storage_service", return_value=mock_storage_service
+        ):
             result = await get_attachment_file(
                 article_id=1,
                 filename="test_file.pdf",
@@ -572,7 +594,9 @@ class TestGetAttachmentFileAccessControl:
             "http://localhost:9000/test-bucket/articles/1/hr_file.pdf?signature=abc"
         )
 
-        with patch("knowledge_service.api.endpoints.attachments.get_storage_service", return_value=mock_storage_service):
+        with patch(
+            "knowledge_service.api.endpoints.attachments.get_storage_service", return_value=mock_storage_service
+        ):
             result = await get_attachment_file(
                 article_id=1,
                 filename="hr_file.pdf",
@@ -595,7 +619,9 @@ class TestGetAttachmentFileAccessControl:
         mock_article.department_id = 888  # Different department
         mock_article_service.get_article_by_id.return_value = mock_article
 
-        with patch("knowledge_service.api.endpoints.attachments.get_storage_service", return_value=mock_storage_service):
+        with patch(
+            "knowledge_service.api.endpoints.attachments.get_storage_service", return_value=mock_storage_service
+        ):
             with pytest.raises(PermissionDenied) as exc_info:
                 await get_attachment_file(
                     article_id=1,
@@ -623,7 +649,9 @@ class TestGetAttachmentFileAccessControl:
             "http://localhost:9000/test-bucket/articles/1/admin_access.pdf?signature=abc"
         )
 
-        with patch("knowledge_service.api.endpoints.attachments.get_storage_service", return_value=mock_storage_service):
+        with patch(
+            "knowledge_service.api.endpoints.attachments.get_storage_service", return_value=mock_storage_service
+        ):
             result = await get_attachment_file(
                 article_id=1,
                 filename="admin_access.pdf",
@@ -661,7 +689,9 @@ class TestListAttachmentsStorageError:
 
         mock_storage_service.get_presigned_url.side_effect = StorageError("Failed to generate URL")
 
-        with patch("knowledge_service.api.endpoints.attachments.get_storage_service", return_value=mock_storage_service):
+        with patch(
+            "knowledge_service.api.endpoints.attachments.get_storage_service", return_value=mock_storage_service
+        ):
             result = await list_article_attachments(
                 article_id=1,
                 article_service=mock_article_service,
@@ -703,7 +733,9 @@ class TestDeleteAttachmentStorageError:
         # Make delete_file raise StorageError
         mock_storage_service.delete_file.side_effect = StorageError("S3 delete failed")
 
-        with patch("knowledge_service.api.endpoints.attachments.get_storage_service", return_value=mock_storage_service):
+        with patch(
+            "knowledge_service.api.endpoints.attachments.get_storage_service", return_value=mock_storage_service
+        ):
             result = await delete_attachment(
                 attachment_id=1,
                 article_service=mock_article_service,
@@ -734,7 +766,9 @@ class TestListAttachmentsAccessControl:
         mock_article.department_id = mock_hr_user.department_id
         mock_article_service.get_article_by_id.return_value = mock_article
 
-        with patch("knowledge_service.api.endpoints.attachments.get_storage_service", return_value=mock_storage_service):
+        with patch(
+            "knowledge_service.api.endpoints.attachments.get_storage_service", return_value=mock_storage_service
+        ):
             result = await list_article_attachments(
                 article_id=1,
                 article_service=mock_article_service,

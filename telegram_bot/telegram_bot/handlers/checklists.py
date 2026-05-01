@@ -43,9 +43,7 @@ MAX_FILE_SIZE_MB = 10
 @router.message(Command("tasks"))
 @router.message(F.text == "\U0001f4cb My Tasks")
 @router.message(F.text == "My Tasks")
-@router.message(
-    F.text == "\U0001f4cb \u041c\u043e\u0438 \u0437\u0430\u0434\u0430\u0447\u0438"
-)
+@router.message(F.text == "\U0001f4cb \u041c\u043e\u0438 \u0437\u0430\u0434\u0430\u0447\u0438")
 @router.message(F.text == "\u041c\u043e\u0438 \u0437\u0430\u0434\u0430\u0447\u0438")
 @router.callback_query(F.data == "my_tasks")
 async def show_checklists(
@@ -71,9 +69,7 @@ async def show_checklists(
     if not checklists:
         text = t("checklists.no_checklists", locale=locale)
         if isinstance(callback, CallbackQuery) and isinstance(msg, Message):
-            await msg.edit_text(
-                text, reply_markup=get_no_checklists_keyboard(locale=locale).as_markup()
-            )
+            await msg.edit_text(text, reply_markup=get_no_checklists_keyboard(locale=locale).as_markup())
         else:
             await msg.answer(text)
         return
@@ -100,9 +96,7 @@ async def show_checklists(
 
 
 @router.callback_query(F.data.startswith("checklist_"))
-async def show_checklist_tasks(
-    callback: CallbackQuery, auth_token: str, *, locale: str = "en"
-) -> None:
+async def show_checklist_tasks(callback: CallbackQuery, auth_token: str, *, locale: str = "en") -> None:
     """Show tasks for a specific checklist."""
     if not auth_token:
         await callback.answer(t("common.auth_required_short", locale=locale))
@@ -111,9 +105,7 @@ async def show_checklist_tasks(
     checklist_id = int(callback.data.split("_")[1])
 
     # Get checklist details for the title
-    checklists = await checklists_client.get_user_checklists(
-        callback.from_user.id, auth_token
-    )
+    checklists = await checklists_client.get_user_checklists(callback.from_user.id, auth_token)
     current_checklist = None
     for cl in checklists:
         if cl.get("id") == checklist_id:
@@ -158,20 +150,14 @@ async def show_checklist_tasks(
     & ~F.data.startswith("task_files_")
     & ~F.data.startswith("download_task_file_"),
 )
-async def show_task_detail(
-    callback: CallbackQuery, auth_token: str, *, locale: str = "en"
-) -> None:
+async def show_task_detail(callback: CallbackQuery, auth_token: str, *, locale: str = "en") -> None:
     """Show task details."""
     if not auth_token:
         await callback.answer(t("common.auth_required_short", locale=locale))
         return
 
     task_id = int(callback.data.split("_")[1])
-    checklist_id = (
-        int(callback.data.split("_")[2])
-        if len(callback.data.split("_")) > CALLBACK_DATA_MIN_PARTS
-        else None
-    )
+    checklist_id = int(callback.data.split("_")[2]) if len(callback.data.split("_")) > CALLBACK_DATA_MIN_PARTS else None
 
     # Invalidate cache to get fresh task status
     await checklists_client.invalidate_task_cache(auth_token, checklist_id)
@@ -191,9 +177,7 @@ async def show_task_detail(
                 break
 
     if not task_detail:
-        await callback.answer(
-            t("checklists.task_not_found", locale=locale), show_alert=True
-        )
+        await callback.answer(t("checklists.task_not_found", locale=locale), show_alert=True)
         return
 
     text = format_task_detail(task_detail, locale=locale)
@@ -206,18 +190,14 @@ async def show_task_detail(
     if callback.message:
         await callback.message.edit_text(
             text,
-            reply_markup=get_task_detail_keyboard(
-                task_id, checklist_id, task_status, attachment_count, locale=locale
-            ),
+            reply_markup=get_task_detail_keyboard(task_id, checklist_id, task_status, attachment_count, locale=locale),
             parse_mode="Markdown",
         )
     await callback.answer()
 
 
 @router.callback_query(F.data.startswith("start_task_"))
-async def start_task(
-    callback: CallbackQuery, auth_token: str, *, locale: str = "en"
-) -> None:
+async def start_task(callback: CallbackQuery, auth_token: str, *, locale: str = "en") -> None:
     """Start working on a task."""
     if not auth_token:
         await callback.answer(t("common.auth_required_short", locale=locale))
@@ -236,9 +216,7 @@ async def start_task(
             break
 
     if task_status == "COMPLETED":
-        await callback.answer(
-            t("tasks.already_completed", locale=locale), show_alert=True
-        )
+        await callback.answer(t("tasks.already_completed", locale=locale), show_alert=True)
         return
 
     if task_status == "IN_PROGRESS":
@@ -246,9 +224,7 @@ async def start_task(
         await callback.answer(t("tasks.already_started", locale=locale))
         if callback.message:
             await callback.message.edit_reply_markup(
-                reply_markup=get_task_detail_keyboard(
-                    task_id, checklist_id, "in_progress", locale=locale
-                )
+                reply_markup=get_task_detail_keyboard(task_id, checklist_id, "in_progress", locale=locale)
             )
         return
 
@@ -260,20 +236,14 @@ async def start_task(
         await callback.answer(t("common.success", locale=locale))
         if callback.message:
             await callback.message.edit_reply_markup(
-                reply_markup=get_task_detail_keyboard(
-                    task_id, checklist_id, "in_progress", locale=locale
-                )
+                reply_markup=get_task_detail_keyboard(task_id, checklist_id, "in_progress", locale=locale)
             )
     else:
-        await callback.answer(
-            t("checklists.task_start_failed", locale=locale), show_alert=True
-        )
+        await callback.answer(t("checklists.task_start_failed", locale=locale), show_alert=True)
 
 
 @router.callback_query(F.data.startswith("attach_task_"))
-async def attach_task(
-    callback: CallbackQuery, state: FSMContext, *, locale: str = "en"
-) -> None:
+async def attach_task(callback: CallbackQuery, state: FSMContext, *, locale: str = "en") -> None:
     """Start file attachment process to task."""
     if callback.message is None:
         return
@@ -293,18 +263,14 @@ async def attach_task(
         f"\U0001f4ce *{t('tasks.attach_file_title', locale=locale)}*\n\n"
         f"{t('tasks.attach_file_prompt', locale=locale)}\n\n"
         f"_{t('tasks.attach_file_limits', locale=locale, max_size=MAX_FILE_SIZE_MB)}_",
-        reply_markup=get_attach_task_keyboard(
-            task_id, checklist_id, locale=locale
-        ).as_markup(),
+        reply_markup=get_attach_task_keyboard(task_id, checklist_id, locale=locale).as_markup(),
         parse_mode="Markdown",
     )
     await callback.answer()
 
 
 @router.callback_query(F.data.startswith("task_info_"))
-async def task_info(
-    callback: CallbackQuery, auth_token: str, *, locale: str = "en"
-) -> None:
+async def task_info(callback: CallbackQuery, auth_token: str, *, locale: str = "en") -> None:
     """Show detailed task information."""
     if not auth_token:
         await callback.answer(t("common.auth_required_short", locale=locale))
@@ -314,14 +280,10 @@ async def task_info(
     task_id = int(parts[2])
     checklist_id = int(parts[3]) if len(parts) > 3 and parts[3] != "0" else None
 
-    task_detail = await checklists_client.get_task_details(
-        task_id, auth_token, checklist_id
-    )
+    task_detail = await checklists_client.get_task_details(task_id, auth_token, checklist_id)
 
     if not task_detail:
-        await callback.answer(
-            t("checklists.task_not_found", locale=locale), show_alert=True
-        )
+        await callback.answer(t("checklists.task_not_found", locale=locale), show_alert=True)
         return
 
     text = format_task_detail(task_detail, locale=locale)
@@ -354,9 +316,7 @@ async def task_info(
 
 
 @router.callback_query(F.data.startswith("complete_task_"))
-async def complete_task(
-    callback: CallbackQuery, auth_token: str, user: dict, *, locale: str = "en"
-) -> None:
+async def complete_task(callback: CallbackQuery, auth_token: str, user: dict, *, locale: str = "en") -> None:
     """Mark task as completed."""
     if not auth_token or not user:
         await callback.answer(t("common.auth_required_short", locale=locale))
@@ -366,9 +326,7 @@ async def complete_task(
     task_id = int(parts[2])
     checklist_id = int(parts[3]) if len(parts) > 3 and parts[3] != "0" else None
 
-    result = await checklists_client.complete_task(
-        task_id, auth_token, "Completed via Telegram Bot"
-    )
+    result = await checklists_client.complete_task(task_id, auth_token, "Completed via Telegram Bot")
 
     if result:
         # Invalidate task cache so checklist progress is updated
@@ -381,9 +339,7 @@ async def complete_task(
             text = format_task_detail(task_detail, locale=locale)
 
             # Get attachments count for completed task
-            attachments = await checklists_client.get_task_attachments(
-                task_id, auth_token
-            )
+            attachments = await checklists_client.get_task_attachments(task_id, auth_token)
             attachment_count = len(attachments)
 
             await callback.message.edit_text(
@@ -405,9 +361,7 @@ async def noop_callback(callback: CallbackQuery, *, locale: str = "en") -> None:
 
 @router.message(TaskAttachmentStates.waiting_for_file, F.document)
 @file_upload_rate_limit(max_uploads=10, window_seconds=3600)
-async def receive_task_file(
-    message: Message, state: FSMContext, auth_token: str, *, locale: str = "en"
-) -> None:
+async def receive_task_file(message: Message, state: FSMContext, auth_token: str, *, locale: str = "en") -> None:
     """Receive file attachment for task."""
     if not auth_token:
         await message.answer(t("common.auth_required", locale=locale))
@@ -422,9 +376,7 @@ async def receive_task_file(
     file_size = message.document.file_size or 0
     max_size = MAX_FILE_SIZE_MB * 1024 * 1024
     if file_size > max_size:
-        await message.answer(
-            t("tasks.file_too_large", locale=locale, max_size=MAX_FILE_SIZE_MB)
-        )
+        await message.answer(t("tasks.file_too_large", locale=locale, max_size=MAX_FILE_SIZE_MB))
         return
 
     # Save file info to state
@@ -445,9 +397,7 @@ async def receive_task_file(
 
 @router.message(TaskAttachmentStates.waiting_for_file, F.photo)
 @file_upload_rate_limit(max_uploads=10, window_seconds=3600)
-async def receive_task_photo(
-    message: Message, state: FSMContext, auth_token: str, *, locale: str = "en"
-) -> None:
+async def receive_task_photo(message: Message, state: FSMContext, auth_token: str, *, locale: str = "en") -> None:
     """Receive photo attachment for task."""
     if not auth_token:
         await message.answer(t("common.auth_required", locale=locale))
@@ -465,9 +415,7 @@ async def receive_task_photo(
     file_size = photo.file_size or 0
     max_size = MAX_FILE_SIZE_MB * 1024 * 1024
     if file_size > max_size:
-        await message.answer(
-            t("tasks.file_too_large", locale=locale, max_size=MAX_FILE_SIZE_MB)
-        )
+        await message.answer(t("tasks.file_too_large", locale=locale, max_size=MAX_FILE_SIZE_MB))
         return
 
     # Save file info to state - generate filename for photo
@@ -479,25 +427,20 @@ async def receive_task_photo(
 
     # Ask for optional description
     await message.answer(
-        f"\U0001f4ce *{t('tasks.photo_received', locale=locale)}*\n\n"
-        f"{t('tasks.ask_description', locale=locale)}",
+        f"\U0001f4ce *{t('tasks.photo_received', locale=locale)}*\n\n{t('tasks.ask_description', locale=locale)}",
         parse_mode="Markdown",
         reply_markup=get_skip_description_keyboard(locale=locale).as_markup(),
     )
 
 
 @router.message(TaskAttachmentStates.waiting_for_file)
-async def receive_task_file_invalid(
-    message: Message, state: FSMContext, *, locale: str = "en"
-) -> None:
+async def receive_task_file_invalid(message: Message, state: FSMContext, *, locale: str = "en") -> None:
     """Handle invalid input when waiting for file."""
     await message.answer(t("tasks.send_file_only", locale=locale))
 
 
 @router.message(TaskAttachmentStates.waiting_for_description)
-async def receive_task_description(
-    message: Message, state: FSMContext, auth_token: str, *, locale: str = "en"
-) -> None:
+async def receive_task_description(message: Message, state: FSMContext, auth_token: str, *, locale: str = "en") -> None:
     """Receive description and upload file to task."""
     if not auth_token:
         await message.answer(t("common.auth_required", locale=locale))
@@ -536,11 +479,8 @@ async def receive_task_description(
 
     if result:
         await message.answer(
-            f"\U0001f4ce {t('tasks.attachment_success', locale=locale)}\n\n"
-            f"{t('tasks.back_to_task', locale=locale)}",
-            reply_markup=get_back_to_task_keyboard(
-                task_id, checklist_id, locale=locale
-            ).as_markup(),
+            f"\U0001f4ce {t('tasks.attachment_success', locale=locale)}\n\n{t('tasks.back_to_task', locale=locale)}",
+            reply_markup=get_back_to_task_keyboard(task_id, checklist_id, locale=locale).as_markup(),
         )
     else:
         await message.answer(t("tasks.attachment_failed", locale=locale))
@@ -549,9 +489,7 @@ async def receive_task_description(
 
 
 @router.callback_query(F.data == "skip_description")
-async def skip_description(
-    callback: CallbackQuery, state: FSMContext, auth_token: str, *, locale: str = "en"
-) -> None:
+async def skip_description(callback: CallbackQuery, state: FSMContext, auth_token: str, *, locale: str = "en") -> None:
     """Skip description and upload file directly."""
     if not auth_token:
         await callback.answer(t("common.auth_required_short", locale=locale))
@@ -574,9 +512,7 @@ async def skip_description(
         file_info = await callback.bot.get_file(file_id)
         file_content = await callback.bot.download_file(file_info.file_path)
     except Exception:
-        await callback.answer(
-            t("tasks.download_failed", locale=locale), show_alert=True
-        )
+        await callback.answer(t("tasks.download_failed", locale=locale), show_alert=True)
         await state.clear()
         return
 
@@ -594,23 +530,17 @@ async def skip_description(
             await callback.message.edit_text(
                 f"\U0001f4ce {t('tasks.attachment_success', locale=locale)}\n\n"
                 f"{t('tasks.back_to_task', locale=locale)}",
-                reply_markup=get_back_to_task_keyboard(
-                    task_id, checklist_id, locale=locale
-                ).as_markup(),
+                reply_markup=get_back_to_task_keyboard(task_id, checklist_id, locale=locale).as_markup(),
             )
     else:
-        await callback.answer(
-            t("tasks.attachment_failed", locale=locale), show_alert=True
-        )
+        await callback.answer(t("tasks.attachment_failed", locale=locale), show_alert=True)
 
     await state.clear()
     await callback.answer()
 
 
 @router.callback_query(F.data.startswith("task_files_"))
-async def show_task_attachments(
-    callback: CallbackQuery, auth_token: str, *, locale: str = "en"
-) -> None:
+async def show_task_attachments(callback: CallbackQuery, auth_token: str, *, locale: str = "en") -> None:
     """Show list of task attachments."""
     if not auth_token:
         await callback.answer(t("common.auth_required_short", locale=locale))
@@ -632,18 +562,14 @@ async def show_task_attachments(
     if callback.message:
         await callback.message.edit_text(
             text,
-            reply_markup=get_task_attachments_keyboard(
-                attachments, task_id, checklist_id, locale=locale
-            ).as_markup(),
+            reply_markup=get_task_attachments_keyboard(attachments, task_id, checklist_id, locale=locale).as_markup(),
             parse_mode="Markdown",
         )
     await callback.answer()
 
 
 @router.callback_query(F.data.startswith("download_task_file_"))
-async def download_task_file(
-    callback: CallbackQuery, auth_token: str, *, locale: str = "en"
-) -> None:
+async def download_task_file(callback: CallbackQuery, auth_token: str, *, locale: str = "en") -> None:
     """Download and send task attachment."""
     if not auth_token:
         await callback.answer(t("common.auth_required_short", locale=locale))
@@ -658,9 +584,7 @@ async def download_task_file(
     attachment = next((a for a in attachments if a.get("id") == attachment_id), None)
 
     if not attachment:
-        await callback.answer(
-            t("tasks.attachment_error", locale=locale), show_alert=True
-        )
+        await callback.answer(t("tasks.attachment_error", locale=locale), show_alert=True)
         return
 
     await callback.answer(t("common.loading", locale=locale))
@@ -679,19 +603,13 @@ async def download_task_file(
                 caption=f"\U0001f4ce {filename}",
             )
         else:
-            await callback.answer(
-                t("tasks.download_failed", locale=locale), show_alert=True
-            )
+            await callback.answer(t("tasks.download_failed", locale=locale), show_alert=True)
     except Exception:
         logger.exception("Failed to send task attachment")
-        await callback.answer(
-            t("tasks.download_failed", locale=locale), show_alert=True
-        )
+        await callback.answer(t("tasks.download_failed", locale=locale), show_alert=True)
 
 
-async def _respond_with_auth_error(
-    update: Message | CallbackQuery, *, locale: str = "en"
-) -> None:
+async def _respond_with_auth_error(update: Message | CallbackQuery, *, locale: str = "en") -> None:
     """Send authentication error response."""
     text = t("common.auth_required", locale=locale)
 

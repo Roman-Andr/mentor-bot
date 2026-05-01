@@ -221,9 +221,7 @@ class InvitationService:
             msg = "Invitation"
             raise NotFoundException(msg)
         deleted = await self._uow.invitations.delete(invitation_id)
-        logger.info(
-            "Invitation deleted (invitation_id={}, deleted={})", invitation_id, deleted
-        )
+        logger.info("Invitation deleted (invitation_id={}, deleted={})", invitation_id, deleted)
         return deleted
 
     def generate_invitation_url(self, token: str) -> HttpUrl:

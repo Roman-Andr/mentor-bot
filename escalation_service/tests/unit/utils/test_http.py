@@ -7,7 +7,6 @@ for proxy_var in ["http_proxy", "https_proxy", "HTTP_PROXY", "HTTPS_PROXY", "all
     os.environ.pop(proxy_var, None)
 
 import httpx
-
 from escalation_service.utils.http import make_async_client
 from escalation_service.utils.logging import inject_request_id
 
