@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from notification_service.config import settings
 from notification_service.core.exceptions import AuthException, PermissionDenied
 from notification_service.database import get_db
+from notification_service.repositories.unit_of_work import SqlAlchemyUnitOfWork
 
 security = HTTPBearer(auto_error=False)
 
@@ -111,6 +112,11 @@ async def verify_service_api_key(
         msg = "Invalid service API key"
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=msg)
     return True
+
+
+async def get_uow(db: Annotated[AsyncSession, Depends(get_db)]) -> SqlAlchemyUnitOfWork:
+    """Get Unit of Work instance."""
+    return SqlAlchemyUnitOfWork(lambda: db)
 
 
 ServiceAuth = Annotated[bool, Depends(verify_service_api_key)]

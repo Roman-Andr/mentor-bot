@@ -203,6 +203,7 @@ class TestIUnitOfWorkInterface:
                 self.pulse_surveys = MagicMock()
                 self.experience_ratings = MagicMock()
                 self.comments = MagicMock()
+                self.feedback_status_change_history = MagicMock()
 
             async def commit(self) -> None:
                 pass

@@ -55,7 +55,7 @@ class ArticleViewRepository(SqlAlchemyBaseRepository[ArticleView, int], IArticle
 
         query = query.order_by(func.count(ArticleView.id).desc()).limit(limit)
 
-        result = await self.session.execute(query)
+        result = await self._session.execute(query)
         rows = result.all()
 
         return [
@@ -93,7 +93,7 @@ class ArticleViewRepository(SqlAlchemyBaseRepository[ArticleView, int], IArticle
 
         query = query.order_by(trunc_func)
 
-        result = await self.session.execute(query)
+        result = await self._session.execute(query)
         rows = result.all()
 
         return [
@@ -129,7 +129,7 @@ class ArticleViewRepository(SqlAlchemyBaseRepository[ArticleView, int], IArticle
 
         query = query.order_by(func.count(ArticleView.id).desc())
 
-        result = await self.session.execute(query)
+        result = await self._session.execute(query)
         rows = result.all()
 
         return [
@@ -166,7 +166,7 @@ class ArticleViewRepository(SqlAlchemyBaseRepository[ArticleView, int], IArticle
 
         query = query.order_by(func.count(ArticleView.id).desc())
 
-        result = await self.session.execute(query)
+        result = await self._session.execute(query)
         rows = result.all()
 
         return [
@@ -190,7 +190,7 @@ class ArticleViewRepository(SqlAlchemyBaseRepository[ArticleView, int], IArticle
             views_query = views_query.where(ArticleView.viewed_at >= from_date)
         if to_date:
             views_query = views_query.where(ArticleView.viewed_at <= to_date)
-        total_views_result = await self.session.execute(views_query)
+        total_views_result = await self._session.execute(views_query)
         total_views = total_views_result.scalar() or 0
 
         # Unique viewers
@@ -199,12 +199,12 @@ class ArticleViewRepository(SqlAlchemyBaseRepository[ArticleView, int], IArticle
             viewers_query = viewers_query.where(ArticleView.viewed_at >= from_date)
         if to_date:
             viewers_query = viewers_query.where(ArticleView.viewed_at <= to_date)
-        unique_viewers_result = await self.session.execute(viewers_query)
+        unique_viewers_result = await self._session.execute(viewers_query)
         unique_viewers = unique_viewers_result.scalar() or 0
 
         # Total articles
         total_articles_query = select(func.count(Article.id))
-        total_articles_result = await self.session.execute(total_articles_query)
+        total_articles_result = await self._session.execute(total_articles_query)
         total_articles = total_articles_result.scalar() or 0
 
         # Average views per article

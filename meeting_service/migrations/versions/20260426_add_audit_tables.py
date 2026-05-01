@@ -2,7 +2,7 @@
 add_audit_tables.
 
 Revision ID: f6g7h8i9j0k1
-Revises: 0444f265d1b2
+Revises: 4a048ec3f254
 Create Date: 2026-04-26 10:00:00.000000+00:00
 """
 from collections.abc import Sequence
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision: str = "f6g7h8i9j0k1"
-down_revision: str | None = "0444f265d1b2"
+down_revision: str | None = "4a048ec3f254"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
@@ -29,10 +29,8 @@ def upgrade() -> None:
         sa.Column("new_status", sa.String(length=50), nullable=True),
         sa.Column("changed_at", sa.DateTime(timezone=True), server_default=sa.text("NOW()"), nullable=False),
         sa.Column("changed_by", sa.Integer(), nullable=True),
-        sa.Column("metadata", sa.JSON(), nullable=True),
+        sa.Column("meta_data", sa.JSON(), nullable=True),
         sa.ForeignKeyConstraint(["meeting_id"], ["meetings.id"]),
-        sa.ForeignKeyConstraint(["user_id"], ["users.id"]),
-        sa.ForeignKeyConstraint(["changed_by"], ["users.id"]),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(op.f("ix_meeting_status_change_history_meeting_id_changed_at"), "meeting_status_change_history", ["meeting_id", "changed_at"])
@@ -46,9 +44,8 @@ def upgrade() -> None:
         sa.Column("action", sa.String(length=50), nullable=False),
         sa.Column("joined_at", sa.DateTime(timezone=True), server_default=sa.text("NOW()"), nullable=False),
         sa.Column("left_at", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("metadata", sa.JSON(), nullable=True),
+        sa.Column("meta_data", sa.JSON(), nullable=True),
         sa.ForeignKeyConstraint(["meeting_id"], ["meetings.id"]),
-        sa.ForeignKeyConstraint(["user_id"], ["users.id"]),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(op.f("ix_meeting_participant_history_meeting_id"), "meeting_participant_history", ["meeting_id"])

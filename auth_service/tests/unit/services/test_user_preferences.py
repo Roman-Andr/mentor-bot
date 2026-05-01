@@ -225,6 +225,9 @@ class TestUpdateUserPreferences:
             is_verified=True,
             role=UserRole.NEWBIE,
             created_at=datetime.now(UTC),
+            language="ru",
+            notification_telegram_enabled=True,
+            notification_email_enabled=True,
         )
         # Simulate defaults from model
         assert new_user.language == "ru"

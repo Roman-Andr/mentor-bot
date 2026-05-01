@@ -179,6 +179,102 @@ class TestTaskServiceUpdate:
         assert result.completed_at is not None
 
     async def test_update_task_to_in_progress_sets_started_at(
+        self, mock_uow: MagicMock, sample_pending_task: Task
+    ) -> None:
+        """Test marking task in_progress sets started_at timestamp."""
+        sample_pending_task.started_at = None
+        mock_uow.tasks.get_by_id.return_value = sample_pending_task
+        mock_uow.tasks.update.return_value = sample_pending_task
+
+        update_data = TaskUpdate(status=TaskStatus.IN_PROGRESS)
+
+        service = TaskService(mock_uow)
+        result = await service.update_task(1, update_data)
+
+        assert result.started_at is not None
+
+    async def test_update_task_progress_with_notes_appends(
+        self, mock_uow: MagicMock, sample_in_progress_task: Task
+    ) -> None:
+        """Test update_task_progress appends notes to existing notes."""
+        sample_in_progress_task.completion_notes = "Previous notes"
+        mock_uow.tasks.get_by_id.return_value = sample_in_progress_task
+        mock_uow.tasks.get_incomplete_dependencies.return_value = []
+        mock_uow.tasks.update.return_value = sample_in_progress_task
+
+        progress_data = TaskProgress(
+            task_id=1,
+            status=TaskStatus.IN_PROGRESS,
+            progress_percentage=50,
+            notes="New notes",
+        )
+
+        service = TaskService(mock_uow)
+        result = await service.update_task_progress(1, progress_data)
+
+        assert "Previous notes" in str(result.completion_notes)
+        assert "New notes" in str(result.completion_notes)
+
+    async def test_update_task_progress_with_notes_sets_new(
+        self, mock_uow: MagicMock, sample_in_progress_task: Task
+    ) -> None:
+        """Test update_task_progress sets notes when none exist."""
+        sample_in_progress_task.completion_notes = None
+        mock_uow.tasks.get_by_id.return_value = sample_in_progress_task
+        mock_uow.tasks.get_incomplete_dependencies.return_value = []
+        mock_uow.tasks.update.return_value = sample_in_progress_task
+
+        progress_data = TaskProgress(
+            task_id=1,
+            status=TaskStatus.IN_PROGRESS,
+            progress_percentage=50,
+            notes="First notes",
+        )
+
+        service = TaskService(mock_uow)
+        result = await service.update_task_progress(1, progress_data)
+
+        assert result.completion_notes == "First notes"
+
+    async def test_update_task_progress_with_attachments(
+        self, mock_uow: MagicMock, sample_in_progress_task: Task
+    ) -> None:
+        """Test update_task_progress extends attachments."""
+        sample_in_progress_task.attachments = []
+        mock_uow.tasks.get_by_id.return_value = sample_in_progress_task
+        mock_uow.tasks.get_incomplete_dependencies.return_value = []
+        mock_uow.tasks.update.return_value = sample_in_progress_task
+
+        progress_data = TaskProgress(
+            task_id=1,
+            status=TaskStatus.IN_PROGRESS,
+            progress_percentage=50,
+            attachments=[{"filename": "file1.pdf"}, {"filename": "file2.pdf"}],
+        )
+
+        service = TaskService(mock_uow)
+        result = await service.update_task_progress(1, progress_data)
+
+        assert len(result.attachments) == 2
+
+    async def test_update_task_progress_complete_with_incomplete_deps(
+        self, mock_uow: MagicMock, sample_in_progress_task: Task, sample_task: Task
+    ) -> None:
+        """Test update_task_progress completion fails with incomplete deps."""
+        sample_in_progress_task.status = TaskStatus.IN_PROGRESS
+        mock_uow.tasks.get_by_id.return_value = sample_in_progress_task
+        mock_uow.tasks.get_incomplete_dependencies.return_value = [sample_task]
+
+        progress_data = TaskProgress(
+            task_id=1, status=TaskStatus.COMPLETED, progress_percentage=100
+        )
+
+        service = TaskService(mock_uow)
+
+        with pytest.raises(ValidationException, match="Dependencies not completed"):
+            await service.update_task_progress(1, progress_data)
+
+    async def test_update_task_to_in_progress_sets_started_at(
         self, mock_uow: MagicMock, sample_task: Task
     ) -> None:
         """Test marking task in-progress sets started_at timestamp."""

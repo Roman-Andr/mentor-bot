@@ -2,7 +2,7 @@
 add_audit_tables.
 
 Revision ID: d4e5f6g7h8i9
-Revises: 0444f265d1b2
+Revises: 62158e46a6f2
 Create Date: 2026-04-26 10:00:00.000000+00:00
 """
 from collections.abc import Sequence
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision: str = "d4e5f6g7h8i9"
-down_revision: str | None = "0444f265d1b2"
+down_revision: str | None = "62158e46a6f2"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
@@ -50,7 +50,6 @@ def upgrade() -> None:
         sa.Column("outcome", sa.String(length=50), nullable=True),
         sa.Column("escalation_resolved", sa.Boolean(), nullable=False, default=False),
         sa.ForeignKeyConstraint(["escalation_id"], ["escalations.id"]),
-        sa.ForeignKeyConstraint(["mentor_id"], ["users.id"]),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(op.f("ix_mentor_intervention_history_escalation_id"), "mentor_intervention_history", ["escalation_id"])

@@ -8,16 +8,19 @@ from sqlalchemy import Select, and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from checklists_service.models import Certificate
-from checklists_service.repositories.implementations.base import BaseRepository
-from checklists_service.repositories.interfaces.certificate import ICertificateRepository
+from checklists_service.repositories.implementations.base import SqlAlchemyBaseRepository
 
 
-class CertificateRepository(BaseRepository[Certificate, int], ICertificateRepository):
+class CertificateRepository(SqlAlchemyBaseRepository[Certificate, int]):
     """SQLAlchemy implementation of Certificate repository."""
 
     def __init__(self, session: AsyncSession) -> None:
         """Initialize certificate repository."""
         super().__init__(session, Certificate)
+
+    def _select(self) -> Select[tuple[Certificate]]:
+        """Helper to create a select statement for the model."""
+        return select(self._model_class)
 
     async def get_by_checklist_id(self, checklist_id: int) -> Certificate | None:
         """Get certificate by checklist ID."""

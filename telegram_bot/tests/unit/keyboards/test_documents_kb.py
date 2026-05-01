@@ -18,7 +18,7 @@ class TestGetDocumentsMenuKeyboard:
         keyboard = get_documents_menu_keyboard(locale="en")
 
         assert isinstance(keyboard, InlineKeyboardMarkup)
-        assert len(keyboard.inline_keyboard) == 4  # 3 menu items + back button
+        assert len(keyboard.inline_keyboard) == 5  # 4 menu items + back button
 
     def test_documents_menu_with_different_locale(self):
         """Test documents menu keyboard with different locale."""
@@ -77,6 +77,20 @@ class TestGetArticleListKeyboard:
         # Title should be truncated to 50 chars
         button_text = keyboard.inline_keyboard[0][0].text
         assert len(button_text) < 60
+
+    def test_department_docs_keyboard(self):
+        """Test keyboard with department documents (is_department_docs=True)."""
+        articles = [
+            {"id": 1, "title": "Document 1", "file_name": "doc1.pdf", "mime_type": "application/pdf"},
+            {"id": 2, "title": "Document 2", "file_name": "doc2.docx", "mime_type": "application/msword"},
+        ]
+        keyboard = get_article_list_keyboard(articles, back_callback="docs_menu", locale="en", is_department_docs=True)
+
+        assert isinstance(keyboard, InlineKeyboardMarkup)
+        assert len(keyboard.inline_keyboard) == 3  # 2 documents + back button
+        # Check that callback data uses download_dept_doc prefix
+        assert keyboard.inline_keyboard[0][0].callback_data == "download_dept_doc_1"
+        assert keyboard.inline_keyboard[1][0].callback_data == "download_dept_doc_2"
 
 
 class TestGetArticleDetailKeyboard:

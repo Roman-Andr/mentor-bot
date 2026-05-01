@@ -98,6 +98,26 @@ async def verify_service_api_key(request: Request) -> bool:
     return service_key == settings.SERVICE_API_KEY
 
 
+async def get_current_user_optional(
+    request: Request,
+    auth_service: AuthServiceDep,
+) -> User | None:
+    """Get current authenticated user from header or cookie, or None if not authenticated."""
+    token = get_token_from_request(request)
+
+    if not token:
+        return None
+
+    try:
+        user = await auth_service.get_current_user(token)
+        if not user.is_active:
+            return None
+    except Exception:
+        return None
+    else:
+        return user
+
+
 def require_role(allowed_roles: list[UserRole]) -> Callable[..., Awaitable[User]]:
     """Create factory for role-based dependencies."""
 
@@ -120,6 +140,7 @@ def require_role(allowed_roles: list[UserRole]) -> Callable[..., Awaitable[User]
 
 # Type aliases
 UOWDep = Annotated[SqlAlchemyUnitOfWork, Depends(get_uow)]
+UnitOfWorkDep = UOWDep  # Alias for consistency across services
 UserServiceDep = Annotated[UserService, Depends(get_user_service)]
 
 InvitationServiceDep = Annotated[InvitationService, Depends(get_invitation_service)]
@@ -128,3 +149,4 @@ AdminUser = Annotated[User, Depends(require_role([UserRole.ADMIN]))]
 HRUser = Annotated[User, Depends(require_role([UserRole.HR, UserRole.ADMIN]))]
 MentorUser = Annotated[User, Depends(require_role([UserRole.MENTOR, UserRole.HR, UserRole.ADMIN]))]
 ServiceAuth = Annotated[bool, Depends(verify_service_api_key)]
+CurrentUserOptional = Annotated[User | None, Depends(get_current_user_optional)]

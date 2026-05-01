@@ -15,17 +15,28 @@ class TestLifespan:
     """Tests for lifespan context manager."""
 
     @pytest.mark.asyncio
-    async def test_lifespan_startup_and_shutdown(self):
-        """Test lifespan context manager handles startup and shutdown."""
+    async def test_lifespan_startup_calls_init_db(self):
+        """Test lifespan calls init_db during startup."""
         mock_app = MagicMock()
 
         with patch("escalation_service.main.init_db") as mock_init_db:
             async with lifespan(mock_app) as _:
-                # During context, init_db should be called
+                # During startup, init_db should be called
                 mock_init_db.assert_awaited_once()
 
-        # No assertion needed for shutdown logging
-        # The test verifies that the lifespan context manager runs without errors
+    @pytest.mark.asyncio
+    async def test_lifespan_logs_shutdown_message(self):
+        """Test lifespan logs shutdown message on exit."""
+        mock_app = MagicMock()
+
+        with patch("escalation_service.main.init_db") as mock_init_db:
+            with patch("escalation_service.main.logger") as mock_logger:
+                async with lifespan(mock_app) as _:
+                    # Context is active
+                    pass
+
+                # After context exit, shutdown should be logged
+                mock_logger.info.assert_any_call("Shutting down Escalation Service...")
 
 
 class TestMainApp:

@@ -7,9 +7,11 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from notification_service.api.deps import CurrentUser, UnitOfWorkDep
+from notification_service.api.deps import CurrentUser, DatabaseSession
 from notification_service.core import UserRole
+from notification_service.repositories.unit_of_work import SqlAlchemyUnitOfWork
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +51,7 @@ def require_hr_or_admin(current_user: CurrentUser) -> None:
 @router.get("/notifications-audit", response_model=AuditResponse)
 async def get_notifications_audit(
     current_user: Annotated[CurrentUser, Depends()],
-    uow: UnitOfWorkDep,
+    db: DatabaseSession,
     user_id: int | None = Query(None),
     from_date: datetime | None = Query(None),
     to_date: datetime | None = Query(None),
@@ -59,33 +61,34 @@ async def get_notifications_audit(
     """Get notifications audit history for audit purposes (HR/Admin only)."""
     require_hr_or_admin(current_user)
 
-    stmt = uow.notifications._select()
+    async with SqlAlchemyUnitOfWork(lambda: db) as uow:
+        stmt = uow.notifications._select()
 
-    if user_id:
-        stmt = stmt.where(uow.notifications._model.user_id == user_id)
-    if from_date:
-        stmt = stmt.where(uow.notifications._model.created_at >= from_date)
-    if to_date:
-        stmt = stmt.where(uow.notifications._model.created_at <= to_date)
+        if user_id:
+            stmt = stmt.where(uow.notifications._model.user_id == user_id)
+        if from_date:
+            stmt = stmt.where(uow.notifications._model.created_at >= from_date)
+        if to_date:
+            stmt = stmt.where(uow.notifications._model.created_at <= to_date)
 
-    # Get total count
-    count_stmt = uow.notifications._count()
-    if user_id:
-        count_stmt = count_stmt.where(uow.notifications._model.user_id == user_id)
-    if from_date:
-        count_stmt = count_stmt.where(uow.notifications._model.created_at >= from_date)
-    if to_date:
-        count_stmt = count_stmt.where(uow.notifications._model.created_at <= to_date)
+        # Get total count
+        count_stmt = uow.notifications._count()
+        if user_id:
+            count_stmt = count_stmt.where(uow.notifications._model.user_id == user_id)
+        if from_date:
+            count_stmt = count_stmt.where(uow.notifications._model.created_at >= from_date)
+        if to_date:
+            count_stmt = count_stmt.where(uow.notifications._model.created_at <= to_date)
 
-    total_result = await uow._session.execute(count_stmt)
-    total = total_result.scalar_one()
+        total_result = await uow._session.execute(count_stmt)
+        total = total_result.scalar_one()
 
-    # Get items with pagination
-    stmt = stmt.order_by(uow.notifications._model.created_at.desc()).offset(offset).limit(limit)
-    result = await uow._session.execute(stmt)
-    items = result.scalars().all()
+        # Get items with pagination
+        stmt = stmt.order_by(uow.notifications._model.created_at.desc()).offset(offset).limit(limit)
+        result = await uow._session.execute(stmt)
+        items = result.scalars().all()
 
-    return AuditResponse(
-        items=[NotificationAuditEntry.model_validate(item) for item in items],
-        total=total,
-    )
+        return AuditResponse(
+            items=[NotificationAuditEntry.model_validate(item) for item in items],
+            total=total,
+        )

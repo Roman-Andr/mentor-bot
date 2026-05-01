@@ -40,6 +40,8 @@ from auth_service.schemas.user import (
     UserBase,
     UserCreate,
     UserListResponse,
+    UserPreferencesResponse,
+    UserPreferencesUpdate,
     UserResponse,
     UserUpdate,
 )
@@ -84,6 +86,8 @@ __all__ = [
     "UserMentorListResponse",
     "UserMentorResponse",
     "UserMentorUpdate",
+    "UserPreferencesResponse",
+    "UserPreferencesUpdate",
     "UserResponse",
     "UserUpdate",
 ]

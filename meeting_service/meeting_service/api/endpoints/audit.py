@@ -28,7 +28,24 @@ class MeetingStatusChangeEntry(BaseModel):
     new_status: str | None
     changed_at: datetime
     changed_by: int | None
-    metadata: dict | None
+    metadata: dict | None = None
+
+    model_config = {"populate_by_name": True}
+
+    @classmethod
+    def from_model(cls, item):
+        """Create schema from database model, handling field name mapping."""
+        return cls(
+            id=item.id,
+            meeting_id=item.meeting_id,
+            user_id=item.user_id,
+            action=item.action,
+            old_status=item.old_status,
+            new_status=item.new_status,
+            changed_at=item.changed_at,
+            changed_by=item.changed_by,
+            metadata=getattr(item, "meta_data", None),
+        )
 
 
 class MeetingParticipantEntry(BaseModel):
@@ -40,7 +57,22 @@ class MeetingParticipantEntry(BaseModel):
     action: str
     joined_at: datetime
     left_at: datetime | None
-    metadata: dict | None
+    metadata: dict | None = None
+
+    model_config = {"populate_by_name": True}
+
+    @classmethod
+    def from_model(cls, item):
+        """Create schema from database model, handling field name mapping."""
+        return cls(
+            id=item.id,
+            meeting_id=item.meeting_id,
+            user_id=item.user_id,
+            action=item.action,
+            joined_at=item.joined_at,
+            left_at=item.left_at,
+            metadata=getattr(item, "meta_data", None),
+        )
 
 
 class AuditResponse(BaseModel):
@@ -80,7 +112,7 @@ async def get_meeting_status_change_history(
         )
 
     return AuditResponse(
-        items=[MeetingStatusChangeEntry.model_validate(item) for item in items],
+        items=[MeetingStatusChangeEntry.from_model(item) for item in items],
         total=total,
     )
 
@@ -115,6 +147,6 @@ async def get_meeting_participant_history(
         )
 
     return AuditResponse(
-        items=[MeetingParticipantEntry.model_validate(item) for item in items],
+        items=[MeetingParticipantEntry.from_model(item) for item in items],
         total=total,
     )

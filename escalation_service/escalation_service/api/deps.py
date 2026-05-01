@@ -134,6 +134,7 @@ async def get_escalation_service(uow: Annotated[SqlAlchemyUnitOfWork, Depends(ge
 # Type aliases
 DatabaseSession = Annotated[AsyncSession, Depends(get_db)]
 UOWDep = Annotated[SqlAlchemyUnitOfWork, Depends(get_uow)]
+UnitOfWorkDep = UOWDep  # Alias for consistency
 EscalationServiceDep = Annotated[EscalationService, Depends(get_escalation_service)]
 CurrentUser = Annotated[UserInfo, Depends(get_current_active_user)]
 AdminUser = Annotated[UserInfo, Depends(require_admin)]

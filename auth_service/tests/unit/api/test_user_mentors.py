@@ -7,6 +7,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from fastapi.testclient import TestClient
 
+from auth_service.api import deps
 from auth_service.api.deps import HRUser
 from auth_service.core.enums import UserRole
 from auth_service.core.security import create_access_token
@@ -16,6 +17,13 @@ from auth_service.models import User, UserMentor
 # Get the actual HRUser dependency callable used by FastAPI
 # So get_args returns (User, Depends(...)) and the Depends is at index 1
 _hr_user_dependency = get_args(HRUser)[1].dependency
+
+
+@pytest.fixture(autouse=True)
+def mock_lifespan_db_operations():
+    """Patch DB operations during app lifespan to avoid connection errors."""
+    with patch("auth_service.main.init_db"), patch("auth_service.main.create_default_admin_user"):
+        yield
 
 
 def create_auth_headers(user_id: int = 1, role: UserRole = UserRole.HR) -> dict:
@@ -93,16 +101,20 @@ class TestGetUserMentors:
         async def mock_require_hr() -> User:
             return hr_user
 
+        async def mock_get_uow():
+            yield mock_uow
+
         app.dependency_overrides[_hr_user_dependency] = mock_require_hr
+        app.dependency_overrides[deps.get_uow] = mock_get_uow
 
-        with patch("auth_service.api.endpoints.user_mentors.UOWDep", return_value=mock_uow):
-            with TestClient(app) as client:
-                response = client.get(
-                    "/api/v1/user-mentors/",
-                    headers=create_auth_headers(hr_user.id, hr_user.role),
-                )
+        with TestClient(app) as client:
+            response = client.get(
+                "/api/v1/user-mentors/",
+                headers=create_auth_headers(hr_user.id, hr_user.role),
+            )
 
-        del app.dependency_overrides[_hr_user_dependency]
+        app.dependency_overrides.pop(_hr_user_dependency, None)
+        app.dependency_overrides.pop(deps.get_uow, None)
 
         assert response.status_code == 200
         data = response.json()
@@ -118,16 +130,20 @@ class TestGetUserMentors:
         async def mock_require_hr() -> User:
             return hr_user
 
+        async def mock_get_uow():
+            yield mock_uow
+
         app.dependency_overrides[_hr_user_dependency] = mock_require_hr
+        app.dependency_overrides[deps.get_uow] = mock_get_uow
 
-        with patch("auth_service.api.endpoints.user_mentors.UOWDep", return_value=mock_uow):
-            with TestClient(app) as client:
-                response = client.get(
-                    f"/api/v1/user-mentors/?user_id={newbie_user.id}",
-                    headers=create_auth_headers(hr_user.id, hr_user.role),
-                )
+        with TestClient(app) as client:
+            response = client.get(
+                f"/api/v1/user-mentors/?user_id={newbie_user.id}",
+                headers=create_auth_headers(hr_user.id, hr_user.role),
+            )
 
-        del app.dependency_overrides[_hr_user_dependency]
+        app.dependency_overrides.pop(_hr_user_dependency, None)
+        app.dependency_overrides.pop(deps.get_uow, None)
 
         assert response.status_code == 200
         mock_uow.user_mentors.get_by_user_id.assert_called_once_with(newbie_user.id)
@@ -139,16 +155,20 @@ class TestGetUserMentors:
         async def mock_require_hr() -> User:
             return hr_user
 
+        async def mock_get_uow():
+            yield mock_uow
+
         app.dependency_overrides[_hr_user_dependency] = mock_require_hr
+        app.dependency_overrides[deps.get_uow] = mock_get_uow
 
-        with patch("auth_service.api.endpoints.user_mentors.UOWDep", return_value=mock_uow):
-            with TestClient(app) as client:
-                response = client.get(
-                    f"/api/v1/user-mentors/?mentor_id={mentor_user.id}",
-                    headers=create_auth_headers(hr_user.id, hr_user.role),
-                )
+        with TestClient(app) as client:
+            response = client.get(
+                f"/api/v1/user-mentors/?mentor_id={mentor_user.id}",
+                headers=create_auth_headers(hr_user.id, hr_user.role),
+            )
 
-        del app.dependency_overrides[_hr_user_dependency]
+        app.dependency_overrides.pop(_hr_user_dependency, None)
+        app.dependency_overrides.pop(deps.get_uow, None)
 
         assert response.status_code == 200
         mock_uow.user_mentors.get_by_mentor_id.assert_called_once_with(mentor_user.id)
@@ -162,21 +182,25 @@ class TestCreateUserMentor:
         async def mock_require_hr() -> User:
             return hr_user
 
+        async def mock_get_uow():
+            yield mock_uow
+
         app.dependency_overrides[_hr_user_dependency] = mock_require_hr
+        app.dependency_overrides[deps.get_uow] = mock_get_uow
 
-        with patch("auth_service.api.endpoints.user_mentors.UOWDep", return_value=mock_uow):
-            with TestClient(app) as client:
-                response = client.post(
-                    "/api/v1/user-mentors/",
-                    headers=create_auth_headers(hr_user.id, hr_user.role),
-                    json={
-                        "user_id": newbie_user.id,
-                        "mentor_id": newbie_user.id,  # Same as user_id
-                        "notes": "Self assignment",
-                    },
-                )
+        with TestClient(app) as client:
+            response = client.post(
+                "/api/v1/user-mentors/",
+                headers=create_auth_headers(hr_user.id, hr_user.role),
+                json={
+                    "user_id": newbie_user.id,
+                    "mentor_id": newbie_user.id,  # Same as user_id
+                    "notes": "Self assignment",
+                },
+            )
 
-        del app.dependency_overrides[_hr_user_dependency]
+        app.dependency_overrides.pop(_hr_user_dependency, None)
+        app.dependency_overrides.pop(deps.get_uow, None)
 
         assert response.status_code == 422
         assert "own mentor" in response.json()["detail"].lower()
@@ -190,21 +214,25 @@ class TestCreateUserMentor:
         async def mock_require_hr() -> User:
             return hr_user
 
+        async def mock_get_uow():
+            yield mock_uow
+
         app.dependency_overrides[_hr_user_dependency] = mock_require_hr
+        app.dependency_overrides[deps.get_uow] = mock_get_uow
 
-        with patch("auth_service.api.endpoints.user_mentors.UOWDep", return_value=mock_uow):
-            with TestClient(app) as client:
-                response = client.post(
-                    "/api/v1/user-mentors/",
-                    headers=create_auth_headers(hr_user.id, hr_user.role),
-                    json={
-                        "user_id": newbie_user.id,
-                        "mentor_id": mentor_user.id,
-                        "notes": "New mentor assignment",
-                    },
-                )
+        with TestClient(app) as client:
+            response = client.post(
+                "/api/v1/user-mentors/",
+                headers=create_auth_headers(hr_user.id, hr_user.role),
+                json={
+                    "user_id": newbie_user.id,
+                    "mentor_id": mentor_user.id,
+                    "notes": "New mentor assignment",
+                },
+            )
 
-        del app.dependency_overrides[_hr_user_dependency]
+        app.dependency_overrides.pop(_hr_user_dependency, None)
+        app.dependency_overrides.pop(deps.get_uow, None)
 
         assert response.status_code == 200
         data = response.json()
@@ -219,20 +247,24 @@ class TestCreateUserMentor:
         async def mock_require_hr() -> User:
             return hr_user
 
+        async def mock_get_uow():
+            yield mock_uow
+
         app.dependency_overrides[_hr_user_dependency] = mock_require_hr
+        app.dependency_overrides[deps.get_uow] = mock_get_uow
 
-        with patch("auth_service.api.endpoints.user_mentors.UOWDep", return_value=mock_uow):
-            with TestClient(app) as client:
-                response = client.post(
-                    "/api/v1/user-mentors/",
-                    headers=create_auth_headers(hr_user.id, hr_user.role),
-                    json={
-                        "user_id": newbie_user.id,
-                        "mentor_id": mentor_user.id,
-                    },
-                )
+        with TestClient(app) as client:
+            response = client.post(
+                "/api/v1/user-mentors/",
+                headers=create_auth_headers(hr_user.id, hr_user.role),
+                json={
+                    "user_id": newbie_user.id,
+                    "mentor_id": mentor_user.id,
+                },
+            )
 
-        del app.dependency_overrides[_hr_user_dependency]
+        app.dependency_overrides.pop(_hr_user_dependency, None)
+        app.dependency_overrides.pop(deps.get_uow, None)
 
         assert response.status_code == 409
         assert "already exists" in response.json()["detail"].lower()
@@ -248,20 +280,24 @@ class TestCreateUserMentor:
         async def mock_require_hr() -> User:
             return hr_user
 
+        async def mock_get_uow():
+            yield mock_uow
+
         app.dependency_overrides[_hr_user_dependency] = mock_require_hr
+        app.dependency_overrides[deps.get_uow] = mock_get_uow
 
-        with patch("auth_service.api.endpoints.user_mentors.UOWDep", return_value=mock_uow):
-            with TestClient(app) as client:
-                response = client.post(
-                    "/api/v1/user-mentors/",
-                    headers=create_auth_headers(hr_user.id, hr_user.role),
-                    json={
-                        "user_id": newbie_user.id,
-                        "mentor_id": 999,  # Different mentor
-                    },
-                )
+        with TestClient(app) as client:
+            response = client.post(
+                "/api/v1/user-mentors/",
+                headers=create_auth_headers(hr_user.id, hr_user.role),
+                json={
+                    "user_id": newbie_user.id,
+                    "mentor_id": 999,  # Different mentor
+                },
+            )
 
-        del app.dependency_overrides[_hr_user_dependency]
+        app.dependency_overrides.pop(_hr_user_dependency, None)
+        app.dependency_overrides.pop(deps.get_uow, None)
 
         assert response.status_code == 409
         assert "active mentor" in response.json()["detail"].lower()
@@ -287,20 +323,24 @@ class TestUpdateUserMentor:
         async def mock_require_hr() -> User:
             return hr_user
 
+        async def mock_get_uow():
+            yield mock_uow
+
         app.dependency_overrides[_hr_user_dependency] = mock_require_hr
+        app.dependency_overrides[deps.get_uow] = mock_get_uow
 
-        with patch("auth_service.api.endpoints.user_mentors.UOWDep", return_value=mock_uow):
-            with TestClient(app) as client:
-                response = client.put(
-                    "/api/v1/user-mentors/1",
-                    headers=create_auth_headers(hr_user.id, hr_user.role),
-                    json={
-                        "is_active": False,
-                        "notes": "Updated notes",
-                    },
-                )
+        with TestClient(app) as client:
+            response = client.put(
+                "/api/v1/user-mentors/1",
+                headers=create_auth_headers(hr_user.id, hr_user.role),
+                json={
+                    "is_active": False,
+                    "notes": "Updated notes",
+                },
+            )
 
-        del app.dependency_overrides[_hr_user_dependency]
+        app.dependency_overrides.pop(_hr_user_dependency, None)
+        app.dependency_overrides.pop(deps.get_uow, None)
 
         assert response.status_code == 200
         data = response.json()
@@ -314,17 +354,21 @@ class TestUpdateUserMentor:
         async def mock_require_hr() -> User:
             return hr_user
 
+        async def mock_get_uow():
+            yield mock_uow
+
         app.dependency_overrides[_hr_user_dependency] = mock_require_hr
+        app.dependency_overrides[deps.get_uow] = mock_get_uow
 
-        with patch("auth_service.api.endpoints.user_mentors.UOWDep", return_value=mock_uow):
-            with TestClient(app) as client:
-                response = client.put(
-                    "/api/v1/user-mentors/999",
-                    headers=create_auth_headers(hr_user.id, hr_user.role),
-                    json={"is_active": False},
-                )
+        with TestClient(app) as client:
+            response = client.put(
+                "/api/v1/user-mentors/999",
+                headers=create_auth_headers(hr_user.id, hr_user.role),
+                json={"is_active": False},
+            )
 
-        del app.dependency_overrides[_hr_user_dependency]
+        app.dependency_overrides.pop(_hr_user_dependency, None)
+        app.dependency_overrides.pop(deps.get_uow, None)
 
         assert response.status_code == 404
         assert "not found" in response.json()["detail"].lower()
@@ -340,16 +384,20 @@ class TestDeleteUserMentor:
         async def mock_require_hr() -> User:
             return hr_user
 
+        async def mock_get_uow():
+            yield mock_uow
+
         app.dependency_overrides[_hr_user_dependency] = mock_require_hr
+        app.dependency_overrides[deps.get_uow] = mock_get_uow
 
-        with patch("auth_service.api.endpoints.user_mentors.UOWDep", return_value=mock_uow):
-            with TestClient(app) as client:
-                response = client.delete(
-                    "/api/v1/user-mentors/1",
-                    headers=create_auth_headers(hr_user.id, hr_user.role),
-                )
+        with TestClient(app) as client:
+            response = client.delete(
+                "/api/v1/user-mentors/1",
+                headers=create_auth_headers(hr_user.id, hr_user.role),
+            )
 
-        del app.dependency_overrides[_hr_user_dependency]
+        app.dependency_overrides.pop(_hr_user_dependency, None)
+        app.dependency_overrides.pop(deps.get_uow, None)
 
         assert response.status_code == 200
         data = response.json()
@@ -362,16 +410,20 @@ class TestDeleteUserMentor:
         async def mock_require_hr() -> User:
             return hr_user
 
+        async def mock_get_uow():
+            yield mock_uow
+
         app.dependency_overrides[_hr_user_dependency] = mock_require_hr
+        app.dependency_overrides[deps.get_uow] = mock_get_uow
 
-        with patch("auth_service.api.endpoints.user_mentors.UOWDep", return_value=mock_uow):
-            with TestClient(app) as client:
-                response = client.delete(
-                    "/api/v1/user-mentors/999",
-                    headers=create_auth_headers(hr_user.id, hr_user.role),
-                )
+        with TestClient(app) as client:
+            response = client.delete(
+                "/api/v1/user-mentors/999",
+                headers=create_auth_headers(hr_user.id, hr_user.role),
+            )
 
-        del app.dependency_overrides[_hr_user_dependency]
+        app.dependency_overrides.pop(_hr_user_dependency, None)
+        app.dependency_overrides.pop(deps.get_uow, None)
 
         assert response.status_code == 404
         assert "not found" in response.json()["detail"].lower()

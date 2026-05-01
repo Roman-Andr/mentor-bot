@@ -301,7 +301,65 @@ class TestSearchHistoryRepository:
         result = await repo.get_search_stats()
 
         assert result["total_searches"] == 0
-        assert result["avg_results_per_search"] == 0.0
+        assert len(result["popular_queries"]) == 0
+        assert len(result["no_results_queries"]) == 0
+        assert result["searches_by_department"] == {}
+        assert result["avg_results_per_search"] == 0
+        assert len(result["searches_last_30_days"]) == 0
+
+    async def test_get_zero_results_queries_with_dates(self, mock_session):
+        """Test getting zero result queries with date filters."""
+        from_date = datetime(2024, 1, 1, tzinfo=UTC)
+        to_date = datetime(2024, 12, 31, tzinfo=UTC)
+        mock_result = MagicMock()
+        mock_result.all.return_value = [("no results", 5, datetime.now(UTC))]
+        mock_session.execute.return_value = mock_result
+
+        repo = SearchHistoryRepository(mock_session)
+        result = await repo.get_zero_results_queries(from_date=from_date, to_date=to_date)
+
+        assert len(result) == 1
+
+    async def test_get_by_department_with_dates(self, mock_session):
+        """Test getting department stats with date filters."""
+        from_date = datetime(2024, 1, 1, tzinfo=UTC)
+        to_date = datetime(2024, 12, 31, tzinfo=UTC)
+        mock_result = MagicMock()
+        mock_result.all.return_value = [(1, "Engineering", 100)]
+        mock_session.execute.return_value = mock_result
+
+        repo = SearchHistoryRepository(mock_session)
+        result = await repo.get_by_department(from_date=from_date, to_date=to_date)
+
+        assert len(result) == 1
+
+    async def test_get_search_timeseries_with_dates(self, mock_session):
+        """Test getting timeseries with date filters."""
+        from_date = datetime(2024, 1, 1, tzinfo=UTC)
+        to_date = datetime(2024, 12, 31, tzinfo=UTC)
+        mock_result = MagicMock()
+        mock_result.all.return_value = [(datetime.now(UTC), 10, 5)]
+        mock_session.execute.return_value = mock_result
+
+        repo = SearchHistoryRepository(mock_session)
+        result = await repo.get_search_timeseries(from_date=from_date, to_date=to_date)
+
+        assert len(result) == 1
+
+    async def test_get_search_summary_with_dates(self, mock_session):
+        """Test getting search summary with date filters."""
+        from_date = datetime(2024, 1, 1, tzinfo=UTC)
+        to_date = datetime(2024, 12, 31, tzinfo=UTC)
+        
+        mock_result = MagicMock()
+        mock_result.scalar_one.return_value = 50
+        mock_session.execute.return_value = mock_result
+
+        repo = SearchHistoryRepository(mock_session)
+        result = await repo.get_search_summary(from_date=from_date, to_date=to_date)
+
+        assert result["total_searches"] == 50
+        assert result["avg_results_per_search"] == 50.0
 
     async def test_get_top_queries(self, mock_session):
         """Test getting top search queries with statistics."""
@@ -512,3 +570,43 @@ class TestSearchHistoryRepository:
         result = await repo.delete_old_search_history(retention_days=90)
 
         assert result == 0
+
+    async def test_base_repository_methods(self, mock_session, sample_search_history):
+        """Test base repository methods inherited from SqlAlchemyBaseRepository."""
+        # Test get_by_id - skip this as it's inherited and tested in base repository tests
+        pass
+
+    async def test_base_repository_get_all(self, mock_session, sample_search_histories):
+        """Test base repository get_all method."""
+        mock_result = MagicMock()
+        mock_result.scalars.return_value.all.return_value = sample_search_histories
+        mock_session.execute.return_value = mock_result
+
+        repo = SearchHistoryRepository(mock_session)
+        result = await repo.get_all()
+
+        assert len(result) == 2
+
+    async def test_base_repository_update(self, mock_session, sample_search_history):
+        """Test base repository update method."""
+        mock_session.flush = AsyncMock()
+        mock_session.refresh = AsyncMock()
+
+        repo = SearchHistoryRepository(mock_session)
+        sample_search_history.query = "updated query"
+        result = await repo.update(sample_search_history)
+
+        assert result.query == "updated query"
+        mock_session.flush.assert_called_once()
+
+    async def test_base_repository_delete(self, mock_session):
+        """Test base repository delete method."""
+        mock_result = MagicMock()
+        mock_result.rowcount = 1
+        mock_session.execute.return_value = mock_result
+        mock_session.flush = AsyncMock()
+
+        repo = SearchHistoryRepository(mock_session)
+        result = await repo.delete(1)
+
+        assert result is True

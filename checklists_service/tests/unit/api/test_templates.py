@@ -135,6 +135,142 @@ class TestGetTemplates:
                 # Should return list of TemplateResponse objects
                 assert len(result) == 1
 
+    async def test_get_templates_with_department_filter(self, sample_hr_user) -> None:
+        """Test getting templates with department filter (covers line 71)."""
+        uow = MagicMock()
+        uow.templates.count_tasks = AsyncMock(return_value=0)
+
+        now = datetime.now(UTC)
+
+        template_response = TemplateResponse(
+            id=1,
+            name="Onboarding Template",
+            description="Test",
+            department_id=1,
+            position="Developer",
+            level="JUNIOR",
+            duration_days=30,
+            task_categories=[],
+            default_assignee_role="MENTOR",
+            status=TemplateStatus.ACTIVE,
+            version=1,
+            is_default=False,
+            department=None,
+            created_at=now,
+            updated_at=None,
+        )
+
+        mock_template = MagicMock()
+        mock_template.id = 1
+        mock_template.name = "Onboarding Template"
+
+        with patch("checklists_service.api.endpoints.templates.TemplateService") as mock_cls:
+            instance = MagicMock()
+            instance._uow = uow
+            mock_cls.return_value = instance
+            instance.get_templates = AsyncMock(return_value=([mock_template], 1))
+
+            with patch(
+                "checklists_service.schemas.template.TemplateResponse.model_validate",
+                return_value=template_response,
+            ):
+                result = await templates.get_templates(
+                    uow=uow,
+                    _current_user=sample_hr_user,
+                    department_id=1,
+                )
+
+                assert len(result) == 1
+
+    async def test_create_template_success_path(self, sample_admin_user) -> None:
+        """Test create_template success path (covers lines 71-72)."""
+        uow = MagicMock()
+        now = datetime.now(UTC)
+
+        template_response = TemplateResponse(
+            id=2,
+            name="New Template",
+            description="A new test template",
+            department_id=1,
+            position="Developer",
+            level="JUNIOR",
+            duration_days=30,
+            task_categories=[],
+            default_assignee_role="MENTOR",
+            status=TemplateStatus.DRAFT,
+            version=1,
+            is_default=False,
+            department=None,
+            created_at=now,
+            updated_at=None,
+        )
+
+        template_data = TemplateCreate(
+            name="New Template",
+            description="A new test template",
+            department_id=1,
+            position="Developer",
+            level="JUNIOR",
+            duration_days=30,
+            task_categories=["DOCUMENTATION", "TRAINING"],
+            default_assignee_role="MENTOR",
+            status=TemplateStatus.DRAFT,
+        )
+
+        with patch("checklists_service.api.endpoints.templates.TemplateService") as mock_cls:
+            instance = MagicMock()
+            mock_cls.return_value = instance
+            instance.create_template = AsyncMock(return_value=template_response)
+            uow.commit = AsyncMock()
+
+            result = await templates.create_template(
+                template_data=template_data,
+                uow=uow,
+                _current_user=sample_admin_user,
+            )
+
+            assert result.name == "New Template"
+            uow.commit.assert_awaited_once()
+
+    async def test_clone_template_success_path(self, sample_admin_user) -> None:
+        """Test clone_template success path (covers lines 145-147)."""
+        uow = MagicMock()
+        now = datetime.now(UTC)
+
+        template_response = TemplateResponse(
+            id=3,
+            name="Onboarding Template (Copy)",
+            description="Cloned template",
+            department_id=1,
+            position="Developer",
+            level="JUNIOR",
+            duration_days=30,
+            task_categories=[],
+            default_assignee_role="MENTOR",
+            status=TemplateStatus.DRAFT,
+            version=2,
+            is_default=False,
+            department=None,
+            created_at=now,
+            updated_at=None,
+        )
+
+        with patch("checklists_service.api.endpoints.templates.TemplateService") as mock_cls:
+            instance = MagicMock()
+            mock_cls.return_value = instance
+            instance.clone_template = AsyncMock(return_value=template_response)
+            uow.commit = AsyncMock()
+
+            result = await templates.clone_template(
+                template_id=1,
+                uow=uow,
+                _current_user=sample_admin_user,
+            )
+
+            assert result.name == "Onboarding Template (Copy)"
+            assert result.version == 2
+            uow.commit.assert_awaited_once()
+
     async def test_get_templates_with_filters(self, sample_hr_user) -> None:
         """Test getting templates with filters."""
         uow = MagicMock()
@@ -623,4 +759,101 @@ class TestPublishTemplate:
             )
 
             assert result.status == TemplateStatus.ACTIVE
+            uow.commit.assert_awaited_once()
+
+
+class TestCreateTemplateCommitCoverage:
+    """Additional tests to ensure commit and model_validate are called."""
+
+    async def test_create_template_calls_commit(self, sample_admin_user) -> None:
+        """Test create_template calls commit and model_validate (covers lines 71-72)."""
+        uow = MagicMock()
+        now = datetime.now(UTC)
+
+        template_response = TemplateResponse(
+            id=2,
+            name="New Template",
+            description="A new test template",
+            department_id=1,
+            position="Developer",
+            level="JUNIOR",
+            duration_days=30,
+            task_categories=[],
+            default_assignee_role="MENTOR",
+            status=TemplateStatus.DRAFT,
+            version=1,
+            is_default=False,
+            department=None,
+            created_at=now,
+            updated_at=None,
+        )
+
+        template_data = TemplateCreate(
+            name="New Template",
+            description="A new test template",
+            department_id=1,
+            position="Developer",
+            level="JUNIOR",
+            duration_days=30,
+            task_categories=["DOCUMENTATION", "TRAINING"],
+            default_assignee_role="MENTOR",
+            status=TemplateStatus.DRAFT,
+        )
+
+        with patch("checklists_service.api.endpoints.templates.TemplateService") as mock_cls:
+            instance = MagicMock()
+            mock_cls.return_value = instance
+            instance.create_template = AsyncMock(return_value=template_response)
+            uow.commit = AsyncMock()
+
+            result = await templates.create_template(
+                template_data=template_data,
+                uow=uow,
+                _current_user=sample_admin_user,
+            )
+
+            assert result.name == "New Template"
+            uow.commit.assert_awaited_once()
+
+
+class TestCloneTemplateCommitCoverage:
+    """Additional tests to ensure commit and model_validate are called."""
+
+    async def test_clone_template_calls_commit(self, sample_admin_user) -> None:
+        """Test clone_template calls commit and model_validate (covers lines 145-147)."""
+        uow = MagicMock()
+        now = datetime.now(UTC)
+
+        template_response = TemplateResponse(
+            id=3,
+            name="Onboarding Template (Copy)",
+            description="Cloned template",
+            department_id=1,
+            position="Developer",
+            level="JUNIOR",
+            duration_days=30,
+            task_categories=[],
+            default_assignee_role="MENTOR",
+            status=TemplateStatus.DRAFT,
+            version=2,
+            is_default=False,
+            department=None,
+            created_at=now,
+            updated_at=None,
+        )
+
+        with patch("checklists_service.api.endpoints.templates.TemplateService") as mock_cls:
+            instance = MagicMock()
+            mock_cls.return_value = instance
+            instance.clone_template = AsyncMock(return_value=template_response)
+            uow.commit = AsyncMock()
+
+            result = await templates.clone_template(
+                template_id=1,
+                uow=uow,
+                _current_user=sample_admin_user,
+            )
+
+            assert result.name == "Onboarding Template (Copy)"
+            assert result.version == 2
             uow.commit.assert_awaited_once()

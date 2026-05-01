@@ -204,7 +204,7 @@ Reply from {{ replied_by_name }}:
 
 ---
 This is an automated message from Mentor Bot.""",
-            "body_html": "<h1>Reply to your comment</h1><p>You received a reply to your comment:</p><p><strong>Your comment:</strong> "{{ original_comment_preview }}"</p><p><strong>Reply from {{ replied_by_name }}:</strong></p><p>{{ reply_text }}</p><hr><p><em>This is an automated message from Mentor Bot.</em></p>",
+            "body_html": '<h1>Reply to your comment</h1><p>You received a reply to your comment:</p><p><strong>Your comment:</strong> "{{ original_comment_preview }}"</p><p><strong>Reply from {{ replied_by_name }}:</strong></p><p>{{ reply_text }}</p><hr><p><em>This is an automated message from Mentor Bot.</em></p>',
             "variables": ["original_comment_preview", "reply_text", "replied_by_name"],
         },
         ("comment_reply", "email", "ru"): {
@@ -220,7 +220,7 @@ This is an automated message from Mentor Bot.""",
 
 ---
 Это автоматическое сообщение от Mentor Bot.""",
-            "body_html": "<h1>Ответ на ваш комментарий</h1><p>Вы получили ответ на ваш комментарий:</p><p><strong>Ваш комментарий:</strong> "{{ original_comment_preview }}"</p><p><strong>Ответ от {{ replied_by_name }}:</strong></p><p>{{ reply_text }}</p><hr><p><em>Это автоматическое сообщение от Mentor Bot.</em></p>",
+            "body_html": '<h1>Ответ на ваш комментарий</h1><p>Вы получили ответ на ваш комментарий:</p><p><strong>Ваш комментарий:</strong> "{{ original_comment_preview }}"</p><p><strong>Ответ от {{ replied_by_name }}:</strong></p><p>{{ reply_text }}</p><hr><p><em>Это автоматическое сообщение от Mentor Bot.</em></p>',
             "variables": ["original_comment_preview", "reply_text", "replied_by_name"],
         },
         # Onboarding templates

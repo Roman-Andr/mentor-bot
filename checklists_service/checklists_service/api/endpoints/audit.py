@@ -9,7 +9,6 @@ from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
 
 from checklists_service.api.deps import CurrentUser, UnitOfWorkDep
-from checklists_service.core import UserRole
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +65,7 @@ class AuditResponse(BaseModel):
 
 def require_hr_or_admin(current_user: CurrentUser) -> None:
     """Require HR or Admin role for audit access."""
-    if current_user.role not in (UserRole.HR, UserRole.ADMIN):
+    if current_user.role not in ("HR", "ADMIN"):
         raise PermissionError("Access denied: HR or Admin role required")
 
 

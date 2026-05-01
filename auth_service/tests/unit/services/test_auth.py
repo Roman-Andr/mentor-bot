@@ -1,7 +1,7 @@
 """Unit tests for auth_service/services/auth.py."""
 
 from datetime import UTC, datetime, timedelta
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -922,3 +922,122 @@ class TestAutoCreateUserChecklists:
                 position="Developer",
                 mentor_id=None,
             )
+
+
+class TestGetClientIp:
+    """Tests for AuthService._get_client_ip method."""
+
+    def test_get_client_ip_with_forwarded_header(self, mock_uow):
+        """Test _get_client_ip extracts IP from x-forwarded-for header."""
+        service = AuthService(mock_uow)
+        mock_request = MagicMock()
+        mock_request.headers.get.return_value = "203.0.113.1, 198.51.100.1"
+        mock_request.client = None
+
+        result = service._get_client_ip(mock_request)
+
+        assert result == "203.0.113.1"
+
+    def test_get_client_ip_with_forwarded_header_multiple_ips(self, mock_uow):
+        """Test _get_client_ip extracts first IP from x-forwarded-for with multiple IPs."""
+        service = AuthService(mock_uow)
+        mock_request = MagicMock()
+        mock_request.headers.get.return_value = "203.0.113.1, 198.51.100.1, 192.0.2.1"
+        mock_request.client = None
+
+        result = service._get_client_ip(mock_request)
+
+        assert result == "203.0.113.1"
+
+    def test_get_client_ip_without_forwarded_header(self, mock_uow):
+        """Test _get_client_ip falls back to client.host when no x-forwarded-for header."""
+        service = AuthService(mock_uow)
+        mock_request = MagicMock()
+        mock_request.headers.get.return_value = None
+        mock_client = MagicMock()
+        mock_client.host = "192.168.1.100"
+        mock_request.client = mock_client
+
+        result = service._get_client_ip(mock_request)
+
+        assert result == "192.168.1.100"
+
+    def test_get_client_ip_no_request(self, mock_uow):
+        """Test _get_client_ip returns None when request is None."""
+        service = AuthService(mock_uow)
+
+        result = service._get_client_ip(None)
+
+        assert result is None
+
+    def test_get_client_ip_client_none(self, mock_uow):
+        """Test _get_client_ip returns None when request.client is None and no forwarded header."""
+        service = AuthService(mock_uow)
+        mock_request = MagicMock()
+        mock_request.headers.get.return_value = None
+        mock_request.client = None
+
+        result = service._get_client_ip(mock_request)
+
+        assert result is None
+
+
+class TestRecordRoleChange:
+    """Tests for AuthService.record_role_change method (covers lines 388-395)."""
+
+    async def test_record_role_change_success(self, mock_uow):
+        """Test record_role_change creates role change history entry."""
+        from auth_service.models import RoleChangeHistory
+
+        service = AuthService(mock_uow)
+        mock_uow.role_change_history.create = AsyncMock()
+
+        await service.record_role_change(
+            user_id=1,
+            old_role="NEWBIE",
+            new_role="MENTOR",
+            changed_by=2,
+            reason="Promotion",
+        )
+
+        mock_uow.role_change_history.create.assert_called_once()
+        call_args = mock_uow.role_change_history.create.call_args[0][0]
+        assert isinstance(call_args, RoleChangeHistory)
+        assert call_args.user_id == 1
+        assert call_args.old_role == "NEWBIE"
+        assert call_args.new_role == "MENTOR"
+        assert call_args.changed_by == 2
+        assert call_args.reason == "Promotion"
+
+    async def test_record_role_change_without_reason(self, mock_uow):
+        """Test record_role_change works without optional reason parameter."""
+        from auth_service.models import RoleChangeHistory
+
+        service = AuthService(mock_uow)
+        mock_uow.role_change_history.create = AsyncMock()
+
+        await service.record_role_change(
+            user_id=1,
+            old_role="MENTOR",
+            new_role="HR",
+        )
+
+        call_args = mock_uow.role_change_history.create.call_args[0][0]
+        assert call_args.reason is None
+
+    async def test_record_role_change_without_changed_by(self, mock_uow):
+        """Test record_role_change works without optional changed_by parameter."""
+        from auth_service.models import RoleChangeHistory
+
+        service = AuthService(mock_uow)
+        mock_uow.role_change_history.create = AsyncMock()
+
+        await service.record_role_change(
+            user_id=1,
+            old_role="NEWBIE",
+            new_role="MENTOR",
+            reason="Auto-promotion",
+        )
+
+        call_args = mock_uow.role_change_history.create.call_args[0][0]
+        assert call_args.changed_by is None

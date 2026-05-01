@@ -1,8 +1,8 @@
 """
 add_audit_tables.
 
-Revision ID: a1b2c3d4e5f6
-Revises: 0444f265d1b2
+Revision ID: b2c3d4e5f6g7
+Revises: a1b2c3d4e5f6
 Create Date: 2026-04-26 10:00:00.000000+00:00
 """
 from collections.abc import Sequence
@@ -10,8 +10,8 @@ from collections.abc import Sequence
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = "a1b2c3d4e5f6"
-down_revision: str | None = "0444f265d1b2"
+revision: str = "b2c3d4e5f6g7"
+down_revision: str | None = "a1b2c3d4e5f6"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
@@ -75,7 +75,7 @@ def upgrade() -> None:
         sa.Column("new_status", sa.String(length=50), nullable=False),
         sa.Column("changed_at", sa.DateTime(timezone=True), server_default=sa.text("NOW()"), nullable=False),
         sa.Column("changed_by", sa.Integer(), nullable=True),
-        sa.Column("metadata", sa.JSON(), nullable=True),
+        sa.Column("meta_data", sa.JSON(), nullable=True),
         sa.ForeignKeyConstraint(["invitation_id"], ["invitations.id"]),
         sa.ForeignKeyConstraint(["changed_by"], ["users.id"]),
         sa.PrimaryKeyConstraint("id"),

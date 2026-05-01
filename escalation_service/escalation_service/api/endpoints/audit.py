@@ -53,7 +53,7 @@ class AuditResponse(BaseModel):
 
 def require_hr_or_admin(current_user: CurrentUser) -> None:
     """Require HR or Admin role for audit access."""
-    if current_user.role not in (UserRole.HR, UserRole.ADMIN):
+    if current_user.role not in (UserRole.HR.value, UserRole.ADMIN.value):
         raise PermissionError("Access denied: HR or Admin role required")
 
 

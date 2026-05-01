@@ -404,3 +404,57 @@ class TestChecklistRepository:
             assert "range" in item
             assert "count" in item
             assert isinstance(item["count"], int)
+
+    def test_get_sort_column_employee_id(self, repository):
+        """Test _get_sort_column returns employee_id column."""
+        column = repository._get_sort_column("employee_id")
+        assert column is not None
+
+    def test_get_sort_column_status(self, repository):
+        """Test _get_sort_column returns status column."""
+        column = repository._get_sort_column("status")
+        assert column is not None
+
+    def test_get_sort_column_progress(self, repository):
+        """Test _get_sort_column returns progress column."""
+        column = repository._get_sort_column("progress_percentage")
+        assert column is not None
+
+    def test_get_sort_column_start_date(self, repository):
+        """Test _get_sort_column returns start_date column."""
+        column = repository._get_sort_column("start_date")
+        assert column is not None
+
+    def test_get_sort_column_due_date(self, repository):
+        """Test _get_sort_column returns due_date column."""
+        column = repository._get_sort_column("due_date")
+        assert column is not None
+
+    def test_get_sort_column_completed_at(self, repository):
+        """Test _get_sort_column returns completed_at column."""
+        column = repository._get_sort_column("completed_at")
+        assert column is not None
+
+    def test_get_sort_column_created_at(self, repository):
+        """Test _get_sort_column returns created_at column."""
+        column = repository._get_sort_column("created_at")
+        assert column is not None
+
+    def test_get_sort_column_tasks(self, repository):
+        """Test _get_sort_column returns total_tasks column."""
+        column = repository._get_sort_column("tasks")
+        assert column is not None
+
+    def test_get_sort_column_default(self, repository):
+        """Test _get_sort_column returns created_at for unknown sort_by."""
+        column = repository._get_sort_column("unknown")
+        assert column is not None
+
+    def test_get_sort_column_camel_case_variants(self, repository):
+        """Test _get_sort_column handles camelCase variants."""
+        column1 = repository._get_sort_column("employeeId")
+        column2 = repository._get_sort_column("startDate")
+        column3 = repository._get_sort_column("dueDate")
+        assert column1 is not None
+        assert column2 is not None
+        assert column3 is not None

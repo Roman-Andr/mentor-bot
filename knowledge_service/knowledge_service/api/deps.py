@@ -251,6 +251,7 @@ HRUser = Annotated[UserInfo, Depends(require_hr)]
 MentorUser = Annotated[UserInfo, Depends(require_mentor_or_above)]
 AuthToken = Annotated[str | None, Depends(get_auth_token)]
 UOWDep = Annotated[SqlAlchemyUnitOfWork, Depends(get_uow)]
+UnitOfWorkDep = UOWDep  # Alias for consistency
 ArticleServiceDep = Annotated[ArticleService, Depends(get_article_service)]
 CategoryServiceDep = Annotated[CategoryService, Depends(get_category_service)]
 TagServiceDep = Annotated[TagService, Depends(get_tag_service)]

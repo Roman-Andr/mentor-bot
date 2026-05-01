@@ -41,7 +41,12 @@ class CertificateGenerator:
             return "-"
 
         if locale == "ru":
-            return date.strftime("%d %B %Y")
+            # Russian month names
+            months_ru = [
+                "января", "февраля", "марта", "апреля", "мая", "июня",
+                "июля", "августа", "сентября", "октября", "ноября", "декабря"
+            ]
+            return f"{date.day} {months_ru[date.month - 1]} {date.year}"
         return date.strftime("%B %d, %Y")
 
     def _get_translations(self, locale: str) -> dict[str, str]:
@@ -117,7 +122,7 @@ class CertificateGenerator:
         # Generate PDF
         pdf_bytes = HTML(string=html_content).write_pdf()
 
-        logger.info("Generated certificate PDF (cert_uid={})", certificate.cert_uid)
+        logger.info("Generated certificate PDF (cert_uid=%s)", certificate.cert_uid)
         return pdf_bytes
 
     async def generate_certificate_from_checklist(

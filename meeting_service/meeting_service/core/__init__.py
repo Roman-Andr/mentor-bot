@@ -1,6 +1,6 @@
 """Core functionality: enums and exceptions."""
 
-from meeting_service.core.enums import EmployeeLevel, MaterialType, MeetingStatus, MeetingType
+from meeting_service.core.enums import EmployeeLevel, MaterialType, MeetingStatus, MeetingType, UserRole
 from meeting_service.core.exceptions import (
     AuthException,
     ConflictException,
@@ -18,5 +18,6 @@ __all__ = [
     "MeetingType",
     "NotFoundException",
     "PermissionDenied",
+    "UserRole",
     "ValidationException",
 ]

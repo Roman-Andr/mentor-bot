@@ -1,5 +1,6 @@
 """Certificate management endpoints."""
 
+import logging
 from datetime import UTC, datetime
 from typing import Annotated
 
@@ -10,6 +11,8 @@ from checklists_service.api.deps import AuthToken, CurrentUser, HRUser, ServiceA
 from checklists_service.core import NotFoundException, PermissionDenied, ValidationException
 from checklists_service.models import Certificate
 from checklists_service.services import CertificateGenerator
+
+logger = logging.getLogger(__name__)
 
 
 class IssueCertificateRequest(BaseModel):

@@ -23,7 +23,7 @@ _hr_user_dependency = get_args(HRUser)[1].dependency
 
 def get_test_client():
     """Create a TestClient without lifespan events."""
-    return TestClient(app, raise_server_exceptions=False)
+    return TestClient(app)
 
 
 def create_auth_headers(user_id: int = 1, role: UserRole = UserRole.ADMIN) -> dict:
@@ -46,6 +46,9 @@ def admin_user():
         is_verified=True,
         role=UserRole.ADMIN,
         created_at=datetime.now(UTC),
+        language="ru",
+        notification_telegram_enabled=True,
+        notification_email_enabled=True,
     )
 
 
@@ -63,6 +66,9 @@ def mentor_user():
         is_verified=True,
         role=UserRole.MENTOR,
         created_at=datetime.now(UTC),
+        language="ru",
+        notification_telegram_enabled=True,
+        notification_email_enabled=True,
     )
 
 
@@ -80,6 +86,9 @@ def newbie_user():
         is_verified=True,
         role=UserRole.NEWBIE,
         created_at=datetime.now(UTC),
+        language="ru",
+        notification_telegram_enabled=True,
+        notification_email_enabled=True,
     )
     # Add mentor assignment
     from auth_service.models import UserMentor
@@ -216,6 +225,9 @@ class TestCreateUser:
             is_verified=True,
             role=UserRole.NEWBIE,
             created_at=datetime.now(UTC),
+            language="ru",
+            notification_telegram_enabled=True,
+            notification_email_enabled=True,
         )
         mock_user_service.create_user = AsyncMock(return_value=new_user)
 
@@ -237,6 +249,9 @@ class TestCreateUser:
                     "employee_id": "EMP004",
                     "password": "password123",
                     "role": "NEWBIE",
+                    
+                    
+                    
                 },
             )
 
@@ -365,6 +380,9 @@ class TestUpdateUser:
             is_verified=True,
             role=UserRole.ADMIN,
             created_at=datetime.now(UTC),
+            language="ru",
+            notification_telegram_enabled=True,
+            notification_email_enabled=True,
         )
         mock_user_service.update_user = AsyncMock(return_value=updated_user)
 
@@ -382,6 +400,9 @@ class TestUpdateUser:
                 json={
                     "email": "updated@example.com",
                     "first_name": "Updated",
+                    
+                    
+                    
                 },
             )
 
@@ -405,6 +426,9 @@ class TestUpdateUser:
             is_verified=True,
             role=UserRole.NEWBIE,
             created_at=datetime.now(UTC),
+            language="ru",
+            notification_telegram_enabled=True,
+            notification_email_enabled=True,
         )
         mock_user_service.update_user = AsyncMock(return_value=updated_user)
 
@@ -422,6 +446,9 @@ class TestUpdateUser:
                 json={
                     "email": "updated@example.com",
                     "first_name": "Updated",
+                    
+                    
+                    
                 },
             )
 
@@ -550,6 +577,9 @@ class TestGetUserByTelegramId:
             is_verified=True,
             role=UserRole.NEWBIE,
             created_at=datetime.now(UTC),
+            language="ru",
+            notification_telegram_enabled=True,
+            notification_email_enabled=True,
         )
         mock_user_service.get_user_by_telegram_id = AsyncMock(return_value=user)
 
@@ -612,6 +642,9 @@ class TestGetUserByEmail:
             is_verified=True,
             role=UserRole.NEWBIE,
             created_at=datetime.now(UTC),
+            language="ru",
+            notification_telegram_enabled=True,
+            notification_email_enabled=True,
         )
         mock_user_service.get_user_by_email = AsyncMock(return_value=user)
 
@@ -653,6 +686,9 @@ class TestLinkTelegramAccount:
             is_verified=True,
             role=UserRole.ADMIN,
             created_at=datetime.now(UTC),
+            language="ru",
+            notification_telegram_enabled=True,
+            notification_email_enabled=True,
         )
         mock_user_service.link_telegram_account = AsyncMock(return_value=updated_user)
 
@@ -742,6 +778,9 @@ class TestChangeUserRole:
             is_verified=True,
             role=UserRole.MENTOR,  # Changed from NEWBIE to MENTOR
             created_at=datetime.now(UTC),
+            language="ru",
+            notification_telegram_enabled=True,
+            notification_email_enabled=True,
         )
         mock_user_service.update_user_role = AsyncMock(return_value=updated_user)
 
@@ -1031,3 +1070,146 @@ class TestChangePasswordEdgeCases:
         finally:
             app.dependency_overrides.pop(deps.get_current_user, None)
             app.dependency_overrides.pop(deps.get_user_service, None)
+
+
+class TestGetUserPreferences:
+    """Tests for GET /api/v1/users/{user_id}/preferences endpoint."""
+
+    async def test_get_user_preferences_service_auth(self, admin_user, mock_user_service):
+        """Test getting user preferences via service auth (covers lines 325-351)."""
+        from auth_service.api.endpoints.users import get_user_preferences
+        from auth_service.core import PermissionDenied
+
+        mock_user_service.get_user_by_id = AsyncMock(return_value=admin_user)
+
+        result = await get_user_preferences(
+            user_id=admin_user.id,
+            current_user=None,
+            user_service=mock_user_service,
+            is_service=True,
+        )
+
+        assert result.language == admin_user.language
+        assert result.notification_telegram_enabled == admin_user.notification_telegram_enabled
+        assert result.notification_email_enabled == admin_user.notification_email_enabled
+
+    async def test_get_user_preferences_no_auth(self, mock_user_service):
+        """Test getting user preferences without authentication raises permission denied (covers lines 329-341)."""
+        from auth_service.api.endpoints.users import get_user_preferences
+        from auth_service.core import PermissionDenied
+
+        with pytest.raises(PermissionDenied):
+            await get_user_preferences(
+                user_id=1,
+                current_user=None,
+                user_service=mock_user_service,
+                is_service=False,
+            )
+
+    async def test_get_user_preferences_self(self, admin_user, mock_user_service):
+        """Test user can get their own preferences."""
+        from auth_service.api.endpoints.users import get_user_preferences
+
+        mock_user_service.get_user_by_id = AsyncMock(return_value=admin_user)
+
+        result = await get_user_preferences(
+            user_id=admin_user.id,
+            current_user=admin_user,
+            user_service=mock_user_service,
+            is_service=False,
+        )
+
+        assert result.language == admin_user.language
+
+    async def test_get_user_preferences_permission_denied(self, newbie_user, mock_user_service):
+        """Test that a regular user cannot view another user's preferences (covers lines 336-341)."""
+        from auth_service.api.endpoints.users import get_user_preferences
+        from auth_service.core import PermissionDenied
+
+        # newbie_user tries to access another user's (id=999) preferences
+        with pytest.raises(PermissionDenied):
+            await get_user_preferences(
+                user_id=999,
+                current_user=newbie_user,
+                user_service=mock_user_service,
+                is_service=False,
+            )
+
+    async def test_get_user_preferences_not_found(self, admin_user, mock_user_service):
+        """Test getting preferences for non-existent user returns 404 (covers lines 343-354)."""
+        from auth_service.api.endpoints.users import get_user_preferences
+        from fastapi import HTTPException
+
+        mock_user_service.get_user_by_id = AsyncMock(side_effect=NotFoundException("User"))
+
+        with pytest.raises(HTTPException) as exc_info:
+            await get_user_preferences(
+                user_id=999,
+                current_user=admin_user,
+                user_service=mock_user_service,
+                is_service=True,
+            )
+
+        assert exc_info.value.status_code == 404
+
+
+class TestUpdateMyPreferences:
+    """Tests for PUT /api/v1/users/me/preferences endpoint."""
+
+    async def test_update_my_preferences_success(self, admin_user, mock_user_service):
+        """Test updating current user's preferences."""
+        from datetime import UTC
+        from auth_service.api.endpoints.users import update_my_preferences
+        from auth_service.schemas import UserPreferencesUpdate
+
+        updated_user = User(
+            id=admin_user.id,
+            email=admin_user.email,
+            first_name=admin_user.first_name,
+            last_name=admin_user.last_name,
+            employee_id=admin_user.employee_id,
+            is_active=True,
+            is_verified=True,
+            role=admin_user.role,
+            created_at=datetime.now(UTC),
+            language="en",  # Changed from "ru"
+            notification_telegram_enabled=False,  # Changed from True
+            notification_email_enabled=False,  # Changed from True
+        )
+        mock_user_service.update_user_preferences = AsyncMock(return_value=updated_user)
+
+        preferences_data = UserPreferencesUpdate(
+            language="en",
+            notification_telegram_enabled=False,
+            notification_email_enabled=False,
+        )
+
+        result = await update_my_preferences(
+            preferences_data=preferences_data,
+            user_service=mock_user_service,
+            current_user=admin_user,
+        )
+
+        assert result.language == "en"
+        assert result.notification_telegram_enabled is False
+        assert result.notification_email_enabled is False
+
+    async def test_update_my_preferences_not_found(self, admin_user, mock_user_service):
+        """Test updating preferences for non-existent user returns 404 (covers lines 364-378)."""
+        from auth_service.api.endpoints.users import update_my_preferences
+        from auth_service.schemas import UserPreferencesUpdate
+        from fastapi import HTTPException
+
+        mock_user_service.update_user_preferences = AsyncMock(side_effect=NotFoundException("User"))
+
+        preferences_data = UserPreferencesUpdate(language="en")
+
+        with pytest.raises(HTTPException) as exc_info:
+            await update_my_preferences(
+                preferences_data=preferences_data,
+                user_service=mock_user_service,
+                current_user=admin_user,
+            )
+
+        assert exc_info.value.status_code == 404
+        assert "not found" in str(exc_info.value.detail).lower()

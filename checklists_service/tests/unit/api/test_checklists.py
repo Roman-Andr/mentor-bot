@@ -766,3 +766,323 @@ class TestChecklistEndpointsErrorHandling:
                 )
 
             assert exc_info.value.status_code == 404
+
+
+class TestGetChecklistsAdditionalCoverage:
+    """Additional tests for get_checklists to cover missing branches."""
+
+    async def test_get_checklists_with_user_id_filter(self, sample_user) -> None:
+        """Test getting checklists with user_id filter (covers lines 30-31)."""
+        uow = MagicMock()
+        now = datetime.now(UTC)
+
+        checklist_mock = MagicMock()
+        checklist_mock.id = 1
+        checklist_mock.user_id = 1
+        checklist_mock.employee_id = "EMP001"
+        checklist_mock.template_id = 1
+        checklist_mock.status = ChecklistStatus.IN_PROGRESS
+        checklist_mock.progress_percentage = 0
+        checklist_mock.completed_tasks = 0
+        checklist_mock.total_tasks = 5
+        checklist_mock.start_date = now
+        checklist_mock.due_date = now + timedelta(days=30)
+        checklist_mock.completed_at = None
+        checklist_mock.mentor_id = 2
+        checklist_mock.hr_id = 3
+        checklist_mock.notes = "Test checklist"
+        checklist_mock.created_at = now
+        checklist_mock.updated_at = None
+
+        stats = ChecklistStats(
+            total=1, completed=0, in_progress=1, overdue=0, not_started=0,
+            avg_completion_days=0.0, completion_rate=0.0, by_department={}, recent_completions=[]
+        )
+
+        with patch("checklists_service.api.endpoints.checklists.ChecklistService") as mock_cls:
+            instance = MagicMock()
+            mock_cls.return_value = instance
+            instance.get_checklists = AsyncMock(return_value=([checklist_mock], 1))
+            instance.get_checklist_stats = AsyncMock(return_value=stats)
+
+            result = await checklists.get_checklists(
+                uow=uow,
+                current_user=sample_user,
+                skip=0,
+                limit=50,
+                user_id=1,  # Covers line 30-31
+                status="IN_PROGRESS",  # Covers line 30-31
+            )
+
+            assert result.total == 1
+
+    async def test_get_checklists_with_completed_certificate_fetch(self, sample_hr_user) -> None:
+        """Test getting checklists with completed status fetches certificates (covers lines 50-89)."""
+        uow = MagicMock()
+        now = datetime.now(UTC)
+
+        checklist_mock = MagicMock()
+        checklist_mock.id = 1
+        checklist_mock.user_id = 1
+        checklist_mock.employee_id = "EMP001"
+        checklist_mock.template_id = 1
+        checklist_mock.status = ChecklistStatus.COMPLETED  # Triggers certificate fetch
+        checklist_mock.progress_percentage = 100
+        checklist_mock.completed_tasks = 5
+        checklist_mock.total_tasks = 5
+        checklist_mock.start_date = now
+        checklist_mock.due_date = now + timedelta(days=30)
+        checklist_mock.completed_at = now
+        checklist_mock.mentor_id = 2
+        checklist_mock.hr_id = 3
+        checklist_mock.notes = "Test checklist"
+        checklist_mock.created_at = now
+        checklist_mock.updated_at = now
+
+        cert_mock = MagicMock()
+        cert_mock.checklist_id = 1
+        cert_mock.cert_uid = "cert-123"
+
+        stats = ChecklistStats(
+            total=1, completed=1, in_progress=0, overdue=0, not_started=0,
+            avg_completion_days=0.0, completion_rate=100.0, by_department={}, recent_completions=[]
+        )
+
+        with patch("checklists_service.api.endpoints.checklists.ChecklistService") as mock_cls:
+            instance = MagicMock()
+            mock_cls.return_value = instance
+            instance.get_checklists = AsyncMock(return_value=([checklist_mock], 1))
+            instance.get_checklist_stats = AsyncMock(return_value=stats)
+            uow.certificates.get_by_checklist_ids = AsyncMock(return_value=[cert_mock])
+
+            result = await checklists.get_checklists(
+                uow=uow,
+                current_user=sample_hr_user,
+                skip=0,
+                limit=50,
+            )
+
+            assert result.total == 1
+            assert result.checklists[0].cert_uid == "cert-123"
+            uow.certificates.get_by_checklist_ids.assert_awaited_once_with([1])
+
+    async def test_get_checklists_no_completed_checklists(self, sample_hr_user) -> None:
+        """Test getting checklists with no completed checklists (covers lines 68-72)."""
+        uow = MagicMock()
+        now = datetime.now(UTC)
+
+        checklist_mock = MagicMock()
+        checklist_mock.id = 1
+        checklist_mock.user_id = 1
+        checklist_mock.employee_id = "EMP001"
+        checklist_mock.template_id = 1
+        checklist_mock.status = ChecklistStatus.IN_PROGRESS  # Not completed
+        checklist_mock.progress_percentage = 0
+        checklist_mock.completed_tasks = 0
+        checklist_mock.total_tasks = 5
+        checklist_mock.start_date = now
+        checklist_mock.due_date = now + timedelta(days=30)
+        checklist_mock.completed_at = None
+        checklist_mock.mentor_id = 2
+        checklist_mock.hr_id = 3
+        checklist_mock.notes = "Test checklist"
+        checklist_mock.created_at = now
+        checklist_mock.updated_at = None
+
+        stats = ChecklistStats(
+            total=1, completed=0, in_progress=1, overdue=0, not_started=0,
+            avg_completion_days=0.0, completion_rate=0.0, by_department={}, recent_completions=[]
+        )
+
+        with patch("checklists_service.api.endpoints.checklists.ChecklistService") as mock_cls:
+            instance = MagicMock()
+            mock_cls.return_value = instance
+            instance.get_checklists = AsyncMock(return_value=([checklist_mock], 1))
+            instance.get_checklist_stats = AsyncMock(return_value=stats)
+
+            result = await checklists.get_checklists(
+                uow=uow,
+                current_user=sample_hr_user,
+                skip=0,
+                limit=50,
+            )
+
+            assert result.total == 1
+            assert result.checklists[0].cert_uid is None
+            uow.certificates.get_by_checklist_ids.assert_not_called()
+
+
+class TestCreateChecklistAdditionalCoverage:
+    """Additional tests for create_checklist to cover missing branches."""
+
+    async def test_create_checklist_with_auth_token(self, sample_hr_user) -> None:
+        """Test create_checklist passes auth_token to service (covers lines 106-135)."""
+        uow = MagicMock()
+        now = datetime.now(UTC)
+        checklist_data = ChecklistCreate(
+            user_id=1,
+            employee_id="EMP001",
+            template_id=1,
+            start_date=now,
+            due_date=now + timedelta(days=30),
+            mentor_id=2,
+            hr_id=3,
+            notes="Test checklist",
+        )
+
+        checklist_mock = MagicMock()
+        checklist_mock.id = 1
+        checklist_mock.user_id = 1
+        checklist_mock.employee_id = "EMP001"
+        checklist_mock.template_id = 1
+        checklist_mock.status = ChecklistStatus.IN_PROGRESS
+        checklist_mock.progress_percentage = 0
+        checklist_mock.completed_tasks = 0
+        checklist_mock.total_tasks = 5
+        checklist_mock.start_date = now
+        checklist_mock.due_date = now + timedelta(days=30)
+        checklist_mock.completed_at = None
+        checklist_mock.mentor_id = 2
+        checklist_mock.hr_id = 3
+        checklist_mock.notes = "Test checklist"
+        checklist_mock.created_at = now
+        checklist_mock.updated_at = None
+
+        with patch("checklists_service.api.endpoints.checklists.ChecklistService") as mock_cls:
+            instance = MagicMock()
+            mock_cls.return_value = instance
+            instance.create_checklist = AsyncMock(return_value=checklist_mock)
+            uow.commit = AsyncMock()
+
+            result = await checklists.create_checklist(
+                checklist_data=checklist_data,
+                uow=uow,
+                _current_user=sample_hr_user,
+                auth_token="test-auth-token",
+            )
+
+            assert result.id == 1
+            instance.create_checklist.assert_awaited_once_with(checklist_data, "test-auth-token")
+            uow.commit.assert_awaited_once()
+
+
+class TestGetChecklistAdditionalCoverage:
+    """Additional tests for get_checklist to cover missing branches."""
+
+    async def test_get_checklist_with_certificate(self, sample_user) -> None:
+        """Test get_checklist fetches certificate for completed checklist (covers lines 152-162)."""
+        uow = MagicMock()
+        now = datetime.now(UTC)
+
+        checklist_mock = MagicMock()
+        checklist_mock.id = 1
+        checklist_mock.user_id = 1
+        checklist_mock.employee_id = "EMP001"
+        checklist_mock.template_id = 1
+        checklist_mock.status = ChecklistStatus.COMPLETED
+        checklist_mock.progress_percentage = 100
+        checklist_mock.completed_tasks = 5
+        checklist_mock.total_tasks = 5
+        checklist_mock.start_date = now
+        checklist_mock.due_date = now + timedelta(days=30)
+        checklist_mock.completed_at = now
+        checklist_mock.mentor_id = 2
+        checklist_mock.hr_id = 3
+        checklist_mock.notes = "Test checklist"
+        checklist_mock.created_at = now
+        checklist_mock.updated_at = now
+
+        cert_mock = MagicMock()
+        cert_mock.cert_uid = "cert-456"
+
+        with patch("checklists_service.api.endpoints.checklists.ChecklistService") as mock_cls:
+            instance = MagicMock()
+            mock_cls.return_value = instance
+            instance.get_checklist = AsyncMock(return_value=checklist_mock)
+            uow.certificates.get_by_checklist_id = AsyncMock(return_value=cert_mock)
+
+            result = await checklists.get_checklist(
+                checklist_id=1,
+                uow=uow,
+                current_user=sample_user,
+            )
+
+            assert result.id == 1
+            assert result.cert_uid == "cert-456"
+            uow.certificates.get_by_checklist_id.assert_awaited_once_with(1)
+
+    async def test_get_checklist_no_certificate(self, sample_user) -> None:
+        """Test get_checklist with no certificate for completed checklist."""
+        uow = MagicMock()
+        now = datetime.now(UTC)
+
+        checklist_mock = MagicMock()
+        checklist_mock.id = 1
+        checklist_mock.user_id = 1
+        checklist_mock.employee_id = "EMP001"
+        checklist_mock.template_id = 1
+        checklist_mock.status = ChecklistStatus.COMPLETED
+        checklist_mock.progress_percentage = 100
+        checklist_mock.completed_tasks = 5
+        checklist_mock.total_tasks = 5
+        checklist_mock.start_date = now
+        checklist_mock.due_date = now + timedelta(days=30)
+        checklist_mock.completed_at = now
+        checklist_mock.mentor_id = 2
+        checklist_mock.hr_id = 3
+        checklist_mock.notes = "Test checklist"
+        checklist_mock.created_at = now
+        checklist_mock.updated_at = now
+
+        with patch("checklists_service.api.endpoints.checklists.ChecklistService") as mock_cls:
+            instance = MagicMock()
+            mock_cls.return_value = instance
+            instance.get_checklist = AsyncMock(return_value=checklist_mock)
+            uow.certificates.get_by_checklist_id = AsyncMock(return_value=None)
+
+            result = await checklists.get_checklist(
+                checklist_id=1,
+                uow=uow,
+                current_user=sample_user,
+            )
+
+            assert result.id == 1
+            assert result.cert_uid is None
+
+    async def test_get_checklist_not_completed_no_certificate_fetch(self, sample_user) -> None:
+        """Test get_checklist for non-completed checklist doesn't fetch certificate."""
+        uow = MagicMock()
+        now = datetime.now(UTC)
+
+        checklist_mock = MagicMock()
+        checklist_mock.id = 1
+        checklist_mock.user_id = 1
+        checklist_mock.employee_id = "EMP001"
+        checklist_mock.template_id = 1
+        checklist_mock.status = ChecklistStatus.IN_PROGRESS
+        checklist_mock.progress_percentage = 0
+        checklist_mock.completed_tasks = 0
+        checklist_mock.total_tasks = 5
+        checklist_mock.start_date = now
+        checklist_mock.due_date = now + timedelta(days=30)
+        checklist_mock.completed_at = None
+        checklist_mock.mentor_id = 2
+        checklist_mock.hr_id = 3
+        checklist_mock.notes = "Test checklist"
+        checklist_mock.created_at = now
+        checklist_mock.updated_at = None
+
+        with patch("checklists_service.api.endpoints.checklists.ChecklistService") as mock_cls:
+            instance = MagicMock()
+            mock_cls.return_value = instance
+            instance.get_checklist = AsyncMock(return_value=checklist_mock)
+
+            result = await checklists.get_checklist(
+                checklist_id=1,
+                uow=uow,
+                current_user=sample_user,
+            )
+
+            assert result.id == 1
+            assert result.cert_uid is None
+            uow.certificates.get_by_checklist_id.assert_not_called()

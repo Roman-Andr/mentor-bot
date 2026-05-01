@@ -158,6 +158,88 @@ class TestDocumentServiceClient:
 
         assert result is None
 
+    @patch("telegram_bot.services.document_client.httpx.AsyncClient.get")
+    async def test_get_department_documents_list_success(self, mock_get):
+        """Test getting department documents list - success."""
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            "documents": [
+                {"id": 1, "title": "Doc 1"},
+                {"id": 2, "title": "Doc 2"},
+            ]
+        }
+        mock_get.return_value = mock_response
+
+        with patch("telegram_bot.utils.cache.cache.get", return_value=None):
+            with patch("telegram_bot.utils.cache.cache.set", new_callable=AsyncMock):
+                result = await self.client.get_department_documents_list(1, self.auth_token)
+
+        assert len(result) == 2
+        assert result[0]["title"] == "Doc 1"
+
+    @patch("telegram_bot.services.document_client.httpx.AsyncClient.get")
+    async def test_get_department_documents_list_no_department_id(self, mock_get):
+        """Test getting department documents list without department_id."""
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {"documents": []}
+        mock_get.return_value = mock_response
+
+        with patch("telegram_bot.utils.cache.cache.get", return_value=None):
+            with patch("telegram_bot.utils.cache.cache.set", new_callable=AsyncMock):
+                result = await self.client.get_department_documents_list(None, self.auth_token)
+
+        assert result == []
+
+    @patch("telegram_bot.services.document_client.httpx.AsyncClient.get")
+    async def test_get_department_documents_list_error(self, mock_get):
+        """Test getting department documents list - error."""
+        import httpx
+        mock_get.side_effect = httpx.RequestError("Connection failed")
+
+        with patch("telegram_bot.utils.cache.cache.get", return_value=None):
+            with patch("telegram_bot.utils.cache.cache.set", new_callable=AsyncMock):
+                result = await self.client.get_department_documents_list(1, self.auth_token)
+
+        assert result == []
+
+    @patch("telegram_bot.services.document_client.httpx.AsyncClient.get")
+    async def test_get_department_document_download_url_302(self, mock_get):
+        """Test getting department document download URL - 302 redirect."""
+        from fastapi import status
+        mock_response = MagicMock()
+        mock_response.status_code = status.HTTP_302_FOUND
+        mock_response.headers = {"location": "https://example.com/file.pdf"}
+        mock_get.return_value = mock_response
+
+        result = await self.client.get_department_document_download_url(1, self.auth_token)
+
+        assert result == "https://example.com/file.pdf"
+
+    @patch("telegram_bot.services.document_client.httpx.AsyncClient.get")
+    async def test_get_department_document_download_url_200(self, mock_get):
+        """Test getting department document download URL - 200 OK."""
+        from fastapi import status
+        mock_response = MagicMock()
+        mock_response.status_code = status.HTTP_200_OK
+        mock_response.url = "https://example.com/file.pdf"
+        mock_get.return_value = mock_response
+
+        result = await self.client.get_department_document_download_url(1, self.auth_token)
+
+        assert result == "https://example.com/file.pdf"
+
+    @patch("telegram_bot.services.document_client.httpx.AsyncClient.get")
+    async def test_get_department_document_download_url_error(self, mock_get):
+        """Test getting department document download URL - error."""
+        import httpx
+        mock_get.side_effect = httpx.RequestError("Connection failed")
+
+        result = await self.client.get_department_document_download_url(1, self.auth_token)
+
+        assert result is None
+
 
 class TestDocumentClientSingleton:
     """Test the document_client singleton instance."""

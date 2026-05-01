@@ -28,7 +28,7 @@ class EscalationStatusHistory(Base):
         DateTime(timezone=True), server_default=func.now(), nullable=False, index=True
     )
     changed_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
-    metadata: Mapped[dict | None] = mapped_column(Text, nullable=True)
+    meta_data: Mapped[dict | None] = mapped_column(Text, nullable=True)
 
     def __repr__(self) -> str:
         """Representation of EscalationStatusHistory."""

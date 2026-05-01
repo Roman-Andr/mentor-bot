@@ -30,6 +30,17 @@ os.environ.setdefault("SMTP_PASSWORD", "testpassword")
 from notification_service.core.enums import NotificationChannel, NotificationStatus, NotificationType
 from notification_service.models import Notification, ScheduledNotification
 from notification_service.repositories.unit_of_work import IUnitOfWork
+from notification_service.services.auth_client import AuthClient, UserPreferences
+
+
+@pytest.fixture(autouse=True)
+def patch_auth_client():
+    """Automatically patch AuthClient in all tests to avoid HTTP calls."""
+    with patch("notification_service.services.notification.AuthClient") as mock_auth_client:
+        mock_client = MagicMock()
+        mock_client.get_user_preferences = AsyncMock(return_value=UserPreferences())
+        mock_auth_client.return_value = mock_client
+        yield
 
 
 @pytest.fixture
@@ -98,8 +109,11 @@ def client() -> TestClient:
     with (
         patch("notification_service.main.init_db", new_callable=AsyncMock),
         patch("notification_service.main.scheduler") as mock_scheduler,
+        patch("notification_service.services.notification.AuthClient") as mock_auth_client,
     ):
         mock_scheduler.run = MagicMock(return_value=AsyncMock())
+        mock_auth_client.return_value = MagicMock()
+        mock_auth_client.return_value.get_user_preferences = AsyncMock(return_value=UserPreferences())
         from notification_service.main import app
 
         return TestClient(app)

@@ -1,6 +1,6 @@
 """Unit tests for feedback notification client."""
 
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -101,3 +101,33 @@ class TestNotificationClient:
             # Assert
             assert result is False
             assert mock_send.call_count == 2  # Both channels attempted
+
+    async def test_send_notification_success(self, notification_client: NotificationClient) -> None:
+        """Test successful notification sending via HTTP."""
+        # Arrange
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.raise_for_status = MagicMock()
+
+        mock_client = MagicMock()
+        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+        mock_client.__aexit__ = AsyncMock(return_value=None)
+        mock_client.post = AsyncMock(return_value=mock_response)
+
+        with patch("httpx.AsyncClient", return_value=mock_client):
+            # Act
+            result = await notification_client._send_notification(
+                user_id=100,
+                template_name="comment_reply",
+                variables={"test": "value"},
+                channel="telegram",
+            )
+
+            # Assert
+            assert result is True
+            mock_client.post.assert_called_once()
+            call_kwargs = mock_client.post.call_args.kwargs
+            assert call_kwargs["json"]["user_id"] == 100
+            assert call_kwargs["json"]["template_name"] == "comment_reply"
+            assert call_kwargs["headers"]["X-Service-Key"] == notification_client.api_key
+            mock_response.raise_for_status.assert_called_once()

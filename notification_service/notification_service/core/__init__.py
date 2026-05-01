@@ -1,6 +1,6 @@
 """Core functionality: enums, exceptions, and security."""
 
-from notification_service.core.enums import NotificationChannel, NotificationStatus, NotificationType
+from notification_service.core.enums import NotificationChannel, NotificationStatus, NotificationType, UserRole
 from notification_service.core.exceptions import (
     AuthException,
     ConflictException,
@@ -19,5 +19,6 @@ __all__ = [
     "NotificationStatus",
     "NotificationType",
     "PermissionDenied",
+    "UserRole",
     "ValidationException",
 ]

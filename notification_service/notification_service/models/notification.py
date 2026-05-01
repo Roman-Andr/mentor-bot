@@ -59,7 +59,7 @@ class Notification(Base):
 
     # Audit fields
     failure_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
-    metadata: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    meta_data: Mapped[dict | None] = mapped_column(JSON, nullable=True)
 
     def __repr__(self) -> str:
         """Representation of Notification."""

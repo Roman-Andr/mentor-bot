@@ -58,6 +58,7 @@ def mock_uow() -> MagicMock:
     uow.tasks = AsyncMock()
     uow.templates = AsyncMock()
     uow.task_templates = AsyncMock()
+    uow.certificates = AsyncMock()
 
     # Setup commit/rollback as async mocks
     uow.commit = AsyncMock()
@@ -505,3 +506,38 @@ def mock_auth_token() -> str:
 def service_api_key() -> str:
     """Get the service API key."""
     return os.environ.get("SERVICE_API_KEY", "test-api-key")
+
+
+@pytest.fixture
+async def async_session():
+    """Create an async database session for testing."""
+    from checklists_service.database.base import AsyncSessionLocal
+    
+    async with AsyncSessionLocal() as session:
+        yield session
+        await session.rollback()
+
+
+@pytest.fixture
+async def async_client(async_session):
+    """Create an async HTTP client for testing."""
+    from httpx import AsyncClient, ASGITransport
+    from checklists_service.main import app
+    
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test"
+    ) as client:
+        yield client
+
+
+@pytest.fixture
+def auth_headers():
+    """Create authentication headers for regular user."""
+    return {"Authorization": "Bearer test-user-token"}
+
+
+@pytest.fixture
+def hr_headers():
+    """Create authentication headers for HR user."""
+    return {"Authorization": "Bearer test-hr-token"}

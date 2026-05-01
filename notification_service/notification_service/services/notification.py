@@ -10,6 +10,7 @@ from notification_service.core.enums import NotificationChannel, NotificationSta
 from notification_service.models import Notification, ScheduledNotification
 from notification_service.repositories.unit_of_work import IUnitOfWork
 from notification_service.schemas import NotificationCreate, ScheduledNotificationCreate
+from notification_service.services.auth_client import AuthClient, AuthClientError
 from notification_service.services.email import EmailService
 from notification_service.services.telegram import TelegramService
 from notification_service.services.template import (

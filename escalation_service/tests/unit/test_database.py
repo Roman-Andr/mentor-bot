@@ -75,9 +75,15 @@ class TestInitDB:
     """Tests for init_db function."""
 
     @pytest.mark.asyncio
-    async def test_init_db_runs_without_error(self):
-        """Test that init_db runs without error (uses public schema, no schema creation needed)."""
+    async def test_init_db_is_noop_for_public_schema(self):
+        """Test that init_db is a no-op since database uses public schema."""
+        # init_db is intentionally empty because the service uses the public schema
+        # Schema creation is handled by migrations, not by the service itself
+        # This test documents this design decision
         mock_engine = MagicMock()
 
         with patch("escalation_service.database.engine", mock_engine):
+            # Function should complete without error
             await init_db()
+            # Verify no engine operations were called (it's a no-op)
+            mock_engine.assert_not_called()

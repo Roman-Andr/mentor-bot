@@ -357,3 +357,20 @@ class TestDependencyTypeAliases:
     def test_database_session_type_alias_exists(self) -> None:
         """DatabaseSession type alias is defined."""
         assert DatabaseSession is not None
+
+
+class TestGetUnitOfWork:
+    """Tests for get_uow dependency."""
+
+    async def test_returns_sqlalchemy_unit_of_work(self) -> None:
+        """Returns SqlAlchemyUnitOfWork instance (line 119)."""
+        from notification_service.api.deps import get_uow
+
+        mock_db = AsyncMock()
+
+        result = await get_uow(mock_db)
+
+        assert result is not None
+        from notification_service.repositories.unit_of_work import SqlAlchemyUnitOfWork
+
+        assert isinstance(result, SqlAlchemyUnitOfWork)

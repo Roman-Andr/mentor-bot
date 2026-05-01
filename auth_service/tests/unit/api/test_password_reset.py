@@ -299,7 +299,11 @@ class TestPasswordResetServiceUnit:
     @pytest.fixture
     def mock_session(self):
         """Create a mock database session."""
-        return AsyncMock()
+        session = MagicMock()
+        session.add = MagicMock()
+        session.flush = AsyncMock()
+        session.execute = AsyncMock()
+        return session
 
     @pytest.fixture
     def mock_uow(self):

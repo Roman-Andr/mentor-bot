@@ -39,3 +39,11 @@ class EmployeeLevel(StrEnum):
     MIDDLE = "MIDDLE"
     SENIOR = "SENIOR"
     LEAD = "LEAD"
+
+
+class UserRole(StrEnum):
+    """User role enumeration (copied from auth for consistency)."""
+
+    EMPLOYEE = "EMPLOYEE"
+    HR = "HR"
+    ADMIN = "ADMIN"

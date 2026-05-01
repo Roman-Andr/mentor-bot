@@ -7,6 +7,7 @@ from knowledge_service.core.enums import (
     DialogueCategory,
     EmployeeLevel,
     SearchSortBy,
+    UserRole,
 )
 from knowledge_service.core.exceptions import (
     AuthException,
@@ -27,5 +28,6 @@ __all__ = [
     "NotFoundException",
     "PermissionDenied",
     "SearchSortBy",
+    "UserRole",
     "ValidationException",
 ]

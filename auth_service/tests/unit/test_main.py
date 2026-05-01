@@ -216,3 +216,68 @@ class TestAppConfiguration:
     def test_app_description(self):
         """Test app has description."""
         assert app.description is not None
+
+
+class TestCreateDefaultAdminUser:
+    """Tests for create_default_admin_user function."""
+
+    async def test_create_default_admin_user_when_not_exists(self):
+        """Test create_default_admin_user creates admin when it doesn't exist."""
+        from auth_service.main import create_default_admin_user
+        from auth_service.schemas import UserCreate
+
+        mock_uow_instance = MagicMock()
+        mock_user_service = MagicMock()
+        mock_user_service.get_user_by_email = AsyncMock(return_value=None)
+        mock_user_service.create_user = AsyncMock()
+
+        mock_uow_context = AsyncMock()
+        mock_uow_context.__aenter__.return_value = mock_uow_instance
+        mock_uow_context.__aexit__.return_value = None
+
+        with patch("auth_service.main.AsyncSessionLocal", return_value=mock_uow_instance):
+            with patch("auth_service.main.SqlAlchemyUnitOfWork", return_value=mock_uow_context):
+                with patch("auth_service.main.UserService", return_value=mock_user_service):
+                    with patch("auth_service.main.settings.ADMIN_EMAIL", "admin@example.com"):
+                        with patch("auth_service.main.settings.ADMIN_PASSWORD", "changeme_admin_password"):
+                            with patch("auth_service.main.logger") as mock_logger:
+                                await create_default_admin_user()
+
+                                mock_user_service.get_user_by_email.assert_called_once_with("admin@example.com")
+                                mock_user_service.create_user.assert_called_once()
+                                call_args = mock_user_service.create_user.call_args[0][0]
+                                assert isinstance(call_args, UserCreate)
+                                assert call_args.email == "admin@example.com"
+                                assert call_args.first_name == "Admin"
+                                assert call_args.last_name == "User"
+                                assert call_args.employee_id == "ADMIN001"
+                                assert call_args.role == "ADMIN"
+                                mock_logger.info.assert_any_call("Creating default admin user: {}", "admin@example.com")
+                                mock_logger.info.assert_any_call("Default admin user created successfully")
+
+    async def test_create_default_admin_user_when_exists(self):
+        """Test create_default_admin_user skips creation when admin already exists."""
+        from auth_service.main import create_default_admin_user
+
+        existing_admin = MagicMock()
+        existing_admin.email = "admin@example.com"
+
+        mock_uow_instance = MagicMock()
+        mock_user_service = MagicMock()
+        mock_user_service.get_user_by_email = AsyncMock(return_value=existing_admin)
+        mock_user_service.create_user = AsyncMock()
+
+        mock_uow_context = AsyncMock()
+        mock_uow_context.__aenter__.return_value = mock_uow_instance
+        mock_uow_context.__aexit__.return_value = None
+
+        with patch("auth_service.main.AsyncSessionLocal", return_value=mock_uow_instance):
+            with patch("auth_service.main.SqlAlchemyUnitOfWork", return_value=mock_uow_context):
+                with patch("auth_service.main.UserService", return_value=mock_user_service):
+                    with patch("auth_service.main.settings.ADMIN_EMAIL", "admin@example.com"):
+                        with patch("auth_service.main.logger") as mock_logger:
+                            await create_default_admin_user()
+
+                            mock_user_service.get_user_by_email.assert_called_once_with("admin@example.com")
+                            mock_user_service.create_user.assert_not_called()
+                            mock_logger.info.assert_any_call("Default admin user already exists: {}", "admin@example.com")

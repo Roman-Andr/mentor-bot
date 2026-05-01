@@ -87,76 +87,59 @@ class TestLanguageHandlers:
     async def test_set_language_english(self, mock_callback):
         """Test setting language to English."""
         mock_callback.data = "set_lang_en"
-        tg_user = MagicMock(spec=TgUser)
-        tg_user.id = 123456
 
-        with patch(
-            "telegram_bot.handlers.language.user_cache.update_user_field",
-            new_callable=AsyncMock,
-        ) as mock_update:
+        with patch("telegram_bot.handlers.language.auth_client.update_user_preferences", new_callable=AsyncMock) as mock_update:
             with patch("telegram_bot.handlers.language.get_language_keyboard") as mock_kb:
                 mock_kb.return_value = MagicMock()
 
-                await set_language(mock_callback, tg_user=tg_user)
+                await set_language(mock_callback, auth_token="test_token", user={"id": 123456})
 
         mock_callback.answer.assert_called_once()
-        mock_update.assert_called_once_with(123456, "language", "en")
+        mock_update.assert_called_once_with(123456, {"language": "en"}, "test_token")
 
     async def test_set_language_russian(self, mock_callback):
         """Test setting language to Russian."""
         mock_callback.data = "set_lang_ru"
-        tg_user = MagicMock(spec=TgUser)
-        tg_user.id = 123456
 
-        with patch(
-            "telegram_bot.handlers.language.user_cache.update_user_field",
-            new_callable=AsyncMock,
-        ) as mock_update:
+        with patch("telegram_bot.handlers.language.auth_client.update_user_preferences", new_callable=AsyncMock) as mock_update:
             with patch("telegram_bot.handlers.language.get_language_keyboard") as mock_kb:
                 mock_kb.return_value = MagicMock()
 
-                await set_language(mock_callback, tg_user=tg_user)
+                await set_language(mock_callback, auth_token="test_token", user={"id": 123456})
 
         mock_callback.answer.assert_called_once()
-        mock_update.assert_called_once_with(123456, "language", "ru")
+        mock_update.assert_called_once_with(123456, {"language": "ru"}, "test_token")
 
     async def test_set_language_invalid(self, mock_callback):
         """Test setting invalid language."""
         mock_callback.data = "set_lang_fr"
-        tg_user = MagicMock(spec=TgUser)
 
-        await set_language(mock_callback, tg_user=tg_user)
+        await set_language(mock_callback, auth_token="test_token", user={"id": 123456})
 
         mock_callback.answer.assert_called_once_with("Unsupported language")
 
     async def test_set_language_not_tguser(self, mock_callback):
-        """Test setting language when tg_user is not a TgUser instance."""
+        """Test setting language when user has no id."""
         mock_callback.data = "set_lang_en"
-        non_user = MagicMock()  # Not a TgUser
 
-        with patch(
-            "telegram_bot.handlers.language.user_cache.update_user_field",
-            new_callable=AsyncMock,
-        ) as mock_update:
+        with patch("telegram_bot.handlers.language.auth_client.update_user_preferences", new_callable=AsyncMock) as mock_update:
             with patch("telegram_bot.handlers.language.get_language_keyboard") as mock_kb:
                 mock_kb.return_value = MagicMock()
 
-                await set_language(mock_callback, tg_user=non_user)
+                await set_language(mock_callback, auth_token="test_token", user={})
 
-        # Should not update cache since it's not a TgUser
+        # Should not update cache since user has no id
         mock_update.assert_not_called()
         mock_callback.answer.assert_called_once()
 
     async def test_set_language_with_message(self, mock_callback):
         """Test setting language and editing message."""
         mock_callback.data = "set_lang_en"
-        tg_user = MagicMock(spec=TgUser)
-        tg_user.id = 123456
 
-        with patch("telegram_bot.handlers.language.user_cache.update_user_field", new_callable=AsyncMock):
+        with patch("telegram_bot.handlers.language.auth_client.update_user_preferences", new_callable=AsyncMock):
             with patch("telegram_bot.handlers.language.get_language_keyboard") as mock_kb:
                 mock_kb.return_value = MagicMock()
 
-                await set_language(mock_callback, tg_user=tg_user)
+                await set_language(mock_callback, auth_token="test_token", user={"id": 123456})
 
         mock_callback.message.edit_text.assert_called_once()

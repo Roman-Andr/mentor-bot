@@ -2,7 +2,7 @@
 
 from typing import Annotated
 
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from loguru import logger
 
 from auth_service.api.deps import (
@@ -11,6 +11,7 @@ from auth_service.api.deps import (
     HRUser,
     ServiceAuth,
     UserServiceDep,
+    get_current_user,
 )
 from auth_service.core import (
     ConflictException,
@@ -19,6 +20,7 @@ from auth_service.core import (
     UserRole,
     ValidationException,
 )
+from auth_service.models import User
 from auth_service.schemas import (
     MessageResponse,
     UserCreate,
@@ -315,7 +317,7 @@ async def change_password(
 async def get_user_preferences(
     user_id: int,
     user_service: UserServiceDep,
-    current_user: CurrentUser | None = None,
+    current_user: CurrentUserOptional,
     is_service: ServiceAuth = False,
 ) -> UserPreferencesResponse:
     """Get user preferences (users can see themselves, HR/Admin can see anyone, inter-service via SERVICE_API_KEY)."""

@@ -24,7 +24,7 @@ class MeetingParticipantHistory(Base):
     action: Mapped[str] = mapped_column(String(50), nullable=False)
     joined_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     left_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    metadata: Mapped[dict | None] = mapped_column(Text, nullable=True)
+    meta_data: Mapped[dict | None] = mapped_column(Text, nullable=True)
 
     def __repr__(self) -> str:
         """Representation of MeetingParticipantHistory."""

@@ -305,3 +305,116 @@ class TestTypeAliases:
         """Test DepartmentServiceDep is an Annotated type."""
         origin = get_origin(deps.DepartmentServiceDep)
         assert origin is not None
+
+
+class TestVerifyServiceApiKey:
+    """Tests for verify_service_api_key dependency."""
+
+    async def test_verify_service_api_key_no_header(self):
+        """Test verify_service_api_key returns False when no header provided."""
+        mock_request = MagicMock()
+        mock_request.headers = {}
+
+        result = await deps.verify_service_api_key(mock_request)
+
+        assert result is False
+
+    async def test_verify_service_api_key_invalid_key(self):
+        """Test verify_service_api_key returns False with invalid key."""
+        mock_request = MagicMock()
+        mock_request.headers = {"X-Service-API-Key": "invalid-key"}
+
+        result = await deps.verify_service_api_key(mock_request)
+
+        assert result is False
+
+    async def test_verify_service_api_key_valid_key(self):
+        """Test verify_service_api_key returns True with valid key."""
+        from auth_service.config import settings
+
+        mock_request = MagicMock()
+        mock_request.headers = {"X-Service-API-Key": settings.SERVICE_API_KEY}
+
+        result = await deps.verify_service_api_key(mock_request)
+
+        assert result is True
+
+
+class TestGetCurrentUserOptional:
+    """Tests for get_current_user_optional dependency."""
+
+    async def test_get_current_user_optional_no_token(self):
+        """Test get_current_user_optional returns None when no token provided."""
+        mock_auth_service = MagicMock()
+        mock_request = MagicMock()
+        mock_request.headers = {}
+        mock_request.cookies = {}
+
+        user = await deps.get_current_user_optional(mock_request, mock_auth_service)
+
+        assert user is None
+
+    async def test_get_current_user_optional_valid_token(self, admin_user):
+        """Test get_current_user_optional returns user with valid token."""
+        mock_auth_service = MagicMock()
+        mock_auth_service.get_current_user = AsyncMock(return_value=admin_user)
+
+        mock_request = MagicMock()
+        mock_request.headers = {"authorization": "Bearer valid_token"}
+        mock_request.cookies = {}
+
+        user = await deps.get_current_user_optional(mock_request, mock_auth_service)
+
+        assert user == admin_user
+        mock_auth_service.get_current_user.assert_called_once_with("valid_token")
+
+    async def test_get_current_user_optional_inactive_user(self):
+        """Test get_current_user_optional returns None for inactive user."""
+        inactive_user = User(
+            id=1,
+            email="inactive@example.com",
+            first_name="Inactive",
+            last_name="User",
+            employee_id="EMP001",
+            is_active=False,
+            is_verified=True,
+            role=UserRole.NEWBIE,
+            created_at=datetime.now(UTC),
+        )
+
+        mock_auth_service = MagicMock()
+        mock_auth_service.get_current_user = AsyncMock(return_value=inactive_user)
+
+        mock_request = MagicMock()
+        mock_request.headers = {"authorization": "Bearer valid_token"}
+        mock_request.cookies = {}
+
+        user = await deps.get_current_user_optional(mock_request, mock_auth_service)
+
+        assert user is None
+
+    async def test_get_current_user_optional_auth_exception(self):
+        """Test get_current_user_optional returns None on auth exception."""
+        mock_auth_service = MagicMock()
+        mock_auth_service.get_current_user = AsyncMock(side_effect=AuthException("Invalid token"))
+
+        mock_request = MagicMock()
+        mock_request.headers = {"authorization": "Bearer invalid_token"}
+        mock_request.cookies = {}
+
+        user = await deps.get_current_user_optional(mock_request, mock_auth_service)
+
+        assert user is None
+
+    async def test_get_current_user_optional_generic_exception(self):
+        """Test get_current_user_optional returns None on generic error."""
+        mock_auth_service = MagicMock()
+        mock_auth_service.get_current_user = AsyncMock(side_effect=ValueError("Some error"))
+
+        mock_request = MagicMock()
+        mock_request.headers = {"authorization": "Bearer token"}
+        mock_request.cookies = {}
+
+        user = await deps.get_current_user_optional(mock_request, mock_auth_service)
+
+        assert user is None

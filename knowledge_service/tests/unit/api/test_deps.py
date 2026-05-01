@@ -27,8 +27,10 @@ from knowledge_service.api.deps import (
     get_category_service,
     get_current_active_user,
     get_current_user,
+    get_department_document_service,
     get_dialogue_service,
     get_knowledge_service_dep,
+    get_search_history_repository,
     get_search_service,
     get_tag_service,
     get_uow,
@@ -39,6 +41,7 @@ from knowledge_service.api.deps import (
 )
 from knowledge_service.core import AuthException, PermissionDenied
 from knowledge_service.repositories.unit_of_work import SqlAlchemyUnitOfWork
+from knowledge_service.services import DepartmentDocumentService
 from knowledge_service.services import (
     ArticleService,
     AttachmentService,
@@ -598,4 +601,23 @@ class TestServiceDependencies:
         result = await get_dialogue_service(mock_uow)
 
         assert isinstance(result, DialogueService)
+        assert result._uow == mock_uow
+
+    async def test_get_search_history_repository(self) -> None:
+        """Test get_search_history_repository returns search_history repository from uow."""
+        mock_uow = AsyncMock(spec=SqlAlchemyUnitOfWork)
+        mock_search_history = AsyncMock()
+        mock_uow.search_history = mock_search_history
+
+        result = await get_search_history_repository(mock_uow)
+
+        assert result == mock_search_history
+
+    async def test_get_department_document_service(self) -> None:
+        """Test get_department_document_service returns DepartmentDocumentService."""
+        mock_uow = AsyncMock(spec=SqlAlchemyUnitOfWork)
+
+        result = await get_department_document_service(mock_uow)
+
+        assert isinstance(result, DepartmentDocumentService)
         assert result._uow == mock_uow

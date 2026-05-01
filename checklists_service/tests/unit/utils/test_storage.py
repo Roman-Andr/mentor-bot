@@ -102,6 +102,25 @@ class TestStorageServiceInit:
                     bucket_name="test-bucket",
                 )
 
+    def test_init_raises_on_unknown_error_code(self) -> None:
+        """Test StorageError is raised when head_bucket fails with unknown error code."""
+        with patch("boto3.client") as mock_boto_client, \
+             patch("checklists_service.utils.storage.ThreadPoolExecutor"):
+
+            mock_client = MagicMock()
+            mock_boto_client.return_value = mock_client
+
+            error_response = {"Error": {"Code": "Unknown", "Message": "Unknown error"}}
+            mock_client.head_bucket.side_effect = ClientError(error_response, "HeadBucket")
+
+            with pytest.raises(StorageError, match="Failed to initialize bucket"):
+                StorageService(
+                    endpoint="http://minio:9000",
+                    access_key="test-key",
+                    secret_key="test-secret",
+                    bucket_name="test-bucket",
+                )
+
 
 class TestStorageServiceUpload:
     """Test file upload."""

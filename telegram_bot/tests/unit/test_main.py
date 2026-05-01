@@ -249,6 +249,30 @@ class TestMainFunction:
         self.mock_storage_class.assert_called_once()
         self.mock_bot_class.assert_called_once()
 
+    async def test_main_with_proxy(self, setup_mocks, mock_modules):
+        """Test main() with proxy configuration."""
+        from telegram_bot.main import main
+
+        # Set proxy
+        self.mock_settings.TELEGRAM_PROXY = "http://proxy.example.com:8080"
+
+        mock_bot = MagicMock()
+        mock_bot.delete_webhook = AsyncMock()
+
+        mock_dp = MagicMock()
+        mock_dp.start_polling = AsyncMock()
+
+        self.mock_bot_class.return_value = mock_bot
+        self.mock_dispatcher_class.return_value = mock_dp
+
+        with suppress(Exception):
+            await main()
+
+        # Verify bot was created with proxy
+        self.mock_bot_class.assert_called_once()
+        call_kwargs = self.mock_bot_class.call_args[1]
+        assert "session" in call_kwargs
+
 
 class TestMainModule:
     """Test cases for main module-level code."""

@@ -57,6 +57,31 @@ class TestLifespan:
             # Shutdown
             mock_cache.disconnect.assert_called_once()
 
+    @pytest.mark.asyncio
+    async def test_lifespan_cleanup_old_search_history_success(self):
+        """Test lifespan with successful cleanup_old_search_history."""
+        mock_app = MagicMock(spec=FastAPI)
+
+        async def mock_cleanup_func():
+            return 5
+
+        with patch("knowledge_service.main.init_db") as mock_init_db, \
+             patch("knowledge_service.main.cache") as mock_cache, \
+             patch("knowledge_service.main.cleanup_old_search_history", side_effect=mock_cleanup_func):
+            mock_init_db.return_value = AsyncMock()
+            mock_cache.connect = AsyncMock()
+            mock_cache.disconnect = AsyncMock()
+            mock_cache.is_connected = False
+
+            from knowledge_service.main import lifespan
+            async with lifespan(mock_app) as _:
+                # Startup
+                mock_init_db.assert_called_once()
+                mock_cache.connect.assert_called_once()
+
+            # Shutdown
+            mock_cache.disconnect.assert_called_once()
+
 
 class TestAppConfiguration:
     """Test FastAPI app configuration - covers lines 48-85."""

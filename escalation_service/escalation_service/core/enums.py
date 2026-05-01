@@ -30,3 +30,11 @@ class EscalationSource(StrEnum):
     AUTO_OVERDUE = "AUTO_OVERDUE"  # task overdue > 3 days
     AUTO_SEARCH_FAILED = "AUTO_SEARCH_FAILED"  # two consecutive failed searches
     AUTO_NO_ANSWER = "AUTO_NO_ANSWER"  # "answer not found" clicked
+
+
+class UserRole(StrEnum):
+    """User roles in the system."""
+
+    USER = "USER"
+    HR = "HR"
+    ADMIN = "ADMIN"

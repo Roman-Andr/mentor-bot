@@ -12,8 +12,10 @@ from telegram_bot.handlers.documents import (
     _get_file_emoji,
     company_policies,
     department_docs,
+    department_docs_list,
     documents_menu,
     download_attachment,
+    download_department_document,
     training_materials,
     view_article_detail,
 )
@@ -627,10 +629,143 @@ class TestDocumentsHandlers:
 
     async def test_download_attachment_invalid_data(self, mock_callback, mock_user, mock_auth_token, mock_bot):
         """Test download attachment with invalid callback data."""
-        mock_callback.data = "download_att_invalid"
+        mock_callback.data = "invalid_data"
 
-        await download_attachment(
-            mock_callback, mock_bot, mock_user, mock_auth_token, locale="en"
-        )
+        await download_attachment(mock_callback, mock_bot, mock_user, mock_auth_token, locale="en")
+
+        mock_callback.answer.assert_called_once()
+
+    async def test_department_docs_list_success(self, mock_callback, mock_user, mock_auth_token):
+        """Test department docs list - success."""
+        mock_callback.data = "department_docs_list"
+        mock_callback.message = MagicMock(spec=Message)
+        mock_callback.message.chat = MagicMock()
+        mock_callback.message.chat.id = 123456
+        mock_callback.message.edit_text = AsyncMock()
+
+        with patch("telegram_bot.handlers.documents.document_client.get_department_documents_list", new_callable=AsyncMock, return_value=[{"id": 1, "title": "Doc 1"}]):
+            with patch("telegram_bot.handlers.documents.get_article_list_keyboard") as mock_kb:
+                mock_kb.return_value = MagicMock()
+
+                await department_docs_list(mock_callback, mock_user, mock_auth_token, locale="en")
+
+        mock_callback.message.edit_text.assert_called_once()
+        mock_callback.answer.assert_called_once()
+
+    async def test_department_docs_list_empty(self, mock_callback, mock_user, mock_auth_token):
+        """Test department docs list - empty result."""
+        mock_callback.data = "department_docs_list"
+        mock_callback.message = MagicMock(spec=Message)
+        mock_callback.message.chat = MagicMock()
+        mock_callback.message.chat.id = 123456
+        mock_callback.message.edit_text = AsyncMock()
+
+        with patch("telegram_bot.handlers.documents.document_client.get_department_documents_list", new_callable=AsyncMock, return_value=[]):
+            with patch("telegram_bot.handlers.documents.get_article_list_keyboard") as mock_kb:
+                mock_kb.return_value = MagicMock()
+
+                await department_docs_list(mock_callback, mock_user, mock_auth_token, locale="en")
+
+        mock_callback.message.edit_text.assert_called_once()
+        mock_callback.answer.assert_called_once()
+
+    async def test_department_docs_list_no_user(self, mock_callback, mock_auth_token):
+        """Test department docs list with no user."""
+        mock_callback.data = "department_docs_list"
+        mock_callback.message = MagicMock(spec=Message)
+        mock_callback.answer = AsyncMock()
+
+        await department_docs_list(mock_callback, None, mock_auth_token, locale="en")
+
+        mock_callback.answer.assert_called_once()
+
+    async def test_department_docs_list_no_message(self, mock_callback, mock_user, mock_auth_token):
+        """Test department docs list with no message."""
+        mock_callback.data = "department_docs_list"
+        mock_callback.message = None
+        mock_callback.answer = AsyncMock()
+
+        await department_docs_list(mock_callback, mock_user, mock_auth_token, locale="en")
+
+        mock_callback.answer.assert_called_once()
+
+    async def test_download_department_document_success(self, mock_callback, mock_bot, mock_user, mock_auth_token):
+        """Test download department document - success."""
+        mock_callback.data = "download_dept_doc_123"
+        mock_callback.message = MagicMock(spec=Message)
+        mock_callback.message.chat = MagicMock()
+        mock_callback.message.chat.id = 123456
+        mock_bot.send_message = AsyncMock()
+
+        with patch("telegram_bot.handlers.documents.document_client.get_department_document_download_url", new_callable=AsyncMock, return_value="https://example.com/file.pdf"):
+            await download_department_document(mock_callback, mock_bot, mock_user, mock_auth_token, locale="en")
+
+        mock_bot.send_message.assert_called_once()
+        mock_callback.answer.assert_called()
+
+    async def test_download_department_document_send_exception(self, mock_callback, mock_bot, mock_user, mock_auth_token):
+        """Test download department document when send_message raises exception."""
+        mock_callback.data = "download_dept_doc_123"
+        mock_callback.message = MagicMock(spec=Message)
+        mock_callback.message.chat = MagicMock()
+        mock_callback.message.chat.id = 123456
+        mock_bot.send_message = AsyncMock(side_effect=Exception("Send failed"))
+
+        with patch("telegram_bot.handlers.documents.document_client.get_department_document_download_url", new_callable=AsyncMock, return_value="https://example.com/file.pdf"):
+            with patch("telegram_bot.handlers.documents.logger"):
+                await download_department_document(mock_callback, mock_bot, mock_user, mock_auth_token, locale="en")
+
+        # Should not raise exception, just log it
+        mock_callback.answer.assert_called()
+
+    async def test_download_department_document_no_url(self, mock_callback, mock_bot, mock_user, mock_auth_token):
+        """Test download department document when URL not found."""
+        mock_callback.data = "download_dept_doc_123"
+        mock_callback.message = MagicMock(spec=Message)
+        mock_callback.answer = AsyncMock()
+
+        with patch("telegram_bot.handlers.documents.document_client.get_department_document_download_url", new_callable=AsyncMock, return_value=None):
+            await download_department_document(mock_callback, mock_bot, mock_user, mock_auth_token, locale="en")
+
+        # Called twice: once for loading, once for error
+        assert mock_callback.answer.call_count == 2
+
+    async def test_download_department_document_no_user(self, mock_callback, mock_bot, mock_auth_token):
+        """Test download department document with no user."""
+        mock_callback.data = "download_dept_doc_123"
+        mock_callback.message = MagicMock(spec=Message)
+        mock_callback.answer = AsyncMock()
+
+        await download_department_document(mock_callback, mock_bot, None, mock_auth_token, locale="en")
+
+        mock_callback.answer.assert_called_once()
+
+    async def test_download_department_document_invalid_id(self, mock_callback, mock_bot, mock_user, mock_auth_token):
+        """Test download department document with invalid ID."""
+        mock_callback.data = "download_dept_doc_invalid"
+        mock_callback.message = MagicMock(spec=Message)
+        mock_callback.answer = AsyncMock()
+
+        await download_department_document(mock_callback, mock_bot, mock_user, mock_auth_token, locale="en")
+
+        mock_callback.answer.assert_called_once()
+
+    async def test_download_department_document_no_message(self, mock_callback, mock_bot, mock_user, mock_auth_token):
+        """Test download department document with no message."""
+        mock_callback.data = "download_dept_doc_123"
+        mock_callback.message = None
+        mock_callback.answer = AsyncMock()
+
+        await download_department_document(mock_callback, mock_bot, mock_user, mock_auth_token, locale="en")
+
+        mock_callback.answer.assert_called_once()
+
+    async def test_download_department_document_no_auth_token(self, mock_callback, mock_bot, mock_user):
+        """Test download department document with no auth token."""
+        mock_callback.data = "download_dept_doc_123"
+        mock_callback.message = MagicMock(spec=Message)
+        mock_callback.answer = AsyncMock()
+
+        await download_department_document(mock_callback, mock_bot, mock_user, "", locale="en")
 
         mock_callback.answer.assert_called_once()

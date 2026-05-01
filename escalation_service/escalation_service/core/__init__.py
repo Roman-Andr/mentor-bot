@@ -1,6 +1,6 @@
 """Core functionality: enums, exceptions."""
 
-from escalation_service.core.enums import EscalationSource, EscalationStatus, EscalationType
+from escalation_service.core.enums import EscalationSource, EscalationStatus, EscalationType, UserRole
 from escalation_service.core.exceptions import (
     AuthException,
     ConflictException,
@@ -18,4 +18,5 @@ __all__ = [
     "NotFoundException",
     "PermissionDenied",
     "ValidationException",
+    "UserRole",
 ]

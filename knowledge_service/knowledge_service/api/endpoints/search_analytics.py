@@ -5,7 +5,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Query, status
 
-from knowledge_service.api import CurrentUser, SearchHistoryRepositoryDep
+from knowledge_service.api.deps import CurrentUser, SearchHistoryRepositoryDep
 from knowledge_service.schemas import (
     DepartmentSearchStats,
     SearchSummary,

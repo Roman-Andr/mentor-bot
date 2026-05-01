@@ -16,7 +16,11 @@ class TestPasswordResetService:
     @pytest.fixture
     def mock_session(self):
         """Create a mock database session."""
-        return AsyncMock()
+        session = MagicMock()
+        session.add = MagicMock()
+        session.flush = AsyncMock()
+        session.execute = AsyncMock()
+        return session
 
     @pytest.fixture
     def mock_uow(self):
@@ -225,3 +229,77 @@ class TestPasswordResetService:
         result = await service.validate_token(token)
 
         assert result is None
+
+    def test_generate_token(self):
+        """Test _generate_token returns a secure token of expected length."""
+        token = PasswordResetService._generate_token()
+        assert isinstance(token, str)
+        assert len(token) > 0  # token_urlsafe generates variable length but always non-empty
+
+    @pytest.mark.asyncio
+    async def test_request_reset_non_existent_user(self, mock_uow, mock_session):
+        """Test request_reset returns success=True but no token for non-existent user."""
+        mock_uow.users.get_by_email = AsyncMock(return_value=None)
+
+        service = PasswordResetService(mock_uow, mock_session)
+        success, token, user = await service.request_reset("nonexistent@example.com")
+
+        assert success is True
+        assert token is None
+        assert user is None
+
+    @pytest.mark.asyncio
+    async def test_request_reset_rate_limited(self, mock_uow, mock_session, active_user):
+        """Test request_reset returns no token when rate limit exceeded."""
+        mock_uow.users.get_by_email = AsyncMock(return_value=active_user)
+
+        # Mock _count_recent_requests to return rate limit exceeded
+        service = PasswordResetService(mock_uow, mock_session)
+        service._count_recent_requests = AsyncMock(return_value=5)  # Exceeds MAX_REQUESTS_PER_HOUR (3)
+
+        success, token, user = await service.request_reset("test@example.com", ip_address="127.0.0.1")
+
+        assert success is True
+        assert token is None
+        assert user is None
+
+    @pytest.mark.asyncio
+    async def test_request_reset_success(self, mock_uow, mock_session, active_user):
+        """Test request_reset creates token successfully for active user."""
+        mock_uow.users.get_by_email = AsyncMock(return_value=active_user)
+        mock_session.flush = AsyncMock()
+
+        service = PasswordResetService(mock_uow, mock_session)
+        service._count_recent_requests = AsyncMock(return_value=0)  # Below rate limit
+
+        success, token, user = await service.request_reset("test@example.com", ip_address="127.0.0.1")
+
+        assert success is True
+        assert token is not None
+        assert user == active_user
+        mock_session.flush.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_validate_token_not_found(self, mock_uow, mock_session):
+        """Test validate_token returns None when token not found."""
+        service = PasswordResetService(mock_uow, mock_session)
+        service._get_valid_token_record = AsyncMock(return_value=None)
+
+        result = await service.validate_token("invalid-token")
+
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_validate_token_success(self, mock_uow, mock_session, active_user):
+        """Test validate_token returns user when token is valid."""
+        token = "valid-token"
+        mock_token = self._create_token_record(token, active_user.id)
+
+        mock_uow.users.get_by_id = AsyncMock(return_value=active_user)
+
+        service = PasswordResetService(mock_uow, mock_session)
+        service._get_valid_token_record = AsyncMock(return_value=mock_token)
+
+        result = await service.validate_token(token)
+
+        assert result == active_user

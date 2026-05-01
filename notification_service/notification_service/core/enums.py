@@ -27,3 +27,11 @@ class NotificationStatus(StrEnum):
     PENDING = "PENDING"
     SENT = "SENT"
     FAILED = "FAILED"
+
+
+class UserRole(StrEnum):
+    """User role enumeration (copied from auth for consistency)."""
+
+    EMPLOYEE = "EMPLOYEE"
+    HR = "HR"
+    ADMIN = "ADMIN"

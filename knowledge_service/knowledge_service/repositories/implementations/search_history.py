@@ -4,7 +4,7 @@ from collections.abc import Sequence
 from datetime import UTC, datetime, timedelta
 from typing import Any, cast
 
-from sqlalchemy import and_, delete, func, select
+from sqlalchemy import and_, case, delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import text
 
@@ -197,7 +197,7 @@ class SearchHistoryRepository(SqlAlchemyBaseRepository[SearchHistory, int], ISea
                 SearchHistory.query,
                 func.count(SearchHistory.id).label("count"),
                 func.avg(SearchHistory.results_count).label("avg_results_count"),
-                func.sum(func.cast(SearchHistory.results_count == 0, func.Integer)).label("zero_results_count"),
+                func.sum(case((SearchHistory.results_count == 0, 1), else_=0)).label("zero_results_count"),
             )
             .where(and_(*conditions) if conditions else True)
             .group_by(SearchHistory.query)

@@ -102,6 +102,18 @@ def mock_uow():
     uow.departments.update = AsyncMock()
     uow.departments.delete = AsyncMock()
 
+    # History tracking repositories
+    uow.login_history = MagicMock()
+    uow.login_history.create = AsyncMock()
+    uow.invitation_status_history = MagicMock()
+    uow.invitation_status_history.create = AsyncMock()
+    uow.mentor_assignment_history = MagicMock()
+    uow.mentor_assignment_history.create = AsyncMock()
+    uow.password_change_history = MagicMock()
+    uow.password_change_history.create = AsyncMock()
+    uow.role_change_history = MagicMock()
+    uow.role_change_history.create = AsyncMock()
+
     uow.commit = AsyncMock()
     uow.rollback = AsyncMock()
 
@@ -112,8 +124,7 @@ def mock_uow():
 def mock_init_db():
     """Mock database initialization for all tests."""
     with patch("auth_service.main.init_db", new_callable=AsyncMock):
-        with patch("auth_service.main.create_default_admin_user", new_callable=AsyncMock):
-            yield
+        yield
 
 
 @pytest.fixture(autouse=True)
@@ -175,6 +186,9 @@ def admin_user():
         is_active=True,
         is_verified=True,
         role=UserRole.ADMIN,
+        language="ru",
+        notification_telegram_enabled=True,
+        notification_email_enabled=True,
     )
 
 
@@ -189,6 +203,9 @@ def hr_user():
         first_name="HR",
         last_name="User",
         employee_id="EMP002",
+        language="ru",
+        notification_telegram_enabled=True,
+        notification_email_enabled=True,
         is_active=True,
         is_verified=True,
         role=UserRole.HR,
@@ -209,6 +226,9 @@ def mentor_user():
         is_active=True,
         is_verified=True,
         role=UserRole.MENTOR,
+        language="ru",
+        notification_telegram_enabled=True,
+        notification_email_enabled=True,
     )
 
 
@@ -226,4 +246,7 @@ def newbie_user():
         is_active=True,
         is_verified=True,
         role=UserRole.NEWBIE,
+        language="ru",
+        notification_telegram_enabled=True,
+        notification_email_enabled=True,
     )

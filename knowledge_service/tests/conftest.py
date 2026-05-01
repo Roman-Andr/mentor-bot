@@ -36,7 +36,17 @@ from pathlib import Path
 
 from knowledge_service.api.deps import UserInfo
 from knowledge_service.core import ArticleStatus, AttachmentType, DialogueCategory, EmployeeLevel
-from knowledge_service.models import Article, Attachment, Category, DialogueScenario, Tag
+from knowledge_service.models import (
+    Article,
+    ArticleChangeHistory,
+    ArticleViewHistory,
+    Attachment,
+    Category,
+    CategoryChangeHistory,
+    DialogueScenario,
+    DialogueScenarioChangeHistory,
+    Tag,
+)
 
 
 @pytest.fixture
@@ -440,3 +450,68 @@ def mock_storage_service() -> MagicMock:
     storage.get_public_url.return_value = "http://localhost:9000/test-knowledge-bucket/test_object"
 
     return storage
+
+
+@pytest.fixture
+def mock_article_change_history() -> ArticleChangeHistory:
+    """Create a mock article change history model."""
+    return ArticleChangeHistory(
+        id=1,
+        article_id=1,
+        user_id=1,
+        action="created",
+        old_title=None,
+        new_title="Test",
+        old_content=None,
+        new_content="Content",
+        changed_at=datetime.now(UTC),
+        changed_by=1,
+        change_summary=None,
+    )
+
+
+@pytest.fixture
+def mock_article_view_history() -> ArticleViewHistory:
+    """Create a mock article view history model."""
+    return ArticleViewHistory(
+        id=1,
+        article_id=1,
+        user_id=1,
+        viewed_at=datetime.now(UTC),
+        department_id=1,
+        position="Developer",
+        level="JUNIOR",
+        referrer=None,
+        session_id="session123",
+    )
+
+
+@pytest.fixture
+def mock_category_change_history() -> CategoryChangeHistory:
+    """Create a mock category change history model."""
+    return CategoryChangeHistory(
+        id=1,
+        category_id=1,
+        user_id=1,
+        action="created",
+        old_name=None,
+        new_name="Test Category",
+        changed_at=datetime.now(UTC),
+        changed_by=None,
+    )
+
+
+@pytest.fixture
+def mock_dialogue_scenario_change_history() -> DialogueScenarioChangeHistory:
+    """Create a mock dialogue scenario change history model."""
+    return DialogueScenarioChangeHistory(
+        id=1,
+        scenario_id=1,
+        user_id=1,
+        action="created",
+        old_name=None,
+        new_name="Test Scenario",
+        changed_at=datetime.now(UTC),
+        changed_by=None,
+        change_summary=None,
+    )

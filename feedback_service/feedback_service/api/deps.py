@@ -278,4 +278,5 @@ HRAdminUser = Annotated[UserInfo, Depends(require_hr_or_admin)]
 DbDep = Annotated[AsyncSession, Depends(get_db)]
 ServiceAuth = Annotated[bool, Depends(verify_service_api_key)]
 UOWDep = Annotated[SqlAlchemyUnitOfWork, Depends(get_uow)]
+UnitOfWorkDep = UOWDep  # Alias for consistency
 AuthUser = Annotated[UserInfo | None, Depends(require_auth)]

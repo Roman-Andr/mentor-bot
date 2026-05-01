@@ -236,13 +236,13 @@ class TestNotificationPreferences:
             notification_email_enabled=True,
         )
 
-        with patch.object(service._auth_client, "get_user_preferences", new_callable=AsyncMock, return_value=mock_prefs):
+        with patch.object(service._auth_client, "get_user_preferences", return_value=mock_prefs) as mock_get_prefs:
             with patch.object(service._telegram, "send_message", new_callable=AsyncMock, return_value=True):
                 # Act
                 await service._send_to_channel(notification)
 
         # Assert
-        service._auth_client.get_user_preferences.assert_called_once_with(42)
+        mock_get_prefs.assert_called_once_with(42)
 
     async def test_default_preferences_when_none(self, mock_uow):
         """Test that default preferences are used when auth returns None."""

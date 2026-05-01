@@ -412,6 +412,72 @@ class TestChecklistServiceCreate:
         expected_due_date = sample_datetime + timedelta(days=sample_template.duration_days)
         assert result.due_date == expected_due_date
 
+    async def test_validate_user_without_token(self, mock_uow: MagicMock) -> None:
+        """Test _validate_user raises error when no auth token."""
+        service = ChecklistService(mock_uow, None)
+
+        with pytest.raises(ValidationException, match="Authentication required"):
+            await service._validate_user(1)
+
+    async def test_validate_user_not_found(self, mock_uow: MagicMock) -> None:
+        """Test _validate_user raises error when user not found."""
+        with patch("checklists_service.services.checklist.auth_service_client") as mock_auth:
+            mock_auth.get_user = AsyncMock(return_value=None)
+
+            service = ChecklistService(mock_uow, "mock-token")
+
+            with pytest.raises(ValidationException, match="User 1 not found"):
+                await service._validate_user(1)
+
+    async def test_create_checklist_task_assignment_mentor(
+        self,
+        mock_uow: MagicMock,
+        sample_template: Checklist,
+        sample_task_template: Task,
+        sample_datetime: datetime,
+        mock_user_employee: dict,
+        mock_user_mentor: dict,
+    ) -> None:
+        """Test task assignment to mentor with auto_assign (lines 145-160)."""
+        sample_task_template.auto_assign = True
+        sample_task_template.assignee_role = "MENTOR"
+
+        mock_uow.templates.get_by_id.return_value = sample_template
+        mock_uow.checklists.get_by_user_and_template.return_value = None
+        created_checklist = Checklist(
+            id=1,
+            user_id=1,
+            employee_id="EMP001",
+            template_id=1,
+            status=ChecklistStatus.IN_PROGRESS,
+            total_tasks=0,
+            start_date=sample_datetime,
+            due_date=sample_datetime + timedelta(days=30),
+            mentor_id=2,
+        )
+        mock_uow.checklists.create.return_value = created_checklist
+        mock_uow.task_templates.find_by_template.return_value = [sample_task_template]
+        mock_uow.tasks.create.return_value = None
+        mock_uow.checklists.update.return_value = created_checklist
+
+        checklist_data = ChecklistCreate(
+            user_id=1,
+            employee_id="EMP001",
+            template_id=1,
+            start_date=sample_datetime,
+            mentor_id=2,
+        )
+
+        with patch("checklists_service.services.checklist.auth_service_client") as mock_auth:
+            mock_auth.get_user = AsyncMock(side_effect=[mock_user_employee, mock_user_mentor])
+
+            service = ChecklistService(mock_uow, "mock-token")
+            await service.create_checklist(checklist_data, "mock-token")
+
+        # Verify task was created with mentor as assignee
+        task_call = mock_uow.tasks.create.call_args[0][0]
+        assert task_call.assignee_id == 2
+
     async def test_create_checklist_with_task_dependencies_sets_blocks(
         self,
         mock_uow: MagicMock,

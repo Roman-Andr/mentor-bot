@@ -33,7 +33,6 @@ dev = [
 asyncio_mode = "auto"
 testpaths = ["tests"]
 pythonpath = [".", "feedback_service"]
-addopts = "-q"
 
 [tool.coverage.run]
 source = ["feedback_service"]

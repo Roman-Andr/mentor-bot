@@ -1,11 +1,11 @@
 """Tests for knowledge analytics API endpoints."""
 
 from datetime import datetime
-from typing import TYPE_CHECKING
 from unittest.mock import AsyncMock
 
 import pytest
 
+from knowledge_service.api.deps import UserInfo
 from knowledge_service.api.endpoints.analytics import (
     get_knowledge_summary,
     get_top_articles,
@@ -20,10 +20,6 @@ from knowledge_service.schemas import (
     TimeseriesPoint,
     TopArticleStats,
 )
-
-if TYPE_CHECKING:
-    from knowledge_service.api.deps import UserInfo
-    from knowledge_service.repositories import SqlAlchemyUnitOfWork
 
 
 @pytest.fixture
@@ -283,7 +279,14 @@ class TestGetKnowledgeSummary:
         from_date = datetime(2026, 1, 1)
         to_date = datetime(2026, 1, 31)
 
-        await get_knowledge_summary(
+        mock_uow.article_views.get_summary_stats.return_value = {
+            "total_views": 1000,
+            "unique_viewers": 500,
+            "total_articles": 50,
+            "avg_views_per_article": 20.0,
+        }
+
+        result = await get_knowledge_summary(
             uow=mock_uow,
             _current_user=mock_hr_user,
             from_date=from_date,

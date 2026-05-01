@@ -634,9 +634,10 @@ class TestNotificationServiceSendToChannel:
         )
 
         with patch.object(service, "_send_telegram", return_value=(True, None)) as mock_send:
-            result = await service._send_to_channel(notification)
+            with patch.object(service._auth_client, "get_user_preferences", return_value=None):
+                result = await service._send_to_channel(notification)
 
-        mock_send.assert_awaited_once_with(notification)
+        mock_send.assert_awaited_once_with(notification, None)
         assert result == (True, None)
 
     async def test_routes_email_channel(self, mock_uow: MagicMock) -> None:
@@ -651,9 +652,10 @@ class TestNotificationServiceSendToChannel:
         )
 
         with patch.object(service, "_send_email", return_value=(True, None)) as mock_send:
-            result = await service._send_to_channel(notification)
+            with patch.object(service._auth_client, "get_user_preferences", return_value=None):
+                result = await service._send_to_channel(notification)
 
-        mock_send.assert_awaited_once_with(notification)
+        mock_send.assert_awaited_once_with(notification, None)
         assert result == (True, None)
 
     async def test_routes_both_channel(self, mock_uow: MagicMock) -> None:
@@ -669,9 +671,10 @@ class TestNotificationServiceSendToChannel:
         )
 
         with patch.object(service, "_send_both", return_value=(True, None)) as mock_send:
-            result = await service._send_to_channel(notification)
+            with patch.object(service._auth_client, "get_user_preferences", return_value=None):
+                result = await service._send_to_channel(notification)
 
-        mock_send.assert_awaited_once_with(notification)
+        mock_send.assert_awaited_once_with(notification, None)
         assert result == (True, None)
 
     async def test_returns_error_for_unsupported_channel(self, mock_uow: MagicMock) -> None:

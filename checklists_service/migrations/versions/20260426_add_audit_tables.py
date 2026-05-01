@@ -2,7 +2,7 @@
 add_audit_tables.
 
 Revision ID: b2c3d4e5f6g7
-Revises: 0444f265d1b2
+Revises: b29bbdf86ff8
 Create Date: 2026-04-26 10:00:00.000000+00:00
 """
 from collections.abc import Sequence
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision: str = "b2c3d4e5f6g7"
-down_revision: str | None = "0444f265d1b2"
+down_revision: str | None = "b29bbdf86ff8"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
@@ -29,10 +29,8 @@ def upgrade() -> None:
         sa.Column("new_status", sa.String(length=50), nullable=True),
         sa.Column("changed_at", sa.DateTime(timezone=True), server_default=sa.text("NOW()"), nullable=False),
         sa.Column("changed_by", sa.Integer(), nullable=True),
-        sa.Column("metadata", sa.JSON(), nullable=True),
+        sa.Column("meta_data", sa.JSON(), nullable=True),
         sa.ForeignKeyConstraint(["checklist_id"], ["checklists.id"]),
-        sa.ForeignKeyConstraint(["user_id"], ["users.id"]),
-        sa.ForeignKeyConstraint(["changed_by"], ["users.id"]),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(op.f("ix_checklist_status_history_checklist_id_changed_at"), "checklist_status_history", ["checklist_id", "changed_at"])
@@ -51,8 +49,6 @@ def upgrade() -> None:
         sa.Column("completed_by", sa.Integer(), nullable=True),
         sa.ForeignKeyConstraint(["task_id"], ["tasks.id"]),
         sa.ForeignKeyConstraint(["checklist_id"], ["checklists.id"]),
-        sa.ForeignKeyConstraint(["user_id"], ["users.id"]),
-        sa.ForeignKeyConstraint(["completed_by"], ["users.id"]),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(op.f("ix_task_completion_history_task_id"), "task_completion_history", ["task_id"])
@@ -71,7 +67,6 @@ def upgrade() -> None:
         sa.Column("changed_by", sa.Integer(), nullable=True),
         sa.Column("change_summary", sa.Text(), nullable=True),
         sa.ForeignKeyConstraint(["template_id"], ["templates.id"]),
-        sa.ForeignKeyConstraint(["changed_by"], ["users.id"]),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(op.f("ix_template_change_history_template_id_changed_at"), "template_change_history", ["template_id", "changed_at"])

@@ -2,7 +2,7 @@
 add_audit_tables.
 
 Revision ID: c3d4e5f6g7h8
-Revises: 0444f265d1b2
+Revises: fd5f34b9e8c4
 Create Date: 2026-04-26 10:00:00.000000+00:00
 """
 from collections.abc import Sequence
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision: str = "c3d4e5f6g7h8"
-down_revision: str | None = "0444f265d1b2"
+down_revision: str | None = "fd5f34b9e8c4"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
@@ -36,8 +36,6 @@ def upgrade() -> None:
         sa.Column("changed_by", sa.Integer(), nullable=True),
         sa.Column("change_summary", sa.Text(), nullable=True),
         sa.ForeignKeyConstraint(["article_id"], ["articles.id"]),
-        sa.ForeignKeyConstraint(["user_id"], ["users.id"]),
-        sa.ForeignKeyConstraint(["changed_by"], ["users.id"]),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(op.f("ix_article_change_history_article_id_changed_at"), "article_change_history", ["article_id", "changed_at"])
@@ -55,7 +53,6 @@ def upgrade() -> None:
         sa.Column("referrer", sa.Text(), nullable=True),
         sa.Column("session_id", sa.String(length=100), nullable=True),
         sa.ForeignKeyConstraint(["article_id"], ["articles.id"]),
-        sa.ForeignKeyConstraint(["user_id"], ["users.id"]),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(op.f("ix_article_view_history_article_id"), "article_view_history", ["article_id"])
@@ -74,8 +71,6 @@ def upgrade() -> None:
         sa.Column("changed_at", sa.DateTime(timezone=True), server_default=sa.text("NOW()"), nullable=False),
         sa.Column("changed_by", sa.Integer(), nullable=True),
         sa.ForeignKeyConstraint(["category_id"], ["categories.id"]),
-        sa.ForeignKeyConstraint(["user_id"], ["users.id"]),
-        sa.ForeignKeyConstraint(["changed_by"], ["users.id"]),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(op.f("ix_category_change_history_category_id_changed_at"), "category_change_history", ["category_id", "changed_at"])
@@ -93,8 +88,6 @@ def upgrade() -> None:
         sa.Column("changed_by", sa.Integer(), nullable=True),
         sa.Column("change_summary", sa.Text(), nullable=True),
         sa.ForeignKeyConstraint(["scenario_id"], ["dialogue_scenarios.id"]),
-        sa.ForeignKeyConstraint(["user_id"], ["users.id"]),
-        sa.ForeignKeyConstraint(["changed_by"], ["users.id"]),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(op.f("ix_dialogue_scenario_change_history_scenario_id_changed_at"), "dialogue_scenario_change_history", ["scenario_id", "changed_at"])

@@ -42,8 +42,14 @@ class Settings(BaseSettings):
     AUTH_SERVICE_TIMEOUT: int = Field(default=10, ge=1)
     AUTH_SERVICE_RETRIES: int = Field(default=3, ge=0)
 
+    # Integration with Notification Service
+    NOTIFICATION_SERVICE_URL: str = Field(default="http://localhost:8003")
+    NOTIFICATION_SERVICE_TIMEOUT: int = Field(default=10, ge=1)
+    NOTIFICATION_SERVICE_RETRIES: int = Field(default=3, ge=0)
+
     # Service-to-service authentication
     SERVICE_API_KEY: str = Field(default="")
+    SERVICE_TIMEOUT: int = Field(default=10, ge=1)
 
     # Circuit Breaker
     CIRCUIT_BREAKER_FAILURE_THRESHOLD: int = Field(default=3, ge=1)

@@ -20,6 +20,8 @@ router = APIRouter()
 class ArticleChangeEntry(BaseModel):
     """Article change history entry schema."""
 
+    model_config = {"from_attributes": True}
+
     id: int
     article_id: int
     user_id: int
@@ -36,6 +38,8 @@ class ArticleChangeEntry(BaseModel):
 class ArticleViewEntry(BaseModel):
     """Article view history entry schema."""
 
+    model_config = {"from_attributes": True}
+
     id: int
     article_id: int
     user_id: int | None
@@ -50,6 +54,8 @@ class ArticleViewEntry(BaseModel):
 class CategoryChangeEntry(BaseModel):
     """Category change history entry schema."""
 
+    model_config = {"from_attributes": True}
+
     id: int
     category_id: int
     user_id: int
@@ -62,6 +68,8 @@ class CategoryChangeEntry(BaseModel):
 
 class DialogueScenarioChangeEntry(BaseModel):
     """Dialogue scenario change history entry schema."""
+
+    model_config = {"from_attributes": True}
 
     id: int
     scenario_id: int

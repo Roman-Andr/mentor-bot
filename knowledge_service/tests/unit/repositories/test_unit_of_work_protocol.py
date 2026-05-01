@@ -87,6 +87,31 @@ class MockUnitOfWork:
         return self._tags
 
     @property
+    def department_documents(self):
+        """Return mock department documents repository."""
+        return self._department_documents
+
+    @property
+    def article_change_history(self):
+        """Return mock article change history repository."""
+        return self._article_change_history
+
+    @property
+    def article_view_history(self):
+        """Return mock article view history repository."""
+        return self._article_view_history
+
+    @property
+    def category_change_history(self):
+        """Return mock category change history repository."""
+        return self._category_change_history
+
+    @property
+    def dialogue_scenario_change_history(self):
+        """Return mock dialogue scenario change history repository."""
+        return self._dialogue_scenario_change_history
+
+    @property
     def session(self) -> AsyncSession:
         """Get the current database session - covers line 41."""
         return self._session

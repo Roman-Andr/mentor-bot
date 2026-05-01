@@ -43,6 +43,8 @@ class TestDialogueScenarioRepository:
 
     async def test_create_with_steps(self, mock_session, sample_scenario):
         """Test creating scenario with eager-loaded steps."""
+        # Mock the execute to return the scenario with steps
+        # First call is for the selectinload query
         mock_result = MagicMock()
         mock_result.scalar_one.return_value = sample_scenario
         mock_session.execute.return_value = mock_result
@@ -53,9 +55,15 @@ class TestDialogueScenarioRepository:
         assert result == sample_scenario
         mock_session.add.assert_called_once_with(sample_scenario)
         mock_session.flush.assert_called_once()
+        # execute should be called for the selectinload query after flush
+        assert mock_session.execute.call_count >= 1
 
     async def test_update_with_steps(self, mock_session, sample_scenario):
         """Test updating scenario with eager-loaded steps."""
+        # The method calls:
+        # 1. session.flush()
+        # 2. session.execute(stmt) for selectinload query
+        # 3. result.scalar_one()
         mock_result = MagicMock()
         mock_result.scalar_one.return_value = sample_scenario
         mock_session.execute.return_value = mock_result
@@ -65,6 +73,8 @@ class TestDialogueScenarioRepository:
 
         assert result == sample_scenario
         mock_session.flush.assert_called_once()
+        # execute should be called for the selectinload query
+        assert mock_session.execute.call_count >= 1
 
     async def test_get_by_id_with_steps(self, mock_session, sample_scenario):
         """Test getting scenario by ID with steps."""

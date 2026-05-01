@@ -115,6 +115,7 @@ async def get_uow() -> AsyncGenerator[SqlAlchemyUnitOfWork]:
 
 
 UOWDep = Annotated[SqlAlchemyUnitOfWork, Depends(get_uow)]
+UnitOfWorkDep = UOWDep  # Alias for consistency
 
 
 async def verify_service_api_key(

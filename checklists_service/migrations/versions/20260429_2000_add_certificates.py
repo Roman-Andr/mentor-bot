@@ -2,7 +2,7 @@
 add_certificates.
 
 Revision ID: a1b2c3d4e5f6
-Revises: b29bbdf86ff8
+Revises: b2c3d4e5f6g7
 Create Date: 2026-04-29 20:00:00.000000+00:00
 """
 from collections.abc import Sequence
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision: str = "a1b2c3d4e5f6"
-down_revision: str | None = "b29bbdf86ff8"
+down_revision: str | None = "b2c3d4e5f6g7"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

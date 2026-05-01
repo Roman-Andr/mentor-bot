@@ -3,6 +3,15 @@
 from enum import StrEnum
 
 
+class UserRole(StrEnum):
+    """User role enumeration."""
+
+    HR = "HR"
+    ADMIN = "ADMIN"
+    MENTOR = "MENTOR"
+    EMPLOYEE = "EMPLOYEE"
+
+
 class ArticleStatus(StrEnum):
     """Article status enumeration."""
 

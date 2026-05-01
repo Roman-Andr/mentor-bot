@@ -161,6 +161,7 @@ async def get_uow() -> AsyncGenerator[SqlAlchemyUnitOfWork]:
 
 # Type aliases for dependencies
 UOWDep = Annotated[SqlAlchemyUnitOfWork, Depends(get_uow)]
+UnitOfWorkDep = UOWDep  # Alias for consistency across services
 CurrentUser = Annotated[UserInfo, Depends(get_current_active_user)]
 AdminUser = Annotated[UserInfo, Depends(require_admin)]
 HRUser = Annotated[UserInfo, Depends(require_hr)]

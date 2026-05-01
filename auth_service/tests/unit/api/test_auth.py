@@ -32,6 +32,9 @@ def active_user():
         is_active=True,
         is_verified=True,
         role=UserRole.NEWBIE,
+        language="ru",
+        notification_telegram_enabled=True,
+        notification_email_enabled=True,
     )
 
 
@@ -225,6 +228,9 @@ class TestGetCurrentUserEndpoint:
             is_verified=True,
             role=UserRole.MENTOR,
             created_at=datetime.now(UTC),
+            language="ru",
+            notification_telegram_enabled=True,
+            notification_email_enabled=True,
         )
 
         # Create valid token
@@ -242,7 +248,9 @@ class TestGetCurrentUserEndpoint:
                 "/api/v1/auth/me",
                 headers={"Authorization": f"Bearer {access_token}"},
             )
-
+            if response.status_code != 200:
+                print(f"Response status: {response.status_code}")
+                print(f"Response body: {response.text}")
             assert response.status_code == 200
             data = response.json()
             assert data["email"] == "user@example.com"

@@ -546,3 +546,75 @@ class TestAuthServiceClientEdgeCases:
         result = await self.client.register_with_invitation("used_token", telegram_data)
 
         assert result is None
+
+    @patch("telegram_bot.services.auth_client.httpx.AsyncClient.get")
+    async def test_get_user_preferences_success(self, mock_get):
+        """Test getting user preferences - success."""
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {"notification_telegram_enabled": True, "notification_email_enabled": False}
+        mock_get.return_value = mock_response
+
+        result = await self.client.get_user_preferences(1, self.auth_token)
+
+        assert result is not None
+        assert result["notification_telegram_enabled"] is True
+        assert result["notification_email_enabled"] is False
+
+    @patch("telegram_bot.services.auth_client.httpx.AsyncClient.get")
+    async def test_get_user_preferences_not_found(self, mock_get):
+        """Test getting user preferences - not found."""
+        mock_response = MagicMock()
+        mock_response.status_code = 404
+        mock_get.return_value = mock_response
+
+        result = await self.client.get_user_preferences(1, self.auth_token)
+
+        assert result is None
+
+    @patch("telegram_bot.services.auth_client.httpx.AsyncClient.get")
+    async def test_get_user_preferences_request_error(self, mock_get):
+        """Test getting user preferences - request error."""
+        import httpx
+        mock_get.side_effect = httpx.RequestError("Connection failed")
+
+        result = await self.client.get_user_preferences(1, self.auth_token)
+
+        assert result is None
+
+    @patch("telegram_bot.services.auth_client.httpx.AsyncClient.put")
+    async def test_update_user_preferences_success(self, mock_put):
+        """Test updating user preferences - success."""
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {"notification_telegram_enabled": False, "notification_email_enabled": True}
+        mock_put.return_value = mock_response
+
+        preferences = {"notification_telegram_enabled": False, "notification_email_enabled": True}
+        result = await self.client.update_user_preferences(1, preferences, self.auth_token)
+
+        assert result is not None
+        assert result["notification_telegram_enabled"] is False
+
+    @patch("telegram_bot.services.auth_client.httpx.AsyncClient.put")
+    async def test_update_user_preferences_failure(self, mock_put):
+        """Test updating user preferences - failure."""
+        mock_response = MagicMock()
+        mock_response.status_code = 400
+        mock_put.return_value = mock_response
+
+        preferences = {"notification_telegram_enabled": False}
+        result = await self.client.update_user_preferences(1, preferences, self.auth_token)
+
+        assert result is None
+
+    @patch("telegram_bot.services.auth_client.httpx.AsyncClient.put")
+    async def test_update_user_preferences_request_error(self, mock_put):
+        """Test updating user preferences - request error."""
+        import httpx
+        mock_put.side_effect = httpx.RequestError("Connection failed")
+
+        preferences = {"notification_telegram_enabled": False}
+        result = await self.client.update_user_preferences(1, preferences, self.auth_token)
+
+        assert result is None
