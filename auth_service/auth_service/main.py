@@ -15,7 +15,7 @@ from slowapi.util import get_remote_address
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
-from auth_service.api import auth, departments, invitations, password_reset, user_mentors, users
+from auth_service.api import audit, auth, departments, invitations, password_reset, user_mentors, users
 from auth_service.config import settings
 from auth_service.core import UserRole
 from auth_service.database import AsyncSessionLocal, engine, init_db
@@ -103,6 +103,7 @@ app.include_router(invitations.router, prefix=f"{settings.API_V1_PREFIX}/invitat
 app.include_router(departments.router, prefix=f"{settings.API_V1_PREFIX}/departments", tags=["departments"])
 app.include_router(user_mentors.router, prefix=f"{settings.API_V1_PREFIX}/user-mentors", tags=["user-mentors"])
 app.include_router(password_reset.router, prefix=f"{settings.API_V1_PREFIX}/password-reset", tags=["password-reset"])
+app.include_router(audit.router, prefix=f"{settings.API_V1_PREFIX}/auth/audit", tags=["audit"])
 
 
 @app.get("/")

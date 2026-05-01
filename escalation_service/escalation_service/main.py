@@ -14,7 +14,7 @@ from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
 from sqlalchemy import text
 
-from escalation_service.api.endpoints import escalations_router
+from escalation_service.api.endpoints import audit_router, escalations_router
 from escalation_service.config import settings
 from escalation_service.database import engine, init_db
 from escalation_service.middleware.request_id import RequestIDMiddleware
@@ -68,6 +68,7 @@ app.add_middleware(RequestIDMiddleware)
 
 # Include routers
 app.include_router(escalations_router, prefix=f"{settings.API_V1_PREFIX}/escalations", tags=["escalations"])
+app.include_router(audit_router, prefix=f"{settings.API_V1_PREFIX}/escalations/audit", tags=["audit"])
 
 
 @app.get("/")

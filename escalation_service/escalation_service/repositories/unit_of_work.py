@@ -6,8 +6,8 @@ from typing import Protocol, Self, runtime_checkable
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from escalation_service.repositories.implementations import EscalationRepository
-from escalation_service.repositories.interfaces import IEscalationRepository
+from escalation_service.repositories.implementations import EscalationRepository, EscalationStatusHistoryRepository, MentorInterventionHistoryRepository
+from escalation_service.repositories.interfaces import IEscalationRepository, IEscalationStatusHistoryRepository, IMentorInterventionHistoryRepository
 
 
 @runtime_checkable
@@ -15,6 +15,8 @@ class IUnitOfWork(Protocol):
     """Unit of Work interface for managing repositories and transactions."""
 
     escalations: IEscalationRepository
+    escalation_status_history: IEscalationStatusHistoryRepository
+    mentor_intervention_history: IMentorInterventionHistoryRepository
 
     async def commit(self) -> None:
         """Commit all changes made in this unit of work."""
@@ -45,6 +47,8 @@ class SqlAlchemyUnitOfWork(IUnitOfWork):
         """Enter async context manager and initialize repositories."""
         self._session = self._session_factory()
         self.escalations = EscalationRepository(self._session)
+        self.escalation_status_history = EscalationStatusHistoryRepository(self._session)
+        self.mentor_intervention_history = MentorInterventionHistoryRepository(self._session)
         return self
 
     async def __aexit__(

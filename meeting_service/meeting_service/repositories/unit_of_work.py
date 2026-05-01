@@ -11,10 +11,14 @@ from meeting_service.repositories.implementations.google_calendar_account import
 )
 from meeting_service.repositories.implementations.material import MaterialRepository
 from meeting_service.repositories.implementations.meeting import MeetingRepository
+from meeting_service.repositories.implementations.meeting_participant_history import MeetingParticipantHistoryRepository
+from meeting_service.repositories.implementations.meeting_status_change_history import MeetingStatusChangeHistoryRepository
 from meeting_service.repositories.implementations.user_meeting import UserMeetingRepository
 from meeting_service.repositories.interfaces.google_calendar_account import IGoogleCalendarAccountRepository
 from meeting_service.repositories.interfaces.material import IMaterialRepository
 from meeting_service.repositories.interfaces.meeting import IMeetingRepository
+from meeting_service.repositories.interfaces.meeting_participant_history import IMeetingParticipantHistoryRepository
+from meeting_service.repositories.interfaces.meeting_status_change_history import IMeetingStatusChangeHistoryRepository
 from meeting_service.repositories.interfaces.user_meeting import IUserMeetingRepository
 
 
@@ -26,6 +30,8 @@ class IUnitOfWork(Protocol):
     materials: IMaterialRepository
     user_meetings: IUserMeetingRepository
     google_calendar_accounts: IGoogleCalendarAccountRepository
+    meeting_status_change_history: IMeetingStatusChangeHistoryRepository
+    meeting_participant_history: IMeetingParticipantHistoryRepository
 
     async def commit(self) -> None:
         """Commit all changes made in this unit of work."""
@@ -55,6 +61,8 @@ class SqlAlchemyUnitOfWork(IUnitOfWork):
         self.materials = MaterialRepository(self._session)
         self.user_meetings = UserMeetingRepository(self._session)
         self.google_calendar_accounts = SQLAlchemyGoogleCalendarAccountRepository(self._session)
+        self.meeting_status_change_history = MeetingStatusChangeHistoryRepository(self._session)
+        self.meeting_participant_history = MeetingParticipantHistoryRepository(self._session)
         return self
 
     async def __aexit__(

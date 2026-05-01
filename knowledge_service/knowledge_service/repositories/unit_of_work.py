@@ -8,17 +8,25 @@ from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from knowledge_service.repositories.implementations.article import ArticleRepository
+from knowledge_service.repositories.implementations.article_change_history import ArticleChangeHistoryRepository
 from knowledge_service.repositories.implementations.article_view import ArticleViewRepository
+from knowledge_service.repositories.implementations.article_view_history import ArticleViewHistoryRepository
 from knowledge_service.repositories.implementations.attachment import AttachmentRepository
 from knowledge_service.repositories.implementations.category import CategoryRepository
+from knowledge_service.repositories.implementations.category_change_history import CategoryChangeHistoryRepository
 from knowledge_service.repositories.implementations.dialogue import DialogueScenarioRepository, DialogueStepRepository
+from knowledge_service.repositories.implementations.dialogue_scenario_change_history import DialogueScenarioChangeHistoryRepository
 from knowledge_service.repositories.implementations.search_history import SearchHistoryRepository
 from knowledge_service.repositories.implementations.tag import TagRepository
 from knowledge_service.repositories.interfaces.article import IArticleRepository
+from knowledge_service.repositories.interfaces.article_change_history import IArticleChangeHistoryRepository
 from knowledge_service.repositories.interfaces.article_view import IArticleViewRepository
+from knowledge_service.repositories.interfaces.article_view_history import IArticleViewHistoryRepository
 from knowledge_service.repositories.interfaces.attachment import IAttachmentRepository
 from knowledge_service.repositories.interfaces.category import ICategoryRepository
+from knowledge_service.repositories.interfaces.category_change_history import ICategoryChangeHistoryRepository
 from knowledge_service.repositories.interfaces.dialogue import IDialogueScenarioRepository, IDialogueStepRepository
+from knowledge_service.repositories.interfaces.dialogue_scenario_change_history import IDialogueScenarioChangeHistoryRepository
 from knowledge_service.repositories.interfaces.search_history import ISearchHistoryRepository
 from knowledge_service.repositories.interfaces.tag import ITagRepository
 
@@ -35,6 +43,10 @@ class IUnitOfWork(Protocol):
     dialogue_steps: IDialogueStepRepository
     search_history: ISearchHistoryRepository
     tags: ITagRepository
+    article_change_history: IArticleChangeHistoryRepository
+    article_view_history: IArticleViewHistoryRepository
+    category_change_history: ICategoryChangeHistoryRepository
+    dialogue_scenario_change_history: IDialogueScenarioChangeHistoryRepository
 
     @property
     def session(self) -> AsyncSession:
@@ -85,6 +97,10 @@ class SqlAlchemyUnitOfWork(IUnitOfWork):
         self.dialogue_steps = DialogueStepRepository(self._session)
         self.search_history = SearchHistoryRepository(self._session)
         self.tags = TagRepository(self._session)
+        self.article_change_history = ArticleChangeHistoryRepository(self._session)
+        self.article_view_history = ArticleViewHistoryRepository(self._session)
+        self.category_change_history = CategoryChangeHistoryRepository(self._session)
+        self.dialogue_scenario_change_history = DialogueScenarioChangeHistoryRepository(self._session)
         logger.debug("UnitOfWork session opened")
         return self
 

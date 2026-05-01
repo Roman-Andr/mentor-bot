@@ -16,7 +16,7 @@ from slowapi.util import get_remote_address
 from sqlalchemy import text
 
 from notification_service.api import notifications, templates
-from notification_service.api.endpoints import email
+from notification_service.api.endpoints import audit, email
 from notification_service.config import settings
 from notification_service.database import engine, init_db
 from notification_service.middleware.auth import AuthTokenMiddleware
@@ -81,6 +81,7 @@ app.add_middleware(RequestIDMiddleware)
 app.include_router(notifications.router, prefix=f"{settings.API_V1_PREFIX}/notifications", tags=["notifications"])
 app.include_router(email.router, prefix=f"{settings.API_V1_PREFIX}/email", tags=["email"])
 app.include_router(templates.router, prefix=f"{settings.API_V1_PREFIX}/templates", tags=["templates"])
+app.include_router(audit.router, prefix=f"{settings.API_V1_PREFIX}/notifications/audit", tags=["audit"])
 
 
 @app.get("/")

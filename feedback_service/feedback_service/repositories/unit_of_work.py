@@ -12,11 +12,13 @@ from feedback_service.repositories.implementations.feedback import (
     ExperienceRatingRepository,
     PulseSurveyRepository,
 )
+from feedback_service.repositories.implementations.feedback_status_change_history import FeedbackStatusChangeHistoryRepository
 from feedback_service.repositories.interfaces.feedback import (
     ICommentRepository,
     IExperienceRatingRepository,
     IPulseSurveyRepository,
 )
+from feedback_service.repositories.interfaces.feedback_status_change_history import IFeedbackStatusChangeHistoryRepository
 
 
 @runtime_checkable
@@ -26,6 +28,7 @@ class IUnitOfWork(Protocol):
     pulse_surveys: IPulseSurveyRepository
     experience_ratings: IExperienceRatingRepository
     comments: ICommentRepository
+    feedback_status_change_history: IFeedbackStatusChangeHistoryRepository
 
     async def commit(self) -> None:
         """Commit all changes made in this unit of work."""
@@ -50,6 +53,7 @@ class SqlAlchemyUnitOfWork(IUnitOfWork):
     pulse_surveys: PulseSurveyRepository
     experience_ratings: ExperienceRatingRepository
     comments: CommentRepository
+    feedback_status_change_history: FeedbackStatusChangeHistoryRepository
 
     def __init__(self, session_factory: async_sessionmaker[AsyncSession]) -> None:
         """Initialize Unit of Work with session factory."""
@@ -62,6 +66,7 @@ class SqlAlchemyUnitOfWork(IUnitOfWork):
         self.pulse_surveys = PulseSurveyRepository(self._session)
         self.experience_ratings = ExperienceRatingRepository(self._session)
         self.comments = CommentRepository(self._session)
+        self.feedback_status_change_history = FeedbackStatusChangeHistoryRepository(self._session)
         logger.debug("UnitOfWork session opened")
         return self
 

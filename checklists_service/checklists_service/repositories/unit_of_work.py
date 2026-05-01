@@ -8,12 +8,18 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from checklists_service.repositories.implementations.certificate import CertificateRepository
 from checklists_service.repositories.implementations.checklist import ChecklistRepository
+from checklists_service.repositories.implementations.checklist_status_history import ChecklistStatusHistoryRepository
 from checklists_service.repositories.implementations.task import TaskRepository
+from checklists_service.repositories.implementations.task_completion_history import TaskCompletionHistoryRepository
 from checklists_service.repositories.implementations.template import TaskTemplateRepository, TemplateRepository
+from checklists_service.repositories.implementations.template_change_history import TemplateChangeHistoryRepository
 from checklists_service.repositories.interfaces.certificate import ICertificateRepository
 from checklists_service.repositories.interfaces.checklist import IChecklistRepository
+from checklists_service.repositories.interfaces.checklist_status_history import IChecklistStatusHistoryRepository
 from checklists_service.repositories.interfaces.task import ITaskRepository
+from checklists_service.repositories.interfaces.task_completion_history import ITaskCompletionHistoryRepository
 from checklists_service.repositories.interfaces.template import ITaskTemplateRepository, ITemplateRepository
+from checklists_service.repositories.interfaces.template_change_history import ITemplateChangeHistoryRepository
 
 
 @runtime_checkable
@@ -25,6 +31,9 @@ class IUnitOfWork(Protocol):
     templates: ITemplateRepository
     task_templates: ITaskTemplateRepository
     certificates: ICertificateRepository
+    checklist_status_history: IChecklistStatusHistoryRepository
+    task_completion_history: ITaskCompletionHistoryRepository
+    template_change_history: ITemplateChangeHistoryRepository
 
     async def commit(self) -> None:
         """Commit all changes made in this unit of work."""
@@ -59,6 +68,9 @@ class SqlAlchemyUnitOfWork(IUnitOfWork):
         self.templates = TemplateRepository(self._session)
         self.task_templates = TaskTemplateRepository(self._session)
         self.certificates = CertificateRepository(self._session)
+        self.checklist_status_history = ChecklistStatusHistoryRepository(self._session)
+        self.task_completion_history = TaskCompletionHistoryRepository(self._session)
+        self.template_change_history = TemplateChangeHistoryRepository(self._session)
         return self
 
     async def __aexit__(self, *args: object) -> None:

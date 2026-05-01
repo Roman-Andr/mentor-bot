@@ -6,10 +6,12 @@ from feedback_service.repositories.interfaces.feedback import (
     IExperienceRatingRepository,
     IPulseSurveyRepository,
 )
+from feedback_service.repositories.interfaces.feedback_status_change_history import IFeedbackStatusChangeHistoryRepository
 
 __all__ = [
     "BaseRepository",
     "ICommentRepository",
     "IExperienceRatingRepository",
+    "IFeedbackStatusChangeHistoryRepository",
     "IPulseSurveyRepository",
 ]

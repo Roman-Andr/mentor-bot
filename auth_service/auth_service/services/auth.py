@@ -2,7 +2,7 @@
 
 from datetime import UTC, datetime, timedelta
 
-from fastapi import HTTPException
+from fastapi import HTTPException, Request
 from loguru import logger
 
 from auth_service.config import settings
@@ -16,7 +16,7 @@ from auth_service.core import (
     decode_token,
     verify_password,
 )
-from auth_service.models import User, UserMentor
+from auth_service.models import LoginHistory, RoleChangeHistory, User, UserMentor
 from auth_service.repositories.unit_of_work import IUnitOfWork
 from auth_service.schemas import (
     LoginRequest,
@@ -35,30 +35,68 @@ class AuthService:
         """Initialize authentication service with database session."""
         self._uow = uow
 
-    async def authenticate_user(self, login_data: LoginRequest) -> tuple[User, Token]:
+    async def authenticate_user(
+        self, login_data: LoginRequest, request: Request | None = None
+    ) -> tuple[User, Token]:
         """Authenticate user with email and password."""
         logger.debug("Authenticating user by email: {}", login_data.email)
         # Find user by email
         user = await self._uow.users.get_by_email(login_data.email)
 
         if not user:
+            # Record failed login attempt
+            await self._record_login(
+                user_id=0,  # Unknown user
+                success=False,
+                failure_reason="User not found",
+                method="password",
+                ip_address=self._get_client_ip(request),
+                user_agent=request.headers.get("user-agent") if request else None,
+            )
             logger.warning("Authentication failed: user not found for email={}", login_data.email)
             msg = "Invalid email or password"
             raise AuthException(msg)
 
         if not user.is_active:
+            # Record failed login attempt
+            await self._record_login(
+                user_id=user.id,
+                success=False,
+                failure_reason="User account is disabled",
+                method="password",
+                ip_address=self._get_client_ip(request),
+                user_agent=request.headers.get("user-agent") if request else None,
+            )
             logger.warning("Authentication failed: user is disabled (user_id={})", user.id)
             msg = "User account is disabled"
             raise AuthException(msg)
 
         # Verify password
         if not user.password_hash or not verify_password(login_data.password, user.password_hash):
+            # Record failed login attempt
+            await self._record_login(
+                user_id=user.id,
+                success=False,
+                failure_reason="Invalid password",
+                method="password",
+                ip_address=self._get_client_ip(request),
+                user_agent=request.headers.get("user-agent") if request else None,
+            )
             logger.warning("Authentication failed: invalid password (user_id={})", user.id)
             msg = "Invalid email or password"
             raise AuthException(msg)
 
         # Update last login
         await self._uow.users.update_last_login(user.id, datetime.now(UTC))
+
+        # Record successful login
+        await self._record_login(
+            user_id=user.id,
+            success=True,
+            method="password",
+            ip_address=self._get_client_ip(request),
+            user_agent=request.headers.get("user-agent") if request else None,
+        )
 
         # Generate tokens
         token = self.create_token_for_user(user)
@@ -88,13 +126,24 @@ class AuthService:
         logger.info("Access token refreshed (user_id={})", user.id)
         return self.create_token_for_user(user)
 
-    async def authenticate_with_telegram(self, telegram_data: TelegramAuthRequest) -> tuple[User, Token]:
+    async def authenticate_with_telegram(
+        self, telegram_data: TelegramAuthRequest, request: Request | None = None
+    ) -> tuple[User, Token]:
         """Authenticate user with Telegram data."""
         logger.debug("Authenticating via Telegram (telegram_id={})", telegram_data.telegram_id)
         # Find user by Telegram ID
         user = await self._uow.users.get_by_telegram_id(telegram_data.telegram_id)
 
         if not user:
+            # Record failed login attempt
+            await self._record_login(
+                user_id=0,  # Unknown user
+                success=False,
+                failure_reason="User not found",
+                method="telegram",
+                ip_address=self._get_client_ip(request),
+                user_agent=request.headers.get("user-agent") if request else None,
+            )
             logger.warning(
                 "Telegram authentication failed: no user for telegram_id={}",
                 telegram_data.telegram_id,
@@ -103,6 +152,15 @@ class AuthService:
             raise NotFoundException(msg)
 
         if not user.is_active:
+            # Record failed login attempt
+            await self._record_login(
+                user_id=user.id,
+                success=False,
+                failure_reason="User account is disabled",
+                method="telegram",
+                ip_address=self._get_client_ip(request),
+                user_agent=request.headers.get("user-agent") if request else None,
+            )
             logger.warning("Telegram authentication failed: user is disabled (user_id={})", user.id)
             msg = "User account is disabled"
             raise AuthException(msg)
@@ -119,6 +177,15 @@ class AuthService:
         user.last_login_at = datetime.now(UTC)
 
         await self._uow.users.update(user)
+
+        # Record successful login
+        await self._record_login(
+            user_id=user.id,
+            success=True,
+            method="telegram",
+            ip_address=self._get_client_ip(request),
+            user_agent=request.headers.get("user-agent") if request else None,
+        )
 
         logger.info(
             "Telegram authentication successful (user_id={}, telegram_id={})",
@@ -278,3 +345,51 @@ class AuthService:
             user_id=user.id,
             role=user.role,
         )
+
+    async def _record_login(
+        self,
+        user_id: int,
+        success: bool,
+        method: str,
+        failure_reason: str | None = None,
+        ip_address: str | None = None,
+        user_agent: str | None = None,
+    ) -> None:
+        """Record login attempt to audit log."""
+        login_history = LoginHistory(
+            user_id=user_id,
+            success=success,
+            method=method,
+            failure_reason=failure_reason,
+            ip_address=ip_address,
+            user_agent=user_agent,
+        )
+        await self._uow.login_history.create(login_history)
+
+    def _get_client_ip(self, request: Request | None) -> str | None:
+        """Extract client IP address from request."""
+        if not request:
+            return None
+        # Check for forwarded headers (proxy/load balancer)
+        forwarded = request.headers.get("x-forwarded-for")
+        if forwarded:
+            return forwarded.split(",")[0].strip()
+        return request.client.host if request.client else None
+
+    async def record_role_change(
+        self,
+        user_id: int,
+        old_role: str | None,
+        new_role: str,
+        changed_by: int | None = None,
+        reason: str | None = None,
+    ) -> None:
+        """Record role change to audit log."""
+        role_change = RoleChangeHistory(
+            user_id=user_id,
+            old_role=old_role,
+            new_role=new_role,
+            changed_by=changed_by,
+            reason=reason,
+        )
+        await self._uow.role_change_history.create(role_change)

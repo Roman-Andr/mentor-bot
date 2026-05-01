@@ -14,7 +14,7 @@ from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
 from sqlalchemy import text
 
-from meeting_service.api.endpoints import calendar_router, meetings_router, user_meetings_router
+from meeting_service.api.endpoints import audit_router, calendar_router, meetings_router, user_meetings_router
 from meeting_service.config import settings
 from meeting_service.database import engine, init_db
 from meeting_service.middleware.request_id import RequestIDMiddleware
@@ -69,6 +69,7 @@ app.add_middleware(RequestIDMiddleware)
 app.include_router(meetings_router, prefix=f"{settings.API_V1_PREFIX}/meetings", tags=["meetings"])
 app.include_router(user_meetings_router, prefix=f"{settings.API_V1_PREFIX}/user-meetings", tags=["user-meetings"])
 app.include_router(calendar_router, prefix=f"{settings.API_V1_PREFIX}/calendar", tags=["calendar"])
+app.include_router(audit_router, prefix=f"{settings.API_V1_PREFIX}/meetings/audit", tags=["audit"])
 
 
 @app.get("/")

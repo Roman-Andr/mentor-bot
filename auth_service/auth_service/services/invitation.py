@@ -14,7 +14,7 @@ from auth_service.core import (
     ValidationException,
     generate_invitation_token,
 )
-from auth_service.models.invitation import Invitation
+from auth_service.models import Invitation, InvitationStatusHistory
 from auth_service.repositories.unit_of_work import IUnitOfWork
 from auth_service.schemas import InvitationCreate, InvitationStats
 
@@ -121,9 +121,10 @@ class InvitationService:
             raise ValidationException(msg)
         return invitation
 
-    async def resend_invitation(self, invitation_id: int) -> Invitation:
+    async def resend_invitation(self, invitation_id: int, changed_by: int | None = None) -> Invitation:
         """Resend invitation with new token and extended expiry."""
         invitation = await self.get_invitation_by_id(invitation_id)
+        old_status = invitation.status
 
         if invitation.status != InvitationStatus.PENDING:
             logger.warning(
@@ -140,12 +141,22 @@ class InvitationService:
         invitation.status = InvitationStatus.PENDING
 
         updated = await self._uow.invitations.update(invitation)
+
+        # Record status change
+        await self._record_status_change(
+            invitation_id=invitation.id,
+            old_status=old_status,
+            new_status=invitation.status,
+            changed_by=changed_by,
+        )
+
         logger.info("Invitation resent (invitation_id={})", updated.id)
         return updated
 
-    async def revoke_invitation(self, invitation_id: int) -> Invitation:
+    async def revoke_invitation(self, invitation_id: int, changed_by: int | None = None) -> Invitation:
         """Revoke (cancel) invitation."""
         invitation = await self.get_invitation_by_id(invitation_id)
+        old_status = invitation.status
 
         if invitation.status != InvitationStatus.PENDING:
             logger.warning(
@@ -159,6 +170,15 @@ class InvitationService:
         invitation.status = InvitationStatus.REVOKED
 
         updated = await self._uow.invitations.update(invitation)
+
+        # Record status change
+        await self._record_status_change(
+            invitation_id=invitation.id,
+            old_status=old_status,
+            new_status=invitation.status,
+            changed_by=changed_by,
+        )
+
         logger.info("Invitation revoked (invitation_id={})", updated.id)
         return updated
 
@@ -209,3 +229,21 @@ class InvitationService:
     def generate_invitation_url(self, token: str) -> HttpUrl:
         """Generate invitation URL for Telegram bot."""
         return HttpUrl(f"https://t.me/{settings.TELEGRAM_BOT_USERNAME}?start={token}")
+
+    async def _record_status_change(
+        self,
+        invitation_id: int,
+        old_status: str | None,
+        new_status: str,
+        changed_by: int | None = None,
+        metadata: dict | None = None,
+    ) -> None:
+        """Record invitation status change to audit log."""
+        status_change = InvitationStatusHistory(
+            invitation_id=invitation_id,
+            old_status=old_status,
+            new_status=new_status,
+            changed_by=changed_by,
+            metadata=metadata,
+        )
+        await self._uow.invitation_status_history.create(status_change)

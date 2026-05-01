@@ -14,7 +14,7 @@ from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
 from sqlalchemy import text
 
-from feedback_service.api.endpoints import feedback_router
+from feedback_service.api.endpoints import audit_router, feedback_router
 from feedback_service.config import settings
 from feedback_service.database import engine, init_db
 from feedback_service.middleware.request_id import RequestIDMiddleware
@@ -67,6 +67,7 @@ app.add_middleware(RequestIDMiddleware)
 
 # Include routers
 app.include_router(feedback_router, prefix=f"{settings.API_V1_PREFIX}/feedback", tags=["feedback"])
+app.include_router(audit_router, prefix=f"{settings.API_V1_PREFIX}/feedback/audit", tags=["audit"])
 
 
 @app.get("/")

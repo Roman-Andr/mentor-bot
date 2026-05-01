@@ -10,7 +10,7 @@ import bcrypt
 from sqlalchemy import select
 
 from auth_service.core import hash_password
-from auth_service.models import PasswordResetToken, User
+from auth_service.models import PasswordChangeHistory, PasswordResetToken, User
 from auth_service.repositories.unit_of_work import IUnitOfWork
 
 if TYPE_CHECKING:
@@ -192,6 +192,14 @@ class PasswordResetService:
 
         # Mark token as used
         token_record.used_at = datetime.now(UTC)
+
+        # Record password change to audit log
+        password_change = PasswordChangeHistory(
+            user_id=user.id,
+            ip_address=token_record.ip_address,
+            method="forgot_password",
+        )
+        self._session.add(password_change)
 
         await self._session.flush()
 
