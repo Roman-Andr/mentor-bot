@@ -7,6 +7,7 @@ from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPBearer
 from loguru import logger
 
+from auth_service.config import settings
 from auth_service.core import AuthException, PermissionDenied, UserRole
 from auth_service.database import AsyncSessionLocal
 from auth_service.models import User
@@ -89,6 +90,14 @@ async def get_current_user(
         return user
 
 
+async def verify_service_api_key(request: Request) -> bool:
+    """Verify SERVICE_API_KEY for inter-service communication."""
+    service_key = request.headers.get("X-Service-API-Key")
+    if not service_key:
+        return False
+    return service_key == settings.SERVICE_API_KEY
+
+
 def require_role(allowed_roles: list[UserRole]) -> Callable[..., Awaitable[User]]:
     """Create factory for role-based dependencies."""
 
@@ -118,3 +127,4 @@ CurrentUser = Annotated[User, Depends(get_current_user)]
 AdminUser = Annotated[User, Depends(require_role([UserRole.ADMIN]))]
 HRUser = Annotated[User, Depends(require_role([UserRole.HR, UserRole.ADMIN]))]
 MentorUser = Annotated[User, Depends(require_role([UserRole.MENTOR, UserRole.HR, UserRole.ADMIN]))]
+ServiceAuth = Annotated[bool, Depends(verify_service_api_key)]

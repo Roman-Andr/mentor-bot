@@ -60,6 +60,9 @@ class UserResponse(UserBase):
     last_login_at: datetime | None = None
     department: DepartmentResponse | None = None
     mentor_id: int | None = None
+    language: str = "ru"
+    notification_telegram_enabled: bool = True
+    notification_email_enabled: bool = True
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -72,3 +75,21 @@ class UserListResponse(BaseModel):
     page: int
     size: int
     pages: int
+
+
+class UserPreferencesUpdate(BaseModel):
+    """User preferences update schema."""
+
+    language: str | None = Field(None, min_length=2, max_length=10)
+    notification_telegram_enabled: bool | None = None
+    notification_email_enabled: bool | None = None
+
+
+class UserPreferencesResponse(BaseModel):
+    """User preferences response schema."""
+
+    language: str = "ru"
+    notification_telegram_enabled: bool = True
+    notification_email_enabled: bool = True
+
+    model_config = ConfigDict(from_attributes=True)

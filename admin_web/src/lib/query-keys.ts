@@ -16,6 +16,9 @@ export const queryKeys = {
     mentors: (userId: number) => [...queryKeys.users.all, "mentors", userId] as const,
   },
 
+  // Preferences
+  preferences: () => ["preferences"] as const,
+
   // Categories (Knowledge)
   categories: {
     all: ["categories"] as const,

@@ -29,6 +29,7 @@ class NotificationService:
         self._telegram = TelegramService()
         self._email = EmailService()
         self._template_service = TemplateService(uow)
+        self._auth_client = AuthClient()
 
     async def get_user_notifications(self, user_id: int, skip: int = 0, limit: int = 100) -> Sequence[Notification]:
         """Retrieve notifications for a specific user."""
@@ -379,17 +380,29 @@ class NotificationService:
         channel = notification.channel
         logger.debug("Sending notification to channel (notification_id={}, channel={})", notification.id, channel)
 
+        # Check user preferences before sending
+        try:
+            prefs = await self._auth_client.get_user_preferences(notification.user_id)
+        except AuthClientError as e:
+            logger.warning("Failed to fetch user preferences, using fail-open (user_id={}, error={})", notification.user_id, e)
+            prefs = None
+
         if channel == NotificationChannel.TELEGRAM:
-            return await self._send_telegram(notification)
+            return await self._send_telegram(notification, prefs)
         if channel == NotificationChannel.EMAIL:
-            return await self._send_email(notification)
+            return await self._send_email(notification, prefs)
         if channel == NotificationChannel.BOTH:
-            return await self._send_both(notification)
+            return await self._send_both(notification, prefs)
         logger.warning("Unsupported channel (notification_id={}, channel={})", notification.id, channel)
         return False, f"Unsupported channel: {channel}"
 
-    async def _send_telegram(self, notification: Notification) -> tuple[bool, str | None]:
+    async def _send_telegram(self, notification: Notification, prefs: Any = None) -> tuple[bool, str | None]:
         """Send notification via Telegram."""
+        # Check if telegram notifications are disabled
+        if prefs and not prefs.notification_telegram_enabled:
+            logger.info("Telegram notification skipped: user disabled (notification_id={}, user_id={})", notification.id, notification.user_id)
+            return True, None  # Return success to avoid retry
+
         if not notification.recipient_telegram_id:
             logger.warning("Telegram send failed: no telegram_id (notification_id={})", notification.id)
             return False, "No telegram_id provided"
@@ -406,8 +419,13 @@ class NotificationService:
                 logger.info("Telegram notification sent (notification_id={})", notification.id)
             return success, None if success else "Telegram send failed"
 
-    async def _send_email(self, notification: Notification) -> tuple[bool, str | None]:
+    async def _send_email(self, notification: Notification, prefs: Any = None) -> tuple[bool, str | None]:
         """Send notification via Email."""
+        # Check if email notifications are disabled
+        if prefs and not prefs.notification_email_enabled:
+            logger.info("Email notification skipped: user disabled (notification_id={}, user_id={})", notification.id, notification.user_id)
+            return True, None  # Return success to avoid retry
+
         if not notification.recipient_email:
             logger.warning("Email send failed: no email (notification_id={})", notification.id)
             return False, "No email provided"
@@ -424,11 +442,17 @@ class NotificationService:
             logger.info("Email notification sent (notification_id={})", notification.id)
             return True, None
 
-    async def _send_both(self, notification: Notification) -> tuple[bool, str | None]:
+    async def _send_both(self, notification: Notification, prefs: Any = None) -> tuple[bool, str | None]:
         """Send notification via both Telegram and Email."""
         logger.debug("Sending notification via both channels (notification_id={})", notification.id)
-        telegram_success, telegram_error = await self._send_telegram(notification)
-        email_success, email_error = await self._send_email(notification)
+
+        # Check if both channels are disabled
+        if prefs and not prefs.notification_telegram_enabled and not prefs.notification_email_enabled:
+            logger.warning("Both notification channels disabled, skipping (notification_id={}, user_id={})", notification.id, notification.user_id)
+            return True, None  # Return success to avoid retry
+
+        telegram_success, telegram_error = await self._send_telegram(notification, prefs)
+        email_success, email_error = await self._send_email(notification, prefs)
 
         errors = []
         if telegram_error:

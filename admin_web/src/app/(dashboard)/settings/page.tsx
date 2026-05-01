@@ -5,12 +5,14 @@ import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
 import { useTheme } from "next-themes";
 import { useTranslations } from "@/hooks/use-translations";
+import { usePreferences } from "@/hooks/use-preferences";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { PageHeader } from "@/components/layout/page-header";
 import { useToast } from "@/hooks/use-toast";
-import { Globe, Palette, Save } from "lucide-react";
+import { Bell, Globe, Palette, Save } from "lucide-react";
 
 export default function SettingsPage() {
   const t = useTranslations();
@@ -19,15 +21,21 @@ export default function SettingsPage() {
   const currentLocale = useLocale();
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
-  const [activeSection, setActiveSection] = useState<"appearance" | "language">("appearance");
+  const [activeSection, setActiveSection] = useState<"appearance" | "language" | "notifications">("appearance");
+
+  // Preferences hook
+  const { preferences, isLoading: prefsLoading, updatePreferences, isUpdating: prefsUpdating } = usePreferences();
 
   // Track previous values to detect external changes
   const prevThemeRef = useRef(currentTheme);
   const prevLocaleRef = useRef(currentLocale);
+  const prevPrefsRef = useRef(preferences);
 
   // User selections (synced with external values when they change)
   const [selectedTheme, setSelectedTheme] = useState(currentTheme || "system");
   const [selectedLanguage, setSelectedLanguage] = useState(currentLocale || "ru");
+  const [telegramEnabled, setTelegramEnabled] = useState(preferences?.notification_telegram_enabled ?? true);
+  const [emailEnabled, setEmailEnabled] = useState(preferences?.notification_email_enabled ?? true);
 
   // Sync with external theme changes (from sidebar)
   /* eslint-disable react-hooks/set-state-in-effect */
@@ -53,6 +61,18 @@ export default function SettingsPage() {
   }, [currentLocale]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
+  // Sync with preferences changes
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
+    if (preferences && preferences !== prevPrefsRef.current) {
+      prevPrefsRef.current = preferences;
+      setTelegramEnabled(preferences.notification_telegram_enabled);
+      setEmailEnabled(preferences.notification_email_enabled);
+      setSelectedLanguage(preferences.language);
+    }
+  }, [preferences]);
+  /* eslint-enable react-hooks/set-state-in-effect */
+
   const themes = [
     { value: "light" as const, label: t("settings.themeLight") },
     { value: "dark" as const, label: t("settings.themeDark") },
@@ -67,6 +87,13 @@ export default function SettingsPage() {
   const handleSave = useCallback(() => {
     setTheme(selectedTheme);
 
+    // Update all preferences in a single call
+    updatePreferences({
+      language: selectedLanguage,
+      notification_telegram_enabled: telegramEnabled,
+      notification_email_enabled: emailEnabled,
+    });
+
     if (selectedLanguage !== currentLocale) {
       document.cookie = `locale=${selectedLanguage};path=/;max-age=31536000`;
       startTransition(() => {
@@ -75,12 +102,16 @@ export default function SettingsPage() {
     }
 
     toast(t("settings.saved"), "success");
-  }, [selectedTheme, selectedLanguage, currentLocale, setTheme, router, toast, t]);
+  }, [selectedTheme, selectedLanguage, currentLocale, telegramEnabled, emailEnabled, setTheme, router, toast, t, updatePreferences]);
 
   const handleCancel = useCallback(() => {
     setSelectedTheme(currentTheme || "system");
     setSelectedLanguage(currentLocale || "ru");
-  }, [currentTheme, currentLocale]);
+    if (preferences) {
+      setTelegramEnabled(preferences.notification_telegram_enabled);
+      setEmailEnabled(preferences.notification_email_enabled);
+    }
+  }, [currentTheme, currentLocale, preferences]);
 
   return (
     <div className="space-y-6 p-6">
@@ -111,6 +142,17 @@ export default function SettingsPage() {
               >
                 <Globe className="size-4" />
                 {t("settings.language")}
+              </button>
+              <button
+                onClick={() => setActiveSection("notifications")}
+                className={`flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm ${
+                  activeSection === "notifications"
+                    ? "bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
+                    : "hover:bg-gray-100 dark:hover:bg-gray-800"
+                }`}
+              >
+                <Bell className="size-4" />
+                {t("settings.notifications")}
               </button>
             </nav>
           </CardContent>
@@ -175,11 +217,44 @@ export default function SettingsPage() {
             </Card>
           )}
 
+          {activeSection === "notifications" && (
+            <Card>
+              <CardHeader>
+                <CardTitle>{t("settings.notifications")}</CardTitle>
+                <CardDescription>{t("settings.notificationsDescription")}</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label>{t("settings.telegramNotifications")}</Label>
+                    <p className="text-sm text-gray-500">{t("settings.telegramNotificationsDescription")}</p>
+                  </div>
+                  <Switch
+                    checked={telegramEnabled}
+                    onCheckedChange={setTelegramEnabled}
+                    disabled={prefsLoading}
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label>{t("settings.emailNotifications")}</Label>
+                    <p className="text-sm text-gray-500">{t("settings.emailNotificationsDescription")}</p>
+                  </div>
+                  <Switch
+                    checked={emailEnabled}
+                    onCheckedChange={setEmailEnabled}
+                    disabled={prefsLoading}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={handleCancel}>
               {t("settings.cancel")}
             </Button>
-            <Button className="gap-2" onClick={handleSave} disabled={isPending}>
+            <Button className="gap-2" onClick={handleSave} disabled={isPending || prefsUpdating}>
               <Save className="size-4" />
               {t("settings.save")}
             </Button>

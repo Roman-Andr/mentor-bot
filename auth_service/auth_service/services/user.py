@@ -14,7 +14,7 @@ from auth_service.core import (
 )
 from auth_service.models import User
 from auth_service.repositories.unit_of_work import IUnitOfWork
-from auth_service.schemas import UserCreate, UserUpdate
+from auth_service.schemas import UserCreate, UserPreferencesUpdate, UserUpdate
 
 
 class UserService:
@@ -228,3 +228,19 @@ class UserService:
 
         await self._uow.users.update(user)
         logger.info("Password changed successfully (user_id={})", user_id)
+
+    async def update_user_preferences(self, user_id: int, preferences_data: UserPreferencesUpdate) -> User:
+        """Update user preferences (language, notification settings)."""
+        logger.debug("Updating user preferences (user_id={})", user_id)
+        user = await self.get_user_by_id(user_id)
+
+        update_data = preferences_data.model_dump(exclude_unset=True)
+        for field, value in update_data.items():
+            if hasattr(user, field):
+                setattr(user, field, value)
+
+        user.updated_at = datetime.now(UTC)
+
+        updated = await self._uow.users.update(user)
+        logger.info("User preferences updated (user_id={})", updated.id)
+        return updated

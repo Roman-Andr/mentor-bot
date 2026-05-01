@@ -50,6 +50,9 @@ class Settings(BaseSettings):
     SERVICE_TIMEOUT: int = Field(default=10, ge=1)
     SERVICE_RETRIES: int = Field(default=3, ge=0)
 
+    # Inter-service communication
+    SERVICE_API_KEY: str = Field(default="")
+
     # Admin
     ADMIN_IDS: list[int] = Field(default_factory=list)
 

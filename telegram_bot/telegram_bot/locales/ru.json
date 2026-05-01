@@ -364,7 +364,19 @@
     "description": "Настройте свои предпочтения",
     "btn_language": "Язык",
     "btn_notifications": "Уведомления",
-    "btn_back": "Назад в меню"
+    "btn_back": "Назад в меню",
+    "btn_back_to_settings": "Назад к настройкам",
+    "btn_telegram": "Telegram",
+    "btn_email": "Email",
+    "on": "ВКЛ",
+    "off": "ВЫКЛ",
+    "notifications_title": "Уведомления",
+    "notifications_description": "Выберите каналы уведомлений",
+    "telegram_toggled": "Уведомления Telegram обновлены",
+    "email_toggled": "Email уведомления обновлены",
+    "language_deprecated": "Выбор языка теперь доступен в Настройках. Используйте /settings для управления предпочтениями.",
+    "choose_language": "Выберите язык",
+    "language_set": "Язык обновлён"
   },
   "buttons": {
     "open_menu": "Открыть меню",

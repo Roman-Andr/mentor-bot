@@ -6,16 +6,16 @@ from aiogram.types import CallbackQuery, Message
 
 from telegram_bot.i18n import t
 from telegram_bot.keyboards.language_kb import get_language_keyboard
-from telegram_bot.services.cache import user_cache
+from telegram_bot.services.auth_client import auth_client
 
 router = Router()
 
 
 @router.message(Command("language"))
 async def cmd_language(message: Message, *, locale: str = "en") -> None:
-    """Show language selection."""
+    """Show language selection (deprecated, redirects to settings)."""
     await message.answer(
-        t("start.choose_language", locale=locale),
+        t("settings.language_deprecated", locale=locale),
         reply_markup=get_language_keyboard(locale=locale).as_markup(),
     )
 
@@ -28,29 +28,34 @@ async def cb_language_menu(callback: CallbackQuery, *, locale: str = "en") -> No
         return
 
     await callback.message.edit_text(
-        t("start.choose_language", locale=locale),
+        t("settings.choose_language", locale=locale),
         reply_markup=get_language_keyboard(locale=locale).as_markup(),
     )
     await callback.answer()
 
 
 @router.callback_query(F.data.startswith("set_lang_"))
-async def set_language(callback: CallbackQuery, tg_user: object) -> None:
-    """Set user language preference."""
+async def set_language(callback: CallbackQuery, auth_token: str, user: dict) -> None:
+    """Set user language preference via auth_service API."""
     lang = callback.data.split("_")[-1]
     if lang not in ("en", "ru"):
         await callback.answer("Unsupported language")
         return
 
-    from aiogram.types import User as TgUser
+    # Update preferences via auth_service API
+    if user and auth_token:
+        user_id = user.get("id")
+        if user_id:
+            await auth_client.update_user_preferences(
+                user_id,
+                {"language": lang},
+                auth_token,
+            )
 
-    user = tg_user
-    if isinstance(user, TgUser):
-        await user_cache.update_user_field(user.id, "language", lang)
-
-    await callback.answer(t("start.language_set", locale=lang))
+    await callback.answer(t("settings.language_set", locale=lang))
     if callback.message:
         await callback.message.edit_text(
-            t("start.language_set", locale=lang),
+            t("settings.language_set", locale=lang),
             reply_markup=get_language_keyboard(locale=lang),
         )
+

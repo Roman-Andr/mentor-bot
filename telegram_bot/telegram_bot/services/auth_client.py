@@ -162,6 +162,38 @@ class AuthServiceClient:
         logger.debug("Invalidating user cache (telegram_id={})", telegram_id)
         await cache.delete_pattern(f"auth_user:*{telegram_id}*")
 
+    async def get_user_preferences(self, user_id: int, auth_token: str) -> dict | None:
+        """Get user preferences."""
+        logger.debug("Fetching user preferences (user_id={})", user_id)
+        try:
+            response = await self.client.get(
+                f"{settings.API_V1_PREFIX}/users/{user_id}/preferences",
+                headers={"Authorization": f"Bearer {auth_token}"},
+            )
+            if response.status_code == status.HTTP_200_OK:
+                logger.debug("User preferences fetched (user_id={})", user_id)
+                return response.json()
+            logger.warning("Get user preferences failed (user_id={}, status={})", user_id, response.status_code)
+        except httpx.RequestError:
+            logger.exception("Auth service get preferences failed (user_id={})", user_id)
+        return None
+
+    async def update_user_preferences(self, user_id: int, preferences: dict, auth_token: str) -> dict | None:
+        """Update user preferences."""
+        logger.debug("Updating user preferences (user_id={})", user_id)
+        try:
+            response = await self.client.put(
+                f"{settings.API_V1_PREFIX}/users/me/preferences",
+                json=preferences,
+                headers={"Authorization": f"Bearer {auth_token}"},
+            )
+            if response.status_code == status.HTTP_200_OK:
+                logger.info("User preferences updated (user_id={})", user_id)
+                return response.json()
+            logger.warning("Update user preferences failed (user_id={}, status={})", user_id, response.status_code)
+        except httpx.RequestError:
+            logger.exception("Auth service update preferences failed (user_id={})", user_id)
+        return None
 
 # Singleton instance
 auth_client = AuthServiceClient()

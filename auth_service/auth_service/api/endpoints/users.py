@@ -9,6 +9,7 @@ from auth_service.api.deps import (
     AdminUser,
     CurrentUser,
     HRUser,
+    ServiceAuth,
     UserServiceDep,
 )
 from auth_service.core import (
@@ -22,6 +23,8 @@ from auth_service.schemas import (
     MessageResponse,
     UserCreate,
     UserListResponse,
+    UserPreferencesResponse,
+    UserPreferencesUpdate,
     UserResponse,
     UserUpdate,
 )
@@ -304,5 +307,70 @@ async def change_password(
     except (NotFoundException, ValidationException) as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e.detail),
+        ) from e
+
+
+@router.get("/{user_id}/preferences")
+async def get_user_preferences(
+    user_id: int,
+    user_service: UserServiceDep,
+    current_user: CurrentUser | None = None,
+    is_service: ServiceAuth = False,
+) -> UserPreferencesResponse:
+    """Get user preferences (users can see themselves, HR/Admin can see anyone, inter-service via SERVICE_API_KEY)."""
+    # Allow if: service auth, self, HR, Admin
+    if is_service:
+        is_self = False
+        is_hr_or_admin = True
+    else:
+        if current_user is None:
+            logger.warning("Permission denied to view preferences (no authentication)")
+            raise PermissionDenied
+        is_self = current_user.id == user_id
+        is_hr_or_admin = current_user.role in [UserRole.HR, UserRole.ADMIN]
+
+    if not (is_self or is_hr_or_admin):
+        logger.warning(
+            "Permission denied to view preferences (caller_id={}, target_user_id={})",
+            current_user.id if current_user else None,
+            user_id,
+        )
+        raise PermissionDenied
+
+    try:
+        user = await user_service.get_user_by_id(user_id)
+        return UserPreferencesResponse(
+            language=user.language,
+            notification_telegram_enabled=user.notification_telegram_enabled,
+            notification_email_enabled=user.notification_email_enabled,
+        )
+    except NotFoundException as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e.detail),
+        ) from e
+
+
+@router.put("/me/preferences")
+async def update_my_preferences(
+    preferences_data: UserPreferencesUpdate,
+    user_service: UserServiceDep,
+    current_user: CurrentUser,
+) -> UserPreferencesResponse:
+    """Update current user's preferences (partial update)."""
+    logger.info(
+        "Update preferences request (caller_id={})", current_user.id
+    )
+    try:
+        user = await user_service.update_user_preferences(current_user.id, preferences_data)
+        return UserPreferencesResponse(
+            language=user.language,
+            notification_telegram_enabled=user.notification_telegram_enabled,
+            notification_email_enabled=user.notification_email_enabled,
+        )
+    except NotFoundException as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e.detail),
         ) from e

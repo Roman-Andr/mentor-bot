@@ -553,7 +553,13 @@
     "themeDark": "Dark",
     "themeLight": "Light",
     "themeSystem": "System",
-    "title": "Settings"
+    "title": "Settings",
+    "notifications": "Notifications",
+    "notificationsDescription": "Notification channel preferences",
+    "telegramNotifications": "Telegram notifications",
+    "telegramNotificationsDescription": "Receive notifications via Telegram",
+    "emailNotifications": "Email notifications",
+    "emailNotificationsDescription": "Receive notifications via email"
   },
   "templates": {
     "active": "Active",

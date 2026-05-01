@@ -364,7 +364,19 @@
     "description": "Configure your preferences",
     "btn_language": "Language",
     "btn_notifications": "Notifications",
-    "btn_back": "Back to Menu"
+    "btn_back": "Back to Menu",
+    "btn_back_to_settings": "Back to Settings",
+    "btn_telegram": "Telegram",
+    "btn_email": "Email",
+    "on": "ON",
+    "off": "OFF",
+    "notifications_title": "Notifications",
+    "notifications_description": "Choose which notification channels to use",
+    "telegram_toggled": "Telegram notifications updated",
+    "email_toggled": "Email notifications updated",
+    "language_deprecated": "Language selection is now available in Settings. Use /settings for full preferences management.",
+    "choose_language": "Choose your language",
+    "language_set": "Language updated"
   },
   "buttons": {
     "open_menu": "Open Menu",

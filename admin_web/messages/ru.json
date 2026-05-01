@@ -540,7 +540,13 @@
     "themeDark": "Тёмная",
     "themeLight": "Светлая",
     "themeSystem": "Системная",
-    "title": "Настройки"
+    "title": "Настройки",
+    "notifications": "Уведомления",
+    "notificationsDescription": "Настройки каналов уведомлений",
+    "telegramNotifications": "Уведомления в Telegram",
+    "telegramNotificationsDescription": "Получать уведомления через Telegram",
+    "emailNotifications": "Email уведомления",
+    "emailNotificationsDescription": "Получать уведомления по email"
   },
   "templates": {
     "active": "Активен",
