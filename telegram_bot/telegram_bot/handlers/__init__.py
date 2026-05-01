@@ -3,6 +3,7 @@
 from telegram_bot.handlers.admin import router as admin_router
 from telegram_bot.handlers.auth import router as auth_router
 from telegram_bot.handlers.calendar import router as calendar_router
+from telegram_bot.handlers.certificate import router as certificate_router
 from telegram_bot.handlers.checklists import router as checklists_router
 from telegram_bot.handlers.common import router as common_router
 from telegram_bot.handlers.documents import router as documents_router
@@ -18,6 +19,7 @@ __all__ = [
     "admin_router",
     "auth_router",
     "calendar_router",
+    "certificate_router",
     "checklists_router",
     "common_router",
     "documents_router",

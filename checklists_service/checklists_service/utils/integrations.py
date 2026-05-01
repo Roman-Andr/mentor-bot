@@ -74,5 +74,60 @@ class AuthServiceClient:
         await cache.delete_pattern(f"auth_user:*{user_id}*")
 
 
-# Singleton instance
+class NotificationServiceClient:
+    """HTTP client for notification service integration."""
+
+    def __init__(self, base_url: str | None = None) -> None:
+        """Initialize notification service HTTP client."""
+        self.base_url = base_url or settings.NOTIFICATION_SERVICE_URL
+        self.client = httpx.AsyncClient(base_url=self.base_url, timeout=settings.SERVICE_TIMEOUT)
+
+    async def send_notification(
+        self,
+        user_id: int,
+        notification_type: str,
+        channel: str,
+        recipient_telegram_id: str | None = None,
+        recipient_email: str | None = None,
+        subject: str | None = None,
+        body: str | None = None,
+        data: dict[str, Any] | None = None,
+        auth_token: str | None = None,
+    ) -> dict[str, Any] | None:
+        """Send notification via notification service."""
+        try:
+            headers = {}
+            if auth_token:
+                headers["Authorization"] = f"Bearer {auth_token}"
+
+            payload = {
+                "user_id": user_id,
+                "type": notification_type,
+                "channel": channel,
+                "recipient_telegram_id": recipient_telegram_id,
+                "recipient_email": recipient_email,
+                "subject": subject,
+                "body": body,
+                "data": data or {},
+            }
+
+            response = await self.client.post(
+                "/api/v1/notifications/send",
+                json=payload,
+                headers=headers,
+            )
+            if response.status_code == status.HTTP_200_OK:
+                return response.json()
+            logger.error("Notification service error: %s", response.text)
+            return None
+        except httpx.RequestError as e:
+            logger.error("Failed to send notification: %s", e)
+            return None
+        except Exception as e:
+            logger.exception("Notification send error")
+            return None
+
+
+# Singleton instances
 auth_service_client = AuthServiceClient()
+notification_service_client = NotificationServiceClient()

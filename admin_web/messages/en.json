@@ -660,5 +660,12 @@
     "mentorUnassigned": "Mentor unassigned successfully",
     "mentorAssignError": "Error assigning mentor",
     "mentorUnassignError": "Error unassigning mentor"
+  },
+  "certificates": {
+    "download": "Download",
+    "issue": "Issue Certificate",
+    "issueConfirm": "Are you sure you want to issue a certificate for this completed checklist?",
+    "issued": "Certificate issued",
+    "notIssued": "Certificate not issued"
   }
 }

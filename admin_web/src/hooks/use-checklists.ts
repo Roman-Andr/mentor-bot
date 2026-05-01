@@ -22,6 +22,7 @@ export interface ChecklistItem {
   isOverdue: boolean;
   daysRemaining: number | null;
   createdAt: string;
+  certUid: string | null;
 }
 
 export interface ChecklistFormData {
@@ -65,6 +66,7 @@ function mapToItem(
     is_overdue: boolean;
     days_remaining: number | null;
     created_at: string;
+    cert_uid: string | null;
   },
   usersMap: Map<number, string>,
 ): ChecklistItem {
@@ -87,6 +89,7 @@ function mapToItem(
     isOverdue: c.is_overdue,
     daysRemaining: c.days_remaining,
     createdAt: c.created_at,
+    certUid: c.cert_uid,
   };
 }
 

@@ -18,11 +18,12 @@ import {
 } from "@/components/ui/table";
 import { CardHeader, CardTitle } from "@/components/ui/card";
 import { TableActions, buildEditAction, buildDeleteAction, buildCompleteAction } from "@/components/shared";
-import { AlertTriangle, Clock } from "lucide-react";
+import { AlertTriangle, Clock, Download } from "lucide-react";
 import { CHECKLIST_STATUSES } from "@/lib/constants";
 import { formatDate } from "@/lib/utils";
 import type { ChecklistItem } from "@/hooks/use-checklists";
 import type { SortDirection } from "@/hooks/use-sorting";
+import { CertificateButton } from "@/components/features/certificates/certificate-button";
 
 interface ChecklistsTableProps {
   checklists: ChecklistItem[];
@@ -205,16 +206,21 @@ export function ChecklistsTable({
                 )}
               </TableCell>
               <TableCell onClick={(e) => e.stopPropagation()}>
-                <TableActions
-                  actions={[
-                    buildEditAction(() => onEdit(checklist)),
-                    ...(checklist.status !== "COMPLETED"
-                      ? [buildCompleteAction(() => onComplete(checklist.id))]
-                      : []
-                    ),
-                    buildDeleteAction(() => onDelete(checklist.id)),
-                  ]}
-                />
+                <div className="flex items-center gap-2">
+                  <TableActions
+                    actions={[
+                      buildEditAction(() => onEdit(checklist)),
+                      ...(checklist.status !== "COMPLETED"
+                        ? [buildCompleteAction(() => onComplete(checklist.id))]
+                        : []
+                      ),
+                      buildDeleteAction(() => onDelete(checklist.id)),
+                    ]}
+                  />
+                  {checklist.status === "COMPLETED" && checklist.certUid && (
+                    <CertificateButton certUid={checklist.certUid} />
+                  )}
+                </div>
               </TableCell>
             </TableRow>
           ))}

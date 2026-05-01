@@ -10,6 +10,7 @@ from telegram_bot.handlers import (
     admin,
     auth,
     calendar,
+    certificate,
     checklists,
     common,
     documents,
@@ -85,6 +86,7 @@ def setup_bot(dp: Dispatcher, bot: Bot) -> Dispatcher:
     dp.include_router(settings_handler.router)
     dp.include_router(calendar.router)
     dp.include_router(checklists.router)
+    dp.include_router(certificate.router)
     dp.include_router(knowledge_base.router)
     dp.include_router(documents.router)
     dp.include_router(meetings.router)

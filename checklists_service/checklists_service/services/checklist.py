@@ -1,5 +1,6 @@
 """Checklist management service with repository pattern."""
 
+import uuid
 from datetime import UTC, datetime, timedelta
 from typing import Any, cast
 
@@ -7,10 +8,10 @@ from loguru import logger
 
 from checklists_service.core import NotFoundException, ValidationException
 from checklists_service.core.enums import ChecklistStatus, TaskStatus, TemplateStatus
-from checklists_service.models import Checklist, Task
+from checklists_service.models import Certificate, Checklist, Task
 from checklists_service.repositories.unit_of_work import IUnitOfWork
 from checklists_service.schemas import ChecklistCreate, ChecklistStats, ChecklistUpdate
-from checklists_service.utils import auth_service_client
+from checklists_service.utils import auth_service_client, notification_service_client
 
 
 class ChecklistService:
@@ -272,7 +273,7 @@ class ChecklistService:
         return list(checklists), total
 
     async def complete_checklist(self, checklist_id: int) -> Checklist:
-        """Mark checklist as completed."""
+        """Mark checklist as completed and auto-issue certificate."""
         checklist = await self.get_checklist(checklist_id)
 
         if checklist.status == ChecklistStatus.COMPLETED:
@@ -302,6 +303,51 @@ class ChecklistService:
 
         updated = await self._uow.checklists.update(checklist)
         logger.info("Checklist completed (checklist_id={})", updated.id)
+
+        # Auto-issue certificate
+        existing_certificate = await self._uow.certificates.get_by_checklist_id(checklist_id)
+        if not existing_certificate:
+            certificate = Certificate(
+                cert_uid=str(uuid.uuid4()),
+                user_id=updated.user_id,
+                checklist_id=updated.id,
+                hr_id=updated.hr_id,
+                mentor_id=updated.mentor_id,
+            )
+            await self._uow.certificates.create(certificate)
+            logger.info(
+                "Certificate auto-issued (cert_uid={}, checklist_id={}, user_id={})",
+                certificate.cert_uid,
+                checklist_id,
+                updated.user_id,
+            )
+            
+            # Send notification via notification service
+            try:
+                # Fetch employee data for notification
+                employee_data = await auth_service_client.get_user(updated.user_id, self.auth_token)
+                if employee_data:
+                    employee_name = f"{employee_data.get('first_name', '')} {employee_data.get('last_name', '')}".strip()
+                    # Fetch template name
+                    template = await self._uow.templates.get_by_id(updated.template_id)
+                    template_name = template.name if template else "Onboarding"
+                    
+                    await notification_service_client.send_notification(
+                        user_id=updated.user_id,
+                        notification_type="certificate_issued",
+                        channel="telegram",
+                        recipient_telegram_id=employee_data.get("telegram_id"),
+                        data={
+                            "employee_name": employee_name,
+                            "program_name": template_name,
+                            "cert_uid": certificate.cert_uid,
+                        },
+                        auth_token=self.auth_token,
+                    )
+                    logger.info("Certificate notification sent (user_id={}, cert_uid={})", updated.user_id, certificate.cert_uid)
+            except Exception as e:
+                logger.error("Failed to send certificate notification: %s", e)
+
         return updated
 
     async def get_checklist_progress(self, checklist_id: int) -> dict[str, Any]:

@@ -234,6 +234,17 @@ This is an automated message from Mentor Bot.""",
             "body_text": "📊 Week 1 Progress\n\nHi {{ user_name }}! You've completed {{ completed_tasks }} of {{ total_tasks }} tasks. Keep it up!",
             "variables": ["user_name", "completed_tasks", "total_tasks"],
         },
+        # Certificate templates
+        ("certificate_issued", "telegram", "en"): {
+            "subject": None,
+            "body_text": "🎉 Congratulations, {{ employee_name }}!\n\nYou have been issued a certificate for completing the onboarding program \"{{ program_name }}\".\n\nCertificate ID: {{ cert_uid }}\n\nDownload your certificate: /certificate",
+            "variables": ["employee_name", "program_name", "cert_uid"],
+        },
+        ("certificate_issued", "telegram", "ru"): {
+            "subject": None,
+            "body_text": "🎉 Поздравляем, {{ employee_name }}!\n\nВам выдан сертификат за завершение программы онбординга \"{{ program_name }}\".\n\nID сертификата: {{ cert_uid }}\n\nСкачать сертификат: /certificate",
+            "variables": ["employee_name", "program_name", "cert_uid"],
+        },
         # Password reset
         ("password_reset", "email", "en"): {
             "subject": "Password Reset Request",

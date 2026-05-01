@@ -57,6 +57,7 @@ class ChecklistResponse(ChecklistBase):
     updated_at: datetime | None = None
     is_overdue: bool
     days_remaining: int | None
+    cert_uid: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
 

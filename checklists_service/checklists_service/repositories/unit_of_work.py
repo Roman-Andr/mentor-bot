@@ -6,9 +6,11 @@ from typing import Protocol, Self, runtime_checkable
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from checklists_service.repositories.implementations.certificate import CertificateRepository
 from checklists_service.repositories.implementations.checklist import ChecklistRepository
 from checklists_service.repositories.implementations.task import TaskRepository
 from checklists_service.repositories.implementations.template import TaskTemplateRepository, TemplateRepository
+from checklists_service.repositories.interfaces.certificate import ICertificateRepository
 from checklists_service.repositories.interfaces.checklist import IChecklistRepository
 from checklists_service.repositories.interfaces.task import ITaskRepository
 from checklists_service.repositories.interfaces.template import ITaskTemplateRepository, ITemplateRepository
@@ -22,6 +24,7 @@ class IUnitOfWork(Protocol):
     tasks: ITaskRepository
     templates: ITemplateRepository
     task_templates: ITaskTemplateRepository
+    certificates: ICertificateRepository
 
     async def commit(self) -> None:
         """Commit all changes made in this unit of work."""
@@ -55,6 +58,7 @@ class SqlAlchemyUnitOfWork(IUnitOfWork):
         self.tasks = TaskRepository(self._session)
         self.templates = TemplateRepository(self._session)
         self.task_templates = TaskTemplateRepository(self._session)
+        self.certificates = CertificateRepository(self._session)
         return self
 
     async def __aexit__(self, *args: object) -> None:

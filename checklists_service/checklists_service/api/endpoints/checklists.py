@@ -64,6 +64,13 @@ async def get_checklists(
         sort_order=sort_order,
     )
 
+    # Fetch certificates for completed checklists
+    checklist_ids = [c.id for c in checklists if c.status == ChecklistStatus.COMPLETED]
+    cert_map: dict[int, str] = {}
+    if checklist_ids:
+        certificates = await uow.certificates.get_by_checklist_ids(checklist_ids)
+        cert_map = {c.checklist_id: c.cert_uid for c in certificates}
+
     stats = await checklist_service.get_checklist_stats(user_id or current_user.id)
 
     pages = (total + limit - 1) // limit if limit > 0 else 0
@@ -79,6 +86,7 @@ async def get_checklists(
                     if checklist.due_date and checklist.status != ChecklistStatus.COMPLETED
                     else None
                 ),
+                cert_uid=cert_map.get(checklist.id),
             )
             for checklist in checklists
         ],
@@ -131,6 +139,13 @@ async def get_checklist(
             msg = "Cannot view other users' checklists"
             raise PermissionDenied(msg)
 
+        # Fetch certificate if checklist is completed
+        cert_uid = None
+        if checklist.status == ChecklistStatus.COMPLETED:
+            certificate = await uow.certificates.get_by_checklist_id(checklist_id)
+            if certificate:
+                cert_uid = certificate.cert_uid
+
         return ChecklistResponse(
             **checklist.__dict__,
             is_overdue=checklist.due_date < datetime.now(UTC) and checklist.status != ChecklistStatus.COMPLETED,
@@ -139,6 +154,7 @@ async def get_checklist(
                 if checklist.due_date and checklist.status != ChecklistStatus.COMPLETED
                 else None
             ),
+            cert_uid=cert_uid,
         )
     except NotFoundException as e:
         raise HTTPException(

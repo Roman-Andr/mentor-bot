@@ -10,7 +10,7 @@ from checklists_service.utils.datetime import (
     parse_datetime,
     to_timestamp,
 )
-from checklists_service.utils.integrations import AuthServiceClient, auth_service_client
+from checklists_service.utils.integrations import AuthServiceClient, auth_service_client, notification_service_client
 from checklists_service.utils.storage import (
     StorageError,
     StorageFileNotFoundError,
@@ -36,6 +36,7 @@ __all__ = [
     "get_storage_service",
     "is_expired",
     "now",
+    "notification_service_client",
     "parse_datetime",
     "shutdown_storage",
     "to_timestamp",

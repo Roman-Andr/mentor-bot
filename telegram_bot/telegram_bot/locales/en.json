@@ -383,5 +383,11 @@
     "escalate": "Escalate",
     "admin": "Admin",
     "settings": "Settings"
+  },
+  "certificate": {
+    "title": "Certificates",
+    "none": "You don't have any certificates yet.",
+    "downloaded": "Certificate downloaded",
+    "download_error": "Failed to download certificate"
   }
 }

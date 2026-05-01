@@ -2,6 +2,10 @@
 
 from telegram_bot.services.auth_client import AuthServiceClient, auth_client
 from telegram_bot.services.cache import UserCache, user_cache
+from telegram_bot.services.certificates_client import (
+    CertificatesClient,
+    certificates_client,
+)
 from telegram_bot.services.checklists_client import (
     ChecklistsServiceClient,
     checklists_client,
@@ -22,6 +26,7 @@ from telegram_bot.services.notification_client import (
 
 __all__ = [
     "AuthServiceClient",
+    "CertificatesClient",
     "ChecklistsServiceClient",
     "EscalationServiceClient",
     "KnowledgeServiceClient",
@@ -29,6 +34,7 @@ __all__ = [
     "NotificationServiceClient",
     "UserCache",
     "auth_client",
+    "certificates_client",
     "checklists_client",
     "escalation_client",
     "knowledge_client",
