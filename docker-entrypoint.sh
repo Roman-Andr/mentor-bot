@@ -10,9 +10,11 @@ fi
 # alembic_version row), stamp to head so existing tables are not re-created.
 if [ -f "/app/alembic.ini" ] && [ "$SERVICE_NAME" != "telegram_bot" ]; then
   if gosu appuser /app/.venv/bin/python -m alembic upgrade head; then
-    echo "Migrations applied."
+    timestamp=$(date '+%Y-%m-%d %H:%M:%S.%3N')
+    echo "${timestamp} | INFO     | alembic:entrypoint:0 - Migrations applied."
   else
-    echo "alembic upgrade failed, stamping head (baseline for existing schema)"
+    timestamp=$(date '+%Y-%m-%d %H:%M:%S.%3N')
+    echo "${timestamp} | WARNING  | alembic:entrypoint:0 - alembic upgrade failed, stamping head (baseline for existing schema)"
     gosu appuser /app/.venv/bin/python -m alembic stamp head
   fi
 fi
