@@ -181,7 +181,7 @@ export function useEntity<TItem, TForm, TCreatePayload = unknown, TUpdatePayload
   };
 
   const { createMutation, updateMutation, deleteMutation, handleSubmit, isSubmitting, isDeleting } = useEntityMutations(
-    { createFn, updateFn, deleteFn, queryKeyPrefix, onAfterCreate: options.onAfterCreate, onAfterUpdate: options.onAfterUpdate },
+    { createFn, updateFn, deleteFn, queryKeyPrefix, onAfterCreate: options.onAfterCreate, onAfterUpdate: options.onAfterUpdate, toCreatePayload },
     mutationContext,
     { created, updated, deleted, createError, updateError, deleteError },
     resetFormInternal,

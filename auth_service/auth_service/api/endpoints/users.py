@@ -349,6 +349,26 @@ async def get_user_preferences(
         ) from e
 
 
+@router.get("/me/preferences")
+async def get_my_preferences(
+    user_service: UserServiceDep,
+    current_user: CurrentUser,
+) -> UserPreferencesResponse:
+    """Get current user's preferences."""
+    try:
+        user = await user_service.get_user_by_id(current_user.id)
+        return UserPreferencesResponse(
+            language=user.language,
+            notification_telegram_enabled=user.notification_telegram_enabled,
+            notification_email_enabled=user.notification_email_enabled,
+        )
+    except NotFoundException as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e.detail),
+        ) from e
+
+
 @router.put("/me/preferences")
 async def update_my_preferences(
     preferences_data: UserPreferencesUpdate,

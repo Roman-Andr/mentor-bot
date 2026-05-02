@@ -396,6 +396,37 @@ async def get_experience_stats(
         ) from None
 
 
+@router.get("/experience/anonymity-stats")
+async def get_experience_anonymity_stats(
+    uow: UOWDep,
+    current_user: HRAdminUser,
+    department_id: int | None = None,
+    from_date: datetime | None = None,
+    to_date: datetime | None = None,
+) -> dict:
+    """Get anonymity stats for experience ratings (HR/Admin only)."""
+    try:
+        logger.debug(
+            "Fetching experience anonymity stats (current_user_id={}, department_id={})",
+            current_user.id,
+            department_id,
+        )
+        stats = await uow.experience_ratings.get_anonymity_stats(
+            department_id=department_id,
+            from_date=from_date,
+            to_date=to_date,
+        )
+        logger.debug("Experience anonymity stats fetched (current_user_id={})", current_user.id)
+    except Exception:
+        logger.exception("Failed to get experience anonymity stats")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to get experience anonymity stats",
+        ) from None
+    else:
+        return stats
+
+
 # ============================================================================
 # Comment Endpoints
 # ============================================================================
@@ -513,6 +544,37 @@ async def get_comments(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to get comments",
         ) from None
+
+
+@router.get("/comments/anonymity-stats")
+async def get_comment_anonymity_stats(
+    uow: UOWDep,
+    current_user: HRAdminUser,
+    department_id: int | None = None,
+    from_date: datetime | None = None,
+    to_date: datetime | None = None,
+) -> dict:
+    """Get anonymity stats for comments (HR/Admin only)."""
+    try:
+        logger.debug(
+            "Fetching comment anonymity stats (current_user_id={}, department_id={})",
+            current_user.id,
+            department_id,
+        )
+        stats = await uow.comments.get_anonymity_stats(
+            department_id=department_id,
+            from_date=from_date,
+            to_date=to_date,
+        )
+        logger.debug("Comment anonymity stats fetched (current_user_id={})", current_user.id)
+    except Exception:
+        logger.exception("Failed to get comment anonymity stats")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to get comment anonymity stats",
+        ) from None
+    else:
+        return stats
 
 
 @router.post("/comments/{comment_id}/reply")
