@@ -123,6 +123,10 @@ export const queryKeys = {
       byCategory: (params?: { from_date?: string; to_date?: string }) => [...queryKeys.analytics.all, "knowledge", "by-category", params] as const,
       byTag: (params?: { from_date?: string; to_date?: string }) => [...queryKeys.analytics.all, "knowledge", "by-tag", params] as const,
     },
+    history: {
+      feed: (params: { from_date?: string; to_date?: string; sources?: string[]; event_types?: string[]; actor_id?: number; page: number; page_size: number }) =>
+        [...queryKeys.analytics.all, "history", "feed", params] as const,
+    },
   },
 
   // Dashboard

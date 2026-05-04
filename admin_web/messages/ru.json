@@ -26,6 +26,7 @@
     "month": "Месяц",
     "onboardingTab": "Онбординг",
     "knowledgeTab": "База знаний",
+    "historyTab": "История",
     "knowledge": {
       "totalViews": "Всего просмотров",
       "uniqueViewers": "Уникальные зрители",
@@ -65,6 +66,60 @@
       "allDepartments": "Все отделы",
       "day": "День",
       "week": "Неделя"
+    },
+    "history": {
+      "title": "Журнал аудита",
+      "empty": "Нет событий аудита, соответствующих фильтрам",
+      "partial": "Некоторые источники не удалось загрузить — результаты могут быть неполными",
+      "showing": "Показано {count} из {total} событий",
+      "filters": {
+        "dateRange": "Диапазон дат",
+        "fromDate": "От даты",
+        "toDate": "До даты",
+        "source": "Источник",
+        "eventTypes": "Типы событий",
+        "actor": "Выполнил",
+        "actorPlaceholder": "Поиск пользователя...",
+        "reset": "Сбросить"
+      },
+      "columns": {
+        "timestamp": "Когда",
+        "source": "Источник",
+        "event": "Событие",
+        "actor": "Исполнитель",
+        "summary": "Детали"
+      },
+      "summary": "Сводка",
+      "subject": "Субъект",
+      "resource": "Ресурс",
+      "changes": "Изменения",
+      "metadata": "Метаданные",
+      "sources": {
+        "auth": "Аутентификация",
+        "knowledge": "База знаний",
+        "meetings": "Встречи",
+        "feedback": "Обратная связь",
+        "checklists": "Чек-листы",
+        "escalations": "Эскалации"
+      },
+      "eventTypes": {
+        "login": "Вход",
+        "role_change": "Изменение роли",
+        "invitation_status_change": "Статус приглашения",
+        "mentor_assignment": "Назначение наставника",
+        "article_change": "Изменение статьи",
+        "article_view": "Просмотр статьи",
+        "category_change": "Изменение категории",
+        "dialogue_scenario_change": "Изменение сценария диалога",
+        "meeting_status_change": "Изменение статуса встречи",
+        "meeting_participant_change": "Изменение участника встречи",
+        "feedback_status_change": "Изменение статуса отзыва",
+        "checklist_status_change": "Изменение статуса чек-листа",
+        "task_completion": "Выполнение задачи",
+        "template_change": "Изменение шаблона",
+        "escalation_status_change": "Изменение статуса эскалации",
+        "mentor_intervention": "Вмешательство наставника"
+      }
     }
   },
   "auth": {

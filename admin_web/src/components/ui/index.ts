@@ -21,3 +21,4 @@ export * from "./form-dialog";
 export * from "./stat-card";
 export * from "./date-picker";
 export * from "./tooltip";
+export * from "./skeleton";

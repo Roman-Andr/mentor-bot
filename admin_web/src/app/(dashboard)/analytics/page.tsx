@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useTranslations } from "@/hooks/use-translations";
-import { Download, BarChart3, BookOpen, Search } from "lucide-react";
+import { Download, BarChart3, BookOpen, Search, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PDFExportButton } from "@/components/features/reports/pdf-export-button";
 import { TabSwitcher } from "@/components/ui/tab-switcher";
@@ -32,6 +32,7 @@ import { SearchZeroResultsTable } from "@/components/features/analytics/search/s
 import { SearchByDepartmentChart } from "@/components/features/analytics/search/search-by-department-chart";
 import { SearchTimeseriesChart } from "@/components/features/analytics/search/search-timeseries-chart";
 import { SearchFilters } from "@/components/features/analytics/search/search-filters";
+import { HistoryTab } from "@/components/features/analytics/history/history-tab";
 import type { TabItem } from "@/components/ui/tab-switcher";
 import { useSearchParams } from "next/navigation";
 
@@ -54,6 +55,7 @@ export default function AnalyticsPage() {
     { id: "onboarding", label: t("analytics.onboardingTab"), icon: BarChart3 },
     { id: "knowledge", label: t("analytics.knowledgeTab"), icon: BookOpen },
     { id: "search", label: t("analytics.search.title"), icon: Search },
+    { id: "history", label: t("analytics.historyTab"), icon: Clock },
   ];
 
   // Search analytics state
@@ -217,7 +219,37 @@ export default function AnalyticsPage() {
     [stats, departmentMap]
   );
 
-  const handleExport = () => {
+  const handleExport = async () => {
+    if (activeTab === "history") {
+      // Export history tab CSV
+      const filters = historyTabRef.current?.getFilters() || {};
+      const events = await api.audit.fetchAll(filters, 10000);
+      
+      const rows = [
+        ["timestamp", "source", "event_type", "actor", "subject", "resource", "summary"],
+        ...events.map(e => [
+          e.timestamp,
+          e.source,
+          e.event_type,
+          String(e.actor_id || ""),
+          String(e.subject_user_id || ""),
+          e.resource_type && e.resource_id ? `${e.resource_type}#${e.resource_id}` : "",
+          e.summary,
+        ]),
+      ];
+
+      const csvContent = rows.map(row => row.join(",")).join("\n");
+      const bom = "\uFEFF";
+      const content = bom + csvContent;
+      const blob = new Blob([content], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "audit_history_export.csv";
+      link.click();
+      return;
+    }
+
+    // Default onboarding export
     const rows = [
       [t("analytics.totalNewbies"), String(stats?.total || userCount)],
       [t("common.completed"), String(stats?.completed || 0)],
@@ -358,6 +390,10 @@ export default function AnalyticsPage() {
               </>
             )}
           </>
+        )}
+
+        {activeTab === "history" && (
+          <HistoryTab />
         )}
       </div>
     </PageContent>

@@ -26,6 +26,7 @@
     "month": "Month",
     "onboardingTab": "Onboarding",
     "knowledgeTab": "Knowledge Base",
+    "historyTab": "History",
     "knowledge": {
       "totalViews": "Total Views",
       "uniqueViewers": "Unique Viewers",
@@ -65,6 +66,60 @@
       "allDepartments": "All Departments",
       "day": "Day",
       "week": "Week"
+    },
+    "history": {
+      "title": "Audit log",
+      "empty": "No audit events match these filters",
+      "partial": "Some sources couldn't be loaded — results may be incomplete",
+      "showing": "Showing {count} of {total} events",
+      "filters": {
+        "dateRange": "Date range",
+        "fromDate": "From Date",
+        "toDate": "To Date",
+        "source": "Source",
+        "eventTypes": "Event Types",
+        "actor": "Performed by",
+        "actorPlaceholder": "Search user...",
+        "reset": "Reset"
+      },
+      "columns": {
+        "timestamp": "When",
+        "source": "Source",
+        "event": "Event",
+        "actor": "Actor",
+        "summary": "Details"
+      },
+      "summary": "Summary",
+      "subject": "Subject",
+      "resource": "Resource",
+      "changes": "Changes",
+      "metadata": "Metadata",
+      "sources": {
+        "auth": "Authentication",
+        "knowledge": "Knowledge Base",
+        "meetings": "Meetings",
+        "feedback": "Feedback",
+        "checklists": "Checklists",
+        "escalations": "Escalations"
+      },
+      "eventTypes": {
+        "login": "Login",
+        "role_change": "Role Change",
+        "invitation_status_change": "Invitation Status",
+        "mentor_assignment": "Mentor Assignment",
+        "article_change": "Article Change",
+        "article_view": "Article View",
+        "category_change": "Category Change",
+        "dialogue_scenario_change": "Dialogue Scenario Change",
+        "meeting_status_change": "Meeting Status Change",
+        "meeting_participant_change": "Meeting Participant Change",
+        "feedback_status_change": "Feedback Status Change",
+        "checklist_status_change": "Checklist Status Change",
+        "task_completion": "Task Completion",
+        "template_change": "Template Change",
+        "escalation_status_change": "Escalation Status Change",
+        "mentor_intervention": "Mentor Intervention"
+      }
     }
   },
   "auth": {
