@@ -148,6 +148,7 @@ class UserService:
         # Verify user exists before deleting
         await self.get_user_by_id(user_id)
         await self._uow.users.delete(user_id)
+        await self._uow.commit()
 
     async def get_users(
         self,

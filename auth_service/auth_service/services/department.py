@@ -109,4 +109,5 @@ class DepartmentService:
             logger.warning("Delete department: not found (department_id={})", department_id)
             msg = "Department"
             raise NotFoundException(msg)
+        await self._uow.commit()
         logger.info("Department deleted (department_id={})", department_id)
