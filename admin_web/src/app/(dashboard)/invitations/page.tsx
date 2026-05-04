@@ -128,7 +128,7 @@ export default function InvitationsPage() {
             </div>
           </CardHeader>
         }
-        emptyStateMessage={t("invitations.empty")}
+        emptyMessage={t("invitations.empty")}
       >
         <Table>
           <TableHeader>

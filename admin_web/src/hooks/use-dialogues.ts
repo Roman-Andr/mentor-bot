@@ -56,7 +56,7 @@ const defaultExtendedState: ExtendedState = {
   selectedSteps: [],
 };
 
-function mapDialogue(d: DialogueScenario): DialogueRow {
+export function mapDialogue(d: DialogueScenario): DialogueRow {
   return {
     id: d.id,
     title: d.title,
@@ -70,7 +70,7 @@ function mapDialogue(d: DialogueScenario): DialogueRow {
   };
 }
 
-function toPayload(form: DialogueFormData) {
+export function toPayload(form: DialogueFormData) {
   const keywordsArray = form.keywords
     .split(",")
     .map((k) => k.trim())
@@ -86,7 +86,7 @@ function toPayload(form: DialogueFormData) {
   };
 }
 
-function toForm(dialogue: DialogueRow): DialogueFormData {
+export function toForm(dialogue: DialogueRow): DialogueFormData {
   return {
     title: dialogue.title,
     description: dialogue.description,

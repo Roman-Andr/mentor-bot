@@ -212,9 +212,10 @@ export function ChecklistsTable({
                   <TableActions
                     actions={[
                       buildEditAction(() => onEdit(checklist), t("common.edit")),
-                      ...(checklist.status !== "COMPLETED"
-                        ? [buildCompleteAction(() => onComplete(checklist.id), t("checklists.markComplete"))]
-                        : []
+                      buildCompleteAction(
+                        () => onComplete(checklist.id),
+                        t("checklists.markComplete"),
+                        checklist.status !== "COMPLETED",
                       ),
                       buildDeleteAction(() => onDelete(checklist.id), t("common.delete")),
                     ]}

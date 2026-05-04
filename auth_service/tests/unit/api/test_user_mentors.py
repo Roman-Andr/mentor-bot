@@ -239,6 +239,7 @@ class TestCreateUserMentor:
         assert data["user_id"] == newbie_user.id
         assert data["mentor_id"] == mentor_user.id
         assert data["is_active"] is True
+        mock_uow.commit.assert_awaited_once()
 
     def test_create_relation_already_exists(self, hr_user, mock_uow, sample_relation, newbie_user, mentor_user):
         """Test creating relation that already exists returns 409."""
@@ -344,6 +345,7 @@ class TestUpdateUserMentor:
         data = response.json()
         assert data["is_active"] is False
         assert data["notes"] == "Updated notes"
+        mock_uow.commit.assert_awaited_once()
 
     def test_update_relation_not_found(self, hr_user, mock_uow):
         """Test updating non-existent relation returns 404."""
@@ -400,6 +402,7 @@ class TestDeleteUserMentor:
         assert response.status_code == 200
         data = response.json()
         assert "deleted" in data["message"].lower()
+        mock_uow.commit.assert_awaited_once()
 
     def test_delete_relation_not_found(self, hr_user, mock_uow):
         """Test deleting non-existent relation returns 404."""

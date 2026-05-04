@@ -49,7 +49,7 @@ const defaultExtendedState: ExtendedState = {
   createdUrl: null,
 };
 
-function toInvitationItem(i: Invitation): InvitationItem {
+export function toInvitationItem(i: Invitation): InvitationItem {
   return {
     id: i.id,
     email: i.email,
@@ -67,7 +67,7 @@ function toInvitationItem(i: Invitation): InvitationItem {
   };
 }
 
-function toPayload(form: InvitationFormData) {
+export function toPayload(form: InvitationFormData) {
   return {
     email: form.email,
     role: form.role,

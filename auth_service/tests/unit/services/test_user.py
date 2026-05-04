@@ -234,6 +234,7 @@ class TestUpdateUser:
 
         assert user.email == "updated@example.com"
         assert user.first_name == "Updated"
+        mock_uow.commit.assert_awaited_once()
 
     async def test_update_user_email_conflict_raises(self, mock_uow, sample_user, another_user):
         """Test updating to duplicate email raises ConflictException."""
@@ -274,6 +275,7 @@ class TestDeactivateUser:
         await service.deactivate_user(1)
 
         mock_uow.users.deactivate_user.assert_called_once_with(1)
+        mock_uow.commit.assert_awaited_once()
 
 
 class TestDeleteUser:
@@ -293,6 +295,7 @@ class TestDeleteUser:
         mock_uow.users.get_by_id.assert_called_once_with(1)
         # Line 117: Delete the user
         mock_uow.users.delete.assert_awaited_once_with(1)
+        mock_uow.commit.assert_awaited_once()
 
     async def test_delete_user_not_found_raises(self, mock_uow):
         """Test deleting non-existent user raises NotFoundException."""
@@ -366,6 +369,7 @@ class TestUpdateUserRole:
 
         assert user.role == UserRole.MENTOR
         mock_uow.users.update_role.assert_called_once_with(1, UserRole.MENTOR)
+        mock_uow.commit.assert_awaited_once()
 
 
 class TestLinkTelegramAccount:
@@ -391,6 +395,7 @@ class TestLinkTelegramAccount:
 
         assert user.telegram_id == 987654321
         assert user.username == "@testuser"
+        mock_uow.commit.assert_awaited_once()
 
     async def test_link_telegram_conflict_raises(self, mock_uow, another_user):
         """Test linking duplicate Telegram account raises ConflictException."""
@@ -419,6 +424,7 @@ class TestChangePassword:
                 await service.change_password(1, "current_password", "new_password123")
 
         mock_uow.users.update.assert_called_once()
+        mock_uow.commit.assert_awaited_once()
 
     async def test_change_password_no_password_hash_raises(self, mock_uow):
         """Test changing password for user without password raises ValidationException."""

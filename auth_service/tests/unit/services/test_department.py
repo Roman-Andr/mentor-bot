@@ -164,6 +164,7 @@ class TestUpdateDepartment:
         assert department.name == "Updated Engineering"
         assert department.description == "Updated Description"
         mock_uow.departments.update.assert_called_once()
+        mock_uow.commit.assert_awaited_once()
 
     async def test_update_department_not_found_raises(self, mock_uow):
         """Test updating non-existent department raises NotFoundException."""
@@ -214,6 +215,7 @@ class TestUpdateDepartment:
 
         assert department.name == "Engineering"
         mock_uow.departments.get_by_name.assert_not_called()  # Should not check for conflict
+        mock_uow.commit.assert_awaited_once()
 
     async def test_update_department_description_only(self, mock_uow, sample_department):
         """Test updating only description."""
@@ -235,6 +237,7 @@ class TestUpdateDepartment:
 
         assert department.description == "New Description"
         assert department.name == "Engineering"
+        mock_uow.commit.assert_awaited_once()
 
 
 class TestDeleteDepartment:
@@ -250,6 +253,7 @@ class TestDeleteDepartment:
         await service.delete_department(1)
 
         mock_uow.departments.delete.assert_called_once_with(1)
+        mock_uow.commit.assert_awaited_once()
 
     async def test_delete_department_not_found_raises(self, mock_uow):
         """Test deleting non-existent department raises NotFoundException."""

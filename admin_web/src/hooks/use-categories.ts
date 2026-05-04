@@ -94,7 +94,7 @@ const DEFAULT_FORM: CategoryFormData = {
   color: "",
 };
 
-function mapCategory(c: Category, departmentsMap: Record<number, string>): CategoryRow {
+export function mapCategory(c: Category, departmentsMap: Record<number, string>): CategoryRow {
   return {
     id: c.id,
     name: c.name,
@@ -115,7 +115,7 @@ function mapCategory(c: Category, departmentsMap: Record<number, string>): Categ
   };
 }
 
-function toCreatePayload(form: CategoryFormData) {
+export function toCreatePayload(form: CategoryFormData) {
   return {
     name: form.name,
     slug: form.slug || slugify(form.name),
@@ -130,7 +130,7 @@ function toCreatePayload(form: CategoryFormData) {
   };
 }
 
-function toUpdatePayload(form: CategoryFormData) {
+export function toUpdatePayload(form: CategoryFormData) {
   return {
     name: form.name,
     description: form.description || null,
@@ -144,7 +144,7 @@ function toUpdatePayload(form: CategoryFormData) {
   };
 }
 
-function toForm(item: CategoryRow): CategoryFormData {
+export function toForm(item: CategoryRow): CategoryFormData {
   return {
     name: item.name,
     slug: item.slug,

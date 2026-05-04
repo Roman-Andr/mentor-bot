@@ -69,6 +69,21 @@ export function normalizeMentorAssignmentHistory(item: any): NormalizedAuditEven
   };
 }
 
+export function normalizeLogoutHistory(item: any): NormalizedAuditEvent {
+  return {
+    id: makeId("auth", "logout", item.id),
+    source: "auth",
+    event_type: "logout",
+    timestamp: item.logout_at,
+    actor_id: item.user_id,
+    subject_user_id: item.user_id,
+    resource_type: null,
+    resource_id: null,
+    summary: `Logout (${item.method || "web"})`,
+    raw: item,
+  };
+}
+
 // Knowledge endpoints
 export function normalizeArticleChangeHistory(item: any): NormalizedAuditEvent {
   const action = item.action || "changed";
@@ -261,6 +276,7 @@ export function normalizeMentorInterventionHistory(item: any): NormalizedAuditEv
 // Mapping table: endpoint path -> normalize function
 export const NORMALIZE_MAP: Record<string, (item: any) => NormalizedAuditEvent> = {
   "login-history": normalizeLoginHistory,
+  "logout-history": normalizeLogoutHistory,
   "role-change-history": normalizeRoleChangeHistory,
   "invitation-history": normalizeInvitationHistory,
   "mentor-assignment-history": normalizeMentorAssignmentHistory,

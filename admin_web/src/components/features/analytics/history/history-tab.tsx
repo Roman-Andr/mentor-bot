@@ -10,6 +10,7 @@ import { HistoryTable } from "./history-table";
 import { HistoryDetailDrawer } from "./history-detail-drawer";
 import { HistoryEmpty } from "./history-empty";
 import { Pagination } from "@/components/ui/pagination";
+import { Select } from "@/components/ui/select";
 import type { HistoryFilters as HistoryFiltersType, NormalizedAuditEvent } from "@/types/audit";
 import { subDays } from "date-fns";
 
@@ -57,7 +58,8 @@ export function HistoryTab({ onExportCSV, onExportPDF }: HistoryTabProps) {
     setSelectedEvent(null);
   };
 
-  const totalPages = data?.data ? Math.ceil(data.data.total / pageSize) : 0;
+  const auditData = data?.success ? data.data : null;
+  const totalPages = auditData ? Math.ceil(auditData.total / pageSize) : 0;
 
   return (
     <div className="space-y-6">
@@ -69,38 +71,39 @@ export function HistoryTab({ onExportCSV, onExportPDF }: HistoryTabProps) {
         <div className="text-center py-12 text-destructive">
           Error loading audit events. Please try again.
         </div>
-      ) : !data?.data || data.data.items.length === 0 ? (
+      ) : !auditData || auditData.items.length === 0 ? (
         <HistoryEmpty />
       ) : (
         <>
-          {data.data.partial && data.data.partial.length > 0 && (
+          {auditData.partial && auditData.partial.length > 0 && (
             <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded">
               {t("analytics.history.partial")}
             </div>
           )}
 
-          <HistoryTable events={data.data.items} onRowClick={handleRowClick} />
+          <HistoryTable events={auditData.items} onRowClick={handleRowClick} />
 
           <div className="flex items-center justify-between">
             <div className="text-sm text-muted-foreground">
               {t("analytics.history.showing", {
-                count: data.data.items.length,
-                total: data.data.total,
+                count: auditData.items.length,
+                total: auditData.total,
               })}
             </div>
             <div className="flex items-center gap-4">
-              <select
-                value={pageSize}
-                onChange={(e) => {
-                  setPageSize(parseInt(e.target.value, 10));
+              <Select
+                value={String(pageSize)}
+                onChange={(value) => {
+                  setPageSize(parseInt(value, 10));
                   setPage(1);
                 }}
-                className="border rounded px-2 py-1 text-sm"
-              >
-                <option value={25}>25</option>
-                <option value={50}>50</option>
-                <option value={100}>100</option>
-              </select>
+                options={[
+                  { value: "25", label: "25" },
+                  { value: "50", label: "50" },
+                  { value: "100", label: "100" },
+                ]}
+                className="w-20"
+              />
               <Pagination
                 currentPage={page}
                 totalPages={totalPages}

@@ -31,7 +31,7 @@ export interface MeetingFormData {
   order: number;
 }
 
-function mapMeeting(m: Meeting): MeetingItem {
+export function mapMeeting(m: Meeting): MeetingItem {
   return {
     id: m.id,
     title: m.title,
@@ -62,7 +62,7 @@ const defaultFormData: MeetingFormData = {
   order: 0,
 };
 
-function toPayload(form: MeetingFormData) {
+export function toPayload(form: MeetingFormData) {
   return {
     title: form.title,
     description: form.description || null,
@@ -77,7 +77,7 @@ function toPayload(form: MeetingFormData) {
   };
 }
 
-function toForm(meeting: MeetingItem): MeetingFormData {
+export function toForm(meeting: MeetingItem): MeetingFormData {
   return {
     title: meeting.title,
     description: meeting.description,

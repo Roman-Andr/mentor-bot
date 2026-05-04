@@ -3,8 +3,6 @@ import { TabSwitcher } from "@/components/ui/tab-switcher";
 import { EntityPageHeader } from "./entity-page-header";
 import { EntityPageTable } from "./entity-page-table";
 import type { EntityPageProps } from "./entity-page-types";
-import { useTranslations } from "@/hooks/use-translations";
-
 export function EntityPage<TItem, TForm>(props: EntityPageProps<TItem, TForm>) {
   const {
     title,
@@ -52,7 +50,6 @@ export function EntityPage<TItem, TForm>(props: EntityPageProps<TItem, TForm>) {
     onSort,
   } = props;
 
-  const t = useTranslations("common");
   const mode = isEditOpen ? "edit" : "create";
 
   const defaultCreateLabel = t("create") ?? "Create";

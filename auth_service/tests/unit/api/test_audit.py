@@ -4,6 +4,7 @@ from datetime import UTC, datetime
 from unittest.mock import AsyncMock
 
 import pytest
+
 from auth_service.api.endpoints.audit import (
     AuditResponse,
     InvitationHistoryEntry,
@@ -16,6 +17,7 @@ from auth_service.api.endpoints.audit import (
     get_role_change_history,
     require_hr_or_admin,
 )
+from auth_service.core import PermissionDenied
 from auth_service.models import (
     InvitationStatusHistory,
     LoginHistory,
@@ -64,7 +66,6 @@ def create_invitation_status_history(**kwargs):
         "new_status": "ACCEPTED",
         "changed_at": datetime.now(UTC),
         "changed_by": 1,
-        "metadata": {},
     }
     defaults.update(kwargs)
     return InvitationStatusHistory(**defaults)
@@ -100,14 +101,14 @@ class TestRequireHrOrAdmin:
 
     def test_require_hr_or_admin_with_mentor(self, mentor_user):
         """Test require_hr_or_admin denies mentor user."""
-        with pytest.raises(PermissionError) as exc_info:
+        with pytest.raises(PermissionDenied) as exc_info:
             require_hr_or_admin(mentor_user)
 
         assert "Access denied: HR or Admin role required" in str(exc_info.value)
 
     def test_require_hr_or_admin_with_newbie(self, newbie_user):
         """Test require_hr_or_admin denies newbie user."""
-        with pytest.raises(PermissionError) as exc_info:
+        with pytest.raises(PermissionDenied) as exc_info:
             require_hr_or_admin(newbie_user)
 
         assert "Access denied: HR or Admin role required" in str(exc_info.value)
@@ -203,7 +204,7 @@ class TestGetLoginHistory:
 
     async def test_get_login_history_permission_denied(self, newbie_user, mock_uow):
         """Test get_login_history raises PermissionError for non-HR/Admin."""
-        with pytest.raises(PermissionError) as exc_info:
+        with pytest.raises(PermissionDenied) as exc_info:
             await get_login_history(
                 current_user=newbie_user,
                 uow=mock_uow,
@@ -290,7 +291,7 @@ class TestGetRoleChangeHistory:
 
     async def test_get_role_change_history_permission_denied(self, newbie_user, mock_uow):
         """Test get_role_change_history raises PermissionError for non-HR/Admin."""
-        with pytest.raises(PermissionError) as exc_info:
+        with pytest.raises(PermissionDenied) as exc_info:
             await get_role_change_history(
                 current_user=newbie_user,
                 uow=mock_uow,
@@ -316,7 +317,7 @@ class TestGetInvitationHistory:
             "new_status": "ACCEPTED",
             "changed_at": datetime.now(UTC),
             "changed_by": 1,
-            "metadata": {},
+            "meta_data": {},
         }
         history2 = {
             "id": 2,
@@ -325,7 +326,7 @@ class TestGetInvitationHistory:
             "new_status": "EXPIRED",
             "changed_at": datetime.now(UTC),
             "changed_by": None,
-            "metadata": None,
+            "meta_data": None,
         }
 
         mock_uow.invitation_status_history.get_all = AsyncMock(return_value=([history1, history2], 2))
@@ -354,7 +355,7 @@ class TestGetInvitationHistory:
             "new_status": "ACCEPTED",
             "changed_at": datetime.now(UTC),
             "changed_by": 1,
-            "metadata": {"auto_created": True},
+            "meta_data": {"auto_created": True},
         }
 
         mock_uow.invitation_status_history.get_by_invitation_id = AsyncMock(return_value=[history])
@@ -379,7 +380,7 @@ class TestGetInvitationHistory:
 
     async def test_get_invitation_history_permission_denied(self, newbie_user, mock_uow):
         """Test get_invitation_history raises PermissionError for non-HR/Admin."""
-        with pytest.raises(PermissionError) as exc_info:
+        with pytest.raises(PermissionDenied) as exc_info:
             await get_invitation_history(
                 current_user=newbie_user,
                 uow=mock_uow,
@@ -503,7 +504,7 @@ class TestGetMentorAssignmentHistory:
 
     async def test_get_mentor_assignment_history_permission_denied(self, newbie_user, mock_uow):
         """Test get_mentor_assignment_history raises PermissionError for non-HR/Admin."""
-        with pytest.raises(PermissionError) as exc_info:
+        with pytest.raises(PermissionDenied) as exc_info:
             await get_mentor_assignment_history(
                 current_user=newbie_user,
                 uow=mock_uow,

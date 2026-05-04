@@ -119,6 +119,8 @@ def mock_uow():
     # History tracking repositories
     uow.login_history = MagicMock()
     uow.login_history.create = AsyncMock()
+    uow.logout_history = MagicMock()
+    uow.logout_history.create = AsyncMock()
     uow.invitation_status_history = MagicMock()
     uow.invitation_status_history.create = AsyncMock()
     uow.mentor_assignment_history = MagicMock()

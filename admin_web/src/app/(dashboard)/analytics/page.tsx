@@ -222,7 +222,7 @@ export default function AnalyticsPage() {
   const handleExport = async () => {
     if (activeTab === "history") {
       // Export history tab CSV
-      const filters = historyTabRef.current?.getFilters() || {};
+      const filters = {};
       const events = await api.audit.fetchAll(filters, 10000);
       
       const rows = [

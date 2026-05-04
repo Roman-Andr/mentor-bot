@@ -116,6 +116,7 @@ class TestMeetingTemplateCRUD:
         assert result.title == "New Title"
         assert result.is_mandatory is False
         mock_uow.meetings.update.assert_called_once()
+        mock_uow.commit.assert_awaited_once()
 
     @pytest.mark.asyncio
     async def test_delete_meeting(self, mock_uow):
@@ -134,6 +135,7 @@ class TestMeetingTemplateCRUD:
 
         # Assert
         mock_uow.meetings.delete.assert_called_once_with(1)
+        mock_uow.commit.assert_awaited_once()
 
     @pytest.mark.asyncio
     async def test_get_meetings_with_filters(self, mock_uow):
@@ -204,6 +206,7 @@ class TestMaterialCRUD:
         assert result.title == "Test PDF"
         mock_uow.meetings.get_by_id.assert_called_once_with(1)
         mock_uow.materials.create.assert_called_once()
+        mock_uow.commit.assert_awaited_once()
 
     @pytest.mark.asyncio
     async def test_add_material_meeting_not_found(self, mock_uow):
@@ -249,6 +252,7 @@ class TestMaterialCRUD:
 
         # Assert
         mock_uow.materials.delete.assert_called_once_with(1)
+        mock_uow.commit.assert_awaited_once()
 
     @pytest.mark.asyncio
     async def test_delete_material_not_found(self, mock_uow):
@@ -426,6 +430,7 @@ class TestAssignMeeting:
         # Assert
         assert result.user_id == 100
         assert result.scheduled_at is None
+        mock_uow.commit.assert_awaited_once()
         # GoogleCalendarService should not be instantiated when scheduled_at is None
 
     @pytest.mark.asyncio
@@ -591,6 +596,7 @@ class TestUpdateAssignment:
                     "end": {"dateTime": (new_time + timedelta(hours=1)).isoformat(), "timeZone": "UTC"},
                 },
             )
+            mock_uow.commit.assert_awaited_once()
 
     @pytest.mark.asyncio
     async def test_update_assignment_remove_scheduled_at(self, mock_uow):
@@ -621,6 +627,7 @@ class TestUpdateAssignment:
 
             # Assert
             mock_gc_instance.delete_event.assert_called_once_with(100, "event-123")
+            mock_uow.commit.assert_awaited_once()
 
 
 class TestCompleteMeeting:
@@ -662,6 +669,7 @@ class TestCompleteMeeting:
         assert result.rating == 5
         assert result.completed_at is not None
         mock_uow.user_meetings.update.assert_called_once()
+        mock_uow.commit.assert_awaited_once()
 
     @pytest.mark.asyncio
     async def test_complete_already_completed_meeting(self, mock_uow):
@@ -711,6 +719,7 @@ class TestDeleteAssignment:
             # Assert
             mock_gc_instance.delete_event.assert_called_once_with(100, "event-123")
             mock_uow.user_meetings.delete.assert_called_once_with(1)
+            mock_uow.commit.assert_awaited_once()
 
     @pytest.mark.asyncio
     async def test_delete_assignment_without_calendar_event(self, mock_uow):
@@ -730,6 +739,7 @@ class TestDeleteAssignment:
 
         # Assert
         mock_uow.user_meetings.delete.assert_called_once_with(1)
+        mock_uow.commit.assert_awaited_once()
 
 
 class TestAutoAssignment:
@@ -780,6 +790,7 @@ class TestAutoAssignment:
         assert len(result) == 2
         assert mock_uow.meetings.find_meetings.called
         assert mock_uow.user_meetings.create.call_count == 2
+        mock_uow.commit.assert_awaited_once()
 
     @pytest.mark.asyncio
     async def test_assign_meetings_skips_existing(self, mock_uow):

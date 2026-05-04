@@ -4,6 +4,5 @@ export { AssignMentorDialog } from "./assign-mentor-dialog";
 export { DepartmentFormDialog } from "./department-form-dialog";
 export { DepartmentsTable } from "./departments-table";
 export { UserFilters } from "./user-filters";
-export { UsersTabSwitcher } from "./users-tab-switcher";
 export { UsersSection } from "./users-section";
 export { DepartmentsSection } from "./departments-section";

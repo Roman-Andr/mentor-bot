@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "@/hooks/use-translations";
+import { PageContent } from "@/components/layout/page-content";
 import { EntityPage } from "@/components/entity";
 import { useDepartments, type DepartmentRow, type DepartmentFormData } from "@/hooks/use-departments";
 import { Input } from "@/components/ui/input";

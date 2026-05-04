@@ -19,6 +19,7 @@ export interface UserItem {
   isActive: boolean;
   createdAt: string;
   telegram_id?: number | null;
+  phone?: string | null;
 }
 
 export interface UserFormData {
@@ -53,7 +54,7 @@ const INITIAL_FORM: UserFormData = {
   telegram_id: null,
 };
 
-function mapUser(u: User): UserItem {
+export function mapUser(u: User): UserItem {
   return {
     id: u.id,
     name: `${u.first_name} ${u.last_name || ""}`.trim(),
@@ -66,10 +67,11 @@ function mapUser(u: User): UserItem {
     isActive: u.is_active,
     createdAt: u.created_at,
     telegram_id: u.telegram_id,
+    phone: u.phone,
   };
 }
 
-function toCreatePayload(form: UserFormData) {
+export function toCreatePayload(form: UserFormData) {
   return {
     first_name: form.first_name,
     last_name: form.last_name || null,
@@ -86,7 +88,7 @@ function toCreatePayload(form: UserFormData) {
   };
 }
 
-function toUpdatePayload(form: UserFormData) {
+export function toUpdatePayload(form: UserFormData) {
   return {
     first_name: form.first_name,
     last_name: form.last_name || null,
@@ -102,13 +104,13 @@ function toUpdatePayload(form: UserFormData) {
   };
 }
 
-function toForm(user: UserItem): UserFormData {
+export function toForm(user: UserItem): UserFormData {
   const nameParts = user.name.split(" ");
   return {
     first_name: nameParts[0] || "",
     last_name: nameParts.slice(1).join(" ") || "",
     email: user.email,
-    phone: "",
+    phone: user.phone || "",
     employee_id: user.employee_id || "",
     department_id: user.department_id || 0,
     position: user.position,
@@ -186,9 +188,15 @@ export function useUsers() {
     setAssignMentorDialogOpen(true);
   }, []);
 
-  const handleAssignMentor = useCallback(async () => {
-    // TODO: Implement assignMentor API when available
-  }, []);
+  const handleAssignMentor = useCallback(async (userId: number, mentorId: number) => {
+    const resp = await api.userMentors.create({ user_id: userId, mentor_id: mentorId });
+    if (resp.success) {
+      toast(t("mentorAssigned"), "success");
+      await queryClient.invalidateQueries({ queryKey: queryKeys.users.all });
+    } else {
+      toast(resp.error.message || t("assignMentorError"), "error");
+    }
+  }, [t, toast, queryClient]);
 
   const handleUnassignMentor = useCallback(async (mentorRelationId: number) => {
     const resp = await api.userMentors.delete(mentorRelationId);

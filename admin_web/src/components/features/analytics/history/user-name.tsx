@@ -30,5 +30,8 @@ export function UserName({ userId }: UserNameProps) {
   }
 
   const user = data.data;
-  return <span>{user.full_name || user.email || `User #${user.id}`}</span>;
+  const displayName = user.first_name || user.last_name
+    ? `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim()
+    : user.email || `User #${user.id}`;
+  return <span>{displayName}</span>;
 }

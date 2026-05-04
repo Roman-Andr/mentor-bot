@@ -9,7 +9,9 @@ from fastapi.security import OAuth2PasswordRequestForm
 from auth_service.api.deps import (
     AuthServiceDep,
     CurrentUser,
+    get_current_user_optional,
 )
+from auth_service.models import User
 from auth_service.config import settings
 from auth_service.core import (
     AuthException,
@@ -220,9 +222,17 @@ async def get_current_user_info(
 
 
 @router.post("/logout")
-async def logout(response: Response) -> MessageResponse:
+async def logout(
+    response: Response,
+    current_user: CurrentUser,
+    auth_service: AuthServiceDep,
+) -> MessageResponse:
     """Logout user and clear httpOnly cookies."""
-    logger.info("Logout request received")
+    logger.info("Logout request received (user_id=%s)", current_user.id)
+    
+    # Record logout history
+    await auth_service.record_logout(user_id=current_user.id, method="web")
+    
     response.delete_cookie(key="access_token")
     response.delete_cookie(key="refresh_token")
     return MessageResponse(message="Successfully logged out")

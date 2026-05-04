@@ -66,6 +66,7 @@ class MeetingService:
             setattr(meeting, field, value)
         meeting.updated_at = datetime.now(UTC)
         updated = await self._uow.meetings.update(meeting)
+        await self._uow.commit()
         logger.info("Meeting updated (meeting_id={})", updated.id)
         return updated
 
@@ -74,6 +75,7 @@ class MeetingService:
         logger.debug("Deleting meeting (meeting_id={})", meeting_id)
         meeting = await self.get_meeting(meeting_id)
         await self._uow.meetings.delete(meeting.id)
+        await self._uow.commit()
         logger.info("Meeting deleted (meeting_id={})", meeting_id)
 
     async def get_meetings(
@@ -121,6 +123,7 @@ class MeetingService:
         await self.get_meeting(meeting_id)  # ensure meeting exists
         material = MeetingMaterial(meeting_id=meeting_id, **material_data.model_dump())
         created = await self._uow.materials.create(material)
+        await self._uow.commit()
         logger.info("Material added (material_id={}, meeting_id={})", created.id, meeting_id)
         return created
 
@@ -140,6 +143,7 @@ class MeetingService:
             msg = "Material"
             raise NotFoundException(msg)
         await self._uow.materials.delete(material.id)
+        await self._uow.commit()
         logger.info("Material deleted (material_id={})", material_id)
 
     # --- User assignments ---
@@ -355,6 +359,7 @@ class MeetingService:
             setattr(assignment, field, value)
         assignment.updated_at = datetime.now(UTC)
         updated = await self._uow.user_meetings.update(assignment)
+        await self._uow.commit()
         logger.info("Assignment updated (assignment_id={})", updated.id)
         return updated
 
@@ -373,6 +378,7 @@ class MeetingService:
         assignment.rating = completion.rating
         assignment.updated_at = datetime.now(UTC)
         updated = await self._uow.user_meetings.update(assignment)
+        await self._uow.commit()
         logger.info("Meeting completed (assignment_id={})", updated.id)
         return updated
 
@@ -395,6 +401,7 @@ class MeetingService:
                 logger.warning("Failed to delete Google Calendar event: %s", e)
 
         await self._uow.user_meetings.delete(assignment.id)
+        await self._uow.commit()
         logger.info("Assignment deleted (assignment_id={})", assignment_id)
 
     # --- Auto-assignment for new user ---
@@ -433,5 +440,7 @@ class MeetingService:
                 )
                 created.append(await self._uow.user_meetings.create(assignment))
                 logger.debug("Auto-assigned meeting (user_id={}, meeting_id={})", user_id, meeting.id)
+        if created:
+            await self._uow.commit()
         logger.info("Auto-assign meetings completed (user_id={}, created_count={})", user_id, len(created))
         return created

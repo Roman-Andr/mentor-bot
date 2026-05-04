@@ -5,10 +5,11 @@ from collections.abc import Sequence
 from datetime import datetime
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query
-from pydantic import BaseModel
+from fastapi import APIRouter, Query
+from pydantic import BaseModel, SerializeAsAny
 
 from checklists_service.api.deps import CurrentUser, UnitOfWorkDep
+from checklists_service.core import PermissionDenied
 
 logger = logging.getLogger(__name__)
 
@@ -19,59 +20,65 @@ router = APIRouter()
 class ChecklistStatusEntry(BaseModel):
     """Checklist status history entry schema."""
 
+    model_config = {"from_attributes": True}
+
     id: int
     checklist_id: int
     user_id: int
     action: str
-    old_status: str | None
-    new_status: str | None
+    old_status: str | None = None
+    new_status: str | None = None
     changed_at: datetime
-    changed_by: int | None
-    metadata: dict | None
+    changed_by: int | None = None
+    meta_data: dict | None = None
 
 
 class TaskCompletionEntry(BaseModel):
     """Task completion history entry schema."""
+
+    model_config = {"from_attributes": True}
 
     id: int
     task_id: int
     checklist_id: int
     user_id: int
     completed_at: datetime
-    completion_notes: str | None
-    attachments: dict | None
-    completed_by: int | None
+    completion_notes: str | None = None
+    attachments: dict | None = None
+    completed_by: int | None = None
 
 
 class TemplateChangeEntry(BaseModel):
     """Template change history entry schema."""
 
+    model_config = {"from_attributes": True}
+
     id: int
     template_id: int
     action: str
-    old_name: str | None
-    new_name: str | None
+    old_name: str | None = None
+    new_name: str | None = None
     changed_at: datetime
-    changed_by: int | None
-    change_summary: str | None
+    changed_by: int | None = None
+    change_summary: str | None = None
 
 
 class AuditResponse(BaseModel):
     """Generic audit response with pagination."""
 
-    items: Sequence[BaseModel]
+    items: Sequence[SerializeAsAny[BaseModel]]
     total: int
 
 
 def require_hr_or_admin(current_user: CurrentUser) -> None:
     """Require HR or Admin role for audit access."""
     if current_user.role not in ("HR", "ADMIN"):
-        raise PermissionError("Access denied: HR or Admin role required")
+        raise PermissionDenied("Access denied: HR or Admin role required")
 
 
 @router.get("/checklist-status-history", response_model=AuditResponse)
 async def get_checklist_status_history(
-    current_user: Annotated[CurrentUser, Depends()],
+    current_user: CurrentUser,
     uow: UnitOfWorkDep,
     checklist_id: Annotated[int | None, Query()] = None,
     user_id: Annotated[int | None, Query()] = None,
@@ -104,7 +111,7 @@ async def get_checklist_status_history(
 
 @router.get("/task-completion-history", response_model=AuditResponse)
 async def get_task_completion_history(
-    current_user: Annotated[CurrentUser, Depends()],
+    current_user: CurrentUser,
     uow: UnitOfWorkDep,
     task_id: Annotated[int | None, Query()] = None,
     checklist_id: Annotated[int | None, Query()] = None,
@@ -141,7 +148,7 @@ async def get_task_completion_history(
 
 @router.get("/template-change-history", response_model=AuditResponse)
 async def get_template_change_history(
-    current_user: Annotated[CurrentUser, Depends()],
+    current_user: CurrentUser,
     uow: UnitOfWorkDep,
     template_id: Annotated[int | None, Query()] = None,
     from_date: Annotated[datetime | None, Query()] = None,

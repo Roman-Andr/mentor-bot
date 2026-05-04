@@ -1,6 +1,7 @@
-export { 
-  TableActions, 
+export {
+  TableActions,
   type ActionDefinition,
+  type ActionType,
   buildEditAction,
   buildDeleteAction,
   buildToggleAction,
@@ -12,6 +13,8 @@ export {
   buildReplyAction,
   buildViewUsersAction,
   buildAssignAction,
+  buildAssignMentorAction,
+  buildPublishAction,
 } from "./table-actions";
 export { 
   TableFilters, 

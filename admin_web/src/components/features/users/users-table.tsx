@@ -16,8 +16,8 @@ import {
 } from "@/components/ui/table";
 import { DataTable } from "@/components/ui/data-table";
 import { CardHeader, CardTitle } from "@/components/ui/card";
-import { TableActions, buildEditAction, buildDeleteAction } from "@/components/shared";
-import { Building, UserCheck } from "lucide-react";
+import { TableActions, buildEditAction, buildDeleteAction, buildAssignMentorAction } from "@/components/shared";
+import { Building } from "lucide-react";
 import { getRoleOptions } from "@/lib/constants";
 import type { UserItem } from "@/hooks/use-users";
 import { SortableTableHead } from "@/components/ui/sortable-table-head";
@@ -230,15 +230,15 @@ export function UsersTable({
                 <TableActions
                   actions={[
                     buildEditAction(() => onEdit(user), t("common.edit")),
-                    ...(onAssignMentor && user.role === "NEWBIE"
-                      ? [{
-                          icon: UserCheck,
-                          label: t("users.assignMentor"),
-                          onClick: () => onAssignMentor(user),
-                          variant: "ghost" as const,
-                        }]
-                      : []
-                    ),
+                    ...(onAssignMentor
+                      ? [
+                          buildAssignMentorAction(
+                            () => onAssignMentor(user),
+                            t("users.assignMentor"),
+                            user.role === "NEWBIE",
+                          ),
+                        ]
+                      : []),
                     buildDeleteAction(() => onDelete(user.id), t("common.delete")),
                   ]}
                 />

@@ -500,11 +500,30 @@ class TestRegisterWithInvitationEdgeCases:
 class TestLogoutEndpoint:
     """Tests for POST /api/v1/auth/logout endpoint."""
 
-    def test_logout_success(self):
+    def test_logout_success(self, mock_auth_service, active_user):
         """Test logout returns success message."""
-        client = get_test_client()
-        response = client.post("/api/v1/auth/logout")
+        # Mock the current user dependency
+        async def mock_get_current() -> User:
+            return active_user
 
-        assert response.status_code == 200
-        data = response.json()
-        assert data["message"] == "Successfully logged out"
+        # Mock the record_logout method
+        mock_auth_service.record_logout = AsyncMock()
+
+        app.dependency_overrides[deps.get_current_user] = mock_get_current
+        app.dependency_overrides[deps.get_auth_service] = lambda: mock_auth_service
+
+        try:
+            client = get_test_client()
+            response = client.post("/api/v1/auth/logout")
+
+            if response.status_code != 200:
+                print(f"Response status: {response.status_code}")
+                print(f"Response body: {response.text}")
+            assert response.status_code == 200
+            data = response.json()
+            assert data["message"] == "Successfully logged out"
+            # Verify record_logout was called
+            mock_auth_service.record_logout.assert_called_once_with(user_id=active_user.id, method="web")
+        finally:
+            app.dependency_overrides.pop(deps.get_current_user, None)
+            app.dependency_overrides.pop(deps.get_auth_service, None)

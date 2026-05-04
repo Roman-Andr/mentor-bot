@@ -15,6 +15,7 @@ const SERVICE_MAP: Record<string, string> = {
 
 const ENDPOINTS: Array<{ source: AuditSource; path: string }> = [
   { source: "auth", path: "/auth/login-history" },
+  { source: "auth", path: "/auth/logout-history" },
   { source: "auth", path: "/auth/role-change-history" },
   { source: "auth", path: "/auth/invitation-history" },
   { source: "auth", path: "/auth/mentor-assignment-history" },
@@ -28,7 +29,7 @@ const ENDPOINTS: Array<{ source: AuditSource; path: string }> = [
   { source: "checklists", path: "/checklists/checklist-status-history" },
   { source: "checklists", path: "/checklists/task-completion-history" },
   { source: "checklists", path: "/checklists/template-change-history" },
-  { source: "escalations", path: "/escalations/escalation-status-change-history" },
+  { source: "escalations", path: "/escalations/escalation-status-history" },
   { source: "escalations", path: "/escalations/mentor-intervention-history" },
 ];
 
@@ -208,7 +209,7 @@ export async function GET(request: NextRequest) {
       const { source, events, error } = result.value;
       allEvents.push(...events);
       if (error) {
-        partial.push(error);
+        partial.push({ source: source || "unknown", ...error });
       }
     } else {
       logger.error("Source fetch promise rejected", { error: result.reason });

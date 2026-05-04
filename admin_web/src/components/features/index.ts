@@ -29,7 +29,6 @@ export * from "./users/assign-mentor-dialog";
 export * from "./users/department-form-dialog";
 export * from "./users/departments-table";
 export * from "./users/user-filters";
-export * from "./users/users-tab-switcher";
 export * from "./users/users-section";
 export * from "./users/departments-section";
 export * from "./feedback/stat-card";

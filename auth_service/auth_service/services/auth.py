@@ -16,7 +16,7 @@ from auth_service.core import (
     decode_token,
     verify_password,
 )
-from auth_service.models import LoginHistory, RoleChangeHistory, User, UserMentor
+from auth_service.models import LoginHistory, LogoutHistory, RoleChangeHistory, User, UserMentor
 from auth_service.repositories.unit_of_work import IUnitOfWork
 from auth_service.schemas import (
     LoginRequest,
@@ -56,6 +56,7 @@ class AuthService:
                 ip_address=self._get_client_ip(request),
                 user_agent=request.headers.get("user-agent") if request else None,
             )
+            await self._uow.commit()
             logger.warning("Authentication failed: user is disabled (user_id={})", user.id)
             msg = "User account is disabled"
             raise AuthException(msg)
@@ -71,6 +72,7 @@ class AuthService:
                 ip_address=self._get_client_ip(request),
                 user_agent=request.headers.get("user-agent") if request else None,
             )
+            await self._uow.commit()
             logger.warning("Authentication failed: invalid password (user_id={})", user.id)
             msg = "Invalid email or password"
             raise AuthException(msg)
@@ -86,6 +88,7 @@ class AuthService:
             ip_address=self._get_client_ip(request),
             user_agent=request.headers.get("user-agent") if request else None,
         )
+        await self._uow.commit()
 
         # Generate tokens
         token = self.create_token_for_user(user)
@@ -139,6 +142,7 @@ class AuthService:
                 ip_address=self._get_client_ip(request),
                 user_agent=request.headers.get("user-agent") if request else None,
             )
+            await self._uow.commit()
             logger.warning("Telegram authentication failed: user is disabled (user_id={})", user.id)
             msg = "User account is disabled"
             raise AuthException(msg)
@@ -164,6 +168,7 @@ class AuthService:
             ip_address=self._get_client_ip(request),
             user_agent=request.headers.get("user-agent") if request else None,
         )
+        await self._uow.commit()
 
         logger.info(
             "Telegram authentication successful (user_id={}, telegram_id={})",
@@ -241,6 +246,7 @@ class AuthService:
                 invitation.mentor_id,
             )
 
+        await self._uow.commit()
         logger.info(
             "User registered via invitation (user_id={}, invitation_id={}, role={})",
             created_user.id,
@@ -338,6 +344,23 @@ class AuthService:
         )
         await self._uow.login_history.create(login_history)
 
+    async def record_logout(
+        self,
+        user_id: int,
+        method: str = "web",
+        ip_address: str | None = None,
+        user_agent: str | None = None,
+    ) -> None:
+        """Record logout to audit log."""
+        logout_history = LogoutHistory(
+            user_id=user_id,
+            method=method,
+            ip_address=ip_address,
+            user_agent=user_agent,
+        )
+        await self._uow.logout_history.create(logout_history)
+        await self._uow.commit()
+
     def _get_client_ip(self, request: Request | None) -> str | None:
         """Extract client IP address from request."""
         if not request:
@@ -365,3 +388,4 @@ class AuthService:
             reason=reason,
         )
         await self._uow.role_change_history.create(role_change)
+        await self._uow.commit()

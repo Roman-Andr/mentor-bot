@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest'
 import { analyticsApi } from '@/lib/api/analytics'
 import { mockFetchResponse } from '../setup'
 
@@ -95,7 +95,7 @@ describe('analyticsApi', () => {
             }
           ])
         }
-        const fetchCall = (global.fetch as jest.Mock).mock.calls[0]
+        const fetchCall = (global.fetch as Mock).mock.calls[0]
         expect(fetchCall[0]).toContain('/api/v1/knowledge/analytics/top-articles')
       })
 
@@ -223,7 +223,7 @@ describe('analyticsApi', () => {
             }
           ])
         }
-        const fetchCall = (global.fetch as jest.Mock).mock.calls[0]
+        const fetchCall = (global.fetch as Mock).mock.calls[0]
         expect(fetchCall[0]).toContain('/api/v1/knowledge/analytics/views-by-category')
       })
 
@@ -282,7 +282,7 @@ describe('analyticsApi', () => {
             }
           ])
         }
-        const fetchCall = (global.fetch as jest.Mock).mock.calls[0]
+        const fetchCall = (global.fetch as Mock).mock.calls[0]
         expect(fetchCall[0]).toContain('/api/v1/knowledge/analytics/views-by-tag')
       })
 

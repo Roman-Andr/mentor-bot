@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { SearchableSelect, type SelectOption } from "@/components/ui/searchable-select";
 import type { HistoryFilters, AuditSource, AuditEventType } from "@/types/audit";
 
 interface HistoryFiltersProps {
@@ -28,7 +28,6 @@ const EVENT_TYPES_BY_SOURCE: Record<AuditSource, AuditEventType[]> = {
 
 export function HistoryFilters({ filters, onChange }: HistoryFiltersProps) {
   const t = useTranslations();
-  const [showEventTypes, setShowEventTypes] = useState(false);
 
   const handleDateChange = (field: "from_date" | "to_date", value: string) => {
     onChange({ ...filters, [field]: value || undefined });
@@ -127,38 +126,21 @@ export function HistoryFilters({ filters, onChange }: HistoryFiltersProps) {
       </div>
 
       <div>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="w-full justify-between"
-          onClick={() => setShowEventTypes(!showEventTypes)}
-        >
-          {t("analytics.history.filters.eventTypes")}
-          {showEventTypes ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-        </Button>
-        {showEventTypes && (
-          <div className="space-y-3 mt-3">
-            {selectedSources.map((source) => (
-              <div key={source}>
-                <p className="text-sm font-medium mb-2">{t(`analytics.history.sources.${source}`)}</p>
-                <div className="flex flex-wrap gap-2">
-                  {EVENT_TYPES_BY_SOURCE[source].map((eventType) => (
-                    <div key={eventType} className="flex items-center gap-2">
-                      <Checkbox
-                        id={`event-${eventType}`}
-                        checked={selectedEventTypes.includes(eventType)}
-                        onCheckedChange={(checked) => handleEventTypeToggle(eventType, checked as boolean)}
-                      />
-                      <label htmlFor={`event-${eventType}`} className="text-sm cursor-pointer">
-                        {t(`analytics.history.eventTypes.${eventType}`)}
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        <Label className="mb-2 block">{t("analytics.history.filters.eventTypes")}</Label>
+        <SearchableSelect
+          value={selectedEventTypes.length > 0 ? selectedEventTypes[0] : ""}
+          onChange={(value) => onChange({ ...filters, event_types: value ? [value as AuditEventType] : undefined })}
+          options={[
+            { value: "", label: t("analytics.history.filters.allEventTypes") },
+            ...selectedSources.flatMap((source) =>
+              EVENT_TYPES_BY_SOURCE[source].map((eventType) => ({
+                value: eventType,
+                label: t(`analytics.history.eventTypes.${eventType}`),
+              }))
+            ),
+          ]}
+          placeholder={t("analytics.history.filters.allEventTypes")}
+        />
       </div>
     </div>
   );

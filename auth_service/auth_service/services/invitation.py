@@ -150,6 +150,7 @@ class InvitationService:
             changed_by=changed_by,
         )
 
+        await self._uow.commit()
         logger.info("Invitation resent (invitation_id={})", updated.id)
         return updated
 
@@ -179,6 +180,7 @@ class InvitationService:
             changed_by=changed_by,
         )
 
+        await self._uow.commit()
         logger.info("Invitation revoked (invitation_id={})", updated.id)
         return updated
 
@@ -221,6 +223,7 @@ class InvitationService:
             msg = "Invitation"
             raise NotFoundException(msg)
         deleted = await self._uow.invitations.delete(invitation_id)
+        await self._uow.commit()
         logger.info("Invitation deleted (invitation_id={}, deleted={})", invitation_id, deleted)
         return deleted
 
@@ -234,7 +237,7 @@ class InvitationService:
         old_status: str | None,
         new_status: str,
         changed_by: int | None = None,
-        metadata: dict | None = None,
+        meta_data: dict | None = None,
     ) -> None:
         """Record invitation status change to audit log."""
         status_change = InvitationStatusHistory(
@@ -242,6 +245,6 @@ class InvitationService:
             old_status=old_status,
             new_status=new_status,
             changed_by=changed_by,
-            metadata=metadata,
+            meta_data=meta_data,
         )
         await self._uow.invitation_status_history.create(status_change)

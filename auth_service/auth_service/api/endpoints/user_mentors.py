@@ -92,6 +92,7 @@ async def create_user_mentor(
         is_active=True,
     )
     created = await uow.user_mentors.create(relation)
+    await uow.commit()
     logger.info(
         "User-mentor relation created (id={}, user_id={}, mentor_id={})",
         created.id,
@@ -126,6 +127,7 @@ async def update_user_mentor(
         setattr(relation, field, value)
 
     updated = await uow.user_mentors.update(relation)
+    await uow.commit()
     logger.info("User-mentor relation updated (relation_id={})", relation_id)
     return UserMentorResponse.model_validate(updated)
 
@@ -149,4 +151,5 @@ async def delete_user_mentor(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Relation not found",
         )
+    await uow.commit()
     return MessageResponse(message="Relation deleted successfully")

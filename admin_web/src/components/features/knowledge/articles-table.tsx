@@ -19,7 +19,7 @@ import {
 import { DataTable } from "@/components/ui/data-table";
 import { DataTableSkeleton } from "@/components/ui/table-skeleton";
 import { CardHeader, CardTitle } from "@/components/ui/card";
-import { TableActions, buildEditAction, buildDeleteAction } from "@/components/shared";
+import { TableActions, buildEditAction, buildDeleteAction, buildPublishAction } from "@/components/shared";
 import { BookOpen, Eye, Pin, Star } from "lucide-react";
 import type { Category } from "@/types";
 import { getArticleStatusOptions } from "@/lib/constants";
@@ -205,15 +205,11 @@ export function ArticlesTable({
                 <TableActions
                   actions={[
                     buildEditAction(() => onEdit(article), t("common.edit")),
-                    ...(article.status === "DRAFT"
-                      ? [{
-                          icon: BookOpen,
-                          label: t("knowledge.publish"),
-                          onClick: () => onPublish(article.id),
-                          variant: "ghost" as const,
-                          color: "text-green-500",
-                        }]
-                      : []
+                    buildPublishAction(
+                      () => onPublish(article.id),
+                      t("knowledge.publish"),
+                      article.status === "DRAFT",
+                      BookOpen,
                     ),
                     buildDeleteAction(() => onDelete(article.id), t("common.delete")),
                   ]}

@@ -5,11 +5,11 @@ from collections.abc import Sequence
 from datetime import datetime
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query
-from pydantic import BaseModel
+from fastapi import APIRouter, Query
+from pydantic import BaseModel, SerializeAsAny
 
 from knowledge_service.api.deps import CurrentUser, UnitOfWorkDep
-from knowledge_service.core import UserRole
+from knowledge_service.core import PermissionDenied, UserRole
 
 logger = logging.getLogger(__name__)
 
@@ -85,19 +85,19 @@ class DialogueScenarioChangeEntry(BaseModel):
 class AuditResponse(BaseModel):
     """Generic audit response with pagination."""
 
-    items: Sequence[BaseModel]
+    items: Sequence[SerializeAsAny[BaseModel]]
     total: int
 
 
 def require_hr_or_admin(current_user: CurrentUser) -> None:
     """Require HR or Admin role for audit access."""
     if current_user.role not in (UserRole.HR, UserRole.ADMIN):
-        raise PermissionError("Access denied: HR or Admin role required")
+        raise PermissionDenied("Access denied: HR or Admin role required")
 
 
 @router.get("/article-change-history", response_model=AuditResponse)
 async def get_article_change_history(
-    current_user: Annotated[CurrentUser, Depends()],
+    current_user: CurrentUser,
     uow: UnitOfWorkDep,
     article_id: Annotated[int | None, Query()] = None,
     from_date: Annotated[datetime | None, Query()] = None,
@@ -126,7 +126,7 @@ async def get_article_change_history(
 
 @router.get("/article-view-history", response_model=AuditResponse)
 async def get_article_view_history(
-    current_user: Annotated[CurrentUser, Depends()],
+    current_user: CurrentUser,
     uow: UnitOfWorkDep,
     article_id: Annotated[int | None, Query()] = None,
     user_id: Annotated[int | None, Query()] = None,
@@ -159,7 +159,7 @@ async def get_article_view_history(
 
 @router.get("/category-change-history", response_model=AuditResponse)
 async def get_category_change_history(
-    current_user: Annotated[CurrentUser, Depends()],
+    current_user: CurrentUser,
     uow: UnitOfWorkDep,
     category_id: Annotated[int | None, Query()] = None,
     from_date: Annotated[datetime | None, Query()] = None,
@@ -188,7 +188,7 @@ async def get_category_change_history(
 
 @router.get("/dialogue-scenario-change-history", response_model=AuditResponse)
 async def get_dialogue_scenario_change_history(
-    current_user: Annotated[CurrentUser, Depends()],
+    current_user: CurrentUser,
     uow: UnitOfWorkDep,
     scenario_id: Annotated[int | None, Query()] = None,
     from_date: Annotated[datetime | None, Query()] = None,

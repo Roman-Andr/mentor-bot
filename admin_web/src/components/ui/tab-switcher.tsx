@@ -12,16 +12,22 @@ export interface TabItem {
 interface TabSwitcherProps {
   tabs: TabItem[];
   paramName?: string;
+  activeTab?: string;
+  onTabChange?: (tabId: string) => void;
 }
 
-export function TabSwitcher({ tabs, paramName = "tab" }: TabSwitcherProps) {
+export function TabSwitcher({ tabs, paramName = "tab", activeTab: controlledActiveTab, onTabChange: controlledOnTabChange }: TabSwitcherProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-  
-  const activeTab = searchParams.get(paramName) || tabs[0]?.id;
+
+  const activeTab = controlledActiveTab ?? (searchParams.get(paramName) || tabs[0]?.id);
 
   const handleTabChange = (tabId: string) => {
+    if (controlledOnTabChange) {
+      controlledOnTabChange(tabId);
+      return;
+    }
     const params = new URLSearchParams(searchParams.toString());
     params.set(paramName, tabId);
     router.replace(`${pathname}?${params.toString()}`);

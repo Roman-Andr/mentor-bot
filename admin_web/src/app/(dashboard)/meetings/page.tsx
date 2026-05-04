@@ -199,7 +199,7 @@ export default function MeetingsPage() {
             </div>
           </CardHeader>
         }
-        emptyStateMessage={t("meetings.noMeetings")}
+        emptyMessage={t("meetings.noMeetings")}
       >
         <Table>
           <TableHeader>

@@ -60,7 +60,7 @@ const defaultExtendedState: ExtendedState = {
   pendingFiles: [],
 };
 
-function mapArticle(a: Article): ArticleRow {
+export function mapArticle(a: Article): ArticleRow {
   return {
     id: a.id,
     title: a.title,
@@ -79,7 +79,7 @@ function mapArticle(a: Article): ArticleRow {
   };
 }
 
-function toPayload(form: ArticleFormData) {
+export function toPayload(form: ArticleFormData) {
   const keywordsArray = form.keywords
     .split(",")
     .map((k) => k.trim())
@@ -100,7 +100,7 @@ function toPayload(form: ArticleFormData) {
   };
 }
 
-function toForm(article: ArticleRow): ArticleFormData {
+export function toForm(article: ArticleRow): ArticleFormData {
   return {
     title: article.title,
     content: article.content,

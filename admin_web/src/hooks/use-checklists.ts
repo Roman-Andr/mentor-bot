@@ -47,7 +47,7 @@ const defaultFormData: ChecklistFormData = {
   notes: "",
 };
 
-function mapToItem(
+export function mapToItem(
   c: {
     id: number;
     user_id: number;
@@ -93,7 +93,7 @@ function mapToItem(
   };
 }
 
-function toCreatePayload(form: ChecklistFormData) {
+export function toCreatePayload(form: ChecklistFormData) {
   return {
     user_id: form.user_id,
     employee_id: form.employee_id,
@@ -106,7 +106,7 @@ function toCreatePayload(form: ChecklistFormData) {
   };
 }
 
-function toUpdatePayload(form: ChecklistFormData) {
+export function toUpdatePayload(form: ChecklistFormData) {
   return {
     mentor_id: form.mentor_id,
     hr_id: form.hr_id,
@@ -114,7 +114,7 @@ function toUpdatePayload(form: ChecklistFormData) {
   };
 }
 
-function toForm(checklist: ChecklistItem): ChecklistFormData {
+export function toForm(checklist: ChecklistItem): ChecklistFormData {
   return {
     user_id: checklist.userId,
     employee_id: checklist.employeeId,
@@ -201,7 +201,7 @@ export function useChecklists() {
         try {
           const taskResult = await api.checklists.completeTask(taskId);
           if (!taskResult?.success) {
-            failedTasks.push({ taskId, error: taskResult.error || "Unknown error" });
+            failedTasks.push({ taskId, error: taskResult.error?.message || "Unknown error" });
           }
         } catch (error: any) {
           failedTasks.push({ taskId, error: error.message || "Failed to complete task" });
@@ -235,7 +235,7 @@ export function useChecklists() {
           try {
             const result = await api.checklists.completeTask(task.id);
             if (!result?.success) {
-              failedTasks.push({ title: task.title, error: result.error || "Unknown error" });
+              failedTasks.push({ title: task.title, error: result.error?.message || "Unknown error" });
             }
           } catch (error: any) {
             failedTasks.push({ title: task.title, error: error.message || "Failed to complete task" });

@@ -7,9 +7,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Eye, MessageSquare, UserX, User, Star } from "lucide-react";
+import { UserX, User, Star } from "lucide-react";
+import { TableActions, buildViewAction, buildReplyAction } from "@/components/shared";
 import { formatDateTime } from "@/lib/utils";
 import { SortableTableHead } from "@/components/ui/sortable-table-head";
 import type { FeedbackItem } from "@/types";
@@ -123,42 +122,16 @@ export function FeedbackTable({ items, getUserName, onViewDetails, onReply, sort
               )}
             </TableCell>
             <TableCell className="text-right">
-              <TooltipProvider>
-                <div className="flex items-center justify-end gap-1">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => onViewDetails(item)}
-                        className="hover:bg-primary/10 hover:text-primary"
-                      >
-                        <Eye className="size-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{t("feedback.viewDetails")}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                  {item.type === "comment" && (!item.is_anonymous || item.allow_contact) && (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => onReply(item.id)}
-                          className="hover:bg-primary/10 hover:text-primary"
-                        >
-                          <MessageSquare className="size-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>{t("feedback.reply")}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  )}
-                </div>
-              </TooltipProvider>
+              <TableActions
+                actions={[
+                  buildViewAction(() => onViewDetails(item), t("feedback.viewDetails")),
+                  buildReplyAction(
+                    () => onReply(item.id),
+                    t("feedback.reply"),
+                    item.type === "comment" && (!item.is_anonymous || item.allow_contact),
+                  ),
+                ]}
+              />
             </TableCell>
           </TableRow>
         ))}

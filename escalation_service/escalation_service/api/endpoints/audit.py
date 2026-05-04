@@ -5,11 +5,11 @@ from collections.abc import Sequence
 from datetime import datetime
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query
-from pydantic import BaseModel
+from fastapi import APIRouter, Query
+from pydantic import BaseModel, SerializeAsAny
 
 from escalation_service.api.deps import CurrentUser, UnitOfWorkDep
-from escalation_service.core import UserRole
+from escalation_service.core import PermissionDenied, UserRole
 
 logger = logging.getLogger(__name__)
 
@@ -20,46 +20,50 @@ router = APIRouter()
 class EscalationStatusEntry(BaseModel):
     """Escalation status history entry schema."""
 
+    model_config = {"from_attributes": True}
+
     id: int
     escalation_id: int
     user_id: int
     action: str
-    old_status: str | None
-    new_status: str | None
+    old_status: str | None = None
+    new_status: str | None = None
     changed_at: datetime
-    changed_by: int | None
-    metadata: dict | None
+    changed_by: int | None = None
+    meta_data: dict | None = None
 
 
 class MentorInterventionEntry(BaseModel):
     """Mentor intervention history entry schema."""
+
+    model_config = {"from_attributes": True}
 
     id: int
     escalation_id: int
     mentor_id: int
     intervention_type: str
     intervention_at: datetime
-    notes: str | None
-    outcome: str | None
+    notes: str | None = None
+    outcome: str | None = None
     escalation_resolved: bool
 
 
 class AuditResponse(BaseModel):
     """Generic audit response with pagination."""
 
-    items: Sequence[BaseModel]
+    items: Sequence[SerializeAsAny[BaseModel]]
     total: int
 
 
 def require_hr_or_admin(current_user: CurrentUser) -> None:
     """Require HR or Admin role for audit access."""
     if current_user.role not in (UserRole.HR.value, UserRole.ADMIN.value):
-        raise PermissionError("Access denied: HR or Admin role required")
+        raise PermissionDenied("Access denied: HR or Admin role required")
 
 
 @router.get("/escalation-status-history", response_model=AuditResponse)
 async def get_escalation_status_history(
-    current_user: Annotated[CurrentUser, Depends()],
+    current_user: CurrentUser,
     uow: UnitOfWorkDep,
     escalation_id: Annotated[int | None, Query()] = None,
     user_id: Annotated[int | None, Query()] = None,
@@ -94,7 +98,7 @@ async def get_escalation_status_history(
 
 @router.get("/mentor-intervention-history", response_model=AuditResponse)
 async def get_mentor_intervention_history(
-    current_user: Annotated[CurrentUser, Depends()],
+    current_user: CurrentUser,
     uow: UnitOfWorkDep,
     escalation_id: Annotated[int | None, Query()] = None,
     mentor_id: Annotated[int | None, Query()] = None,

@@ -2,7 +2,7 @@
 
 import { useTranslations } from "@/hooks/use-translations";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, type TooltipProps } from "recharts";
 import type { DepartmentSearchStats } from "@/types";
 
 interface SearchByDepartmentChartProps {
@@ -22,7 +22,7 @@ const DEPARTMENT_COLORS = [
   "#D97706", // orange
 ];
 
-const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
+const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ payload: DepartmentSearchStats; name: string; value: number }> }) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload as DepartmentSearchStats;
     return (

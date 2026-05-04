@@ -18,8 +18,8 @@ import {
 import { DataTable } from "@/components/ui/data-table";
 import { DataTableSkeleton } from "@/components/ui/table-skeleton";
 import { CardHeader, CardTitle } from "@/components/ui/card";
-import { TableActions, buildEditAction, buildDeleteAction } from "@/components/shared";
-import { Calendar, CheckCircle } from "lucide-react";
+import { TableActions, buildEditAction, buildDeleteAction, buildPublishAction } from "@/components/shared";
+import { Calendar } from "lucide-react";
 import { getTemplateStatusOptions } from "@/lib/constants";
 import type { TemplateItem } from "@/hooks/use-templates";
 import type { SortDirection } from "@/hooks/use-sorting";
@@ -202,15 +202,10 @@ export function TemplatesTable({
                 <TableActions
                   actions={[
                     buildEditAction(() => onEdit(template), t("common.edit")),
-                    ...(template.status === "DRAFT"
-                      ? [{
-                          icon: CheckCircle,
-                          label: t("templates.publish"),
-                          onClick: () => onPublish(template.id),
-                          variant: "ghost" as const,
-                          color: "text-green-500",
-                        }]
-                      : []
+                    buildPublishAction(
+                      () => onPublish(template.id),
+                      t("templates.publish"),
+                      template.status === "DRAFT",
                     ),
                     buildDeleteAction(() => onDelete(template.id), t("common.delete")),
                   ]}

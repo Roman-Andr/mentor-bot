@@ -47,7 +47,7 @@ const defaultExtendedState: ExtendedState = {
   tasks: [],
 };
 
-function mapTemplateToItem(
+export function mapTemplateToItem(
   data: {
     id: number;
     name: string;
@@ -86,7 +86,7 @@ function mapTemplateToItem(
   };
 }
 
-function toCreatePayload(form: TemplateFormData) {
+export function toCreatePayload(form: TemplateFormData) {
   return {
     name: form.name,
     description: form.description,
@@ -99,7 +99,7 @@ function toCreatePayload(form: TemplateFormData) {
   };
 }
 
-function toUpdatePayload(form: TemplateFormData) {
+export function toUpdatePayload(form: TemplateFormData) {
   return {
     name: form.name,
     description: form.description,
@@ -108,7 +108,7 @@ function toUpdatePayload(form: TemplateFormData) {
   };
 }
 
-function toForm(template: TemplateItem): TemplateFormData {
+export function toForm(template: TemplateItem): TemplateFormData {
   return {
     name: template.name,
     description: template.description,

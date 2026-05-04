@@ -11,7 +11,7 @@ interface SortableTableHeadProps {
   /** Whether the column is sortable */
   sortable?: boolean;
   /** Current sort field */
-  sortField: string | null;
+  sortField: string | null | undefined;
   /** This column's field key */
   field: string;
   /** Current sort direction */

@@ -18,8 +18,7 @@ import { DataTableSkeleton } from "@/components/ui/table-skeleton";
 import { CardHeader, CardTitle } from "@/components/ui/card";
 import { useConfirm } from "@/hooks/use-confirm";
 import { cn } from "@/lib/utils";
-import { TableActions, buildEditAction, buildDeleteAction } from "@/components/shared";
-import { Power } from "lucide-react";
+import { TableActions, buildEditAction, buildDeleteAction, buildToggleAction } from "@/components/shared";
 import { useRouter } from "next/navigation";
 import type { DialogueRow } from "@/hooks/use-dialogues";
 import type { SortDirection } from "@/hooks/use-sorting";
@@ -200,10 +199,10 @@ export function DialoguesTable({
                   actions={[
                     buildEditAction(() => handleEdit(d), t("common.edit")),
                     {
-                      icon: Power,
-                      label: d.isActive ? t("common.deactivate") : t("common.activate"),
-                      onClick: () => onToggleActive(d.id, !d.isActive),
-                      variant: "ghost" as const,
+                      ...buildToggleAction(
+                        () => onToggleActive(d.id, !d.isActive),
+                        d.isActive ? t("common.deactivate") : t("common.activate"),
+                      ),
                       color: d.isActive ? "text-orange-500" : "text-green-500",
                     },
                     buildDeleteAction(() => handleDelete(d.id, d.title), t("common.delete")),

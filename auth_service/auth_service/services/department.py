@@ -86,6 +86,7 @@ class DepartmentService:
         department.updated_at = datetime.now(UTC)
 
         updated = await self._uow.departments.update(department)
+        await self._uow.commit()
         logger.info("Department updated (department_id={})", updated.id)
         return updated
 

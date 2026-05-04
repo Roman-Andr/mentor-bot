@@ -16,7 +16,7 @@ export interface EscalationItem {
   resolvedAt: string | null;
 }
 
-function mapEscalation(e: EscalationRequest): EscalationItem {
+export function mapEscalation(e: EscalationRequest): EscalationItem {
   return {
     id: e.id,
     userId: e.user_id,
@@ -31,7 +31,7 @@ function mapEscalation(e: EscalationRequest): EscalationItem {
 }
 
 // Placeholder form type - escalations don't have create/edit
-interface EscalationFormData {
+export interface EscalationFormData {
   _placeholder: boolean;
 }
 
@@ -39,11 +39,11 @@ const defaultFormData: EscalationFormData = {
   _placeholder: true,
 };
 
-function toForm(): EscalationFormData {
+export function toForm(): EscalationFormData {
   return defaultFormData;
 }
 
-function toPayload(): Record<string, never> {
+export function toPayload(): Record<string, never> {
   return {};
 }
 

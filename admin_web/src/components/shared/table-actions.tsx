@@ -1,9 +1,55 @@
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { SquarePen, Trash2, Power, CheckCircle, RefreshCw, XCircle, Copy, Check, Eye, MessageSquare, Users, UserPlus } from "lucide-react";
+import {
+  SquarePen,
+  Trash2,
+  Power,
+  CheckCircle,
+  RefreshCw,
+  Ban,
+  Copy,
+  Check,
+  Eye,
+  MessageSquare,
+  Users,
+  UserPlus,
+  UserCheck,
+} from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
+export type ActionType =
+  | "view"
+  | "viewUsers"
+  | "reply"
+  | "edit"
+  | "assign"
+  | "assignMentor"
+  | "publish"
+  | "complete"
+  | "toggle"
+  | "resend"
+  | "copy"
+  | "revoke"
+  | "delete";
+
+const ACTION_ORDER: ActionType[] = [
+  "view",
+  "viewUsers",
+  "reply",
+  "edit",
+  "assign",
+  "assignMentor",
+  "publish",
+  "complete",
+  "toggle",
+  "resend",
+  "copy",
+  "revoke",
+  "delete",
+];
+
 export interface ActionDefinition {
+  type: ActionType;
   icon: LucideIcon;
   label: string;
   onClick: () => void;
@@ -17,73 +63,35 @@ interface TableActionsProps {
 }
 
 export function TableActions({ actions }: TableActionsProps) {
-  const visibleActions = actions.filter((a) => a && a.show !== false);
-
-  // Grid with fixed positions: Edit | Middle | Delete
-  const editAction = visibleActions.find(a => a.icon === SquarePen);
-  const deleteAction = visibleActions.find(a => a.icon === Trash2);
-  const middleActions = visibleActions.filter(a => a.icon !== SquarePen && a.icon !== Trash2);
+  const sorted = [...actions]
+    .filter(Boolean)
+    .sort((a, b) => ACTION_ORDER.indexOf(a.type) - ACTION_ORDER.indexOf(b.type));
 
   return (
     <TooltipProvider>
-      <div className="grid grid-cols-3 gap-1 w-24">
-        <div className="justify-self-start">
-          {editAction && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant={editAction.variant || "ghost"}
-                  size="icon"
-                  onClick={editAction.onClick}
-                  className={`${editAction.color ? editAction.color : "text-muted-foreground"} cursor-pointer`}
-                >
-                  <editAction.icon className="size-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{editAction.label}</p>
-              </TooltipContent>
-            </Tooltip>
-          )}
-        </div>
-        <div className="justify-self-center">
-          {middleActions.map((action, index) => (
-            <Tooltip key={index}>
-              <TooltipTrigger asChild>
-                <Button
-                  variant={action.variant || "ghost"}
-                  size="icon"
-                  onClick={action.onClick}
-                  className={`${action.color ? action.color : "text-muted-foreground"} cursor-pointer`}
-                >
-                  <action.icon className="size-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{action.label}</p>
-              </TooltipContent>
-            </Tooltip>
-          ))}
-        </div>
-        <div className="justify-self-end">
-          {deleteAction && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant={deleteAction.variant || "ghost"}
-                  size="icon"
-                  onClick={deleteAction.onClick}
-                  className={`${deleteAction.color ? deleteAction.color : "text-muted-foreground"} cursor-pointer`}
-                >
-                  <deleteAction.icon className="size-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{deleteAction.label}</p>
-              </TooltipContent>
-            </Tooltip>
-          )}
-        </div>
+      <div className="flex items-center justify-end gap-1">
+        {sorted.map((action) => (
+          <div key={action.type} className="flex size-9 items-center justify-center">
+            {action.show !== false && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={action.variant || "ghost"}
+                    size="icon"
+                    onClick={action.onClick}
+                    aria-label={action.label}
+                    className={`${action.color ? action.color : "text-muted-foreground"} cursor-pointer`}
+                  >
+                    <action.icon className="size-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{action.label}</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+          </div>
+        ))}
       </div>
     </TooltipProvider>
   );
@@ -91,6 +99,7 @@ export function TableActions({ actions }: TableActionsProps) {
 
 // Predefined action builders
 export const buildEditAction = (onClick: () => void, label: string, show = true): ActionDefinition => ({
+  type: "edit",
   icon: SquarePen,
   label,
   onClick,
@@ -99,6 +108,7 @@ export const buildEditAction = (onClick: () => void, label: string, show = true)
 });
 
 export const buildDeleteAction = (onClick: () => void, label: string, show = true): ActionDefinition => ({
+  type: "delete",
   icon: Trash2,
   label,
   onClick,
@@ -108,6 +118,7 @@ export const buildDeleteAction = (onClick: () => void, label: string, show = tru
 });
 
 export const buildToggleAction = (onClick: () => void, label: string, show = true): ActionDefinition => ({
+  type: "toggle",
   icon: Power,
   label,
   onClick,
@@ -116,6 +127,7 @@ export const buildToggleAction = (onClick: () => void, label: string, show = tru
 });
 
 export const buildCompleteAction = (onClick: () => void, label: string, show = true): ActionDefinition => ({
+  type: "complete",
   icon: CheckCircle,
   label,
   onClick,
@@ -125,6 +137,7 @@ export const buildCompleteAction = (onClick: () => void, label: string, show = t
 });
 
 export const buildResendAction = (onClick: () => void, label: string, show = true): ActionDefinition => ({
+  type: "resend",
   icon: RefreshCw,
   label,
   onClick,
@@ -134,7 +147,8 @@ export const buildResendAction = (onClick: () => void, label: string, show = tru
 });
 
 export const buildRevokeAction = (onClick: () => void, label: string, show = true): ActionDefinition => ({
-  icon: XCircle,
+  type: "revoke",
+  icon: Ban,
   label,
   onClick,
   variant: "ghost",
@@ -143,6 +157,7 @@ export const buildRevokeAction = (onClick: () => void, label: string, show = tru
 });
 
 export const buildCopyAction = (onClick: () => void, label: string, show = true, isCopied = false): ActionDefinition => ({
+  type: "copy",
   icon: isCopied ? Check : Copy,
   label,
   onClick,
@@ -152,6 +167,7 @@ export const buildCopyAction = (onClick: () => void, label: string, show = true,
 });
 
 export const buildViewAction = (onClick: () => void, label: string, show = true): ActionDefinition => ({
+  type: "view",
   icon: Eye,
   label,
   onClick,
@@ -160,6 +176,7 @@ export const buildViewAction = (onClick: () => void, label: string, show = true)
 });
 
 export const buildReplyAction = (onClick: () => void, label: string, show = true): ActionDefinition => ({
+  type: "reply",
   icon: MessageSquare,
   label,
   onClick,
@@ -168,6 +185,7 @@ export const buildReplyAction = (onClick: () => void, label: string, show = true
 });
 
 export const buildViewUsersAction = (onClick: () => void, label: string, show = true): ActionDefinition => ({
+  type: "viewUsers",
   icon: Users,
   label,
   onClick,
@@ -176,9 +194,34 @@ export const buildViewUsersAction = (onClick: () => void, label: string, show = 
 });
 
 export const buildAssignAction = (onClick: () => void, label: string, show = true): ActionDefinition => ({
+  type: "assign",
   icon: UserPlus,
   label,
   onClick,
   variant: "ghost",
+  show,
+});
+
+export const buildAssignMentorAction = (onClick: () => void, label: string, show = true): ActionDefinition => ({
+  type: "assignMentor",
+  icon: UserCheck,
+  label,
+  onClick,
+  variant: "ghost",
+  show,
+});
+
+export const buildPublishAction = (
+  onClick: () => void,
+  label: string,
+  show = true,
+  icon: LucideIcon = CheckCircle,
+): ActionDefinition => ({
+  type: "publish",
+  icon,
+  label,
+  onClick,
+  variant: "ghost",
+  color: "text-green-500",
   show,
 });

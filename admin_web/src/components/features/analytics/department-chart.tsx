@@ -27,7 +27,7 @@ const DEPARTMENT_COLORS = [
   "#D97706", // orange
 ];
 
-const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
+const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ payload: DepartmentData }> }) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload as DepartmentData;
     return (

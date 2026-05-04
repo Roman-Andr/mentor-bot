@@ -9,6 +9,7 @@ export type AuditSource =
 export type AuditEventType =
   // auth
   | "login"
+  | "logout"
   | "role_change"
   | "invitation_status_change"
   | "mentor_assignment"

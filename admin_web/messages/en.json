@@ -78,6 +78,7 @@
         "toDate": "To Date",
         "source": "Source",
         "eventTypes": "Event Types",
+        "allEventTypes": "All Event Types",
         "actor": "Performed by",
         "actorPlaceholder": "Search user...",
         "reset": "Reset"

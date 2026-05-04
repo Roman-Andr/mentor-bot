@@ -11,6 +11,7 @@ from auth_service.repositories.implementations.department import DepartmentRepos
 from auth_service.repositories.implementations.invitation import InvitationRepository
 from auth_service.repositories.implementations.invitation_status_history import InvitationStatusHistoryRepository
 from auth_service.repositories.implementations.login_history import LoginHistoryRepository
+from auth_service.repositories.implementations.logout_history import LogoutHistoryRepository
 from auth_service.repositories.implementations.mentor_assignment_history import MentorAssignmentHistoryRepository
 from auth_service.repositories.implementations.password_change_history import PasswordChangeHistoryRepository
 from auth_service.repositories.implementations.role_change_history import RoleChangeHistoryRepository
@@ -20,6 +21,7 @@ from auth_service.repositories.interfaces.department import IDepartmentRepositor
 from auth_service.repositories.interfaces.invitation import IInvitationRepository
 from auth_service.repositories.interfaces.invitation_status_history import IInvitationStatusHistoryRepository
 from auth_service.repositories.interfaces.login_history import ILoginHistoryRepository
+from auth_service.repositories.interfaces.logout_history import ILogoutHistoryRepository
 from auth_service.repositories.interfaces.mentor_assignment_history import IMentorAssignmentHistoryRepository
 from auth_service.repositories.interfaces.password_change_history import IPasswordChangeHistoryRepository
 from auth_service.repositories.interfaces.role_change_history import IRoleChangeHistoryRepository
@@ -36,6 +38,7 @@ class IUnitOfWork(Protocol):
     departments: IDepartmentRepository
     user_mentors: IUserMentorRepository
     login_history: ILoginHistoryRepository
+    logout_history: ILogoutHistoryRepository
     password_change_history: IPasswordChangeHistoryRepository
     role_change_history: IRoleChangeHistoryRepository
     invitation_status_history: IInvitationStatusHistoryRepository
@@ -76,6 +79,7 @@ class SqlAlchemyUnitOfWork(IUnitOfWork):
         self.departments = DepartmentRepository(self._session)
         self.user_mentors = UserMentorRepository(self._session)
         self.login_history = LoginHistoryRepository(self._session)
+        self.logout_history = LogoutHistoryRepository(self._session)
         self.password_change_history = PasswordChangeHistoryRepository(self._session)
         self.role_change_history = RoleChangeHistoryRepository(self._session)
         self.invitation_status_history = InvitationStatusHistoryRepository(self._session)

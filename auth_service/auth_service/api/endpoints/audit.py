@@ -5,11 +5,11 @@ from collections.abc import Sequence
 from datetime import datetime
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query
-from pydantic import BaseModel
+from fastapi import APIRouter, Query
+from pydantic import BaseModel, ConfigDict, SerializeAsAny
 
 from auth_service.api.deps import CurrentUser, UnitOfWorkDep
-from auth_service.core import UserRole
+from auth_service.core import PermissionDenied, UserRole
 
 logger = logging.getLogger(__name__)
 
@@ -20,68 +20,89 @@ router = APIRouter()
 class LoginHistoryEntry(BaseModel):
     """Login history entry schema."""
 
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     user_id: int
     login_at: datetime
-    ip_address: str | None
-    user_agent: str | None
+    ip_address: str | None = None
+    user_agent: str | None = None
     success: bool
-    failure_reason: str | None
-    method: str | None
+    failure_reason: str | None = None
+    method: str | None = None
 
 
 class RoleChangeEntry(BaseModel):
     """Role change history entry schema."""
 
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     user_id: int
-    old_role: str | None
+    old_role: str | None = None
     new_role: str
     changed_at: datetime
-    changed_by: int | None
-    reason: str | None
+    changed_by: int | None = None
+    reason: str | None = None
 
 
 class InvitationHistoryEntry(BaseModel):
     """Invitation status history entry schema."""
 
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     invitation_id: int
-    old_status: str | None
+    old_status: str | None = None
     new_status: str
     changed_at: datetime
-    changed_by: int | None
-    metadata: dict | None
+    changed_by: int | None = None
+    meta_data: dict | None = None
 
 
 class MentorAssignmentEntry(BaseModel):
     """Mentor assignment history entry schema."""
 
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     user_id: int
-    mentor_id: int | None
+    mentor_id: int | None = None
     action: str
     changed_at: datetime
-    changed_by: int | None
-    reason: str | None
+    changed_by: int | None = None
+    reason: str | None = None
+
+
+class LogoutHistoryEntry(BaseModel):
+    """Logout history entry schema."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    user_id: int
+    logout_at: datetime
+    ip_address: str | None = None
+    user_agent: str | None = None
+    method: str | None = None
 
 
 class AuditResponse(BaseModel):
     """Generic audit response with pagination."""
 
-    items: Sequence[BaseModel]
+    items: Sequence[SerializeAsAny[BaseModel]]
     total: int
 
 
 def require_hr_or_admin(current_user: CurrentUser) -> None:
     """Require HR or Admin role for audit access."""
     if current_user.role not in (UserRole.HR, UserRole.ADMIN):
-        raise PermissionError("Access denied: HR or Admin role required")
+        raise PermissionDenied("Access denied: HR or Admin role required")
 
 
 @router.get("/login-history", response_model=AuditResponse)
 async def get_login_history(
-    current_user: Annotated[CurrentUser, Depends()],
+    current_user: CurrentUser,
     uow: UnitOfWorkDep,
     user_id: Annotated[int | None, Query()] = None,
     from_date: Annotated[datetime | None, Query()] = None,
@@ -108,7 +129,7 @@ async def get_login_history(
 
 @router.get("/role-change-history", response_model=AuditResponse)
 async def get_role_change_history(
-    current_user: Annotated[CurrentUser, Depends()],
+    current_user: CurrentUser,
     uow: UnitOfWorkDep,
     user_id: Annotated[int | None, Query()] = None,
     from_date: Annotated[datetime | None, Query()] = None,
@@ -135,7 +156,7 @@ async def get_role_change_history(
 
 @router.get("/invitation-history", response_model=AuditResponse)
 async def get_invitation_history(
-    current_user: Annotated[CurrentUser, Depends()],
+    current_user: CurrentUser,
     uow: UnitOfWorkDep,
     invitation_id: Annotated[int | None, Query()] = None,
     from_date: Annotated[datetime | None, Query()] = None,
@@ -164,7 +185,7 @@ async def get_invitation_history(
 
 @router.get("/mentor-assignment-history", response_model=AuditResponse)
 async def get_mentor_assignment_history(
-    current_user: Annotated[CurrentUser, Depends()],
+    current_user: CurrentUser,
     uow: UnitOfWorkDep,
     user_id: Annotated[int | None, Query()] = None,
     mentor_id: Annotated[int | None, Query()] = None,
@@ -193,5 +214,34 @@ async def get_mentor_assignment_history(
 
     return AuditResponse(
         items=[MentorAssignmentEntry.model_validate(item) for item in items],
+        total=total,
+    )
+
+
+@router.get("/logout-history", response_model=AuditResponse)
+async def get_logout_history(
+    current_user: CurrentUser,
+    uow: UnitOfWorkDep,
+    user_id: Annotated[int | None, Query()] = None,
+    from_date: Annotated[datetime | None, Query()] = None,
+    to_date: Annotated[datetime | None, Query()] = None,
+    limit: Annotated[int, Query(ge=1, le=100)] = 50,
+    offset: Annotated[int, Query(ge=0)] = 0,
+) -> AuditResponse:
+    """Get logout history for audit purposes (HR/Admin only)."""
+    require_hr_or_admin(current_user)
+
+    if user_id:
+        items = await uow.logout_history.get_by_user_id(
+            user_id=user_id, from_date=from_date, to_date=to_date, limit=limit
+        )
+        total = len(items)
+    else:
+        items, total = await uow.logout_history.get_all(
+            from_date=from_date, to_date=to_date, limit=limit, offset=offset
+        )
+
+    return AuditResponse(
+        items=[LogoutHistoryEntry.model_validate(item) for item in items],
         total=total,
     )

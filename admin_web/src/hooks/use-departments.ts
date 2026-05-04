@@ -19,7 +19,7 @@ const DEFAULT_FORM: DepartmentFormData = {
   description: "",
 };
 
-function mapDepartment(d: Department): DepartmentRow {
+export function mapDepartment(d: Department): DepartmentRow {
   return {
     id: d.id,
     name: d.name,
@@ -28,18 +28,18 @@ function mapDepartment(d: Department): DepartmentRow {
   };
 }
 
-function toCreatePayload(form: DepartmentFormData) {
+export function toCreatePayload(form: DepartmentFormData) {
   return {
     name: form.name,
     description: form.description || null,
   };
 }
 
-function toUpdatePayload(form: DepartmentFormData) {
+export function toUpdatePayload(form: DepartmentFormData) {
   return toCreatePayload(form);
 }
 
-function toForm(item: DepartmentRow): DepartmentFormData {
+export function toForm(item: DepartmentRow): DepartmentFormData {
   return {
     name: item.name,
     description: item.description,

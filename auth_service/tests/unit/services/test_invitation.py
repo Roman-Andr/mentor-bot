@@ -242,6 +242,7 @@ class TestResendInvitation:
 
         assert invitation.token == "new-token-456"
         mock_uow.invitations.update.assert_called_once()
+        mock_uow.commit.assert_awaited_once()
 
     async def test_resend_non_pending_raises(self, mock_uow, used_invitation):
         """Test resending non-pending invitation raises ValidationException."""
@@ -267,6 +268,7 @@ class TestRevokeInvitation:
 
         assert invitation.status == InvitationStatus.REVOKED
         mock_uow.invitations.update.assert_called_once()
+        mock_uow.commit.assert_awaited_once()
 
     async def test_revoke_non_pending_raises(self, mock_uow, used_invitation):
         """Test revoking non-pending invitation raises ValidationException."""
@@ -359,6 +361,7 @@ class TestDeleteInvitation:
 
         assert result is True
         mock_uow.invitations.delete.assert_called_once_with(1)
+        mock_uow.commit.assert_awaited_once()
 
     async def test_delete_invitation_not_found_raises(self, mock_uow):
         """Test deleting non-existent invitation raises NotFoundException."""

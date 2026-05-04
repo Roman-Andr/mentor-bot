@@ -134,6 +134,7 @@ class UserService:
         user.updated_at = datetime.now(UTC)
 
         updated = await self._uow.users.update(user)
+        await self._uow.commit()
         logger.info("User updated (user_id={})", updated.id)
         return updated
 
@@ -141,6 +142,7 @@ class UserService:
         """Deactivate user account."""
         logger.info("Deactivating user (user_id={})", user_id)
         await self._uow.users.deactivate_user(user_id)
+        await self._uow.commit()
 
     async def delete_user(self, user_id: int) -> None:
         """Permanently delete user account."""
@@ -178,7 +180,9 @@ class UserService:
     async def update_user_role(self, user_id: int, role: UserRole) -> User:
         """Update user role."""
         logger.info("Updating user role (user_id={}, new_role={})", user_id, role)
-        return await self._uow.users.update_role(user_id, role)
+        updated = await self._uow.users.update_role(user_id, role)
+        await self._uow.commit()
+        return updated
 
     async def link_telegram_account(self, user_id: int, telegram_id: int, username: str | None = None) -> User:
         """Link Telegram account to user."""
@@ -200,6 +204,7 @@ class UserService:
         user.updated_at = datetime.now(UTC)
 
         updated = await self._uow.users.update(user)
+        await self._uow.commit()
         logger.info("Telegram account linked (user_id={}, telegram_id={})", updated.id, telegram_id)
         return updated
 
@@ -222,6 +227,7 @@ class UserService:
         user.updated_at = datetime.now(UTC)
 
         await self._uow.users.update(user)
+        await self._uow.commit()
         logger.info("Password changed successfully (user_id={})", user_id)
 
     async def update_user_preferences(self, user_id: int, preferences_data: UserPreferencesUpdate) -> User:
@@ -237,5 +243,6 @@ class UserService:
         user.updated_at = datetime.now(UTC)
 
         updated = await self._uow.users.update(user)
+        await self._uow.commit()
         logger.info("User preferences updated (user_id={})", updated.id)
         return updated

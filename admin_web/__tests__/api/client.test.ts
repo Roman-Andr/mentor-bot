@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest'
 import { fetchApi, fetchUpload, setUnauthorizedCallback } from '@/lib/api/client'
 import { analyticsApi } from '@/lib/api/analytics'
 import { mockFetchResponse, mockFetchError, mockFetchNetworkError } from '../setup'
@@ -338,7 +338,7 @@ describe('analyticsApi.search', () => {
 
     await analyticsApi.search.summary()
 
-    const fetchCall = (global.fetch as jest.Mock).mock.calls[0]
+    const fetchCall = (global.fetch as Mock).mock.calls[0]
     expect(fetchCall[0]).toContain('/api/v1/knowledge/search-analytics/summary')
   })
 
@@ -353,7 +353,7 @@ describe('analyticsApi.search', () => {
 
     await analyticsApi.search.summary({ from_date: '2024-01-01', to_date: '2024-12-31' })
 
-    const fetchCall = (global.fetch as jest.Mock).mock.calls[0]
+    const fetchCall = (global.fetch as Mock).mock.calls[0]
     expect(fetchCall[0]).toContain('/api/v1/knowledge/search-analytics/summary')
     expect(fetchCall[0]).toContain('from_date=2024-01-01')
     expect(fetchCall[0]).toContain('to_date=2024-12-31')
@@ -366,7 +366,7 @@ describe('analyticsApi.search', () => {
 
     await analyticsApi.search.topQueries()
 
-    const fetchCall = (global.fetch as jest.Mock).mock.calls[0]
+    const fetchCall = (global.fetch as Mock).mock.calls[0]
     expect(fetchCall[0]).toMatch(/\/api\/v1\/knowledge\/search-analytics\/top-queries\??/)
   })
 
@@ -375,7 +375,7 @@ describe('analyticsApi.search', () => {
 
     await analyticsApi.search.topQueries({ from_date: '2024-01-01', limit: 10, department_id: 2 })
 
-    const fetchCall = (global.fetch as jest.Mock).mock.calls[0]
+    const fetchCall = (global.fetch as Mock).mock.calls[0]
     expect(fetchCall[0]).toContain('/api/v1/knowledge/search-analytics/top-queries')
     expect(fetchCall[0]).toContain('from_date=2024-01-01')
     expect(fetchCall[0]).toContain('limit=10')
@@ -389,7 +389,7 @@ describe('analyticsApi.search', () => {
 
     await analyticsApi.search.zeroResults()
 
-    const fetchCall = (global.fetch as jest.Mock).mock.calls[0]
+    const fetchCall = (global.fetch as Mock).mock.calls[0]
     expect(fetchCall[0]).toContain('/api/v1/knowledge/search-analytics/zero-results')
   })
 
@@ -400,7 +400,7 @@ describe('analyticsApi.search', () => {
 
     await analyticsApi.search.byDepartment()
 
-    const fetchCall = (global.fetch as jest.Mock).mock.calls[0]
+    const fetchCall = (global.fetch as Mock).mock.calls[0]
     expect(fetchCall[0]).toContain('/api/v1/knowledge/search-analytics/by-department')
   })
 
@@ -409,7 +409,7 @@ describe('analyticsApi.search', () => {
 
     await analyticsApi.search.byDepartment({ from_date: '2024-01-01', to_date: '2024-12-31' })
 
-    const fetchCall = (global.fetch as jest.Mock).mock.calls[0]
+    const fetchCall = (global.fetch as Mock).mock.calls[0]
     expect(fetchCall[0]).toContain('/api/v1/knowledge/search-analytics/by-department')
     expect(fetchCall[0]).toContain('from_date=2024-01-01')
     expect(fetchCall[0]).toContain('to_date=2024-12-31')

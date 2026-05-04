@@ -351,7 +351,7 @@ class TestInvitationStatusHistoryRepository:
             new_status="ACCEPTED",
             changed_at=datetime.now(UTC),
             changed_by=1,
-            metadata={"auto_created": True},
+            meta_data={"auto_created": True},
         )
 
     async def test_create(self, mock_session, sample_history):

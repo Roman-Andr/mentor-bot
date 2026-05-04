@@ -1,6 +1,21 @@
 import { vi, afterEach } from 'vitest'
 import '@testing-library/jest-dom'
 
+// Mock Next.js navigation
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    refresh: vi.fn(),
+    back: vi.fn(),
+    prefetch: vi.fn(),
+    pathname: '/',
+    query: {},
+  }),
+  usePathname: () => '/',
+  useSearchParams: () => new URLSearchParams(),
+}))
+
 // Mock fetch globally
 export function mockFetchResponse<T>(data: T, status = 200) {
   global.fetch = vi.fn().mockResolvedValue({

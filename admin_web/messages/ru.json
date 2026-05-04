@@ -78,6 +78,7 @@
         "toDate": "До даты",
         "source": "Источник",
         "eventTypes": "Типы событий",
+        "allEventTypes": "Все типы событий",
         "actor": "Выполнил",
         "actorPlaceholder": "Поиск пользователя...",
         "reset": "Сбросить"
