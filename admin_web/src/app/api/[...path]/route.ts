@@ -100,6 +100,9 @@ async function proxyRequest(request: NextRequest, pathSegments: string[]): Promi
     }
   });
 
+  // Preserve original Host header for TrustedHostMiddleware validation
+  headers.set("Host", request.headers.get("host") || request.nextUrl.host);
+
   const hasBody = request.method !== "GET" && request.method !== "HEAD";
   const body = hasBody ? await request.arrayBuffer() : undefined;
 
