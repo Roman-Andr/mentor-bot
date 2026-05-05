@@ -1,0 +1,101 @@
+[
+  {
+    "name": "welcome_newbie",
+    "channel": "telegram",
+    "language": "ru",
+    "subject": null,
+    "body_html": null,
+    "body_text": "Добро пожаловать в команду, {{first_name}}! 🎉\n\nМы рады приветствовать вас в {{department_name}}. Ваш ментор — {{mentor_name}}.\n\nДля начала работы ознакомьтесь с чек-листом онбординга: {{checklist_url}}\n\nЕсли у вас есть вопросы, не стесняйтесь обращаться к HR или вашему ментору.",
+    "variables": ["first_name", "department_name", "mentor_name", "checklist_url"]
+  },
+  {
+    "name": "checklist_due_soon",
+    "channel": "telegram",
+    "language": "ru",
+    "subject": null,
+    "body_html": null,
+    "body_text": "⏰ Напоминание: чек-лист \"{{checklist_name}}\" нужно завершить до {{due_date}}\n\nПожалуйста, проверьте прогресс и завершите оставшиеся задачи.",
+    "variables": ["checklist_name", "due_date"]
+  },
+  {
+    "name": "checklist_overdue",
+    "channel": "telegram",
+    "language": "ru",
+    "subject": null,
+    "body_html": null,
+    "body_text": "⚠️ Чек-лист \"{{checklist_name}}\" просрочен!\n\nПожалуйста, завершите его как можно скорее. Если у вас есть вопросы, обратитесь к вашему ментору или HR.",
+    "variables": ["checklist_name"]
+  },
+  {
+    "name": "meeting_reminder",
+    "channel": "telegram",
+    "language": "ru",
+    "subject": null,
+    "body_html": null,
+    "body_text": "📅 Напоминание о встрече\n\nТема: {{meeting_title}}\nДата: {{meeting_date}}\nВремя: {{meeting_time}}\n\nНе забудьте подготовиться!",
+    "variables": ["meeting_title", "meeting_date", "meeting_time"]
+  },
+  {
+    "name": "escalation_assigned",
+    "channel": "telegram",
+    "language": "ru",
+    "subject": null,
+    "body_html": null,
+    "body_text": "📋 Вам назначена эскалация: \"{{escalation_title}}\"\n\nОт: {{requester_name}}\nПриоритет: {{priority}}\n\nОписание: {{description}}\n\nПожалуйста, примите меры.",
+    "variables": ["escalation_title", "requester_name", "priority", "description"]
+  },
+  {
+    "name": "escalation_resolved",
+    "channel": "telegram",
+    "language": "ru",
+    "subject": null,
+    "body_html": null,
+    "body_text": "✅ Эскалация \"{{escalation_title}}\" решена\n\nРешение: {{resolution}}\n\nСпасибо за помощь!",
+    "variables": ["escalation_title", "resolution"]
+  },
+  {
+    "name": "feedback_request",
+    "channel": "telegram",
+    "language": "ru",
+    "subject": null,
+    "body_html": null,
+    "body_text": "📝 Просьба оставить обратную связь\n\nПожалуйста, оцените ваш опыт онбординга по ссылке: {{feedback_url}}\n\nВаше мнение очень важно для нас!",
+    "variables": ["feedback_url"]
+  },
+  {
+    "name": "article_published",
+    "channel": "telegram",
+    "language": "ru",
+    "subject": null,
+    "body_html": null,
+    "body_text": "📚 Новая статья в базе знаний: \"{{article_title}}\"\n\n{{article_summary}}\n\nЧитать: {{article_url}}",
+    "variables": ["article_title", "article_summary", "article_url"]
+  },
+  {
+    "name": "welcome_email",
+    "channel": "email",
+    "language": "ru",
+    "subject": "Добро пожаловать в команду!",
+    "body_html": "<h1>Добро пожаловать в команду, {{first_name}}!</h1>\n\n<p>Мы рады приветствовать вас в <strong>{{company_name}}</strong> в отделе {{department_name}}.</p>\n\n<p>Ваш ментор — <strong>{{mentor_name}}</strong>, он поможет вам с онбордингом.</p>\n\n<p>Для начала работы:</p>\n<ul>\n  <li>Ознакомьтесь с чек-листом онбординга: <a href=\"{{checklist_url}}\">{{checklist_url}}</a></li>\n  <li>Изучите базу знаний: <a href=\"{{knowledge_base_url}}\">{{knowledge_base_url}}</a></li>\n</ul>\n\n<p>Если у вас есть вопросы, обращайтесь к HR или вашему ментору.</p>\n\n<p>С наилучшими пожеланиями,<br>Команда {{company_name}}</p>",
+    "body_text": "Добро пожаловать в команду, {{first_name}}!\n\nМы рады приветствовать вас в {{company_name}} в отделе {{department_name}}.\n\nВаш ментор — {{mentor_name}}, он поможет вам с онбордингом.\n\nДля начала работы:\n- Ознакомьтесь с чек-листом онбординга: {{checklist_url}}\n- Изучите базу знаний: {{knowledge_base_url}}\n\nЕсли у вас есть вопросы, обращайтесь к HR или вашему ментору.\n\nС наилучшими пожеланиями,\nКоманда {{company_name}}",
+    "variables": ["first_name", "company_name", "department_name", "mentor_name", "checklist_url", "knowledge_base_url"]
+  },
+  {
+    "name": "meeting_invitation",
+    "channel": "email",
+    "language": "ru",
+    "subject": "Приглашение на встречу: {{meeting_title}}",
+    "body_html": "<h2>Приглашение на встречу</h2>\n\n<p>Здравствуйте, {{recipient_name}}!</p>\n\n<p>Приглашаем вас на встречу:</p>\n<ul>\n  <li><strong>Тема:</strong> {{meeting_title}}</li>\n  <li><strong>Дата:</strong> {{meeting_date}}</li>\n  <li><strong>Время:</strong> {{meeting_time}}</li>\n  <li><strong>Место:</strong> {{meeting_location}}</li>\n</ul>\n\n<p>{{meeting_description}}</p>\n\n<p>Пожалуйста, подтвердите участие.</p>",
+    "body_text": "Приглашение на встречу\n\nЗдравствуйте, {{recipient_name}}!\n\nПриглашаем вас на встречу:\n- Тема: {{meeting_title}}\n- Дата: {{meeting_date}}\n- Время: {{meeting_time}}\n- Место: {{meeting_location}}\n\n{{meeting_description}}\n\nПожалуйста, подтвердите участие.",
+    "variables": ["recipient_name", "meeting_title", "meeting_date", "meeting_time", "meeting_location", "meeting_description"]
+  },
+  {
+    "name": "escalation_notification",
+    "channel": "email",
+    "language": "ru",
+    "subject": "Новая эскалация: {{escalation_title}}",
+    "body_html": "<h2>Новая эскалация</h2>\n\n<p>Вам назначена новая эскалация:</p>\n<ul>\n  <li><strong>Заголовок:</strong> {{escalation_title}}</li>\n  <li><strong>От:</strong> {{requester_name}}</li>\n  <li><strong>Приоритет:</strong> {{priority}}</li>\n  <li><strong>Дата создания:</strong> {{created_at}}</li>\n</ul>\n\n<p><strong>Описание:</strong></p>\n<p>{{description}}</p>\n\n<p>Пожалуйста, примите меры в ближайшее время.</p>",
+    "body_text": "Новая эскалация\n\nВам назначена новая эскалация:\n- Заголовок: {{escalation_title}}\n- От: {{requester_name}}\n- Приоритет: {{priority}}\n- Дата создания: {{created_at}}\n\nОписание:\n{{description}}\n\nПожалуйста, примите меры в ближайшее время.",
+    "variables": ["escalation_title", "requester_name", "priority", "created_at", "description"]
+  }
+]

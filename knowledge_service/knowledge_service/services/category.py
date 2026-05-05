@@ -2,7 +2,7 @@
 
 from typing import Any
 
-from knowledge_service.core import NotFoundException, ValidationException
+from knowledge_service.core import ConflictException, NotFoundException, ValidationException
 from knowledge_service.models import Category
 from knowledge_service.repositories import IUnitOfWork
 from knowledge_service.schemas import CategoryCreate, CategoryUpdate
@@ -19,7 +19,7 @@ class CategoryService:
         """Create new category."""
         if await self._uow.categories.slug_exists(category_data.slug):
             msg = "Category with this slug already exists"
-            raise ValidationException(msg)
+            raise ConflictException(msg)
 
         if category_data.parent_id:
             parent = await self.get_category_by_id(category_data.parent_id)

@@ -4,44 +4,34 @@
     "description": "Старая политика отпусков, которая была заменена в 2024 году",
     "category": "VACATION",
     "display_order": 999,
-    "status": "INACTIVE",
-    "deactivated_days_ago": 120,
-    "reason": "Политика обновлена"
+    "is_active": false
   },
   {
-    "title": "Временная информация о COVID-19",
-    "description": "Информация о временных мерах во время пандемии",
-    "category": "HEALTH",
+    "title": "Старая процедура получения пропуска",
+    "description": "Устаревшая инструкция по получению пропуска и доступов",
+    "category": "ACCESS",
     "display_order": 999,
-    "status": "INACTIVE",
-    "deactivated_days_ago": 180,
-    "reason": "Меры больше не актуальны"
+    "is_active": false
   },
   {
-    "title": "Процедура работы с старой CRM",
-    "description": "Инструкция по работе с устаревшей CRM системой",
-    "category": "TOOLS",
+    "title": "Устаревший список бенефитов",
+    "description": "Старый перечень корпоративных льгот",
+    "category": "BENEFITS",
     "display_order": 999,
-    "status": "INACTIVE",
-    "deactivated_days_ago": 90,
-    "reason": "CRM заменена на новую"
+    "is_active": false
   },
   {
-    "title": "Устаревшая политика удаленной работы",
-    "description": "Старая политика удаленной работы до внедрения гибридного формата",
-    "category": "POLICY",
+    "title": "Устаревшие контакты",
+    "description": "Старый список контактов компании",
+    "category": "CONTACTS",
     "display_order": 999,
-    "status": "INACTIVE",
-    "deactivated_days_ago": 60,
-    "reason": "Внедрен гибридный формат"
+    "is_active": false
   },
   {
-    "title": "Информация о старом офисе",
-    "description": "Информация о бывшем офисе компании",
-    "category": "FACILITIES",
+    "title": "Старое рабочее время",
+    "description": "Устаревшая информация о рабочем времени",
+    "category": "WORKTIME",
     "display_order": 999,
-    "status": "INACTIVE",
-    "deactivated_days_ago": 150,
-    "reason": "Компания переехала"
+    "is_active": false
   }
 ]

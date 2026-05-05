@@ -5,7 +5,7 @@ from typing import Annotated
 from fastapi import APIRouter, HTTPException, Query, status
 
 from knowledge_service.api import AdminUser, CategoryServiceDep, CurrentUser, HRUser
-from knowledge_service.core import NotFoundException, ValidationException
+from knowledge_service.core import ConflictException, NotFoundException, ValidationException
 from knowledge_service.core.enums import ArticleStatus
 from knowledge_service.schemas import (
     CategoryCreate,
@@ -106,6 +106,8 @@ async def create_category(
     try:
         category = await category_service.create_category(category_data)
         return CategoryResponse.model_validate(category)
+    except ConflictException:
+        raise  # Let ConflictException pass through with 409 status
     except ValidationException as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
