@@ -33,7 +33,6 @@ const HOP_BY_HOP_HEADERS = new Set([
   "connection",
   "keep-alive",
   "transfer-encoding",
-  "host",
   "content-length",
   "te",
   "trailer",
