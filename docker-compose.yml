@@ -30,7 +30,6 @@ services:
       ESCALATION_SERVICE_URL: http://escalation_service:8000
       MEETING_SERVICE_URL: http://meeting_service:8000
       FEEDBACK_SERVICE_URL: http://feedback_service:8000
-      API_GATEWAY_URL: http://localhost:8000
       ENABLE_NOTIFICATIONS: "true"
       NOTIFICATION_HOUR: "9"
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
@@ -80,7 +79,7 @@ services:
       - mentor_network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/"]
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
       interval: 30s
       timeout: 5s
       retries: 10

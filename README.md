@@ -166,7 +166,7 @@ Copy `.env.example` → `.env`. Highlights:
 | ---------------------- | -------------------------------------------------------------------- |
 | `GOOGLE_CLIENT_ID`     | OAuth 2.0 client ID                                                  |
 | `GOOGLE_CLIENT_SECRET` | OAuth 2.0 secret                                                     |
-| `GOOGLE_REDIRECT_URI`  | e.g. `http://localhost:5670/auth/google/callback` (dev)              |
+| `GOOGLE_REDIRECT_URI`  | e.g. `http://localhost:5670/api/v1/calendar/callback` (dev)         |
 
 ### SMTP (email notifications)
 
