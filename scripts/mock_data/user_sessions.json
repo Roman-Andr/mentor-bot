@@ -1,0 +1,548 @@
+[
+  {
+    "user_key": "newbie_1",
+    "login_days_ago": 0,
+    "logout_days_ago": 0,
+    "session_duration_minutes": 480
+  },
+  {
+    "user_key": "newbie_1",
+    "login_days_ago": 1,
+    "logout_days_ago": 1,
+    "session_duration_minutes": 420
+  },
+  {
+    "user_key": "newbie_1",
+    "login_days_ago": 2,
+    "logout_days_ago": 2,
+    "session_duration_minutes": 390
+  },
+  {
+    "user_key": "newbie_2",
+    "login_days_ago": 0,
+    "logout_days_ago": 0,
+    "session_duration_minutes": 450
+  },
+  {
+    "user_key": "newbie_2",
+    "login_days_ago": 1,
+    "logout_days_ago": 1,
+    "session_duration_minutes": 510
+  },
+  {
+    "user_key": "newbie_2",
+    "login_days_ago": 3,
+    "logout_days_ago": 3,
+    "session_duration_minutes": 360
+  },
+  {
+    "user_key": "newbie_3",
+    "login_days_ago": 0,
+    "logout_days_ago": 0,
+    "session_duration_minutes": 480
+  },
+  {
+    "user_key": "newbie_3",
+    "login_days_ago": 2,
+    "logout_days_ago": 2,
+    "session_duration_minutes": 420
+  },
+  {
+    "user_key": "newbie_4",
+    "login_days_ago": 0,
+    "logout_days_ago": 0,
+    "session_duration_minutes": 540
+  },
+  {
+    "user_key": "newbie_4",
+    "login_days_ago": 1,
+    "logout_days_ago": 1,
+    "session_duration_minutes": 480
+  },
+  {
+    "user_key": "newbie_4",
+    "login_days_ago": 4,
+    "logout_days_ago": 4,
+    "session_duration_minutes": 390
+  },
+  {
+    "user_key": "newbie_5",
+    "login_days_ago": 0,
+    "logout_days_ago": 0,
+    "session_duration_minutes": 420
+  },
+  {
+    "user_key": "newbie_5",
+    "login_days_ago": 2,
+    "logout_days_ago": 2,
+    "session_duration_minutes": 450
+  },
+  {
+    "user_key": "newbie_6",
+    "login_days_ago": 0,
+    "logout_days_ago": 0,
+    "session_duration_minutes": 480
+  },
+  {
+    "user_key": "newbie_6",
+    "login_days_ago": 1,
+    "logout_days_ago": 1,
+    "session_duration_minutes": 510
+  },
+  {
+    "user_key": "newbie_6",
+    "login_days_ago": 3,
+    "logout_days_ago": 3,
+    "session_duration_minutes": 360
+  },
+  {
+    "user_key": "newbie_7",
+    "login_days_ago": 0,
+    "logout_days_ago": 0,
+    "session_duration_minutes": 390
+  },
+  {
+    "user_key": "newbie_7",
+    "login_days_ago": 2,
+    "logout_days_ago": 2,
+    "session_duration_minutes": 480
+  },
+  {
+    "user_key": "newbie_8",
+    "login_days_ago": 0,
+    "logout_days_ago": 0,
+    "session_duration_minutes": 450
+  },
+  {
+    "user_key": "newbie_8",
+    "login_days_ago": 1,
+    "logout_days_ago": 1,
+    "session_duration_minutes": 420
+  },
+  {
+    "user_key": "newbie_8",
+    "login_days_ago": 5,
+    "logout_days_ago": 5,
+    "session_duration_minutes": 330
+  },
+  {
+    "user_key": "newbie_9",
+    "login_days_ago": 0,
+    "logout_days_ago": 0,
+    "session_duration_minutes": 510
+  },
+  {
+    "user_key": "newbie_9",
+    "login_days_ago": 3,
+    "logout_days_ago": 3,
+    "session_duration_minutes": 480
+  },
+  {
+    "user_key": "newbie_10",
+    "login_days_ago": 0,
+    "logout_days_ago": 0,
+    "session_duration_minutes": 420
+  },
+  {
+    "user_key": "newbie_10",
+    "login_days_ago": 1,
+    "logout_days_ago": 1,
+    "session_duration_minutes": 540
+  },
+  {
+    "user_key": "newbie_10",
+    "login_days_ago": 4,
+    "logout_days_ago": 4,
+    "session_duration_minutes": 390
+  },
+  {
+    "user_key": "newbie_11",
+    "login_days_ago": 0,
+    "logout_days_ago": 0,
+    "session_duration_minutes": 480
+  },
+  {
+    "user_key": "newbie_11",
+    "login_days_ago": 2,
+    "logout_days_ago": 2,
+    "session_duration_minutes": 450
+  },
+  {
+    "user_key": "newbie_12",
+    "login_days_ago": 0,
+    "logout_days_ago": 0,
+    "session_duration_minutes": 540
+  },
+  {
+    "user_key": "newbie_12",
+    "login_days_ago": 1,
+    "logout_days_ago": 1,
+    "session_duration_minutes": 420
+  },
+  {
+    "user_key": "newbie_12",
+    "login_days_ago": 3,
+    "logout_days_ago": 3,
+    "session_duration_minutes": 360
+  },
+  {
+    "user_key": "employee_1",
+    "login_days_ago": 0,
+    "logout_days_ago": 0,
+    "session_duration_minutes": 480
+  },
+  {
+    "user_key": "employee_1",
+    "login_days_ago": 1,
+    "logout_days_ago": 1,
+    "session_duration_minutes": 510
+  },
+  {
+    "user_key": "employee_1",
+    "login_days_ago": 2,
+    "logout_days_ago": 2,
+    "session_duration_minutes": 480
+  },
+  {
+    "user_key": "employee_1",
+    "login_days_ago": 3,
+    "logout_days_ago": 3,
+    "session_duration_minutes": 450
+  },
+  {
+    "user_key": "employee_2",
+    "login_days_ago": 0,
+    "logout_days_ago": 0,
+    "session_duration_minutes": 540
+  },
+  {
+    "user_key": "employee_2",
+    "login_days_ago": 1,
+    "logout_days_ago": 1,
+    "session_duration_minutes": 480
+  },
+  {
+    "user_key": "employee_2",
+    "login_days_ago": 2,
+    "logout_days_ago": 2,
+    "session_duration_minutes": 510
+  },
+  {
+    "user_key": "employee_3",
+    "login_days_ago": 0,
+    "logout_days_ago": 0,
+    "session_duration_minutes": 420
+  },
+  {
+    "user_key": "employee_3",
+    "login_days_ago": 1,
+    "logout_days_ago": 1,
+    "session_duration_minutes": 480
+  },
+  {
+    "user_key": "employee_3",
+    "login_days_ago": 4,
+    "logout_days_ago": 4,
+    "session_duration_minutes": 390
+  },
+  {
+    "user_key": "employee_4",
+    "login_days_ago": 0,
+    "logout_days_ago": 0,
+    "session_duration_minutes": 510
+  },
+  {
+    "user_key": "employee_4",
+    "login_days_ago": 1,
+    "logout_days_ago": 1,
+    "session_duration_minutes": 540
+  },
+  {
+    "user_key": "employee_4",
+    "login_days_ago": 2,
+    "logout_days_ago": 2,
+    "session_duration_minutes": 480
+  },
+  {
+    "user_key": "employee_5",
+    "login_days_ago": 0,
+    "logout_days_ago": 0,
+    "session_duration_minutes": 480
+  },
+  {
+    "user_key": "employee_5",
+    "login_days_ago": 3,
+    "logout_days_ago": 3,
+    "session_duration_minutes": 420
+  },
+  {
+    "user_key": "employee_6",
+    "login_days_ago": 0,
+    "logout_days_ago": 0,
+    "session_duration_minutes": 450
+  },
+  {
+    "user_key": "employee_6",
+    "login_days_ago": 1,
+    "logout_days_ago": 1,
+    "session_duration_minutes": 510
+  },
+  {
+    "user_key": "employee_6",
+    "login_days_ago": 2,
+    "logout_days_ago": 2,
+    "session_duration_minutes": 480
+  },
+  {
+    "user_key": "employee_7",
+    "login_days_ago": 0,
+    "logout_days_ago": 0,
+    "session_duration_minutes": 540
+  },
+  {
+    "user_key": "employee_7",
+    "login_days_ago": 1,
+    "logout_days_ago": 1,
+    "session_duration_minutes": 480
+  },
+  {
+    "user_key": "employee_7",
+    "login_days_ago": 3,
+    "logout_days_ago": 3,
+    "session_duration_minutes": 420
+  },
+  {
+    "user_key": "employee_8",
+    "login_days_ago": 0,
+    "logout_days_ago": 0,
+    "session_duration_minutes": 480
+  },
+  {
+    "user_key": "employee_8",
+    "login_days_ago": 1,
+    "logout_days_ago": 1,
+    "session_duration_minutes": 510
+  },
+  {
+    "user_key": "employee_8",
+    "login_days_ago": 2,
+    "logout_days_ago": 2,
+    "session_duration_minutes": 450
+  },
+  {
+    "user_key": "mentor_1",
+    "login_days_ago": 0,
+    "logout_days_ago": 0,
+    "session_duration_minutes": 540
+  },
+  {
+    "user_key": "mentor_1",
+    "login_days_ago": 1,
+    "logout_days_ago": 1,
+    "session_duration_minutes": 480
+  },
+  {
+    "user_key": "mentor_1",
+    "login_days_ago": 2,
+    "logout_days_ago": 2,
+    "session_duration_minutes": 510
+  },
+  {
+    "user_key": "mentor_1",
+    "login_days_ago": 3,
+    "logout_days_ago": 3,
+    "session_duration_minutes": 480
+  },
+  {
+    "user_key": "mentor_1",
+    "login_days_ago": 4,
+    "logout_days_ago": 4,
+    "session_duration_minutes": 450
+  },
+  {
+    "user_key": "mentor_2",
+    "login_days_ago": 0,
+    "logout_days_ago": 0,
+    "session_duration_minutes": 510
+  },
+  {
+    "user_key": "mentor_2",
+    "login_days_ago": 1,
+    "logout_days_ago": 1,
+    "session_duration_minutes": 540
+  },
+  {
+    "user_key": "mentor_2",
+    "login_days_ago": 2,
+    "logout_days_ago": 2,
+    "session_duration_minutes": 480
+  },
+  {
+    "user_key": "mentor_2",
+    "login_days_ago": 3,
+    "logout_days_ago": 3,
+    "session_duration_minutes": 510
+  },
+  {
+    "user_key": "mentor_3",
+    "login_days_ago": 0,
+    "logout_days_ago": 0,
+    "session_duration_minutes": 480
+  },
+  {
+    "user_key": "mentor_3",
+    "login_days_ago": 1,
+    "logout_days_ago": 1,
+    "session_duration_minutes": 540
+  },
+  {
+    "user_key": "mentor_3",
+    "login_days_ago": 4,
+    "logout_days_ago": 4,
+    "session_duration_minutes": 420
+  },
+  {
+    "user_key": "mentor_4",
+    "login_days_ago": 0,
+    "logout_days_ago": 0,
+    "session_duration_minutes": 540
+  },
+  {
+    "user_key": "mentor_4",
+    "login_days_ago": 1,
+    "logout_days_ago": 1,
+    "session_duration_minutes": 480
+  },
+  {
+    "user_key": "mentor_4",
+    "login_days_ago": 2,
+    "logout_days_ago": 2,
+    "session_duration_minutes": 510
+  },
+  {
+    "user_key": "mentor_4",
+    "login_days_ago": 5,
+    "logout_days_ago": 5,
+    "session_duration_minutes": 390
+  },
+  {
+    "user_key": "mentor_5",
+    "login_days_ago": 0,
+    "logout_days_ago": 0,
+    "session_duration_minutes": 510
+  },
+  {
+    "user_key": "mentor_5",
+    "login_days_ago": 1,
+    "logout_days_ago": 1,
+    "session_duration_minutes": 480
+  },
+  {
+    "user_key": "mentor_5",
+    "login_days_ago": 3,
+    "logout_days_ago": 3,
+    "session_duration_minutes": 540
+  },
+  {
+    "user_key": "hr_director",
+    "login_days_ago": 0,
+    "logout_days_ago": 0,
+    "session_duration_minutes": 540
+  },
+  {
+    "user_key": "hr_director",
+    "login_days_ago": 1,
+    "logout_days_ago": 1,
+    "session_duration_minutes": 510
+  },
+  {
+    "user_key": "hr_director",
+    "login_days_ago": 2,
+    "logout_days_ago": 2,
+    "session_duration_minutes": 540
+  },
+  {
+    "user_key": "hr_director",
+    "login_days_ago": 3,
+    "logout_days_ago": 3,
+    "session_duration_minutes": 480
+  },
+  {
+    "user_key": "hr_director",
+    "login_days_ago": 4,
+    "logout_days_ago": 4,
+    "session_duration_minutes": 510
+  },
+  {
+    "user_key": "hr_director",
+    "login_days_ago": 5,
+    "logout_days_ago": 5,
+    "session_duration_minutes": 540
+  },
+  {
+    "user_key": "hr_specialist",
+    "login_days_ago": 0,
+    "logout_days_ago": 0,
+    "session_duration_minutes": 510
+  },
+  {
+    "user_key": "hr_specialist",
+    "login_days_ago": 1,
+    "logout_days_ago": 1,
+    "session_duration_minutes": 540
+  },
+  {
+    "user_key": "hr_specialist",
+    "login_days_ago": 2,
+    "logout_days_ago": 2,
+    "session_duration_minutes": 480
+  },
+  {
+    "user_key": "hr_specialist",
+    "login_days_ago": 3,
+    "logout_days_ago": 3,
+    "session_duration_minutes": 510
+  },
+  {
+    "user_key": "romanimus_adminius",
+    "login_days_ago": 0,
+    "logout_days_ago": 0,
+    "session_duration_minutes": 540
+  },
+  {
+    "user_key": "romanimus_adminius",
+    "login_days_ago": 1,
+    "logout_days_ago": 1,
+    "session_duration_minutes": 510
+  },
+  {
+    "user_key": "romanimus_adminius",
+    "login_days_ago": 2,
+    "logout_days_ago": 2,
+    "session_duration_minutes": 540
+  },
+  {
+    "user_key": "romanimus_adminius",
+    "login_days_ago": 3,
+    "logout_days_ago": 3,
+    "session_duration_minutes": 480
+  },
+  {
+    "user_key": "andrusevich_roman",
+    "login_days_ago": 0,
+    "logout_days_ago": 0,
+    "session_duration_minutes": 480
+  },
+  {
+    "user_key": "andrusevich_roman",
+    "login_days_ago": 1,
+    "logout_days_ago": 1,
+    "session_duration_minutes": 510
+  },
+  {
+    "user_key": "andrusevich_roman",
+    "login_days_ago": 2,
+    "logout_days_ago": 2,
+    "session_duration_minutes": 420
+  }
+]

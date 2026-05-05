@@ -1,15 +1,4 @@
 {
-  "admin": {
-    "email": "admin@company.com",
-    "first_name": "Администратор",
-    "last_name": "Системы",
-    "employee_id": "ADMIN001",
-    "password": "admin123",
-    "role": "ADMIN",
-    "department": "Engineering",
-    "position": "Системный администратор",
-    "level": "SENIOR"
-  },
   "hr_director": {
     "email": "hr.director@company.com",
     "first_name": "Елена",

@@ -1,0 +1,47 @@
+[
+  {
+    "title": "Устаревшая политика отпусков 2023",
+    "description": "Старая политика отпусков, которая была заменена в 2024 году",
+    "category": "VACATION",
+    "display_order": 999,
+    "status": "INACTIVE",
+    "deactivated_days_ago": 120,
+    "reason": "Политика обновлена"
+  },
+  {
+    "title": "Временная информация о COVID-19",
+    "description": "Информация о временных мерах во время пандемии",
+    "category": "HEALTH",
+    "display_order": 999,
+    "status": "INACTIVE",
+    "deactivated_days_ago": 180,
+    "reason": "Меры больше не актуальны"
+  },
+  {
+    "title": "Процедура работы с старой CRM",
+    "description": "Инструкция по работе с устаревшей CRM системой",
+    "category": "TOOLS",
+    "display_order": 999,
+    "status": "INACTIVE",
+    "deactivated_days_ago": 90,
+    "reason": "CRM заменена на новую"
+  },
+  {
+    "title": "Устаревшая политика удаленной работы",
+    "description": "Старая политика удаленной работы до внедрения гибридного формата",
+    "category": "POLICY",
+    "display_order": 999,
+    "status": "INACTIVE",
+    "deactivated_days_ago": 60,
+    "reason": "Внедрен гибридный формат"
+  },
+  {
+    "title": "Информация о старом офисе",
+    "description": "Информация о бывшем офисе компании",
+    "category": "FACILITIES",
+    "display_order": 999,
+    "status": "INACTIVE",
+    "deactivated_days_ago": 150,
+    "reason": "Компания переехала"
+  }
+]

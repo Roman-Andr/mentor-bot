@@ -1,0 +1,1370 @@
+[
+  {
+    "user_key": "newbie_1",
+    "query": "как настроить vpn",
+    "has_results": true,
+    "days_ago": 1
+  },
+  {
+    "user_key": "newbie_1",
+    "query": "vpn настройка",
+    "has_results": true,
+    "days_ago": 1
+  },
+  {
+    "user_key": "newbie_1",
+    "query": "vpn nastroika",
+    "has_results": false,
+    "days_ago": 1
+  },
+  {
+    "user_key": "newbie_2",
+    "query": "git команды",
+    "has_results": true,
+    "days_ago": 2
+  },
+  {
+    "user_key": "newbie_2",
+    "query": "git komandy",
+    "has_results": false,
+    "days_ago": 2
+  },
+  {
+    "user_key": "newbie_2",
+    "query": "git push",
+    "has_results": true,
+    "days_ago": 2
+  },
+  {
+    "user_key": "newbie_3",
+    "query": "onboarding process",
+    "has_results": true,
+    "days_ago": 3
+  },
+  {
+    "user_key": "newbie_3",
+    "query": "onboarding",
+    "has_results": true,
+    "days_ago": 3
+  },
+  {
+    "user_key": "newbie_3",
+    "query": "onborning",
+    "has_results": false,
+    "days_ago": 3
+  },
+  {
+    "user_key": "newbie_4",
+    "query": "отпуск заявление",
+    "has_results": true,
+    "days_ago": 4
+  },
+  {
+    "user_key": "newbie_4",
+    "query": "отпуск",
+    "has_results": true,
+    "days_ago": 4
+  },
+  {
+    "user_key": "newbie_4",
+    "query": "vacation",
+    "has_results": true,
+    "days_ago": 4
+  },
+  {
+    "user_key": "newbie_5",
+    "query": "бенефиты компании",
+    "has_results": true,
+    "days_ago": 5
+  },
+  {
+    "user_key": "newbie_5",
+    "query": "benefits",
+    "has_results": true,
+    "days_ago": 5
+  },
+  {
+    "user_key": "newbie_5",
+    "query": "benifits",
+    "has_results": false,
+    "days_ago": 5
+  },
+  {
+    "user_key": "newbie_6",
+    "query": "hr contact",
+    "has_results": true,
+    "days_ago": 6
+  },
+  {
+    "user_key": "newbie_6",
+    "query": "hr контакты",
+    "has_results": true,
+    "days_ago": 6
+  },
+  {
+    "user_key": "newbie_6",
+    "query": "hr kontact",
+    "has_results": false,
+    "days_ago": 6
+  },
+  {
+    "user_key": "newbie_7",
+    "query": "docker setup",
+    "has_results": true,
+    "days_ago": 7
+  },
+  {
+    "user_key": "newbie_7",
+    "query": "docker",
+    "has_results": true,
+    "days_ago": 7
+  },
+  {
+    "user_key": "newbie_7",
+    "query": "dokcer",
+    "has_results": false,
+    "days_ago": 7
+  },
+  {
+    "user_key": "newbie_8",
+    "query": "testing guidelines",
+    "has_results": true,
+    "days_ago": 8
+  },
+  {
+    "user_key": "newbie_8",
+    "query": "qa guidelines",
+    "has_results": true,
+    "days_ago": 8
+  },
+  {
+    "user_key": "newbie_8",
+    "query": "testing guidlines",
+    "has_results": false,
+    "days_ago": 8
+  },
+  {
+    "user_key": "newbie_9",
+    "query": "figma access",
+    "has_results": true,
+    "days_ago": 9
+  },
+  {
+    "user_key": "newbie_9",
+    "query": "design tools",
+    "has_results": true,
+    "days_ago": 9
+  },
+  {
+    "user_key": "newbie_9",
+    "query": "figma aksess",
+    "has_results": false,
+    "days_ago": 9
+  },
+  {
+    "user_key": "newbie_10",
+    "query": "sales process",
+    "has_results": true,
+    "days_ago": 10
+  },
+  {
+    "user_key": "newbie_10",
+    "query": "sales",
+    "has_results": true,
+    "days_ago": 10
+  },
+  {
+    "user_key": "newbie_10",
+    "query": "sails",
+    "has_results": false,
+    "days_ago": 10
+  },
+  {
+    "user_key": "newbie_11",
+    "query": "content guidelines",
+    "has_results": true,
+    "days_ago": 11
+  },
+  {
+    "user_key": "newbie_11",
+    "query": "marketing materials",
+    "has_results": true,
+    "days_ago": 11
+  },
+  {
+    "user_key": "newbie_11",
+    "query": "content guidlines",
+    "has_results": false,
+    "days_ago": 11
+  },
+  {
+    "user_key": "newbie_12",
+    "query": "payroll",
+    "has_results": true,
+    "days_ago": 12
+  },
+  {
+    "user_key": "newbie_12",
+    "query": "зарплата",
+    "has_results": true,
+    "days_ago": 12
+  },
+  {
+    "user_key": "newbie_12",
+    "query": "salary",
+    "has_results": true,
+    "days_ago": 12
+  },
+  {
+    "user_key": "employee_1",
+    "query": "code review process",
+    "has_results": true,
+    "days_ago": 13
+  },
+  {
+    "user_key": "employee_1",
+    "query": "code review",
+    "has_results": true,
+    "days_ago": 13
+  },
+  {
+    "user_key": "employee_1",
+    "query": "codereview",
+    "has_results": true,
+    "days_ago": 13
+  },
+  {
+    "user_key": "employee_2",
+    "query": "architecture documentation",
+    "has_results": true,
+    "days_ago": 14
+  },
+  {
+    "user_key": "employee_2",
+    "query": "system architecture",
+    "has_results": true,
+    "days_ago": 14
+  },
+  {
+    "user_key": "employee_2",
+    "query": "architcture",
+    "has_results": false,
+    "days_ago": 14
+  },
+  {
+    "user_key": "employee_3",
+    "query": "product roadmap",
+    "has_results": true,
+    "days_ago": 15
+  },
+  {
+    "user_key": "employee_3",
+    "query": "roadmap",
+    "has_results": true,
+    "days_ago": 15
+  },
+  {
+    "user_key": "employee_3",
+    "query": "product stratagy",
+    "has_results": false,
+    "days_ago": 15
+  },
+  {
+    "user_key": "employee_4",
+    "query": "client management",
+    "has_results": true,
+    "days_ago": 16
+  },
+  {
+    "user_key": "employee_4",
+    "query": "crm",
+    "has_results": true,
+    "days_ago": 16
+  },
+  {
+    "user_key": "employee_4",
+    "query": "klient management",
+    "has_results": false,
+    "days_ago": 16
+  },
+  {
+    "user_key": "employee_5",
+    "query": "seo best practices",
+    "has_results": true,
+    "days_ago": 17
+  },
+  {
+    "user_key": "employee_5",
+    "query": "seo",
+    "has_results": true,
+    "days_ago": 17
+  },
+  {
+    "user_key": "employee_5",
+    "query": "seeo",
+    "has_results": false,
+    "days_ago": 17
+  },
+  {
+    "user_key": "employee_6",
+    "query": "financial reports",
+    "has_results": true,
+    "days_ago": 18
+  },
+  {
+    "user_key": "employee_6",
+    "query": "finance",
+    "has_results": true,
+    "days_ago": 18
+  },
+  {
+    "user_key": "employee_6",
+    "query": "finanse",
+    "has_results": false,
+    "days_ago": 18
+  },
+  {
+    "user_key": "employee_7",
+    "query": "team lead responsibilities",
+    "has_results": true,
+    "days_ago": 19
+  },
+  {
+    "user_key": "employee_7",
+    "query": "leadership",
+    "has_results": true,
+    "days_ago": 19
+  },
+  {
+    "user_key": "employee_7",
+    "query": "team leed",
+    "has_results": false,
+    "days_ago": 19
+  },
+  {
+    "user_key": "employee_8",
+    "query": "frontend guidelines",
+    "has_results": true,
+    "days_ago": 20
+  },
+  {
+    "user_key": "employee_8",
+    "query": "react best practices",
+    "has_results": true,
+    "days_ago": 20
+  },
+  {
+    "user_key": "employee_8",
+    "query": "fronend",
+    "has_results": false,
+    "days_ago": 20
+  },
+  {
+    "user_key": "mentor_1",
+    "query": "mentoring guide",
+    "has_results": true,
+    "days_ago": 21
+  },
+  {
+    "user_key": "mentor_1",
+    "query": "mentor handbook",
+    "has_results": true,
+    "days_ago": 21
+  },
+  {
+    "user_key": "mentor_1",
+    "query": "mentoring gide",
+    "has_results": false,
+    "days_ago": 21
+  },
+  {
+    "user_key": "mentor_2",
+    "query": "product management",
+    "has_results": true,
+    "days_ago": 22
+  },
+  {
+    "user_key": "mentor_2",
+    "query": "agile",
+    "has_results": true,
+    "days_ago": 22
+  },
+  {
+    "user_key": "mentor_2",
+    "query": "agille",
+    "has_results": false,
+    "days_ago": 22
+  },
+  {
+    "user_key": "mentor_3",
+    "query": "sales training",
+    "has_results": true,
+    "days_ago": 23
+  },
+  {
+    "user_key": "mentor_3",
+    "query": "negotiation skills",
+    "has_results": true,
+    "days_ago": 23
+  },
+  {
+    "user_key": "mentor_3",
+    "query": "negotiation skils",
+    "has_results": false,
+    "days_ago": 23
+  },
+  {
+    "user_key": "mentor_4",
+    "query": "marketing strategy",
+    "has_results": true,
+    "days_ago": 24
+  },
+  {
+    "user_key": "mentor_4",
+    "query": "brand guidelines",
+    "has_results": true,
+    "days_ago": 24
+  },
+  {
+    "user_key": "mentor_4",
+    "query": "brand guidlines",
+    "has_results": false,
+    "days_ago": 24
+  },
+  {
+    "user_key": "mentor_5",
+    "query": "operations manual",
+    "has_results": true,
+    "days_ago": 25
+  },
+  {
+    "user_key": "mentor_5",
+    "query": "sop",
+    "has_results": true,
+    "days_ago": 25
+  },
+  {
+    "user_key": "mentor_5",
+    "query": "operatons",
+    "has_results": false,
+    "days_ago": 25
+  },
+  {
+    "user_key": "hr_director",
+    "query": "employee handbook",
+    "has_results": true,
+    "days_ago": 26
+  },
+  {
+    "user_key": "hr_director",
+    "query": "company policies",
+    "has_results": true,
+    "days_ago": 26
+  },
+  {
+    "user_key": "hr_director",
+    "query": "polices",
+    "has_results": false,
+    "days_ago": 26
+  },
+  {
+    "user_key": "hr_specialist",
+    "query": "onboarding checklist",
+    "has_results": true,
+    "days_ago": 27
+  },
+  {
+    "user_key": "hr_specialist",
+    "query": "new hire process",
+    "has_results": true,
+    "days_ago": 27
+  },
+  {
+    "user_key": "hr_specialist",
+    "query": "onbording",
+    "has_results": false,
+    "days_ago": 27
+  },
+  {
+    "user_key": "newbie_1",
+    "query": "slack",
+    "has_results": true,
+    "days_ago": 1
+  },
+  {
+    "user_key": "newbie_1",
+    "query": "communication tools",
+    "has_results": true,
+    "days_ago": 1
+  },
+  {
+    "user_key": "newbie_2",
+    "query": "jira",
+    "has_results": true,
+    "days_ago": 2
+  },
+  {
+    "user_key": "newbie_2",
+    "query": "task management",
+    "has_results": true,
+    "days_ago": 2
+  },
+  {
+    "user_key": "newbie_3",
+    "query": "confluence",
+    "has_results": true,
+    "days_ago": 3
+  },
+  {
+    "user_key": "newbie_3",
+    "query": "documentation",
+    "has_results": true,
+    "days_ago": 3
+  },
+  {
+    "user_key": "newbie_4",
+    "query": "email setup",
+    "has_results": true,
+    "days_ago": 4
+  },
+  {
+    "user_key": "newbie_4",
+    "query": "outlook",
+    "has_results": true,
+    "days_ago": 4
+  },
+  {
+    "user_key": "newbie_5",
+    "query": "calendar",
+    "has_results": true,
+    "days_ago": 5
+  },
+  {
+    "user_key": "newbie_5",
+    "query": "meeting rooms",
+    "has_results": true,
+    "days_ago": 5
+  },
+  {
+    "user_key": "newbie_6",
+    "query": "expense report",
+    "has_results": true,
+    "days_ago": 6
+  },
+  {
+    "user_key": "newbie_6",
+    "query": "reimbursement",
+    "has_results": true,
+    "days_ago": 6
+  },
+  {
+    "user_key": "newbie_7",
+    "query": "aws access",
+    "has_results": true,
+    "days_ago": 7
+  },
+  {
+    "user_key": "newbie_7",
+    "query": "cloud services",
+    "has_results": true,
+    "days_ago": 7
+  },
+  {
+    "user_key": "newbie_8",
+    "query": "jenkins",
+    "has_results": true,
+    "days_ago": 8
+  },
+  {
+    "user_key": "newbie_8",
+    "query": "ci/cd",
+    "has_results": true,
+    "days_ago": 8
+  },
+  {
+    "user_key": "newbie_9",
+    "query": "design system",
+    "has_results": true,
+    "days_ago": 9
+  },
+  {
+    "user_key": "newbie_9",
+    "query": "ui components",
+    "has_results": true,
+    "days_ago": 9
+  },
+  {
+    "user_key": "newbie_10",
+    "query": "crm software",
+    "has_results": true,
+    "days_ago": 10
+  },
+  {
+    "user_key": "newbie_10",
+    "query": "salesforce",
+    "has_results": true,
+    "days_ago": 10
+  },
+  {
+    "user_key": "newbie_11",
+    "query": "social media",
+    "has_results": true,
+    "days_ago": 11
+  },
+  {
+    "user_key": "newbie_11",
+    "query": "content calendar",
+    "has_results": true,
+    "days_ago": 11
+  },
+  {
+    "user_key": "newbie_12",
+    "query": "timesheet",
+    "has_results": true,
+    "days_ago": 12
+  },
+  {
+    "user_key": "newbie_12",
+    "query": "time tracking",
+    "has_results": true,
+    "days_ago": 12
+  },
+  {
+    "user_key": "employee_1",
+    "query": "api documentation",
+    "has_results": true,
+    "days_ago": 13
+  },
+  {
+    "user_key": "employee_1",
+    "query": "rest api",
+    "has_results": true,
+    "days_ago": 13
+  },
+  {
+    "user_key": "employee_2",
+    "query": "database design",
+    "has_results": true,
+    "days_ago": 14
+  },
+  {
+    "user_key": "employee_2",
+    "query": "sql",
+    "has_results": true,
+    "days_ago": 14
+  },
+  {
+    "user_key": "employee_3",
+    "query": "user research",
+    "has_results": true,
+    "days_ago": 15
+  },
+  {
+    "user_key": "employee_3",
+    "query": "ux research",
+    "has_results": true,
+    "days_ago": 15
+  },
+  {
+    "user_key": "employee_4",
+    "query": "contracts",
+    "has_results": true,
+    "days_ago": 16
+  },
+  {
+    "user_key": "employee_4",
+    "query": "legal documents",
+    "has_results": true,
+    "days_ago": 16
+  },
+  {
+    "user_key": "employee_5",
+    "query": "analytics",
+    "has_results": true,
+    "days_ago": 17
+  },
+  {
+    "user_key": "employee_5",
+    "query": "google analytics",
+    "has_results": true,
+    "days_ago": 17
+  },
+  {
+    "user_key": "employee_6",
+    "query": "budgeting",
+    "has_results": true,
+    "days_ago": 18
+  },
+  {
+    "user_key": "employee_6",
+    "query": "forecasting",
+    "has_results": true,
+    "days_ago": 18
+  },
+  {
+    "user_key": "employee_7",
+    "query": "performance review",
+    "has_results": true,
+    "days_ago": 19
+  },
+  {
+    "user_key": "employee_7",
+    "query": "kpi",
+    "has_results": true,
+    "days_ago": 19
+  },
+  {
+    "user_key": "employee_8",
+    "query": "typescript",
+    "has_results": true,
+    "days_ago": 20
+  },
+  {
+    "user_key": "employee_8",
+    "query": "javascript",
+    "has_results": true,
+    "days_ago": 20
+  },
+  {
+    "user_key": "mentor_1",
+    "query": "code standards",
+    "has_results": true,
+    "days_ago": 21
+  },
+  {
+    "user_key": "mentor_1",
+    "query": "linting",
+    "has_results": true,
+    "days_ago": 21
+  },
+  {
+    "user_key": "mentor_2",
+    "query": "sprint planning",
+    "has_results": true,
+    "days_ago": 22
+  },
+  {
+    "user_key": "mentor_2",
+    "query": "scrum",
+    "has_results": true,
+    "days_ago": 22
+  },
+  {
+    "user_key": "mentor_3",
+    "query": "quota",
+    "has_results": true,
+    "days_ago": 23
+  },
+  {
+    "user_key": "mentor_3",
+    "query": "commission",
+    "has_results": true,
+    "days_ago": 23
+  },
+  {
+    "user_key": "mentor_4",
+    "query": "campaigns",
+    "has_results": true,
+    "days_ago": 24
+  },
+  {
+    "user_key": "mentor_4",
+    "query": "advertising",
+    "has_results": true,
+    "days_ago": 24
+  },
+  {
+    "user_key": "mentor_5",
+    "query": "inventory",
+    "has_results": true,
+    "days_ago": 25
+  },
+  {
+    "user_key": "mentor_5",
+    "query": "supply chain",
+    "has_results": true,
+    "days_ago": 25
+  },
+  {
+    "user_key": "hr_director",
+    "query": "recruitment",
+    "has_results": true,
+    "days_ago": 26
+  },
+  {
+    "user_key": "hr_director",
+    "query": "hiring",
+    "has_results": true,
+    "days_ago": 26
+  },
+  {
+    "user_key": "hr_specialist",
+    "query": "training",
+    "has_results": true,
+    "days_ago": 27
+  },
+  {
+    "user_key": "hr_specialist",
+    "query": "development",
+    "has_results": true,
+    "days_ago": 27
+  },
+  {
+    "user_key": "newbie_1",
+    "query": "security",
+    "has_results": true,
+    "days_ago": 1
+  },
+  {
+    "user_key": "newbie_2",
+    "query": "password reset",
+    "has_results": true,
+    "days_ago": 2
+  },
+  {
+    "user_key": "newbie_3",
+    "query": "2fa",
+    "has_results": true,
+    "days_ago": 3
+  },
+  {
+    "user_key": "newbie_4",
+    "query": "sick leave",
+    "has_results": true,
+    "days_ago": 4
+  },
+  {
+    "user_key": "newbie_5",
+    "query": "health insurance",
+    "has_results": true,
+    "days_ago": 5
+  },
+  {
+    "user_key": "newbie_6",
+    "query": "pto",
+    "has_results": true,
+    "days_ago": 6
+  },
+  {
+    "user_key": "newbie_7",
+    "query": "kubernetes",
+    "has_results": true,
+    "days_ago": 7
+  },
+  {
+    "user_key": "newbie_8",
+    "query": "automation testing",
+    "has_results": true,
+    "days_ago": 8
+  },
+  {
+    "user_key": "newbie_9",
+    "query": "wireframing",
+    "has_results": true,
+    "days_ago": 9
+  },
+  {
+    "user_key": "newbie_10",
+    "query": "cold calling",
+    "has_results": true,
+    "days_ago": 10
+  },
+  {
+    "user_key": "newbie_11",
+    "query": "copywriting",
+    "has_results": true,
+    "days_ago": 11
+  },
+  {
+    "user_key": "newbie_12",
+    "query": "payroll schedule",
+    "has_results": true,
+    "days_ago": 12
+  },
+  {
+    "user_key": "employee_1",
+    "query": "microservices",
+    "has_results": true,
+    "days_ago": 13
+  },
+  {
+    "user_key": "employee_2",
+    "query": "caching",
+    "has_results": true,
+    "days_ago": 14
+  },
+  {
+    "user_key": "employee_3",
+    "query": "mvp",
+    "has_results": true,
+    "days_ago": 15
+  },
+  {
+    "user_key": "employee_4",
+    "query": "prospecting",
+    "has_results": true,
+    "days_ago": 16
+  },
+  {
+    "user_key": "employee_5",
+    "query": "keywords",
+    "has_results": true,
+    "days_ago": 17
+  },
+  {
+    "user_key": "employee_6",
+    "query": "audit",
+    "has_results": true,
+    "days_ago": 18
+  },
+  {
+    "user_key": "employee_7",
+    "query": "1:1 meetings",
+    "has_results": true,
+    "days_ago": 19
+  },
+  {
+    "user_key": "employee_8",
+    "query": "css",
+    "has_results": true,
+    "days_ago": 20
+  },
+  {
+    "user_key": "mentor_1",
+    "query": "pair programming",
+    "has_results": true,
+    "days_ago": 21
+  },
+  {
+    "user_key": "mentor_2",
+    "query": "backlog",
+    "has_results": true,
+    "days_ago": 22
+  },
+  {
+    "user_key": "mentor_3",
+    "query": "territory",
+    "has_results": true,
+    "days_ago": 23
+  },
+  {
+    "user_key": "mentor_4",
+    "query": "brand voice",
+    "has_results": true,
+    "days_ago": 24
+  },
+  {
+    "user_key": "mentor_5",
+    "query": "logistics",
+    "has_results": true,
+    "days_ago": 25
+  },
+  {
+    "user_key": "hr_director",
+    "query": "compliance",
+    "has_results": true,
+    "days_ago": 26
+  },
+  {
+    "user_key": "hr_specialist",
+    "query": "onboarding survey",
+    "has_results": true,
+    "days_ago": 27
+  },
+  {
+    "user_key": "newbie_1",
+    "query": "how to",
+    "has_results": true,
+    "days_ago": 1
+  },
+  {
+    "user_key": "newbie_2",
+    "query": "help",
+    "has_results": true,
+    "days_ago": 2
+  },
+  {
+    "user_key": "newbie_3",
+    "query": "tutorial",
+    "has_results": true,
+    "days_ago": 3
+  },
+  {
+    "user_key": "newbie_4",
+    "query": "guide",
+    "has_results": true,
+    "days_ago": 4
+  },
+  {
+    "user_key": "newbie_5",
+    "query": "faq",
+    "has_results": true,
+    "days_ago": 5
+  },
+  {
+    "user_key": "newbie_6",
+    "query": "support",
+    "has_results": true,
+    "days_ago": 6
+  },
+  {
+    "user_key": "newbie_7",
+    "query": "troubleshooting",
+    "has_results": true,
+    "days_ago": 7
+  },
+  {
+    "user_key": "newbie_8",
+    "query": "debugging",
+    "has_results": true,
+    "days_ago": 8
+  },
+  {
+    "user_key": "newbie_9",
+    "query": "best practices",
+    "has_results": true,
+    "days_ago": 9
+  },
+  {
+    "user_key": "newbie_10",
+    "query": "tips",
+    "has_results": true,
+    "days_ago": 10
+  },
+  {
+    "user_key": "newbie_11",
+    "query": "templates",
+    "has_results": true,
+    "days_ago": 11
+  },
+  {
+    "user_key": "newbie_12",
+    "query": "examples",
+    "has_results": true,
+    "days_ago": 12
+  },
+  {
+    "user_key": "employee_1",
+    "query": "optimization",
+    "has_results": true,
+    "days_ago": 13
+  },
+  {
+    "user_key": "employee_2",
+    "query": "scalability",
+    "has_results": true,
+    "days_ago": 14
+  },
+  {
+    "user_key": "employee_3",
+    "query": "innovation",
+    "has_results": true,
+    "days_ago": 15
+  },
+  {
+    "user_key": "employee_4",
+    "query": "growth",
+    "has_results": true,
+    "days_ago": 16
+  },
+  {
+    "user_key": "employee_5",
+    "query": "traffic",
+    "has_results": true,
+    "days_ago": 17
+  },
+  {
+    "user_key": "employee_6",
+    "query": "profitability",
+    "has_results": true,
+    "days_ago": 18
+  },
+  {
+    "user_key": "employee_7",
+    "query": "productivity",
+    "has_results": true,
+    "days_ago": 19
+  },
+  {
+    "user_key": "employee_8",
+    "query": "performance",
+    "has_results": true,
+    "days_ago": 20
+  },
+  {
+    "user_key": "mentor_1",
+    "query": "coaching",
+    "has_results": true,
+    "days_ago": 21
+  },
+  {
+    "user_key": "mentor_2",
+    "query": "planning",
+    "has_results": true,
+    "days_ago": 22
+  },
+  {
+    "user_key": "mentor_3",
+    "query": "motivation",
+    "has_results": true,
+    "days_ago": 23
+  },
+  {
+    "user_key": "mentor_4",
+    "query": "branding",
+    "has_results": true,
+    "days_ago": 24
+  },
+  {
+    "user_key": "mentor_5",
+    "query": "efficiency",
+    "has_results": true,
+    "days_ago": 25
+  },
+  {
+    "user_key": "hr_director",
+    "query": "culture",
+    "has_results": true,
+    "days_ago": 26
+  },
+  {
+    "user_key": "hr_specialist",
+    "query": "engagement",
+    "has_results": true,
+    "days_ago": 27
+  },
+  {
+    "user_key": "newbie_1",
+    "query": "как",
+    "has_results": false,
+    "days_ago": 1
+  },
+  {
+    "user_key": "newbie_2",
+    "query": "что",
+    "has_results": false,
+    "days_ago": 2
+  },
+  {
+    "user_key": "newbie_3",
+    "query": "где",
+    "has_results": false,
+    "days_ago": 3
+  },
+  {
+    "user_key": "newbie_4",
+    "query": "когда",
+    "has_results": false,
+    "days_ago": 4
+  },
+  {
+    "user_key": "newbie_5",
+    "query": "почему",
+    "has_results": false,
+    "days_ago": 5
+  },
+  {
+    "user_key": "newbie_6",
+    "query": "кто",
+    "has_results": false,
+    "days_ago": 6
+  },
+  {
+    "user_key": "newbie_7",
+    "query": "какой",
+    "has_results": false,
+    "days_ago": 7
+  },
+  {
+    "user_key": "newbie_8",
+    "query": "чей",
+    "has_results": false,
+    "days_ago": 8
+  },
+  {
+    "user_key": "newbie_9",
+    "query": "сколько",
+    "has_results": false,
+    "days_ago": 9
+  },
+  {
+    "user_key": "newbie_10",
+    "query": "какой",
+    "has_results": false,
+    "days_ago": 10
+  },
+  {
+    "user_key": "newbie_11",
+    "query": "зачем",
+    "has_results": false,
+    "days_ago": 11
+  },
+  {
+    "user_key": "newbie_12",
+    "query": "откуда",
+    "has_results": false,
+    "days_ago": 12
+  },
+  {
+    "user_key": "employee_1",
+    "query": "test",
+    "has_results": false,
+    "days_ago": 13
+  },
+  {
+    "user_key": "employee_2",
+    "query": "abc",
+    "has_results": false,
+    "days_ago": 14
+  },
+  {
+    "user_key": "employee_3",
+    "query": "xyz",
+    "has_results": false,
+    "days_ago": 15
+  },
+  {
+    "user_key": "employee_4",
+    "query": "123",
+    "has_results": false,
+    "days_ago": 16
+  },
+  {
+    "user_key": "employee_5",
+    "query": "qwerty",
+    "has_results": false,
+    "days_ago": 17
+  },
+  {
+    "user_key": "employee_6",
+    "query": "asdf",
+    "has_results": false,
+    "days_ago": 18
+  },
+  {
+    "user_key": "employee_7",
+    "query": "zxcv",
+    "has_results": false,
+    "days_ago": 19
+  },
+  {
+    "user_key": "employee_8",
+    "query": "test123",
+    "has_results": false,
+    "days_ago": 20
+  },
+  {
+    "user_key": "mentor_1",
+    "query": "hello",
+    "has_results": false,
+    "days_ago": 21
+  },
+  {
+    "user_key": "mentor_2",
+    "query": "world",
+    "has_results": false,
+    "days_ago": 22
+  },
+  {
+    "user_key": "mentor_3",
+    "query": "foo",
+    "has_results": false,
+    "days_ago": 23
+  },
+  {
+    "user_key": "mentor_4",
+    "query": "bar",
+    "has_results": false,
+    "days_ago": 24
+  },
+  {
+    "user_key": "mentor_5",
+    "query": "baz",
+    "has_results": false,
+    "days_ago": 25
+  },
+  {
+    "user_key": "hr_director",
+    "query": "admin",
+    "has_results": false,
+    "days_ago": 26
+  },
+  {
+    "user_key": "hr_specialist",
+    "query": "user",
+    "has_results": false,
+    "days_ago": 27
+  },
+  {
+    "user_key": "newbie_1",
+    "query": "как настроить vpn",
+    "has_results": true,
+    "days_ago": 0
+  },
+  {
+    "user_key": "newbie_2",
+    "query": "git команды",
+    "has_results": true,
+    "days_ago": 0
+  },
+  {
+    "user_key": "newbie_3",
+    "query": "onboarding process",
+    "has_results": true,
+    "days_ago": 0
+  },
+  {
+    "user_key": "newbie_4",
+    "query": "отпуск заявление",
+    "has_results": true,
+    "days_ago": 0
+  },
+  {
+    "user_key": "newbie_5",
+    "query": "бенефиты компании",
+    "has_results": true,
+    "days_ago": 0
+  },
+  {
+    "user_key": "newbie_6",
+    "query": "hr contact",
+    "has_results": true,
+    "days_ago": 0
+  },
+  {
+    "user_key": "newbie_7",
+    "query": "docker setup",
+    "has_results": true,
+    "days_ago": 0
+  },
+  {
+    "user_key": "newbie_8",
+    "query": "testing guidelines",
+    "has_results": true,
+    "days_ago": 0
+  },
+  {
+    "user_key": "newbie_9",
+    "query": "figma access",
+    "has_results": true,
+    "days_ago": 0
+  },
+  {
+    "user_key": "newbie_10",
+    "query": "sales process",
+    "has_results": true,
+    "days_ago": 0
+  },
+  {
+    "user_key": "newbie_11",
+    "query": "content guidelines",
+    "has_results": true,
+    "days_ago": 0
+  },
+  {
+    "user_key": "newbie_12",
+    "query": "payroll",
+    "has_results": true,
+    "days_ago": 0
+  }
+]

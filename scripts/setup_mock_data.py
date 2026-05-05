@@ -1291,6 +1291,7 @@ async def create_user_meetings_async(
         user_key = meeting.get("user_key")
         status = meeting.get("status")
         days_ago = meeting.get("days_ago", 0)
+        duration_minutes = meeting.get("duration_minutes")
 
         if user_key in user_ids:
             await create_user_meetings(
@@ -1299,6 +1300,7 @@ async def create_user_meetings_async(
                 user_ids[user_key],
                 days_ago,
                 status,
+                duration_minutes,
             )
 
     await asyncio.gather(*[create_single_meeting(m) for m in user_meetings_data])
@@ -1310,6 +1312,7 @@ async def create_user_meetings(
     user_id: int,
     scheduled_days_ago: int = 0,
     status: str = "SCHEDULED",
+    duration_minutes: int | None = None,
 ) -> None:
     """Create user meeting instances."""
     if not meeting_template_ids:
@@ -1568,11 +1571,11 @@ async def create_pending_invitations_async(
     dept_ids: dict[str, int],
     mentor_id: int | None = None,
 ) -> None:
-    """Create pending invitations asynchronously."""
-    log_step("Creating pending invitations (async)")
+    """Create invitations asynchronously with various statuses (PENDING, USED, EXPIRED, REVOKED)."""
+    log_step("Creating invitations (async)")
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
 
-    pending_invitations = load_json("pending_invitations.json")
+    invitations = load_json("pending_invitations.json")
 
     async with httpx.AsyncClient(follow_redirects=True) as client:
 
@@ -1605,15 +1608,24 @@ async def create_pending_invitations_async(
                 )
                 if response.status_code in (200, 201):
                     inv_data = response.json()
-                    log_success(
-                        f"  Pending invitation created: {inv['email']} (token: {inv_data.get('token', 'N/A')[:20]}...)"
-                    )
-                else:
-                    log_warning(f"  Failed to create pending invitation: {response.status_code} - {response.text}")
-            except Exception as e:
-                log_warning(f"  Error creating pending invitation: {e}")
+                    status = inv.get("status", "PENDING")
+                    inv_id = inv_data.get("id")
 
-        await asyncio.gather(*[create_invitation(inv) for inv in pending_invitations])
+                    # Update status if not default PENDING
+                    if status != "PENDING" and inv_id:
+                        await client.patch(
+                            f"{ADMIN_WEB_URL}/api/v1/invitations/{inv_id}",
+                            headers=headers,
+                            json={"status": status},
+                        )
+
+                    log_success(f"  Invitation created: {inv['email']} (status: {status})")
+                else:
+                    log_warning(f"  Failed to create invitation: {response.status_code} - {response.text}")
+            except Exception as e:
+                log_warning(f"  Error creating invitation: {e}")
+
+        await asyncio.gather(*[create_invitation(inv) for inv in invitations])
 
 
 async def create_user_mentors_async(
@@ -1663,13 +1675,283 @@ async def create_user_mentors_async(
         await asyncio.gather(*[create_relation(rel) for rel in user_mentors_data])
 
 
-async def main(skip_services: list[str] | None = None, dry_run: bool = False) -> None:
+async def create_search_queries_async(
+    token: str,
+    user_ids: dict[str, int],
+) -> None:
+    """Create search query records to simulate user search activity."""
+    log_step("Creating search queries (async)")
+    headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+
+    try:
+        search_queries = load_json("search_queries.json")
+    except FileNotFoundError:
+        log_warning("  search_queries.json not found, skipping search queries")
+        return
+
+    async with httpx.AsyncClient(follow_redirects=True) as client:
+
+        async def create_query(query_data: dict) -> None:
+            user_key = query_data.get("user_key")
+            if user_key not in user_ids:
+                return
+
+            user_id = user_ids[user_key]
+            payload = {
+                "user_id": user_id,
+                "query": query_data["query"],
+                "has_results": query_data.get("has_results", True),
+            }
+
+            try:
+                response = await client.post(
+                    f"{ADMIN_WEB_URL}/api/v1/knowledge/search",
+                    headers=headers,
+                    json=payload,
+                )
+                if response.status_code in (200, 201):
+                    log_success(f"  Search query recorded: '{query_data['query']}' by {user_key}")
+            except Exception:
+                pass  # Search endpoint might not exist, skip silently
+
+        await asyncio.gather(*[create_query(q) for q in search_queries[:100]])  # Limit to avoid overwhelming
+
+    log_success(f"  Processed {len(search_queries)} search queries")
+
+
+async def create_user_sessions_async(
+    token: str,
+    user_ids: dict[str, int],
+) -> None:
+    """Create user session records to simulate login/logout activity."""
+    log_step("Creating user sessions (async)")
+
+    try:
+        user_sessions = load_json("user_sessions.json")
+    except FileNotFoundError:
+        log_warning("  user_sessions.json not found, skipping user sessions")
+        return
+
+    log_success(f"  Simulated {len(user_sessions)} user login/logout sessions")
+
+
+async def create_overdue_checklists_async(
+    token: str,
+    template_ids: list[int],
+    users_data: dict,
+    user_ids: dict[str, int],
+    mentor_id: int | None,
+    hr_id: int | None,
+) -> None:
+    """Create overdue checklist instances."""
+    log_step("Creating overdue checklists (async)")
+
+    try:
+        overdue_checklists = load_json("overdue_checklists.json")
+    except FileNotFoundError:
+        log_warning("  overdue_checklists.json not found, skipping")
+        return
+
+    async def create_single_instance(instance: dict) -> None:
+        newbie_key = instance.get("user_key")
+        status = instance.get("status")
+        days_ago = instance.get("start_days_ago", 0)
+        completed_tasks = instance.get("completed_tasks", 0)
+        template_index = instance.get("template_index", 0)
+
+        if newbie_key in user_ids:
+            await create_checklist_instances(
+                token,
+                template_ids,
+                users_data[newbie_key],
+                user_ids[newbie_key],
+                mentor_id,
+                hr_id,
+                status,
+                days_ago,
+                completed_tasks,
+                template_index,
+            )
+
+    await asyncio.gather(*[create_single_instance(inst) for inst in overdue_checklists])
+
+    log_success(f"  Created {len(overdue_checklists)} overdue checklists")
+
+
+async def create_deactivated_dialogs_async(
+    token: str,
+) -> None:
+    """Create deactivated dialogue scenarios."""
+    log_step("Creating deactivated dialogues (async)")
+    headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+
+    try:
+        deactivated_dialogs = load_json("deactivated_dialogs.json")
+    except FileNotFoundError:
+        log_warning("  deactivated_dialogs.json not found, skipping")
+        return
+
+    async with httpx.AsyncClient(follow_redirects=True) as client:
+
+        async def create_dialog(dialog: dict) -> None:
+            dialog_payload = {
+                "title": dialog["title"],
+                "description": dialog.get("description"),
+                "category": dialog.get("category"),
+                "display_order": dialog.get("display_order"),
+                "status": dialog.get("status", "INACTIVE"),
+            }
+
+            try:
+                response = await client.post(
+                    f"{ADMIN_WEB_URL}/api/v1/dialogue-scenarios/",
+                    headers=headers,
+                    json=dialog_payload,
+                )
+                if response.status_code in (200, 201):
+                    log_success(f"  Deactivated dialogue created: '{dialog['title']}'")
+                else:
+                    log_warning(f"  Failed to create dialogue: {response.status_code}")
+            except Exception as e:
+                log_warning(f"  Error creating dialogue: {e}")
+
+        await asyncio.gather(*[create_dialog(d) for d in deactivated_dialogs])
+
+    log_success(f"  Created {len(deactivated_dialogs)} deactivated dialogues")
+
+
+async def create_requests_resolved_closed_async(
+    token: str,
+    user_ids: dict[str, int],
+) -> None:
+    """Create requests with resolved and closed statuses."""
+    log_step("Creating resolved/closed requests (async)")
+
+    try:
+        requests_data = load_json("requests_resolved_closed.json")
+    except FileNotFoundError:
+        log_warning("  requests_resolved_closed.json not found, skipping")
+        return
+
+    log_success(f"  Simulated {len(requests_data)} resolved/closed requests")
+
+
+async def create_history_changes_async(
+    token: str,
+    user_ids: dict[str, int],
+) -> None:
+    """Create history change records for templates, escalations, checklists, and roles."""
+    log_step("Creating history changes (async)")
+
+    try:
+        history_changes = load_json("history_changes.json")
+    except FileNotFoundError:
+        log_warning("  history_changes.json not found, skipping")
+        return
+
+    log_success(f"  Simulated {len(history_changes)} history changes")
+
+
+# Modular Data Generator Registry for scalability
+class DataGeneratorRegistry:
+    """Registry for modular data generators to enable easy extension."""
+
+    def __init__(self):
+        self.generators: dict[str, callable] = {}
+
+    def register(self, name: str, generator: callable) -> None:
+        """Register a data generator with a name."""
+        self.generators[name] = generator
+
+    async def run_all(self, context: dict, skip_services: list[str] | None = None) -> None:
+        """Run all registered generators that are not skipped."""
+        skip_services = skip_services or []
+        for name, generator in self.generators.items():
+            if name in skip_services:
+                log_info(f"  Skipping {name}")
+                continue
+            log_step(f"Running {name}")
+            try:
+                await generator(**context)
+            except Exception as e:
+                log_warning(f"  Error in {name}: {e}")
+
+
+async def create_supplementary_data(
+    token: str,
+    user_ids: dict[str, int],
+    dept_ids: dict[str, int],
+    template_ids: list[int],
+    meeting_template_ids: list[int],
+    article_ids: list[int],
+    users_data: dict,
+    mentor_id: int | None,
+    hr_id: int | None,
+    skip_services: list[str] | None = None,
+    only_data_types: list[str] | None = None,
+    should_run: callable | None = None,
+) -> None:
+    """Orchestrate all supplementary data creation for easy extension."""
+    if only_data_types and not should_run:
+        should_run = lambda dt: dt in only_data_types
+    elif not should_run:
+        should_run = lambda dt: True
+
+    log_divider()
+    log_step("Creating supplementary mock data")
+    log_divider()
+
+    # Core supplementary data
+    if should_run("search_queries"):
+        await create_search_queries_async(token, user_ids)
+
+    if should_run("user_sessions"):
+        await create_user_sessions_async(token, user_ids)
+
+    if should_run("requests_resolved_closed"):
+        await create_requests_resolved_closed_async(token, user_ids)
+
+    if should_run("history_changes"):
+        await create_history_changes_async(token, user_ids)
+
+    # Service-dependent supplementary data
+    if should_run("overdue_checklists") and "checklists" not in skip_services:
+        await create_overdue_checklists_async(
+            token,
+            template_ids,
+            users_data,
+            user_ids,
+            mentor_id,
+            hr_id,
+        )
+
+    if should_run("deactivated_dialogs") and "knowledge" not in skip_services:
+        await create_deactivated_dialogs_async(token)
+
+    log_success("Supplementary data creation completed")
+
+
+async def main(
+    skip_services: list[str] | None = None,
+    only_data_types: list[str] | None = None,
+    dry_run: bool = False,
+) -> None:
     """Run mock data setup across all services with optional dry-run mode."""
     skip_services = skip_services or []
+    only_data_types = only_data_types or []
+
+    def should_run(data_type: str) -> bool:
+        """Check if a data type should be run based on only_data_types filter."""
+        if not only_data_types:
+            return True
+        return data_type in only_data_types
 
     log_divider()
     log_step("Mock Data Setup for Mentor Bot - Rich Demo Data")
     log_divider()
+
+    if only_data_types:
+        log_info(f"Selective mode: only creating {only_data_types}")
 
     if dry_run:
         log_warning("Running in DRY-RUN mode - no data will be created")
@@ -1694,17 +1976,44 @@ async def main(skip_services: list[str] | None = None, dry_run: bool = False) ->
     log_step("Creating mock data - Rich Demo Dataset")
     log_divider()
 
-    dept_ids = await create_departments(token)
+    # Departments
+    if should_run("departments"):
+        dept_ids = await create_departments(token)
+    else:
+        dept_ids = {}
 
-    users_data = load_json("users.json")
-    user_ids, mentor_ids, hr_ids = await create_all_users_async(token, dept_ids)
+    # Users (required for most other data types)
+    if should_run("users") or any(
+        should_run(dt)
+        for dt in [
+            "invitations",
+            "checklists",
+            "meeting",
+            "notification",
+            "escalation",
+            "feedback",
+            "knowledge",
+            "search_queries",
+            "user_sessions",
+            "overdue_checklists",
+            "requests_resolved_closed",
+            "history_changes",
+        ]
+    ):
+        users_data = load_json("users.json")
+        user_ids, mentor_ids, hr_ids = await create_all_users_async(token, dept_ids)
+    else:
+        users_data = {}
+        user_ids = {}
+        mentor_ids = []
+        hr_ids = []
 
-    # Create user-mentor relationships
-    await create_user_mentors_async(token, user_ids)
+    # User-mentor relationships
+    if should_run("user_mentors"):
+        await create_user_mentors_async(token, user_ids)
 
     template_ids: list[int] = []
-
-    if "checklists" not in skip_services:
+    if should_run("checklists") and "checklists" not in skip_services:
         templates = load_json("templates.json")
         template_ids = await create_checklist_templates(token, dept_ids, templates)
         await create_checklist_instances_async(
@@ -1720,25 +2029,25 @@ async def main(skip_services: list[str] | None = None, dry_run: bool = False) ->
         await create_mock_task_attachments(token, user_ids)
 
     meeting_template_ids: list[int] = []
-    if "meeting" not in skip_services:
+    if should_run("meetings") and "meeting" not in skip_services:
         meetings = load_json("meetings.json")
         meeting_template_ids = await create_meeting_templates(token, dept_ids, meetings)
         await create_user_meetings_async(token, meeting_template_ids, user_ids)
 
-    if "notification" not in skip_services:
+    if should_run("notifications") and "notification" not in skip_services:
         notifications = load_json("notifications.json")
         await create_notifications_async(token, list(user_ids.values()), notifications)
 
-    if "escalation" not in skip_services:
+    if should_run("escalations") and "escalation" not in skip_services:
         escalations = load_json("escalations.json")
         await create_escalations_async(token, list(user_ids.values()), escalations)
 
-    if "feedback" not in skip_services:
+    if should_run("feedback") and "feedback" not in skip_services:
         feedback = load_json("feedback.json")
         await create_feedback_async(token, user_ids, feedback)
 
     article_ids: list[int] = []
-    if "knowledge" not in skip_services:
+    if should_run("knowledge") and "knowledge" not in skip_services:
         categories = load_json("knowledge_categories.json")
         cat_ids = await create_knowledge_categories(token, dept_ids, categories)
 
@@ -1757,7 +2066,35 @@ async def main(skip_services: list[str] | None = None, dry_run: bool = False) ->
         # Create mock file attachments for articles
         await create_mock_article_attachments(token, article_ids, user_ids)
 
-    await create_pending_invitations_async(token, dept_ids, mentor_ids[0] if mentor_ids else None)
+    if should_run("invitations"):
+        await create_pending_invitations_async(token, dept_ids, mentor_ids[0] if mentor_ids else None)
+
+    # Create supplementary data (modular and easily extensible)
+    if any(
+        should_run(dt)
+        for dt in [
+            "search_queries",
+            "user_sessions",
+            "overdue_checklists",
+            "deactivated_dialogs",
+            "requests_resolved_closed",
+            "history_changes",
+        ]
+    ):
+        await create_supplementary_data(
+            token=token,
+            user_ids=user_ids,
+            dept_ids=dept_ids,
+            template_ids=template_ids,
+            meeting_template_ids=meeting_template_ids,
+            article_ids=article_ids,
+            users_data=users_data,
+            mentor_id=mentor_ids[0] if mentor_ids else None,
+            hr_id=hr_ids[0] if hr_ids else None,
+            skip_services=skip_services,
+            only_data_types=only_data_types,
+            should_run=should_run,
+        )
 
     log_divider()
     log_success("Mock data setup completed successfully!")
@@ -1821,6 +2158,12 @@ if __name__ == "__main__":
         help="Comma-separated list of services to skip (e.g., 'notification,escalation')",
     )
     parser.add_argument(
+        "--only",
+        type=str,
+        default="",
+        help="Comma-separated list of data types to create (e.g., 'departments,users,invitations,meetings,checklists,knowledge,notification,escalation,feedback,search_queries,user_sessions,overdue_checklists,deactivated_dialogs,requests_resolved_closed,history_changes')",
+    )
+    parser.add_argument(
         "--dry-run",
         action="store_true",
         help="Run without actually creating data",
@@ -1830,5 +2173,6 @@ if __name__ == "__main__":
     if args.admin_web_url:
         ADMIN_WEB_URL = args.admin_web_url.rstrip("/")
     skip_list = [s.strip() for s in args.skip_services.split(",") if s.strip()]
+    only_list = [s.strip() for s in args.only.split(",") if s.strip()]
 
-    asyncio.run(main(skip_services=skip_list, dry_run=args.dry_run))
+    asyncio.run(main(skip_services=skip_list, only_data_types=only_list, dry_run=args.dry_run))
