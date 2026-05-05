@@ -8,18 +8,18 @@ const LEVEL_LABEL: Record<LogLevel, string> = {
   error: "ERROR",
 };
 
-function pad(n: number, w = 2): string {
+export function pad(n: number, w = 2): string {
   return String(n).padStart(w, "0");
 }
 
-function formatTimestamp(d: Date): string {
+export function formatTimestamp(d: Date): string {
   return (
     `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ` +
     `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}.${pad(d.getMilliseconds(), 3)}`
   );
 }
 
-function getCallerLocation(): string {
+export function getCallerLocation(): string {
   const stack = new Error().stack?.split("\n") ?? [];
   for (let i = 3; i < stack.length; i++) {
     const line = stack[i];
@@ -100,4 +100,5 @@ class Logger {
   }
 }
 
-export const logger = new Logger();
+export class LoggerClass extends Logger {}
+export const logger = new LoggerClass();

@@ -94,7 +94,7 @@ def get_anonymity_choice_keyboard(*, locale: str = "en", survey_type: str = "pul
         create_inline_button(
             f"\U0001f464 {t('feedback.btn_anonymous', locale=locale)}",
             callback_data=f"{survey_type}_anon_choice_true",
-            style=ButtonStyle.SECONDARY,
+            style=ButtonStyle.PRIMARY,
         ),
         create_inline_button(
             f"\U0001f465 {t('feedback.btn_attributed', locale=locale)}",

@@ -22,7 +22,10 @@ class FeedbackServiceClient:
             response = await self.client.post(
                 f"{settings.API_V1_PREFIX}/feedback/pulse",
                 json={"rating": rating, "is_anonymous": is_anonymous},
-                headers={"Authorization": f"Bearer {auth_token}"},
+                headers={
+                    "Authorization": f"Bearer {auth_token}",
+                    "X-Service-Api-Key": settings.SERVICE_API_KEY,
+                },
             )
             if response.status_code == status.HTTP_201_CREATED:
                 logger.info("Pulse survey submitted")
@@ -40,7 +43,10 @@ class FeedbackServiceClient:
             response = await self.client.post(
                 f"{settings.API_V1_PREFIX}/feedback/experience",
                 json={"rating": rating, "is_anonymous": is_anonymous},
-                headers={"Authorization": f"Bearer {auth_token}"},
+                headers={
+                    "Authorization": f"Bearer {auth_token}",
+                    "X-Service-Api-Key": settings.SERVICE_API_KEY,
+                },
             )
             if response.status_code == status.HTTP_201_CREATED:
                 logger.info("Experience rating submitted")
@@ -74,7 +80,10 @@ class FeedbackServiceClient:
             response = await self.client.post(
                 f"{settings.API_V1_PREFIX}/feedback/comments",
                 json=payload,
-                headers={"Authorization": f"Bearer {auth_token}"},
+                headers={
+                    "Authorization": f"Bearer {auth_token}",
+                    "X-Service-Api-Key": settings.SERVICE_API_KEY,
+                },
             )
             if response.status_code == status.HTTP_201_CREATED:
                 logger.info("Comment submitted")

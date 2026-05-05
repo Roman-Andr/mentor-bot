@@ -6,14 +6,9 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-# Clear proxy environment variables to avoid httpx proxy errors
-# httpx doesn't support 'socks://' scheme, only 'socks5://' and 'socks5h://'
-os.environ.pop("http_proxy", None)
-os.environ.pop("https_proxy", None)
-os.environ.pop("HTTP_PROXY", None)
-os.environ.pop("HTTPS_PROXY", None)
-os.environ.pop("all_proxy", None)
-os.environ.pop("ALL_PROXY", None)
+# Clear proxy environment variables to prevent httpx errors with unsupported socks:// scheme
+for proxy_var in ["http_proxy", "https_proxy", "HTTP_PROXY", "HTTPS_PROXY", "all_proxy", "ALL_PROXY"]:
+    os.environ.pop(proxy_var, None)
 
 # Set required environment variables BEFORE any app imports
 os.environ.setdefault("DATABASE_URL", "postgresql+asyncpg://test:test@localhost:5432/test_meeting_db")

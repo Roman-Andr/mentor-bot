@@ -11,6 +11,7 @@ from checklists_service.api.endpoints.audit import (
     TaskCompletionEntry,
     TemplateChangeEntry,
 )
+from checklists_service.core.exceptions import PermissionDenied
 
 
 @pytest.fixture
@@ -49,8 +50,8 @@ class TestRequireHrOrAdmin:
         audit.require_hr_or_admin(sample_admin_user)
 
     async def test_require_hr_or_admin_with_employee_role(self, sample_employee_user) -> None:
-        """Test Employee role raises PermissionError."""
-        with pytest.raises(PermissionError, match="Access denied: HR or Admin role required"):
+        """Test Employee role raises PermissionDenied."""
+        with pytest.raises(PermissionDenied, match="Access denied: HR or Admin role required"):
             audit.require_hr_or_admin(sample_employee_user)
 
 
@@ -164,7 +165,7 @@ class TestGetChecklistStatusHistory:
         """Test permission denied for non-HR/Admin user."""
         uow = MagicMock()
 
-        with pytest.raises(PermissionError, match="Access denied: HR or Admin role required"):
+        with pytest.raises(PermissionDenied, match="Access denied: HR or Admin role required"):
             await audit.get_checklist_status_history(
                 current_user=sample_employee_user,
                 uow=uow,
@@ -295,7 +296,7 @@ class TestGetTaskCompletionHistory:
         """Test permission denied for non-HR/Admin user."""
         uow = MagicMock()
 
-        with pytest.raises(PermissionError, match="Access denied: HR or Admin role required"):
+        with pytest.raises(PermissionDenied, match="Access denied: HR or Admin role required"):
             await audit.get_task_completion_history(
                 current_user=sample_employee_user,
                 uow=uow,
@@ -386,7 +387,7 @@ class TestGetTemplateChangeHistory:
         """Test permission denied for non-HR/Admin user."""
         uow = MagicMock()
 
-        with pytest.raises(PermissionError, match="Access denied: HR or Admin role required"):
+        with pytest.raises(PermissionDenied, match="Access denied: HR or Admin role required"):
             await audit.get_template_change_history(
                 current_user=sample_employee_user,
                 uow=uow,

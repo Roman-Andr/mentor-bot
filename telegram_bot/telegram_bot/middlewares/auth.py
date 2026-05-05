@@ -47,7 +47,7 @@ class AuthMiddleware(BaseMiddleware):
         user_data = await user_cache.get_user(tg_user.id)
 
         if not user_data:
-            logger.debug("User not in cache, authenticating (telegram_id={})", tg_user.id)
+            logger.info("User not in cache, authenticating (telegram_id={})", tg_user.id)
             telegram_data = {
                 "api_key": settings.TELEGRAM_API_KEY,
                 "telegram_id": tg_user.id,
@@ -71,7 +71,38 @@ class AuthMiddleware(BaseMiddleware):
                 else:
                     logger.warning("Authentication successful but user data fetch failed (telegram_id={})", tg_user.id)
             else:
-                logger.debug("Authentication failed (telegram_id={})", tg_user.id)
+                logger.warning("Authentication failed (telegram_id={})", tg_user.id)
+        else:
+            logger.debug("User found in cache (telegram_id={}, user_id={})", tg_user.id, user_data.get("id"))
+            # Try to refresh token if available
+            refresh_token = user_data.get("refresh_token")
+            if refresh_token:
+                refresh_result = await auth_client.refresh_token(refresh_token)
+                if refresh_result and "access_token" in refresh_result:
+                    user_data["access_token"] = refresh_result["access_token"]
+                    user_data["refresh_token"] = refresh_result.get("refresh_token", refresh_token)
+                    await user_cache.set_user(tg_user.id, user_data)
+                    logger.info("Token refreshed for user (telegram_id={})", tg_user.id)
+                else:
+                    # Refresh failed, re-authenticate
+                    logger.warning("Token refresh failed, re-authenticating (telegram_id={})", tg_user.id)
+                    telegram_data = {
+                        "api_key": settings.TELEGRAM_API_KEY,
+                        "telegram_id": tg_user.id,
+                    }
+                    auth_result = await auth_client.authenticate_with_telegram(telegram_data)
+                    if auth_result and "access_token" in auth_result:
+                        user_data = await auth_client.get_current_user(auth_result["access_token"])
+                        if user_data:
+                            user_data = {
+                                **user_data,
+                                "access_token": auth_result["access_token"],
+                                "refresh_token": auth_result["refresh_token"],
+                            }
+                            await user_cache.set_user(tg_user.id, user_data)
+                            logger.info(
+                                "User re-authenticated and cached (telegram_id={}, user_id={})", tg_user.id, user_data.get("id")
+                            )
 
         if user_data:
             data["user"] = user_data

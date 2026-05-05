@@ -16,7 +16,7 @@ from knowledge_service.api.endpoints.tags import (
     merge_tags,
     update_tag,
 )
-from knowledge_service.core import NotFoundException, ValidationException
+from knowledge_service.core import ConflictException, NotFoundException, ValidationException
 from knowledge_service.schemas import TagCreate, TagResponse, TagUpdate
 
 if TYPE_CHECKING:
@@ -168,6 +168,26 @@ class TestCreateTag:
             )
 
         assert exc_info.value.status_code == status.HTTP_400_BAD_REQUEST
+
+    async def test_create_tag_conflict_error(
+        self,
+        mock_tag_service: AsyncMock,
+        mock_hr_user: UserInfo,
+    ) -> None:
+        """Test tag creation with conflict error (duplicate slug)."""
+        mock_tag_service.create_tag.side_effect = ConflictException("Tag already exists")
+
+        tag_data = TagCreate(
+            name="Duplicate",
+            slug="duplicate",
+        )
+
+        with pytest.raises(ConflictException):
+            await create_tag(
+                tag_data=tag_data,
+                tag_service=mock_tag_service,
+                _current_user=mock_hr_user,
+            )
 
 
 class TestGetTag:

@@ -106,6 +106,8 @@ async def process_pulse_rating(
     locale: str = "en",
 ) -> None:
     """Process pulse survey rating from button click."""
+    from loguru import logger
+    logger.info("Processing pulse rating - user: {}, auth_token: {}", user, auth_token[:20] if auth_token else None)
     # Parse rating from callback data: pulse_{rating}_anon_{is_anonymous}
     try:
         parts = callback.data.split("_")

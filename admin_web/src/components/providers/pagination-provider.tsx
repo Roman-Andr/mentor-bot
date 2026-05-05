@@ -21,7 +21,7 @@ interface PaginationContextType {
   setPageSize: (size: number) => void;
 }
 
-const PaginationContext = createContext<PaginationContextType | undefined>(
+export const PaginationContext = createContext<PaginationContextType | undefined>(
   undefined
 );
 

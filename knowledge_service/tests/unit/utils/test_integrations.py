@@ -182,6 +182,73 @@ class TestAuthServiceClientInitialization:
             assert client.base_url == "http://auth-service:8001"
 
 
+class TestAuthServiceClientGetDepartments:
+    """Test AuthServiceClient.get_departments method."""
+
+    async def test_get_departments_success(self) -> None:
+        """get_departments returns departments on 200 OK."""
+        client = AuthServiceClient(base_url="http://auth:8001")
+
+        mock_response = MagicMock()
+        mock_response.status_code = status.HTTP_200_OK
+        mock_response.json.return_value = {"departments": [{"id": 1, "name": "Engineering"}]}
+
+        client.client = AsyncMock()
+        client.client.get = AsyncMock(return_value=mock_response)
+
+        with patch("knowledge_service.utils.integrations.cached") as mock_cached:
+            mock_cached.side_effect = lambda **_kwargs: lambda f: f
+            result = await client.get_departments("service_token")
+
+        assert result == [{"id": 1, "name": "Engineering"}]
+
+    async def test_get_departments_non_200_returns_none(self) -> None:
+        """get_departments returns None for non-200 status."""
+        client = AuthServiceClient(base_url="http://auth:8001")
+
+        mock_response = MagicMock()
+        mock_response.status_code = status.HTTP_401_UNAUTHORIZED
+
+        client.client = AsyncMock()
+        client.client.get = AsyncMock(return_value=mock_response)
+
+        with patch("knowledge_service.utils.integrations.cached") as mock_cached:
+            mock_cached.side_effect = lambda **_kwargs: lambda f: f
+            result = await client.get_departments("invalid_token")
+
+        assert result is None
+
+    async def test_get_departments_request_error_logs_exception(self, caplog: pytest.LogCaptureFixture) -> None:
+        """get_departments logs exception on httpx.RequestError."""
+        client = AuthServiceClient(base_url="http://auth:8001")
+
+        client.client = AsyncMock()
+        client.client.get = AsyncMock(side_effect=httpx.RequestError("Connection failed"))
+
+        with caplog.at_level(logging.ERROR):
+            with patch("knowledge_service.utils.integrations.cached") as mock_cached:
+                mock_cached.side_effect = lambda **_kwargs: lambda f: f
+                result = await client.get_departments("token")
+
+        assert result is None
+        assert "Auth service request failed" in caplog.text
+
+    async def test_get_departments_generic_exception_logs_exception(self, caplog: pytest.LogCaptureFixture) -> None:
+        """get_departments logs exception on generic Exception."""
+        client = AuthServiceClient(base_url="http://auth:8001")
+
+        client.client = AsyncMock()
+        client.client.get = AsyncMock(side_effect=ValueError("Unexpected error"))
+
+        with caplog.at_level(logging.ERROR):
+            with patch("knowledge_service.utils.integrations.cached") as mock_cached:
+                mock_cached.side_effect = lambda **_kwargs: lambda f: f
+                result = await client.get_departments("token")
+
+        assert result is None
+        assert "Get departments error" in caplog.text
+
+
 class TestAuthServiceClientSingleton:
     """Test the singleton instance."""
 

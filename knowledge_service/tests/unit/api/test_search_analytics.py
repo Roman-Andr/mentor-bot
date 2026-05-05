@@ -186,24 +186,31 @@ class TestGetSearchByDepartment:
         from_date = datetime(2024, 1, 1, tzinfo=UTC)
         to_date = datetime(2024, 12, 31, tzinfo=UTC)
         mock_search_history_repo.get_by_department.return_value = []
+        mock_request = MagicMock()
+        mock_request.headers.get.return_value = ""
 
         result = await get_search_by_department(
             current_user=mock_hr_user,
             search_history_repo=mock_search_history_repo,
             from_date=from_date,
             to_date=to_date,
+            request=mock_request,
         )
 
-        mock_search_history_repo.get_by_department.assert_called_once_with(from_date=from_date, to_date=to_date)
+        mock_search_history_repo.get_by_department.assert_called_once_with(
+            from_date=from_date, to_date=to_date, token=""
+        )
 
     async def test_get_search_by_department_non_hr_denied(self, mock_regular_user, mock_search_history_repo):
         """Test non-HR user is denied access."""
+        mock_request = MagicMock()
         with pytest.raises(HTTPException) as exc_info:
             await get_search_by_department(
                 current_user=mock_regular_user,
                 search_history_repo=mock_search_history_repo,
                 from_date=None,
                 to_date=None,
+                request=mock_request,
             )
 
         assert exc_info.value.status_code == 403

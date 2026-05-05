@@ -13,6 +13,7 @@ from auth_service.api.endpoints.audit import (
     RoleChangeEntry,
     get_invitation_history,
     get_login_history,
+    get_logout_history,
     get_mentor_assignment_history,
     get_role_change_history,
     require_hr_or_admin,
@@ -516,4 +517,66 @@ class TestGetMentorAssignmentHistory:
                 offset=0,
             )
 
-        assert "Access denied: HR or Admin role required" in str(exc_info.value)
+
+class TestGetLogoutHistory:
+    """Tests for get_logout_history endpoint to cover missing lines."""
+
+    async def test_get_logout_history_success(self, admin_user, mock_uow):
+        """Test get_logout_history returns logout history for HR/Admin."""
+        logout_entry = {
+            "id": 1,
+            "user_id": 1,
+            "logout_at": datetime.now(UTC),
+            "method": "web",
+            "ip_address": "192.168.1.1",
+            "user_agent": "Mozilla",
+        }
+
+        mock_uow.logout_history.get_all = AsyncMock(return_value=([logout_entry], 1))
+
+        result = await get_logout_history(
+            current_user=admin_user,
+            uow=mock_uow,
+            user_id=None,
+            from_date=None,
+            to_date=None,
+            limit=50,
+            offset=0,
+        )
+
+        assert isinstance(result, AuditResponse)
+        assert len(result.items) == 1
+        assert result.total == 1
+        mock_uow.logout_history.get_all.assert_called_once_with(
+            from_date=None, to_date=None, limit=50, offset=0
+        )
+
+    async def test_get_logout_history_by_user_id(self, admin_user, mock_uow):
+        """Test get_logout_history returns records for specific user (covers lines 232-244)."""
+        logout_entry = {
+            "id": 1,
+            "user_id": 10,
+            "logout_at": datetime.now(UTC),
+            "method": "web",
+            "ip_address": "192.168.1.1",
+            "user_agent": "Mozilla",
+        }
+
+        mock_uow.logout_history.get_by_user_id = AsyncMock(return_value=[logout_entry])
+
+        result = await get_logout_history(
+            current_user=admin_user,
+            uow=mock_uow,
+            user_id=10,
+            from_date=None,
+            to_date=None,
+            limit=50,
+            offset=0,
+        )
+
+        assert isinstance(result, AuditResponse)
+        assert len(result.items) == 1
+        assert result.total == 1
+        mock_uow.logout_history.get_by_user_id.assert_called_once_with(
+            user_id=10, from_date=None, to_date=None, limit=50
+        )

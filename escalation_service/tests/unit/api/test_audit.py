@@ -14,6 +14,7 @@ from escalation_service.api.endpoints.audit import (
     require_hr_or_admin,
 )
 from escalation_service.core.enums import UserRole
+from escalation_service.core.exceptions import PermissionDenied
 
 
 class TestRequireHrOrAdmin:
@@ -34,13 +35,13 @@ class TestRequireHrOrAdmin:
     def test_denies_regular_user(self):
         """Test that regular users are denied."""
         user = UserInfo({"id": 1, "role": UserRole.USER.value, "is_active": True})
-        with pytest.raises(PermissionError, match="Access denied: HR or Admin role required"):
+        with pytest.raises(PermissionDenied, match="Access denied: HR or Admin role required"):
             require_hr_or_admin(user)
 
     def test_denies_user_with_no_role(self):
         """Test that users with no role are denied."""
         user = UserInfo({"id": 1, "role": None, "is_active": True})
-        with pytest.raises(PermissionError, match="Access denied: HR or Admin role required"):
+        with pytest.raises(PermissionDenied, match="Access denied: HR or Admin role required"):
             require_hr_or_admin(user)
 
 
@@ -206,7 +207,7 @@ class TestGetEscalationStatusHistory:
     @pytest.mark.asyncio
     async def test_denies_regular_user(self, regular_user, mock_uow):
         """Test that regular users are denied access."""
-        with pytest.raises(PermissionError, match="Access denied: HR or Admin role required"):
+        with pytest.raises(PermissionDenied, match="Access denied: HR or Admin role required"):
             await get_escalation_status_history(
                 current_user=regular_user,
                 uow=mock_uow,
@@ -400,7 +401,7 @@ class TestGetMentorInterventionHistory:
     @pytest.mark.asyncio
     async def test_denies_regular_user(self, regular_user, mock_uow):
         """Test that regular users are denied access."""
-        with pytest.raises(PermissionError, match="Access denied: HR or Admin role required"):
+        with pytest.raises(PermissionDenied, match="Access denied: HR or Admin role required"):
             await get_mentor_intervention_history(
                 current_user=regular_user,
                 uow=mock_uow,

@@ -11,7 +11,7 @@ def create_inline_button(
     url: str | None = None,
     style: ButtonStyle | None = None,
 ) -> InlineKeyboardButton:
-    """Create an inline keyboard button with optional style."""
+    """Create an inline keyboard button."""
     kwargs = {"text": text}
 
     if callback_data:

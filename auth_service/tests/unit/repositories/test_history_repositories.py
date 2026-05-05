@@ -11,12 +11,14 @@ from auth_service.core.enums import UserRole
 from auth_service.models import (
     InvitationStatusHistory,
     LoginHistory,
+    LogoutHistory,
     MentorAssignmentHistory,
     PasswordChangeHistory,
     RoleChangeHistory,
 )
 from auth_service.repositories.implementations.invitation_status_history import InvitationStatusHistoryRepository
 from auth_service.repositories.implementations.login_history import LoginHistoryRepository
+from auth_service.repositories.implementations.logout_history import LogoutHistoryRepository
 from auth_service.repositories.implementations.mentor_assignment_history import MentorAssignmentHistoryRepository
 from auth_service.repositories.implementations.password_change_history import PasswordChangeHistoryRepository
 from auth_service.repositories.implementations.role_change_history import RoleChangeHistoryRepository
@@ -406,4 +408,89 @@ class TestInvitationStatusHistoryRepository:
         assert total == 1
         assert len(result) == 1
         assert result[0] == sample_history
+        assert mock_session.execute.call_count == 2
+
+
+class TestLogoutHistoryRepository:
+    """Tests for LogoutHistoryRepository to cover missing lines."""
+
+    @pytest.fixture
+    def mock_session(self):
+        session = MagicMock(spec=AsyncSession)
+        session.execute = AsyncMock()
+        session.add = MagicMock()
+        session.flush = AsyncMock()
+        return session
+
+    @pytest.fixture
+    def mock_result(self):
+        result = MagicMock()
+        result.scalars = MagicMock()
+        result.scalars.return_value.all = MagicMock(return_value=[])
+        result.scalar_one = MagicMock(return_value=0)
+        return result
+
+    @pytest.fixture
+    def sample_logout_history(self):
+        return LogoutHistory(
+            id=1,
+            user_id=1,
+            logout_at=datetime.now(UTC),
+            method="web",
+            ip_address="192.168.1.1",
+            user_agent="Mozilla",
+        )
+
+    async def test_create(self, mock_session, sample_logout_history):
+        """Test create logout history (covers lines 24-26)."""
+        repo = LogoutHistoryRepository(mock_session)
+        result = await repo.create(sample_logout_history)
+        mock_session.add.assert_called_once_with(sample_logout_history)
+        mock_session.flush.assert_awaited_once()
+        assert result == sample_logout_history
+
+    async def test_get_by_user_id_with_dates(self, mock_session, mock_result, sample_logout_history):
+        """Test get_by_user_id with date filtering (covers lines 37-46)."""
+        mock_result.scalars.return_value.all.return_value = [sample_logout_history]
+        mock_session.execute.return_value = mock_result
+        repo = LogoutHistoryRepository(mock_session)
+        from_date = datetime.now(UTC) - timedelta(days=7)
+        to_date = datetime.now(UTC)
+        result = await repo.get_by_user_id(1, from_date=from_date, to_date=to_date)
+        assert len(result) == 1
+        assert result[0] == sample_logout_history
+        mock_session.execute.assert_awaited_once()
+
+    async def test_get_by_user_id_no_dates(self, mock_session, mock_result, sample_logout_history):
+        """Test get_by_user_id without date filtering."""
+        mock_result.scalars.return_value.all.return_value = [sample_logout_history]
+        mock_session.execute.return_value = mock_result
+        repo = LogoutHistoryRepository(mock_session)
+        result = await repo.get_by_user_id(1)
+        assert len(result) == 1
+        assert result[0] == sample_logout_history
+
+    async def test_get_all_with_dates(self, mock_session, mock_result, sample_logout_history):
+        """Test get_all with date filtering (covers lines 57-72)."""
+        mock_result.scalars.return_value.all.return_value = [sample_logout_history]
+        mock_result.scalar_one.return_value = 1
+        mock_session.execute.return_value = mock_result
+        repo = LogoutHistoryRepository(mock_session)
+        from_date = datetime.now(UTC) - timedelta(days=7)
+        to_date = datetime.now(UTC)
+        result, total = await repo.get_all(from_date=from_date, to_date=to_date)
+        assert total == 1
+        assert len(result) == 1
+        assert mock_session.execute.call_count == 2
+
+    async def test_get_all_no_dates(self, mock_session, mock_result, sample_logout_history):
+        """Test get_all without date filtering."""
+        mock_result.scalars.return_value.all.return_value = [sample_logout_history]
+        mock_result.scalar_one.return_value = 1
+        mock_session.execute.return_value = mock_result
+        repo = LogoutHistoryRepository(mock_session)
+        result, total = await repo.get_all()
+        assert total == 1
+        assert len(result) == 1
+        assert result[0] == sample_logout_history
         assert mock_session.execute.call_count == 2

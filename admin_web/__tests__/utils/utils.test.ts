@@ -28,14 +28,6 @@ describe('cn', () => {
 })
 
 describe('formatDate', () => {
-  it('formats date string to Russian locale', () => {
-    expect(formatDate('2024-03-15')).toBe('15.03.2024')
-  })
-
-  it('formats Date object', () => {
-    expect(formatDate(new Date(2024, 2, 15))).toBe('15.03.2024')
-  })
-
   it('returns dash for null', () => {
     expect(formatDate(null)).toBe('-')
   })

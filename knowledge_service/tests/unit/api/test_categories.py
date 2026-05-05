@@ -15,7 +15,7 @@ from knowledge_service.api.endpoints.categories import (
     get_department_categories,
     update_category,
 )
-from knowledge_service.core import NotFoundException, ValidationException
+from knowledge_service.core import ConflictException, NotFoundException, ValidationException
 from knowledge_service.models import Category
 from knowledge_service.schemas import CategoryCreate, CategoryResponse, CategoryUpdate
 
@@ -152,6 +152,26 @@ class TestCreateCategory:
             )
 
         assert exc_info.value.status_code == status.HTTP_400_BAD_REQUEST
+
+    async def test_create_category_conflict_error(
+        self,
+        mock_category_service: AsyncMock,
+        mock_hr_user: UserInfo,
+    ) -> None:
+        """Test category creation with conflict error (duplicate slug)."""
+        mock_category_service.create_category.side_effect = ConflictException("Category already exists")
+
+        category_data = CategoryCreate(
+            name="Duplicate",
+            slug="duplicate",
+        )
+
+        with pytest.raises(ConflictException):
+            await create_category(
+                category_data=category_data,
+                category_service=mock_category_service,
+                _current_user=mock_hr_user,
+            )
 
 
 class TestGetCategory:

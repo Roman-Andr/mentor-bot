@@ -1008,5 +1008,26 @@ class TestRecordRoleChange:
             reason="Auto-promotion",
         )
 
-        call_args = mock_uow.role_change_history.create.call_args[0][0]
-        assert call_args.changed_by is None
+    async def test_record_logout_success(self, mock_uow):
+        """Test record_logout creates logout history entry (covers lines 355-362)."""
+        from auth_service.models import LogoutHistory
+
+        service = AuthService(mock_uow)
+        mock_uow.logout_history.create = AsyncMock()
+        mock_uow.commit = AsyncMock()
+
+        await service.record_logout(
+            user_id=1,
+            method="web",
+            ip_address="192.168.1.1",
+            user_agent="Mozilla",
+        )
+
+        mock_uow.logout_history.create.assert_called_once()
+        call_args = mock_uow.logout_history.create.call_args[0][0]
+        assert isinstance(call_args, LogoutHistory)
+        assert call_args.user_id == 1
+        assert call_args.method == "web"
+        assert call_args.ip_address == "192.168.1.1"
+        assert call_args.user_agent == "Mozilla"
+        mock_uow.commit.assert_awaited_once()

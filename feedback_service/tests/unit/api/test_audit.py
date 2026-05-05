@@ -4,6 +4,8 @@ from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+from fastapi import HTTPException
+
 from feedback_service.api.endpoints.audit import (
     AuditResponse,
     FeedbackStatusChangeEntry,
@@ -41,7 +43,7 @@ class TestRequireHrOrAdmin:
         current_user.role = UserRole.NEWBIE
 
         # Act & Assert
-        with pytest.raises(PermissionError, match="Access denied: HR or Admin role required"):
+        with pytest.raises(HTTPException, match="Access denied: HR or Admin role required"):
             require_hr_or_admin(current_user)
 
     async def test_mentor_role_denied(self) -> None:
@@ -51,7 +53,7 @@ class TestRequireHrOrAdmin:
         current_user.role = UserRole.MENTOR
 
         # Act & Assert
-        with pytest.raises(PermissionError, match="Access denied: HR or Admin role required"):
+        with pytest.raises(HTTPException, match="Access denied: HR or Admin role required"):
             require_hr_or_admin(current_user)
 
 
@@ -161,7 +163,7 @@ class TestGetFeedbackStatusChangeHistory:
         mock_uow = MagicMock()
 
         # Act & Assert
-        with pytest.raises(PermissionError, match="Access denied: HR or Admin role required"):
+        with pytest.raises(HTTPException, match="Access denied: HR or Admin role required"):
             await get_feedback_status_change_history(
                 current_user=current_user,
                 uow=mock_uow,

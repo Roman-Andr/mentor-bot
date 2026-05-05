@@ -41,21 +41,21 @@ def get_my_mentor_keyboard(*, locale: str = "en") -> InlineKeyboardBuilder:
     builder = InlineKeyboardBuilder()
     builder.add(
         create_inline_button(
-            f"\U0001f4ac {t('mentor.btn_message', locale=locale)}",
+            t('mentor.btn_message', locale=locale),
             callback_data="message_mentor",
             style=ButtonStyle.PRIMARY,
         ),
         create_inline_button(
-            f"\U0001f4c5 {t('mentor.btn_schedule', locale=locale)}",
+            t('mentor.btn_schedule', locale=locale),
             callback_data="schedule_mentor",
             style=ButtonStyle.PRIMARY,
         ),
         create_inline_button(
-            f"\U0001f4cb {t('mentor.btn_tasks', locale=locale)}",
+            t('mentor.btn_tasks', locale=locale),
             callback_data="mentor_tasks",
             style=ButtonStyle.PRIMARY,
         ),
-        create_inline_button(f"\u2190 {t('common.menu_button', locale=locale)}", callback_data="menu"),
+        create_inline_button(t('common.menu_button', locale=locale), callback_data="menu"),
     )
     builder.adjust(1)
     return builder
@@ -115,11 +115,11 @@ def get_progress_keyboard(checklist_id: int | None = None, *, locale: str = "en"
             style=ButtonStyle.PRIMARY,
         )
     )
-    # Always go back to checklists list, not to specific checklist tasks
+    # Back to main menu
     builder.add(
         create_inline_button(
-            f"\u2190 {t('checklists.btn_back_checklists', locale=locale)}",
-            callback_data="my_tasks",
+            t('common.back_button', locale=locale),
+            callback_data="main_menu",
         )
     )
     builder.adjust(1)

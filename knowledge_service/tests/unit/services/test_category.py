@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from knowledge_service.core import NotFoundException, ValidationException
+from knowledge_service.core import ConflictException, NotFoundException, ValidationException
 from knowledge_service.models import Article, Category
 from knowledge_service.schemas import CategoryCreate, CategoryUpdate
 from knowledge_service.services.category import CategoryService
@@ -120,7 +120,7 @@ class TestCreateCategory:
             description="Test description",
         )
 
-        with pytest.raises(ValidationException, match="already exists"):
+        with pytest.raises(ConflictException, match="already exists"):
             await service.create_category(category_data)
 
     async def test_create_category_with_parent(self, mock_uow, sample_category, sample_child_category):

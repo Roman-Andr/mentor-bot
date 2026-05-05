@@ -11,6 +11,50 @@ describe('analyticsApi', () => {
     vi.unstubAllGlobals()
   })
 
+  describe('checklistStats', () => {
+    it('calls fetchApi without params', async () => {
+      mockFetchResponse({ total: 100, completed: 50 })
+      await analyticsApi.checklistStats()
+      expect(global.fetch).toHaveBeenCalled()
+    })
+
+    it('calls fetchApi with department_id', async () => {
+      mockFetchResponse({ total: 50, completed: 25 })
+      await analyticsApi.checklistStats({ department_id: 5 })
+      expect(global.fetch).toHaveBeenCalled()
+    })
+  })
+
+  describe('monthlyStats', () => {
+    it('calls fetchApi with default months', async () => {
+      mockFetchResponse([])
+      await analyticsApi.monthlyStats()
+      expect(global.fetch).toHaveBeenCalled()
+    })
+
+    it('calls fetchApi with custom months', async () => {
+      mockFetchResponse([])
+      await analyticsApi.monthlyStats(12)
+      expect(global.fetch).toHaveBeenCalled()
+    })
+  })
+
+  describe('completionTimeStats', () => {
+    it('calls fetchApi', async () => {
+      mockFetchResponse([])
+      await analyticsApi.completionTimeStats()
+      expect(global.fetch).toHaveBeenCalled()
+    })
+  })
+
+  describe('onboardingProgress', () => {
+    it('calls fetchApi', async () => {
+      mockFetchResponse({ checklists: [] })
+      await analyticsApi.onboardingProgress()
+      expect(global.fetch).toHaveBeenCalled()
+    })
+  })
+
   describe('knowledge', () => {
     describe('summary', () => {
       it('fetches knowledge summary without date range', async () => {
@@ -316,6 +360,113 @@ describe('analyticsApi', () => {
             credentials: 'include'
           })
         )
+      })
+    })
+  })
+
+  describe('search', () => {
+    describe('summary', () => {
+      it('fetches search summary without params', async () => {
+        mockFetchResponse({ total_searches: 1000, unique_queries: 500 })
+        await analyticsApi.search.summary()
+        expect(global.fetch).toHaveBeenCalled()
+      })
+
+      it('fetches search summary with department_id', async () => {
+        mockFetchResponse({ total_searches: 500, unique_queries: 250 })
+        await analyticsApi.search.summary({ department_id: 5 })
+        expect(global.fetch).toHaveBeenCalled()
+      })
+
+      it('fetches search summary with date range', async () => {
+        mockFetchResponse({ total_searches: 500, unique_queries: 250 })
+        await analyticsApi.search.summary({ from_date: '2026-01-01', to_date: '2026-01-31' })
+        expect(global.fetch).toHaveBeenCalled()
+      })
+    })
+
+    describe('topQueries', () => {
+      it('fetches top queries without params', async () => {
+        mockFetchResponse([])
+        await analyticsApi.search.topQueries()
+        expect(global.fetch).toHaveBeenCalled()
+      })
+
+      it('fetches top queries with limit', async () => {
+        mockFetchResponse([])
+        await analyticsApi.search.topQueries({ limit: 10 })
+        expect(global.fetch).toHaveBeenCalled()
+      })
+
+      it('fetches top queries with all params', async () => {
+        mockFetchResponse([])
+        await analyticsApi.search.topQueries({
+          from_date: '2026-01-01',
+          to_date: '2026-01-31',
+          department_id: 5,
+          limit: 10
+        })
+        expect(global.fetch).toHaveBeenCalled()
+      })
+    })
+
+    describe('zeroResults', () => {
+      it('fetches zero results without params', async () => {
+        mockFetchResponse([])
+        await analyticsApi.search.zeroResults()
+        expect(global.fetch).toHaveBeenCalled()
+      })
+
+      it('fetches zero results with all params', async () => {
+        mockFetchResponse([])
+        await analyticsApi.search.zeroResults({
+          from_date: '2026-01-01',
+          to_date: '2026-01-31',
+          department_id: 5,
+          limit: 10
+        })
+        expect(global.fetch).toHaveBeenCalled()
+      })
+    })
+
+    describe('byDepartment', () => {
+      it('fetches by department without params', async () => {
+        mockFetchResponse([])
+        await analyticsApi.search.byDepartment()
+        expect(global.fetch).toHaveBeenCalled()
+      })
+
+      it('fetches by department with date range', async () => {
+        mockFetchResponse([])
+        await analyticsApi.search.byDepartment({
+          from_date: '2026-01-01',
+          to_date: '2026-01-31'
+        })
+        expect(global.fetch).toHaveBeenCalled()
+      })
+    })
+
+    describe('timeseries', () => {
+      it('fetches search timeseries without params', async () => {
+        mockFetchResponse([])
+        await analyticsApi.search.timeseries()
+        expect(global.fetch).toHaveBeenCalled()
+      })
+
+      it('fetches search timeseries with granularity', async () => {
+        mockFetchResponse([])
+        await analyticsApi.search.timeseries({ granularity: 'day' })
+        expect(global.fetch).toHaveBeenCalled()
+      })
+
+      it('fetches search timeseries with all params', async () => {
+        mockFetchResponse([])
+        await analyticsApi.search.timeseries({
+          from_date: '2026-01-01',
+          to_date: '2026-01-31',
+          granularity: 'week'
+        })
+        expect(global.fetch).toHaveBeenCalled()
       })
     })
   })
