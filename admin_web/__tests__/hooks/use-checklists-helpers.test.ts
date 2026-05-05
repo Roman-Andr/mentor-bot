@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { mapToItem, toCreatePayload, toUpdatePayload, toForm } from '@/hooks/use-checklists'
-import type { ChecklistItem, ChecklistFormData } from '@/hooks/use-checklists'
+import { mapToItem, toCreatePayload, toUpdatePayload, toForm } from '@/shared/hooks/use-checklists'
+import type { ChecklistItem, ChecklistFormData } from '@/shared/hooks/use-checklists'
 
 describe('use-checklists helper functions', () => {
   const mockChecklistItem: ChecklistItem = {

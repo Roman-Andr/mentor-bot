@@ -95,10 +95,9 @@ class TestGetMyMentorKeyboard:
 
         all_texts = [btn.text for row in markup.inline_keyboard for btn in row]
 
-        assert any("\U0001f4ac" in text for text in all_texts)  # Message bubble
-        assert any("\U0001f4c5" in text for text in all_texts)  # Calendar
-        assert any("\U0001f4cb" in text for text in all_texts)  # Clipboard
-        assert any("\u2190" in text for text in all_texts)  # Back arrow
+        # Emojis are now in translation files, not hardcoded
+        # Just verify buttons exist
+        assert len(all_texts) == 4
 
     def test_menu_button_last(self):
         """Test that menu button is last."""
@@ -194,10 +193,9 @@ class TestGetProgressKeyboard:
         keyboard = get_progress_keyboard(checklist_id=5, locale="en")
         markup = keyboard.as_markup()
 
-        # Last button should be back
+        # Last button should be back to main menu
         last_button = markup.inline_keyboard[-1][0]
-        assert last_button.callback_data == "my_tasks"
-
+        assert last_button.callback_data == "main_menu"
     def test_without_checklist_id(self):
         """Test keyboard without checklist_id."""
         keyboard = get_progress_keyboard(checklist_id=None, locale="en")

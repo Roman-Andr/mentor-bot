@@ -264,7 +264,15 @@
     "toHr": "To HR",
     "toMentor": "To Mentor",
     "totalUsers": "Total Users",
-    "welcome": "Welcome"
+    "welcome": "Welcome",
+    "registeredInSystem": "Registered in system",
+    "currentlyOnboarding": "Currently onboarding",
+    "completedOnboarding": "Completed onboarding",
+    "successfullyCompleted": "Successfully completed",
+    "requiresAttention": "Requires attention",
+    "openEscalations": "Open escalations",
+    "days": "days",
+    "notStarted": "Not started"
   },
   "departments": {
     "addDepartment": "Add Department",
@@ -445,7 +453,9 @@
     "sendInvitationDescription": "Send invitation to new employee for registration",
     "title": "Invitations",
     "total": "Total",
-    "totalInvitations": "Total Invitations"
+    "totalInvitations": "Total Invitations",
+    "resendSuccess": "Invitation resent successfully",
+    "revokeSuccess": "Invitation revoked successfully"
   },
   "knowledge": {
     "addArticle": "Add Article",
@@ -613,7 +623,6 @@
   },
   "nav": {
     "analytics": "Analytics",
-
     "appName": "Mentor Bot",
     "checklists": "Checklists",
     "dashboard": "Dashboard",

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { mapUser, toForm, toCreatePayload, toUpdatePayload } from '@/hooks/use-users'
+import { mapUser, toForm, toCreatePayload, toUpdatePayload } from '@/shared/hooks/use-users'
 import type { User } from '@/types'
 
 describe('use-users helper functions', () => {

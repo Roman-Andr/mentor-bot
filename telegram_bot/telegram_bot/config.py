@@ -41,7 +41,6 @@ class Settings(BaseSettings):
     ESCALATION_SERVICE_URL: str = Field(...)
     MEETING_SERVICE_URL: str = Field(...)
     FEEDBACK_SERVICE_URL: str = Field(...)
-    API_GATEWAY_URL: str = Field(...)
     API_V1_PREFIX: str = Field(default="/api/v1")
 
     # Timeouts

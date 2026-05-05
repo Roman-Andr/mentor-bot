@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { notFound } from "next/navigation";
-import { routing } from "@/i18n/routing";
+import { routing } from "@/shared/i18n/routing";
 import { Providers } from "./providers";
-import { ErrorBoundary } from "@/components/error-boundary";
+import { ErrorBoundary } from "@/shared/ui/error-boundary";
 import "./globals.css";
 
 export const metadata: Metadata = {

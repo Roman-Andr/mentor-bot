@@ -74,6 +74,7 @@ def get_task_info_keyboard(
                 create_inline_button(
                     f"\U0001f4c1 {t('tasks.view_files', locale=locale)} ({attachment_count})",
                     callback_data=f"task_files_{task_id}_{checklist_id or 0}",
+                    style=ButtonStyle.PRIMARY,
                 )
             )
     elif status == "IN_PROGRESS":
@@ -85,6 +86,14 @@ def get_task_info_keyboard(
                 style=ButtonStyle.SUCCESS,
             ),
         )
+        if attachment_count > 0:
+            builder.add(
+                create_inline_button(
+                    f"\U0001f4c1 {t('tasks.view_files', locale=locale)} ({attachment_count})",
+                    callback_data=f"task_files_{task_id}_{checklist_id or 0}",
+                    style=ButtonStyle.PRIMARY,
+                )
+            )
     # For pending/blocked tasks - no complete button, only back
 
     builder.add(
@@ -120,6 +129,7 @@ def get_task_completed_keyboard(
             create_inline_button(
                 f"\U0001f4c1 {t('tasks.view_files', locale=locale)} ({attachment_count})",
                 callback_data=f"task_files_{task_id}_{checklist_id or 0}",
+                style=ButtonStyle.PRIMARY,
             )
         )
 
@@ -130,6 +140,19 @@ def get_task_completed_keyboard(
         )
     )
     builder.adjust(1)
+    return builder
+
+
+def get_skip_photo_name_keyboard(*, locale: str = "en") -> InlineKeyboardBuilder:
+    """Build keyboard to skip photo name step (use default photo.jpg)."""
+    builder = InlineKeyboardBuilder()
+    builder.add(
+        create_inline_button(
+            t("tasks.skip_photo_name", locale=locale),
+            callback_data="skip_photo_name",
+            style=ButtonStyle.PRIMARY,
+        )
+    )
     return builder
 
 

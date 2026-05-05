@@ -608,3 +608,22 @@ class TestSearchHistoryRepository:
         result = await repo.delete(1)
 
         assert result is True
+
+    async def test_get_by_department_with_token(self, mock_session):
+        """Test getting searches by department with token for department names."""
+        from unittest.mock import patch
+
+        mock_result = MagicMock()
+        mock_result.all.return_value = [(1, 10, 5), (2, 5, 3)]
+        mock_session.execute.return_value = mock_result
+
+        repo = SearchHistoryRepository(mock_session)
+
+        with patch("knowledge_service.utils.auth_service_client") as mock_auth:
+            mock_auth.get_departments = AsyncMock(return_value=[{"id": 1, "name": "Engineering"}, {"id": 2, "name": "HR"}])
+
+            result = await repo.get_by_department(token="test-token")
+
+            assert len(result) == 2
+            assert result[0]["department_id"] == 1
+            assert result[0]["department_name"] == "Engineering"

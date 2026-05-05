@@ -54,6 +54,7 @@ def create_mock_uow():
     mock_uow.experience_ratings.get_by_user = AsyncMock()
     mock_uow.experience_ratings.get_stats = AsyncMock()
     mock_uow.experience_ratings.get_rating_distribution = AsyncMock()
+    mock_uow.experience_ratings.get_anonymity_stats = AsyncMock()
 
     # Mock comments repository
     mock_uow.comments = MagicMock()
@@ -61,6 +62,7 @@ def create_mock_uow():
     mock_uow.comments.get_by_user = AsyncMock()
     mock_uow.comments.get_by_id = AsyncMock()
     mock_uow.comments.add_reply = AsyncMock()
+    mock_uow.comments.get_anonymity_stats = AsyncMock()
 
     mock_uow.commit = AsyncMock()
     mock_uow.rollback = AsyncMock()
@@ -1015,3 +1017,91 @@ class TestReplyToComment:
         # Assert
         assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
         assert "reply" in response.json()["detail"].lower()
+
+
+class TestGetExperienceAnonymityStats:
+    """Tests for GET /feedback/experience/anonymity-stats endpoint to cover missing lines."""
+
+    def test_get_experience_anonymity_stats_success(self) -> None:
+        """Test successful experience anonymity stats retrieval returns 200."""
+        # Arrange
+        mock_uow = create_mock_uow()
+        mock_uow.experience_ratings.get_anonymity_stats.return_value = {
+            "anonymous_count": 10,
+            "non_anonymous_count": 20,
+            "total": 30,
+        }
+        setup_mock_uow(mock_uow)
+
+        app.dependency_overrides[get_uow] = lambda: mock_uow
+        app.dependency_overrides[get_current_active_user] = lambda: mock_current_user(2, "HR")
+
+        # Act
+        response = client.get("/api/v1/feedback/experience/anonymity-stats")
+
+        # Assert
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["anonymous_count"] == 10
+        assert data["non_anonymous_count"] == 20
+
+    def test_get_experience_anonymity_stats_db_error(self) -> None:
+        """Test database error returns 500 (covers lines 408-427)."""
+        # Arrange
+        mock_uow = create_mock_uow()
+        mock_uow.experience_ratings.get_anonymity_stats = AsyncMock(side_effect=Exception("Database error"))
+        setup_mock_uow(mock_uow)
+
+        app.dependency_overrides[get_uow] = lambda: mock_uow
+        app.dependency_overrides[get_current_active_user] = lambda: mock_current_user(2, "HR")
+
+        # Act
+        response = client.get("/api/v1/feedback/experience/anonymity-stats")
+
+        # Assert
+        assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert "anonymity stats" in response.json()["detail"].lower()
+
+
+class TestGetCommentAnonymityStats:
+    """Tests for GET /feedback/comments/anonymity-stats endpoint to cover missing lines."""
+
+    def test_get_comment_anonymity_stats_success(self) -> None:
+        """Test successful comment anonymity stats retrieval returns 200."""
+        # Arrange
+        mock_uow = create_mock_uow()
+        mock_uow.comments.get_anonymity_stats.return_value = {
+            "anonymous_count": 15,
+            "non_anonymous_count": 25,
+            "total": 40,
+        }
+        setup_mock_uow(mock_uow)
+
+        app.dependency_overrides[get_uow] = lambda: mock_uow
+        app.dependency_overrides[get_current_active_user] = lambda: mock_current_user(2, "HR")
+
+        # Act
+        response = client.get("/api/v1/feedback/comments/anonymity-stats")
+
+        # Assert
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["anonymous_count"] == 15
+        assert data["non_anonymous_count"] == 25
+
+    def test_get_comment_anonymity_stats_db_error(self) -> None:
+        """Test database error returns 500 (covers lines 558-577)."""
+        # Arrange
+        mock_uow = create_mock_uow()
+        mock_uow.comments.get_anonymity_stats = AsyncMock(side_effect=Exception("Database error"))
+        setup_mock_uow(mock_uow)
+
+        app.dependency_overrides[get_uow] = lambda: mock_uow
+        app.dependency_overrides[get_current_active_user] = lambda: mock_current_user(2, "HR")
+
+        # Act
+        response = client.get("/api/v1/feedback/comments/anonymity-stats")
+
+        # Assert
+        assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert "anonymity stats" in response.json()["detail"].lower()

@@ -628,3 +628,42 @@ class TestAuthServiceClientEdgeCases:
         result = await self.client.update_user_preferences(1, preferences, self.auth_token)
 
         assert result is None
+
+    @patch("telegram_bot.services.auth_client.httpx.AsyncClient.post")
+    async def test_refresh_token_success(self, mock_post):
+        """Test refreshing access token - success."""
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            "access_token": "new_access_token",
+            "refresh_token": "new_refresh_token",
+        }
+        mock_post.return_value = mock_response
+
+        result = await self.client.refresh_token("old_refresh_token")
+
+        assert result is not None
+        assert result["access_token"] == "new_access_token"
+        assert result["refresh_token"] == "new_refresh_token"
+
+    @patch("telegram_bot.services.auth_client.httpx.AsyncClient.post")
+    async def test_refresh_token_failure(self, mock_post):
+        """Test refreshing access token - failure."""
+        mock_response = MagicMock()
+        mock_response.status_code = 401
+        mock_post.return_value = mock_response
+
+        result = await self.client.refresh_token("invalid_token")
+
+        assert result is None
+
+    @patch("telegram_bot.services.auth_client.httpx.AsyncClient.post")
+    async def test_refresh_token_request_error(self, mock_post):
+        """Test refreshing access token - request error."""
+        import httpx
+
+        mock_post.side_effect = httpx.RequestError("Connection failed")
+
+        result = await self.client.refresh_token("refresh_token")
+
+        assert result is None

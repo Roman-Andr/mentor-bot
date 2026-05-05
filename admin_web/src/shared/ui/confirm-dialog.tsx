@@ -1,0 +1,128 @@
+"use client";
+
+import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/shared/ui/dialog";
+
+interface ConfirmDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onConfirm: () => void;
+  title?: string;
+  description?: string;
+  confirmText?: string;
+  cancelText?: string;
+  variant?: "default" | "destructive";
+}
+
+export function ConfirmDialog({
+  open,
+  onOpenChange,
+  onConfirm,
+  title,
+  description,
+  confirmText,
+  cancelText,
+  variant = "destructive",
+}: ConfirmDialogProps) {
+  const t = useTranslations("common");
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle>{title || t("confirm")}</DialogTitle>
+          {description && <DialogDescription>{description}</DialogDescription>}
+        </DialogHeader>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            {cancelText || t("cancel")}
+          </Button>
+          <Button
+            variant={variant === "destructive" ? "destructive" : "default"}
+            onClick={() => {
+              onConfirm();
+              onOpenChange(false);
+            }}
+          >
+            {confirmText || t("confirm")}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+import { Button } from "@/shared/ui/button";
+import { useTranslations } from "@/shared/hooks/use-translations";
+
+interface ConfirmOptions {
+  title?: string;
+  description?: string;
+  confirmText?: string;
+  cancelText?: string;
+  variant?: "default" | "destructive";
+}
+
+export type ConfirmFn = (message?: string | ConfirmOptions) => Promise<boolean>;
+
+export const ConfirmContext = createContext<ConfirmFn>(() => Promise.resolve(false));
+
+export function useConfirm() {
+  return useContext(ConfirmContext);
+}
+
+export function ConfirmProvider({ children }: { children: ReactNode }) {
+  const [open, setOpen] = useState(false);
+  const [options, setOptions] = useState<ConfirmOptions>({});
+  const resolver = useRef<((value: boolean) => void) | null>(null);
+  const t = useTranslations("common");
+
+  const confirm: ConfirmFn = useCallback((message) => {
+    if (typeof message === "string") {
+      setOptions({ description: message });
+    } else {
+      setOptions(message || {});
+    }
+    setOpen(true);
+    return new Promise<boolean>((resolve) => {
+      resolver.current = resolve;
+    });
+  }, []);
+
+  const handleClose = useCallback((result: boolean) => {
+    setOpen(false);
+    resolver.current?.(result);
+    resolver.current = null;
+  }, []);
+
+  return (
+    <ConfirmContext.Provider value={confirm}>
+      {children}
+      <Dialog open={open} onOpenChange={(v) => !v && handleClose(false)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>{options.title || t("confirm")}</DialogTitle>
+            {options.description && <DialogDescription>{options.description}</DialogDescription>}
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => handleClose(false)}>
+              {options.cancelText || t("cancel")}
+            </Button>
+            <Button
+              variant={options.variant === "destructive" ? "destructive" : "default"}
+              onClick={() => handleClose(true)}
+            >
+              {options.confirmText || t("confirm")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </ConfirmContext.Provider>
+  );
+}

@@ -1,5 +1,5 @@
-import { AuthCheck } from "@/components/layout/auth-check";
-import { Sidebar } from "@/components/layout/sidebar";
+import { AuthCheck } from "@/shared/layout/auth-check";
+import { Sidebar } from "@/shared/layout/sidebar";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (

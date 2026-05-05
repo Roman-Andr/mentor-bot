@@ -1,0 +1,37 @@
+[
+  {
+    "title": "Устаревшая политика отпусков 2023",
+    "description": "Старая политика отпусков, которая была заменена в 2024 году",
+    "category": "VACATION",
+    "display_order": 999,
+    "is_active": false
+  },
+  {
+    "title": "Старая процедура получения пропуска",
+    "description": "Устаревшая инструкция по получению пропуска и доступов",
+    "category": "ACCESS",
+    "display_order": 999,
+    "is_active": false
+  },
+  {
+    "title": "Устаревший список бенефитов",
+    "description": "Старый перечень корпоративных льгот",
+    "category": "BENEFITS",
+    "display_order": 999,
+    "is_active": false
+  },
+  {
+    "title": "Устаревшие контакты",
+    "description": "Старый список контактов компании",
+    "category": "CONTACTS",
+    "display_order": 999,
+    "is_active": false
+  },
+  {
+    "title": "Старое рабочее время",
+    "description": "Устаревшая информация о рабочем времени",
+    "category": "WORKTIME",
+    "display_order": 999,
+    "is_active": false
+  }
+]

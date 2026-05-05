@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { usePreferences } from '@/hooks/use-preferences'
+import { usePreferences } from '@/shared/hooks/use-preferences'
 
 // Mock the API client
-vi.mock('@/lib/api/users', () => ({
+vi.mock('@/shared/lib/api/users', () => ({
   usersApi: {
     getMyPreferences: vi.fn(),
     updateMyPreferences: vi.fn(),
@@ -12,13 +12,13 @@ vi.mock('@/lib/api/users', () => ({
 }))
 
 // Mock the query keys
-vi.mock('@/lib/query-keys', () => ({
+vi.mock('@/shared/lib/query-keys', () => ({
   queryKeys: {
     preferences: () => ['preferences'] as const,
   },
 }))
 
-import { usersApi } from '@/lib/api/users'
+import { usersApi } from '@/shared/lib/api/users'
 
 describe('usePreferences', () => {
   let queryClient: QueryClient

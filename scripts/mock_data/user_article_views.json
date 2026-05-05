@@ -103,5 +103,150 @@
     "user_key": "andrusevich_roman",
     "article_indices": [0, 1, 2, 3],
     "view_counts": [2, 1, 1, 1]
+  },
+  {
+    "user_key": "newbie_1",
+    "article_indices": [0, 1, 2, 5, 8],
+    "view_counts": [3, 2, 4, 1, 2]
+  },
+  {
+    "user_key": "newbie_2",
+    "article_indices": [0, 3, 4, 6, 9],
+    "view_counts": [2, 3, 1, 2, 1]
+  },
+  {
+    "user_key": "newbie_3",
+    "article_indices": [1, 2, 3, 7, 10],
+    "view_counts": [4, 2, 3, 1, 2]
+  },
+  {
+    "user_key": "newbie_4",
+    "article_indices": [0, 4, 5, 8, 11],
+    "view_counts": [1, 2, 3, 2, 1]
+  },
+  {
+    "user_key": "newbie_5",
+    "article_indices": [2, 3, 6, 9, 12],
+    "view_counts": [2, 1, 3, 2, 1]
+  },
+  {
+    "user_key": "newbie_6",
+    "article_indices": [0, 1, 7, 10, 13],
+    "view_counts": [3, 2, 1, 2, 3]
+  },
+  {
+    "user_key": "newbie_7",
+    "article_indices": [3, 4, 5, 8, 11],
+    "view_counts": [2, 3, 1, 2, 1]
+  },
+  {
+    "user_key": "newbie_8",
+    "article_indices": [1, 2, 6, 9, 14],
+    "view_counts": [1, 2, 3, 1, 2]
+  },
+  {
+    "user_key": "newbie_9",
+    "article_indices": [0, 5, 7, 10, 15],
+    "view_counts": [2, 1, 3, 2, 1]
+  },
+  {
+    "user_key": "newbie_10",
+    "article_indices": [2, 4, 6, 8, 12],
+    "view_counts": [3, 2, 1, 2, 3]
+  },
+  {
+    "user_key": "newbie_11",
+    "article_indices": [1, 3, 5, 9, 13],
+    "view_counts": [1, 2, 3, 1, 2]
+  },
+  {
+    "user_key": "newbie_12",
+    "article_indices": [0, 2, 7, 11, 14],
+    "view_counts": [2, 3, 1, 2, 1]
+  },
+  {
+    "user_key": "employee_1",
+    "article_indices": [0, 1, 2, 3, 4, 5],
+    "view_counts": [5, 4, 3, 2, 1, 2]
+  },
+  {
+    "user_key": "employee_2",
+    "article_indices": [1, 2, 3, 4, 5, 6],
+    "view_counts": [3, 4, 2, 3, 1, 2]
+  },
+  {
+    "user_key": "employee_3",
+    "article_indices": [2, 3, 4, 5, 6, 7],
+    "view_counts": [2, 3, 4, 1, 2, 3]
+  },
+  {
+    "user_key": "employee_4",
+    "article_indices": [3, 4, 5, 6, 7, 8],
+    "view_counts": [4, 2, 3, 1, 2, 1]
+  },
+  {
+    "user_key": "employee_5",
+    "article_indices": [4, 5, 6, 7, 8, 9],
+    "view_counts": [1, 2, 3, 2, 1, 2]
+  },
+  {
+    "user_key": "employee_6",
+    "article_indices": [5, 6, 7, 8, 9, 10],
+    "view_counts": [3, 1, 2, 3, 1, 2]
+  },
+  {
+    "user_key": "employee_7",
+    "article_indices": [6, 7, 8, 9, 10, 11],
+    "view_counts": [2, 3, 1, 2, 3, 1]
+  },
+  {
+    "user_key": "employee_8",
+    "article_indices": [7, 8, 9, 10, 11, 12],
+    "view_counts": [1, 2, 3, 1, 2, 3]
+  },
+  {
+    "user_key": "mentor_1",
+    "article_indices": [0, 1, 2, 3, 4, 5, 6],
+    "view_counts": [8, 7, 6, 5, 4, 3, 2]
+  },
+  {
+    "user_key": "mentor_2",
+    "article_indices": [1, 2, 3, 4, 5, 6, 7],
+    "view_counts": [6, 5, 7, 4, 3, 2, 3]
+  },
+  {
+    "user_key": "mentor_3",
+    "article_indices": [2, 3, 4, 5, 6, 7, 8],
+    "view_counts": [5, 6, 4, 7, 2, 3, 1]
+  },
+  {
+    "user_key": "mentor_4",
+    "article_indices": [3, 4, 5, 6, 7, 8, 9],
+    "view_counts": [7, 4, 5, 6, 3, 2, 1]
+  },
+  {
+    "user_key": "mentor_5",
+    "article_indices": [4, 5, 6, 7, 8, 9, 10],
+    "view_counts": [4, 5, 3, 6, 2, 1, 3]
+  },
+  {
+    "user_key": "hr_director",
+    "article_indices": [0, 1, 2, 3, 4, 5, 6, 7],
+    "view_counts": [10, 9, 8, 7, 6, 5, 4, 3]
+  },
+  {
+    "user_key": "hr_specialist",
+    "article_indices": [1, 2, 3, 4, 5, 6, 7, 8],
+    "view_counts": [8, 7, 6, 5, 4, 3, 2, 1]
+  },
+  {
+    "user_key": "romanimus_adminius",
+    "article_indices": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+    "view_counts": [12, 11, 10, 9, 8, 7, 6, 5, 4]
+  },
+  {
+    "user_key": "andrusevich_roman",
+    "article_indices": [0, 1, 2, 3, 4, 5],
+    "view_counts": [6, 5, 4, 3, 2, 1]
   }
 ]

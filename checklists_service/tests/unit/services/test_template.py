@@ -271,6 +271,47 @@ class TestTemplateServiceClone:
         with pytest.raises(NotFoundException, match="Template"):
             await service.clone_template(999)
 
+    async def test_clone_template_with_all_fields(
+        self,
+        mock_uow: MagicMock,
+        sample_template: Template,
+        sample_datetime: datetime,
+    ) -> None:
+        """Test cloning template covers all lines including task cloning."""
+        from checklists_service.core.enums import EmployeeLevel, TaskCategory
+
+        sample_template.level = EmployeeLevel.JUNIOR
+        sample_template.task_categories = [TaskCategory.DOCUMENTATION, TaskCategory.TRAINING]
+        mock_uow.templates.get_by_id.return_value = sample_template
+        
+        cloned_template = Template(
+            id=3,
+            name="Onboarding Template (Copy)",
+            description=sample_template.description,
+            department_id=sample_template.department_id,
+            position=sample_template.position,
+            level=EmployeeLevel.JUNIOR,
+            duration_days=sample_template.duration_days,
+            task_categories=[TaskCategory.DOCUMENTATION, TaskCategory.TRAINING],
+            default_assignee_role=sample_template.default_assignee_role,
+            status=TemplateStatus.DRAFT,
+            version=2,
+            is_default=False,
+            created_at=sample_datetime,
+            updated_at=None,
+        )
+        mock_uow.templates.create.return_value = cloned_template
+        mock_uow.templates.get_by_id.return_value = cloned_template
+
+        service = TemplateService(mock_uow)
+        result = await service.clone_template(1)
+
+        assert result.name == "Onboarding Template (Copy)"
+        assert result.status == TemplateStatus.DRAFT
+        assert result.version == 2
+        assert result.level == EmployeeLevel.JUNIOR
+        mock_uow.task_templates.clone_tasks.assert_called_once_with(1, 3)
+
 
 class TestTemplateServiceAddTask:
     """Test adding tasks to templates."""
@@ -460,6 +501,27 @@ class TestTemplateServiceCreateLogging:
 
         with pytest.raises(ConflictException, match="Template with this name already exists"):
             await service.create_template(template_data)
+
+    async def test_create_template_with_department_id_logs_debug(
+        self, mock_uow: MagicMock, sample_template: Template
+    ) -> None:
+        """Test template creation with department_id logs debug message."""
+        mock_uow.templates.get_by_name_and_department.return_value = None
+        mock_uow.templates.create.return_value = sample_template
+        mock_uow.templates.get_by_id.return_value = sample_template
+
+        template_data = TemplateCreate(
+            name="Test Template",
+            description="Test",
+            department_id=5,
+            status=TemplateStatus.DRAFT,
+        )
+
+        service = TemplateService(mock_uow)
+        result = await service.create_template(template_data)
+
+        assert result.id == 1
+        mock_uow.templates.get_by_name_and_department.assert_called_once_with("Test Template", 5)
 
 
 class TestTemplateServiceUpdateLogging:

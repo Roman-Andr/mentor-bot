@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { logger } from "@/lib/logger";
+import { logger } from "@/shared/lib/logger";
 
 const SERVICE_MAP: Record<string, string> = {
   auth: process.env.AUTH_SERVICE_URL || "http://localhost:8001",
@@ -33,7 +33,6 @@ const HOP_BY_HOP_HEADERS = new Set([
   "connection",
   "keep-alive",
   "transfer-encoding",
-  "host",
   "content-length",
   "te",
   "trailer",
@@ -100,6 +99,9 @@ async function proxyRequest(request: NextRequest, pathSegments: string[]): Promi
       headers.set(key, value);
     }
   });
+
+  // Preserve original Host header for TrustedHostMiddleware validation
+  headers.set("Host", request.headers.get("host") || request.nextUrl.host);
 
   const hasBody = request.method !== "GET" && request.method !== "HEAD";
   const body = hasBody ? await request.arrayBuffer() : undefined;

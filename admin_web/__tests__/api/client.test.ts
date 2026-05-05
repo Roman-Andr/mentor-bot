@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest'
-import { fetchApi, fetchUpload, setUnauthorizedCallback } from '@/lib/api/client'
-import { analyticsApi } from '@/lib/api/analytics'
+import { fetchApi, fetchUpload, setUnauthorizedCallback } from '@/shared/lib/api/client'
+import { analyticsApi } from '@/shared/lib/api/analytics'
 import { mockFetchResponse, mockFetchError, mockFetchNetworkError } from '../setup'
-import type { ApiResult } from '@/lib/api/client'
+import type { ApiResult } from '@/shared/lib/api/client'
 
 describe('fetchApi', () => {
   beforeEach(() => {

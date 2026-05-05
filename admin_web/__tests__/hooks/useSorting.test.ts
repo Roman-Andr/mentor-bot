@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
-import { useSorting } from '@/hooks/use-sorting'
+import { useSorting } from '@/shared/hooks/use-sorting'
 
 describe('useSorting', () => {
   it('initializes with null field and asc direction', () => {

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { renderHook } from '@testing-library/react'
-import { useFormatters } from '@/hooks/use-formatters'
+import { useFormatters } from '@/shared/hooks/use-formatters'
 
 vi.mock('next-intl', () => ({
   useLocale: () => 'ru',
@@ -29,5 +29,17 @@ describe('useFormatters', () => {
     const { result } = renderHook(() => useFormatters())
     const formatted = result.current.formatDate(new Date('2024-01-15'))
     expect(formatted).toBeTruthy()
+  })
+
+  it('formats a date time string', () => {
+    const { result } = renderHook(() => useFormatters())
+    const formatted = result.current.formatDateTime('2024-01-15T10:30:00')
+    expect(formatted).toBeTruthy()
+  })
+
+  it('handles null date time gracefully', () => {
+    const { result } = renderHook(() => useFormatters())
+    const formatted = result.current.formatDateTime(null)
+    expect(formatted).toBe('-')
   })
 })

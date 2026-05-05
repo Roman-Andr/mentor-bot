@@ -1,0 +1,313 @@
+"use client";
+
+import { useState, useEffect, useMemo } from "react";
+import { useTranslations } from "@/shared/hooks/use-translations";
+import { Download, BarChart3, BookOpen, Search, Clock } from "lucide-react";
+import { Button } from "@/shared/ui/button";
+import { PDFExportButton } from "@/widgets/reports/pdf-export-button";
+import { TabSwitcher } from "@/shared/ui/tab-switcher";
+import { api } from "@/shared/lib/api";
+import { queryKeys } from "@/shared/lib/query-keys";
+import { logger } from "@/shared/lib/logger";
+import type { ChecklistStats, SearchSummary, TopQueryStats, ZeroResultQuery, DepartmentSearchStats, SearchTimeseriesPoint } from "@/shared/types";
+import { PageContent } from "@/shared/layout/page-content";
+import { AnalyticsStats } from "@/widgets/analytics/analytics-stats";
+import { MonthlyChart } from "@/widgets/analytics/monthly-chart";
+import { DepartmentChart } from "@/widgets/analytics/department-chart";
+import { CompletionTimeChart } from "@/widgets/analytics/completion-time-chart";
+import { ChecklistStatus } from "@/widgets/analytics/checklist-status";
+import { KnowledgeSummaryCards } from "@/widgets/analytics/knowledge/knowledge-summary-cards";
+import { KnowledgeViewsTimeseries } from "@/widgets/analytics/knowledge/knowledge-views-timeseries";
+import { KnowledgeViewsByCategory } from "@/widgets/analytics/knowledge/knowledge-views-by-category";
+import { KnowledgeViewsByTag } from "@/widgets/analytics/knowledge/knowledge-views-by-tag";
+import { KnowledgeDateRangePicker } from "@/widgets/analytics/knowledge/knowledge-date-range-picker";
+import { departmentsApi } from "@/shared/lib/api/departments";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
+import { AnalyticsPageSkeleton } from "@/shared/ui/page-skeleton";
+import { useQuery } from "@tanstack/react-query";
+import { SearchSummaryCards } from "@/widgets/analytics/search/search-summary-cards";
+import { SearchTopQueriesTable } from "@/widgets/analytics/search/search-top-queries-table";
+import { SearchZeroResultsTable } from "@/widgets/analytics/search/search-zero-results-table";
+import { SearchByDepartmentChart } from "@/widgets/analytics/search/search-by-department-chart";
+import { SearchTimeseriesChart } from "@/widgets/analytics/search/search-timeseries-chart";
+import { SearchFilters } from "@/widgets/analytics/search/search-filters";
+import { HistoryTab } from "@/widgets/analytics/history/history-tab";
+import type { TabItem } from "@/shared/ui/tab-switcher";
+import { useSearchParams } from "next/navigation";
+
+export function AnalyticsWidget() {
+  const t = useTranslations();
+  const searchParams = useSearchParams();
+  const activeTab = searchParams.get("tab") || "onboarding";
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<ChecklistStats | null>(null);
+  const [userCount, setUserCount] = useState(0);
+  const [monthlyData, setMonthlyData] = useState<Array<{ month: string; newUsers: number; completed: number }>>([]);
+  const [completionTimeData, setCompletionTimeData] = useState<Array<{ range: string; count: number }>>([]);
+  const [departmentMap, setDepartmentMap] = useState<Record<string, string>>({});
+
+  const [dateRange, setDateRange] = useState<{ from_date?: string; to_date?: string }>({});
+  const [granularity, setGranularity] = useState<"day" | "week">("day");
+
+  const tabs: TabItem[] = [
+    { id: "onboarding", label: t("analytics.onboardingTab"), icon: BarChart3 },
+    { id: "knowledge", label: t("analytics.knowledgeTab"), icon: BookOpen },
+    { id: "search", label: t("analytics.search.title"), icon: Search },
+    { id: "history", label: t("analytics.historyTab"), icon: Clock },
+  ];
+
+  const [searchSummary, setSearchSummary] = useState<SearchSummary | null>(null);
+  const [searchTopQueries, setSearchTopQueries] = useState<TopQueryStats[]>([]);
+  const [searchZeroResults, setSearchZeroResults] = useState<ZeroResultQuery[]>([]);
+  const [searchByDepartment, setSearchByDepartment] = useState<DepartmentSearchStats[]>([]);
+  const [searchTimeseries, setSearchTimeseries] = useState<SearchTimeseriesPoint[]>([]);
+  const [searchFilters, setSearchFilters] = useState<{ from_date?: string; to_date?: string; department_id?: number }>({});
+  const [searchLoading, setSearchLoading] = useState(false);
+
+  useEffect(() => {
+    async function loadOnboardingData() {
+      try {
+        const [statsResult, usersResult, monthlyResult, completionResult, deptResult] = await Promise.all([
+          api.analytics.checklistStats(),
+          api.users.list({ limit: 1 }),
+          api.analytics.monthlyStats(),
+          api.analytics.completionTimeStats(),
+          departmentsApi.list({ limit: 1000 }),
+        ]);
+
+        if (statsResult.success && statsResult.data) setStats(statsResult.data);
+        if (usersResult.success && usersResult.data) setUserCount(usersResult.data.total);
+        if (monthlyResult.success && monthlyResult.data) {
+          setMonthlyData(monthlyResult.data.map((m: any) => ({
+            month: m.month,
+            newUsers: m.new_checklists,
+            completed: m.completed,
+          })));
+        }
+        if (completionResult.success && completionResult.data) setCompletionTimeData(completionResult.data);
+        if (deptResult.success && deptResult.data?.departments) {
+          const map: Record<string, string> = {};
+          deptResult.data.departments.forEach((dept: any) => { map[String(dept.id)] = dept.name; });
+          setDepartmentMap(map);
+        }
+      } catch (err) {
+        logger.error("Failed to load analytics", { error: err });
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadOnboardingData();
+  }, []);
+
+  const { data: knowledgeSummary, isLoading: summaryLoading } = useQuery({
+    queryKey: queryKeys.analytics.knowledge.summary(dateRange),
+    queryFn: async () => { const r = await api.analytics.knowledge.summary(dateRange); return r.success ? r.data : null; },
+    enabled: activeTab === "knowledge",
+    staleTime: 60000,
+  });
+
+  const { data: topArticles, isLoading: topArticlesLoading } = useQuery({
+    queryKey: queryKeys.analytics.knowledge.topArticles({ ...dateRange, limit: 10 }),
+    queryFn: async () => { const r = await api.analytics.knowledge.topArticles({ ...dateRange, limit: 10 }); return r.success ? r.data : []; },
+    enabled: activeTab === "knowledge",
+    staleTime: 60000,
+  });
+
+  const { data: timeseriesData, isLoading: timeseriesLoading } = useQuery({
+    queryKey: queryKeys.analytics.knowledge.timeseries({ ...dateRange, granularity }),
+    queryFn: async () => { const r = await api.analytics.knowledge.timeseries(dateRange); return r.success ? r.data : []; },
+    enabled: activeTab === "knowledge",
+    staleTime: 60000,
+  });
+
+  const { data: categoryData, isLoading: categoryLoading } = useQuery({
+    queryKey: queryKeys.analytics.knowledge.byCategory(dateRange),
+    queryFn: async () => { const r = await api.analytics.knowledge.byCategory(dateRange); return r.success ? r.data : []; },
+    enabled: activeTab === "knowledge",
+    staleTime: 60000,
+  });
+
+  const { data: tagData, isLoading: tagLoading } = useQuery({
+    queryKey: queryKeys.analytics.knowledge.byTag(dateRange),
+    queryFn: async () => { const r = await api.analytics.knowledge.byTag(dateRange); return r.success ? r.data : []; },
+    enabled: activeTab === "knowledge",
+    staleTime: 60000,
+  });
+
+  const knowledgeLoading = summaryLoading || topArticlesLoading || timeseriesLoading || categoryLoading || tagLoading;
+
+  useEffect(() => {
+    async function loadSearchData() {
+      if (activeTab !== "search") return;
+      setSearchLoading(true);
+      try {
+        const [summaryResult, topQueriesResult, zeroResultsResult, byDepartmentResult, timeseriesResult] = await Promise.all([
+          api.analytics.search.summary(searchFilters),
+          api.analytics.search.topQueries({ ...searchFilters, limit: 20 }),
+          api.analytics.search.zeroResults({ ...searchFilters, limit: 20 }),
+          api.analytics.search.byDepartment(searchFilters),
+          api.analytics.search.timeseries({ ...searchFilters, granularity: "day" }),
+        ]);
+
+        if (summaryResult.success && summaryResult.data) setSearchSummary(summaryResult.data);
+        if (topQueriesResult.success && topQueriesResult.data) setSearchTopQueries(topQueriesResult.data);
+        if (zeroResultsResult.success && zeroResultsResult.data) setSearchZeroResults(zeroResultsResult.data);
+        if (byDepartmentResult.success && byDepartmentResult.data) setSearchByDepartment(byDepartmentResult.data);
+        if (timeseriesResult.success && timeseriesResult.data) setSearchTimeseries(timeseriesResult.data);
+      } catch (err) {
+        logger.error("Failed to load search analytics", { error: err });
+      } finally {
+        setSearchLoading(false);
+      }
+    }
+    loadSearchData();
+  }, [activeTab, searchFilters]);
+
+  const departmentData = useMemo(() =>
+    stats?.by_department
+      ? Object.entries(stats.by_department)
+          .filter(([id]) => id !== "None" && id !== "null")
+          .map(([id, value], index) => {
+            const colors = ["#3b82f6", "#8b5cf6", "#22c55e", "#f97316", "#ec4899", "#06b6d4", "#eab308"];
+            return { name: departmentMap[id] || `Department ${id}`, value, color: colors[index % colors.length] };
+          })
+      : [],
+    [stats, departmentMap]
+  );
+
+  const handleExport = async () => {
+    if (activeTab === "history") {
+      const events = await api.audit.fetchAll({}, 10000);
+      const rows = [
+        ["timestamp", "source", "event_type", "actor", "subject", "resource", "summary"],
+        ...events.map(e => [
+          e.timestamp, e.source, e.event_type,
+          String(e.actor_id || ""), String(e.subject_user_id || ""),
+          e.resource_type && e.resource_id ? `${e.resource_type}#${e.resource_id}` : "",
+          e.summary,
+        ]),
+      ];
+      const blob = new Blob(["﻿" + rows.map(r => r.join(",")).join("\n")], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "audit_history_export.csv";
+      link.click();
+      return;
+    }
+
+    const rows = [
+      [t("analytics.totalNewbies"), String(stats?.total || userCount)],
+      [t("common.completed"), String(stats?.completed || 0)],
+      [t("common.inProgress"), String(stats?.in_progress || 0)],
+      [t("analytics.overdue"), String(stats?.overdue || 0)],
+      [t("analytics.averageTime"), String(Math.round(stats?.avg_completion_days || 0))],
+      [t("analytics.completionRate"), String(Math.round(stats?.completion_rate || 0))],
+    ];
+    const blob = new Blob(["﻿" + rows.map(r => r.join(",")).join("\n")], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "analytics_export.csv";
+    link.click();
+  };
+
+  if (loading) {
+    return (
+      <PageContent title={t("analytics.title")} subtitle={t("analytics.overview")}>
+        <AnalyticsPageSkeleton />
+      </PageContent>
+    );
+  }
+
+  return (
+    <PageContent
+      title={t("analytics.title")}
+      subtitle={t("analytics.overview")}
+      actions={
+        <div className="flex items-center gap-2">
+          <PDFExportButton data={{ stats, userCount, monthlyData, completionTimeData, departmentData }} variant="outline" size="default" />
+          <Button onClick={handleExport}>
+            <Download className="mr-2 h-4 w-4" />
+            CSV
+          </Button>
+        </div>
+      }
+    >
+      <div className="space-y-6">
+        <TabSwitcher tabs={tabs} />
+
+        {activeTab === "onboarding" && (
+          <>
+            <AnalyticsStats stats={stats} userCount={userCount} />
+            <div className="grid gap-6 lg:grid-cols-2">
+              <MonthlyChart data={monthlyData} />
+              <DepartmentChart data={departmentData} />
+            </div>
+            <div className="grid gap-6 lg:grid-cols-2">
+              <CompletionTimeChart data={completionTimeData} />
+              <ChecklistStatus stats={stats} />
+            </div>
+          </>
+        )}
+
+        {activeTab === "knowledge" && (
+          <>
+            <KnowledgeDateRangePicker onChange={setDateRange} />
+            {knowledgeLoading ? (
+              <AnalyticsPageSkeleton />
+            ) : (
+              <>
+                <KnowledgeSummaryCards summary={knowledgeSummary || null} />
+                <div className="grid gap-6 lg:grid-cols-2">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{t("knowledge.title")}</TableHead>
+                        <TableHead>{t("analytics.knowledge.views")}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {topArticles?.map((article: any) => (
+                        <TableRow key={article.article_id}>
+                          <TableCell>{article.title}</TableCell>
+                          <TableCell>{article.view_count}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                  <KnowledgeViewsTimeseries data={timeseriesData || []} onGranularityChange={setGranularity} currentGranularity={granularity} />
+                </div>
+                <div className="grid gap-6 lg:grid-cols-2">
+                  <KnowledgeViewsByCategory data={categoryData || []} />
+                  <KnowledgeViewsByTag data={tagData || []} />
+                </div>
+              </>
+            )}
+          </>
+        )}
+
+        {activeTab === "search" && (
+          <>
+            <SearchFilters onFiltersChange={setSearchFilters} />
+            {searchLoading ? (
+              <AnalyticsPageSkeleton />
+            ) : (
+              <>
+                <SearchSummaryCards summary={searchSummary} />
+                <div className="grid gap-6 lg:grid-cols-2">
+                  <SearchTopQueriesTable data={searchTopQueries} />
+                  <SearchZeroResultsTable data={searchZeroResults} />
+                </div>
+                <div className="grid gap-6 lg:grid-cols-2">
+                  <SearchTimeseriesChart data={searchTimeseries} />
+                  <SearchByDepartmentChart data={searchByDepartment} />
+                </div>
+              </>
+            )}
+          </>
+        )}
+
+        {activeTab === "history" && <HistoryTab />}
+      </div>
+    </PageContent>
+  );
+}

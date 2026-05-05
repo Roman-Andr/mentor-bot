@@ -197,6 +197,22 @@ class AuthServiceClient:
             logger.exception("Auth service update preferences failed (user_id={})", user_id)
         return None
 
+    async def refresh_token(self, refresh_token: str) -> dict | None:
+        """Refresh access token using refresh token."""
+        logger.debug("Refreshing access token")
+        try:
+            response = await self.client.post(
+                f"{settings.API_V1_PREFIX}/auth/refresh",
+                json={"refresh_token": refresh_token},
+            )
+            if response.status_code == status.HTTP_200_OK:
+                logger.info("Token refreshed successfully")
+                return response.json()
+            logger.warning("Token refresh failed (status={})", response.status_code)
+        except httpx.RequestError:
+            logger.exception("Auth service token refresh failed")
+        return None
+
 
 # Singleton instance
 auth_client = AuthServiceClient()

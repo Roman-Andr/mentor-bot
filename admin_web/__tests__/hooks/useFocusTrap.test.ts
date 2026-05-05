@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { createElement, type ReactNode } from 'react'
 import { renderHook, render, act } from '@testing-library/react'
-import { useFocusTrap } from '@/hooks/use-focus-trap'
+import { useFocusTrap } from '@/shared/hooks/use-focus-trap'
 
 let currentTrapRef: { current: HTMLDivElement | null } | undefined
 

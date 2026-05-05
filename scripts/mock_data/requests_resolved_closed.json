@@ -1,0 +1,182 @@
+[
+  {
+    "user_key": "newbie_1",
+    "type": "HELP_REQUEST",
+    "subject": "Помощь с настройкой VPN",
+    "description": "Не могу подключиться к корпоративному VPN",
+    "status": "RESOLVED",
+    "resolved_days_ago": 5,
+    "created_days_ago": 7
+  },
+  {
+    "user_key": "newbie_2",
+    "type": "HELP_REQUEST",
+    "subject": "Вопрос по git командам",
+    "description": "Нужна помощь с merge conflict",
+    "status": "RESOLVED",
+    "resolved_days_ago": 10,
+    "created_days_ago": 12
+  },
+  {
+    "user_key": "newbie_3",
+    "type": "HELP_REQUEST",
+    "subject": "Доступ к Jira",
+    "description": "Нет доступа к проекту в Jira",
+    "status": "CLOSED",
+    "closed_days_ago": 3,
+    "created_days_ago": 5
+  },
+  {
+    "user_key": "newbie_4",
+    "type": "HELP_REQUEST",
+    "subject": "Оформление отпуска",
+    "description": "Как правильно оформить отпуск?",
+    "status": "RESOLVED",
+    "resolved_days_ago": 15,
+    "created_days_ago": 17
+  },
+  {
+    "user_key": "newbie_5",
+    "type": "HELP_REQUEST",
+    "subject": "Вопрос по бенефитам",
+    "description": "Как получить медицинскую страховку?",
+    "status": "RESOLVED",
+    "resolved_days_ago": 8,
+    "created_days_ago": 10
+  },
+  {
+    "user_key": "newbie_6",
+    "type": "HELP_REQUEST",
+    "subject": "Контакты HR",
+    "description": "Нужен контакт HR специалиста",
+    "status": "CLOSED",
+    "closed_days_ago": 20,
+    "created_days_ago": 22
+  },
+  {
+    "user_key": "newbie_7",
+    "type": "HELP_REQUEST",
+    "subject": "Доступ к AWS",
+    "description": "Нет прав для доступа к AWS консоли",
+    "status": "RESOLVED",
+    "resolved_days_ago": 12,
+    "created_days_ago": 14
+  },
+  {
+    "user_key": "newbie_8",
+    "type": "HELP_REQUEST",
+    "subject": "Тестовая среда",
+    "description": "Не могу запустить тесты в staging",
+    "status": "RESOLVED",
+    "resolved_days_ago": 6,
+    "created_days_ago": 8
+  },
+  {
+    "user_key": "newbie_9",
+    "type": "HELP_REQUEST",
+    "subject": "Figma лицензия",
+    "description": "Нужна лицензия Figma",
+    "status": "CLOSED",
+    "closed_days_ago": 25,
+    "created_days_ago": 27
+  },
+  {
+    "user_key": "newbie_10",
+    "type": "HELP_REQUEST",
+    "subject": "CRM доступ",
+    "description": "Нет доступа к Salesforce",
+    "status": "RESOLVED",
+    "resolved_days_ago": 18,
+    "created_days_ago": 20
+  },
+  {
+    "user_key": "newbie_11",
+    "type": "HELP_REQUEST",
+    "subject": "Контент календарь",
+    "description": "Где найти контент календарь?",
+    "status": "RESOLVED",
+    "resolved_days_ago": 4,
+    "created_days_ago": 6
+  },
+  {
+    "user_key": "newbie_12",
+    "type": "HELP_REQUEST",
+    "subject": "Зарплата",
+    "description": "Вопрос по расчету зарплаты",
+    "status": "CLOSED",
+    "closed_days_ago": 30,
+    "created_days_ago": 32
+  },
+  {
+    "user_key": "employee_1",
+    "type": "HELP_REQUEST",
+    "subject": "Code review guidelines",
+    "description": "Обновить гайдлайны для code review",
+    "status": "RESOLVED",
+    "resolved_days_ago": 7,
+    "created_days_ago": 9
+  },
+  {
+    "user_key": "employee_2",
+    "type": "HELP_REQUEST",
+    "subject": "Database optimization",
+    "description": "Помощь с оптимизацией запросов",
+    "status": "RESOLVED",
+    "resolved_days_ago": 14,
+    "created_days_ago": 16
+  },
+  {
+    "user_key": "employee_3",
+    "type": "HELP_REQUEST",
+    "subject": "Product roadmap",
+    "description": "Вопросы по roadmap на Q2",
+    "status": "CLOSED",
+    "closed_days_ago": 11,
+    "created_days_ago": 13
+  },
+  {
+    "user_key": "employee_4",
+    "type": "HELP_REQUEST",
+    "subject": "Client contract",
+    "description": "Помощь с договором клиента",
+    "status": "RESOLVED",
+    "resolved_days_ago": 9,
+    "created_days_ago": 11
+  },
+  {
+    "user_key": "employee_5",
+    "type": "HELP_REQUEST",
+    "subject": "SEO report",
+    "description": "Нужен отчет по SEO за месяц",
+    "status": "RESOLVED",
+    "resolved_days_ago": 5,
+    "created_days_ago": 7
+  },
+  {
+    "user_key": "employee_6",
+    "type": "HELP_REQUEST",
+    "subject": "Budget approval",
+    "description": "Утверждение бюджета на Q3",
+    "status": "CLOSED",
+    "closed_days_ago": 16,
+    "created_days_ago": 18
+  },
+  {
+    "user_key": "employee_7",
+    "type": "HELP_REQUEST",
+    "subject": "Team performance",
+    "description": "Вопросы по оценке команды",
+    "status": "RESOLVED",
+    "resolved_days_ago": 8,
+    "created_days_ago": 10
+  },
+  {
+    "user_key": "employee_8",
+    "type": "HELP_REQUEST",
+    "subject": "Frontend architecture",
+    "description": "Обсуждение архитектуры фронтенда",
+    "status": "RESOLVED",
+    "resolved_days_ago": 13,
+    "created_days_ago": 15
+  }
+]

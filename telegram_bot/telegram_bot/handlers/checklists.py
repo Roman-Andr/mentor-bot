@@ -21,6 +21,7 @@ from telegram_bot.keyboards.checklist_detail import (
     get_no_checklists_keyboard,
     get_no_tasks_keyboard,
     get_skip_description_keyboard,
+    get_skip_photo_name_keyboard,
     get_task_attachments_keyboard,
     get_task_completed_keyboard,
     get_task_info_keyboard,
@@ -223,8 +224,11 @@ async def start_task(callback: CallbackQuery, auth_token: str, *, locale: str = 
         # Task already started, just update keyboard
         await callback.answer(t("tasks.already_started", locale=locale))
         if callback.message:
+            attachments = await checklists_client.get_task_attachments(task_id, auth_token)
             await callback.message.edit_reply_markup(
-                reply_markup=get_task_detail_keyboard(task_id, checklist_id, "in_progress", locale=locale)
+                reply_markup=get_task_detail_keyboard(
+                    task_id, checklist_id, "in_progress", len(attachments), locale=locale
+                )
             )
         return
 
@@ -235,8 +239,11 @@ async def start_task(callback: CallbackQuery, auth_token: str, *, locale: str = 
         await checklists_client.invalidate_task_cache(auth_token, checklist_id)
         await callback.answer(t("common.success", locale=locale))
         if callback.message:
+            attachments = await checklists_client.get_task_attachments(task_id, auth_token)
             await callback.message.edit_reply_markup(
-                reply_markup=get_task_detail_keyboard(task_id, checklist_id, "in_progress", locale=locale)
+                reply_markup=get_task_detail_keyboard(
+                    task_id, checklist_id, "in_progress", len(attachments), locale=locale
+                )
             )
     else:
         await callback.answer(t("checklists.task_start_failed", locale=locale), show_alert=True)
@@ -418,18 +425,14 @@ async def receive_task_photo(message: Message, state: FSMContext, auth_token: st
         await message.answer(t("tasks.file_too_large", locale=locale, max_size=MAX_FILE_SIZE_MB))
         return
 
-    # Save file info to state - generate filename for photo
-    await state.update_data(
-        attach_file_id=photo.file_id,
-        attach_filename="photo.jpg",
-    )
-    await state.set_state(TaskAttachmentStates.waiting_for_description)
+    # Save file info to state, ask user for filename before description
+    await state.update_data(attach_file_id=photo.file_id)
+    await state.set_state(TaskAttachmentStates.waiting_for_photo_name)
 
-    # Ask for optional description
     await message.answer(
-        f"\U0001f4ce *{t('tasks.photo_received', locale=locale)}*\n\n{t('tasks.ask_description', locale=locale)}",
+        f"\U0001f4f7 *{t('tasks.photo_received', locale=locale)}*\n\n{t('tasks.ask_photo_name', locale=locale)}",
         parse_mode="Markdown",
-        reply_markup=get_skip_description_keyboard(locale=locale).as_markup(),
+        reply_markup=get_skip_photo_name_keyboard(locale=locale).as_markup(),
     )
 
 
@@ -437,6 +440,40 @@ async def receive_task_photo(message: Message, state: FSMContext, auth_token: st
 async def receive_task_file_invalid(message: Message, state: FSMContext, *, locale: str = "en") -> None:
     """Handle invalid input when waiting for file."""
     await message.answer(t("tasks.send_file_only", locale=locale))
+
+
+@router.message(TaskAttachmentStates.waiting_for_photo_name)
+async def receive_photo_name(message: Message, state: FSMContext, *, locale: str = "en") -> None:
+    """Receive custom filename for photo, then ask for description."""
+    filename = (message.text or "").strip()
+    if not filename:
+        filename = "photo.jpg"
+    elif not any(filename.lower().endswith(ext) for ext in (".jpg", ".jpeg", ".png", ".gif", ".webp")):
+        filename += ".jpg"
+
+    await state.update_data(attach_filename=filename)
+    await state.set_state(TaskAttachmentStates.waiting_for_description)
+
+    await message.answer(
+        f"\U0001f4ce *{t('tasks.file_received', locale=locale)}:* `{filename}`\n\n{t('tasks.ask_description', locale=locale)}",
+        parse_mode="Markdown",
+        reply_markup=get_skip_description_keyboard(locale=locale).as_markup(),
+    )
+
+
+@router.callback_query(F.data == "skip_photo_name")
+async def skip_photo_name(callback: CallbackQuery, state: FSMContext, *, locale: str = "en") -> None:
+    """Skip photo naming and use default photo.jpg."""
+    await state.update_data(attach_filename="photo.jpg")
+    await state.set_state(TaskAttachmentStates.waiting_for_description)
+
+    if callback.message:
+        await callback.message.edit_text(
+            f"\U0001f4f7 *{t('tasks.photo_received', locale=locale)}*\n\n{t('tasks.ask_description', locale=locale)}",
+            parse_mode="Markdown",
+            reply_markup=get_skip_description_keyboard(locale=locale).as_markup(),
+        )
+    await callback.answer()
 
 
 @router.message(TaskAttachmentStates.waiting_for_description)
@@ -461,7 +498,8 @@ async def receive_task_description(message: Message, state: FSMContext, auth_tok
     # Get file from Telegram
     try:
         file_info = await message.bot.get_file(file_id)
-        file_content = await message.bot.download_file(file_info.file_path)
+        file_bio = await message.bot.download_file(file_info.file_path)
+        file_content = file_bio.read() if hasattr(file_bio, "read") else file_bio
     except Exception:
         await message.answer(t("tasks.download_failed", locale=locale))
         await state.clear()
@@ -510,7 +548,8 @@ async def skip_description(callback: CallbackQuery, state: FSMContext, auth_toke
     # Get file from Telegram
     try:
         file_info = await callback.bot.get_file(file_id)
-        file_content = await callback.bot.download_file(file_info.file_path)
+        file_bio = await callback.bot.download_file(file_info.file_path)
+        file_content = file_bio.read() if hasattr(file_bio, "read") else file_bio
     except Exception:
         await callback.answer(t("tasks.download_failed", locale=locale), show_alert=True)
         await state.clear()
@@ -589,6 +628,9 @@ async def download_task_file(callback: CallbackQuery, auth_token: str, *, locale
 
     await callback.answer(t("common.loading", locale=locale))
 
+    if not callback.message:
+        return
+
     # Download file
     try:
         file_data = await checklists_client.download_task_attachment(
@@ -596,17 +638,16 @@ async def download_task_file(callback: CallbackQuery, auth_token: str, *, locale
         )
         if file_data:
             filename = attachment.get("filename", "file")
-            # Wrap bytes in BufferedInputFile for aiogram
             input_file = BufferedInputFile(file_data, filename=filename)
             await callback.message.answer_document(
                 document=input_file,
                 caption=f"\U0001f4ce {filename}",
             )
         else:
-            await callback.answer(t("tasks.download_failed", locale=locale), show_alert=True)
+            await callback.message.answer(t("tasks.download_failed", locale=locale))
     except Exception:
         logger.exception("Failed to send task attachment")
-        await callback.answer(t("tasks.download_failed", locale=locale), show_alert=True)
+        await callback.message.answer(t("tasks.download_failed", locale=locale))
 
 
 async def _respond_with_auth_error(update: Message | CallbackQuery, *, locale: str = "en") -> None:

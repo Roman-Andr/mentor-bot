@@ -11,7 +11,7 @@ from knowledge_service.api.endpoints.audit import (
     get_dialogue_scenario_change_history,
     require_hr_or_admin,
 )
-from knowledge_service.core import UserRole
+from knowledge_service.core import PermissionDenied, UserRole
 
 
 @pytest.fixture
@@ -62,7 +62,7 @@ class TestRequireHrOrAdmin:
 
     def test_regular_user_denied(self, mock_regular_user):
         """Test regular user is denied."""
-        with pytest.raises(PermissionError) as exc_info:
+        with pytest.raises(PermissionDenied) as exc_info:
             require_hr_or_admin(mock_regular_user)
         assert "Access denied" in str(exc_info.value)
 
@@ -133,7 +133,7 @@ class TestGetArticleChangeHistory:
 
     async def test_regular_user_denied(self, mock_uow, mock_regular_user):
         """Test regular user is denied access."""
-        with pytest.raises(PermissionError):
+        with pytest.raises(PermissionDenied):
             await get_article_change_history(
                 current_user=mock_regular_user,
                 uow=mock_uow,
@@ -235,7 +235,7 @@ class TestGetArticleViewHistory:
 
     async def test_regular_user_denied(self, mock_uow, mock_regular_user):
         """Test regular user is denied access."""
-        with pytest.raises(PermissionError):
+        with pytest.raises(PermissionDenied):
             await get_article_view_history(
                 current_user=mock_regular_user,
                 uow=mock_uow,
@@ -314,7 +314,7 @@ class TestGetCategoryChangeHistory:
 
     async def test_regular_user_denied(self, mock_uow, mock_regular_user):
         """Test regular user is denied access."""
-        with pytest.raises(PermissionError):
+        with pytest.raises(PermissionDenied):
             await get_category_change_history(
                 current_user=mock_regular_user,
                 uow=mock_uow,
@@ -394,7 +394,7 @@ class TestGetDialogueScenarioChangeHistory:
 
     async def test_regular_user_denied(self, mock_uow, mock_regular_user):
         """Test regular user is denied access."""
-        with pytest.raises(PermissionError):
+        with pytest.raises(PermissionDenied):
             await get_dialogue_scenario_change_history(
                 current_user=mock_regular_user,
                 uow=mock_uow,

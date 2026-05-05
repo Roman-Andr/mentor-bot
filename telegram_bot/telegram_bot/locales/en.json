@@ -165,6 +165,8 @@
     "view_files": "Files",
     "no_attachments": "No attached files",
     "select_file": "Select a file to download:",
+    "ask_photo_name": "Please enter a name for this photo, or skip to use the default name 'photo.jpg'.",
+    "skip_photo_name": "Skip (use photo.jpg)",
     "skip_description": "Skip description"
   },
   "knowledge": {

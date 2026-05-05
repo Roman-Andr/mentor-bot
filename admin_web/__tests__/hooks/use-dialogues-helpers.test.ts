@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { mapDialogue, toPayload, toForm } from '@/hooks/use-dialogues'
+import { mapDialogue, toPayload, toForm } from '@/shared/hooks/use-dialogues'
 import type { DialogueScenario } from '@/types'
 
 describe('use-dialogues helper functions', () => {

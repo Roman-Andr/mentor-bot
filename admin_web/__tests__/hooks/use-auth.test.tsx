@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
-import { useAuth } from '@/hooks/use-auth'
-import { AuthProvider } from '@/lib/auth-context'
+import { useAuth } from '@/shared/hooks/use-auth'
+import { AuthProvider } from '@/shared/lib/auth-context'
 import type { ReactNode } from 'react'
 
 function wrapper({ children }: { children: ReactNode }) {

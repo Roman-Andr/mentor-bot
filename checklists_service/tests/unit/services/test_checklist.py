@@ -51,7 +51,7 @@ class TestChecklistServiceCreate:
             notes=None,
         )
 
-        with patch("checklists_service.services.checklist.auth_service_client") as mock_auth:
+        with patch("checklists_service.utils.auth_service_client") as mock_auth:
             mock_auth.get_user = AsyncMock(return_value=mock_user_employee)
 
             service = ChecklistService(mock_uow, "mock-token")
@@ -86,7 +86,7 @@ class TestChecklistServiceCreate:
             start_date=datetime.now(UTC),
         )
 
-        with patch("checklists_service.services.checklist.auth_service_client") as mock_auth:
+        with patch("checklists_service.utils.auth_service_client") as mock_auth:
             mock_auth.get_user = AsyncMock(return_value=None)
 
             service = ChecklistService(mock_uow, "mock-token")
@@ -108,7 +108,7 @@ class TestChecklistServiceCreate:
             start_date=datetime.now(UTC),
         )
 
-        with patch("checklists_service.services.checklist.auth_service_client") as mock_auth:
+        with patch("checklists_service.utils.auth_service_client") as mock_auth:
             mock_auth.get_user = AsyncMock(return_value=mock_user_employee)
 
             service = ChecklistService(mock_uow, "mock-token")
@@ -133,7 +133,7 @@ class TestChecklistServiceCreate:
             start_date=datetime.now(UTC),
         )
 
-        with patch("checklists_service.services.checklist.auth_service_client") as mock_auth:
+        with patch("checklists_service.utils.auth_service_client") as mock_auth:
             mock_auth.get_user = AsyncMock(return_value=mock_user_employee)
 
             service = ChecklistService(mock_uow, "mock-token")
@@ -159,7 +159,7 @@ class TestChecklistServiceCreate:
             start_date=datetime.now(UTC),
         )
 
-        with patch("checklists_service.services.checklist.auth_service_client") as mock_auth:
+        with patch("checklists_service.utils.auth_service_client") as mock_auth:
             mock_auth.get_user = AsyncMock(return_value=mock_user_employee)
 
             service = ChecklistService(mock_uow, "mock-token")
@@ -207,7 +207,7 @@ class TestChecklistServiceCreate:
             notes=None,
         )
 
-        with patch("checklists_service.services.checklist.auth_service_client") as mock_auth:
+        with patch("checklists_service.utils.auth_service_client") as mock_auth:
             mock_auth.get_user = AsyncMock(side_effect=[mock_user_employee, mock_user_mentor])
 
             service = ChecklistService(mock_uow, "mock-token")
@@ -233,7 +233,7 @@ class TestChecklistServiceCreate:
             mentor_id=999,
         )
 
-        with patch("checklists_service.services.checklist.auth_service_client") as mock_auth:
+        with patch("checklists_service.utils.auth_service_client") as mock_auth:
             mock_auth.get_user = AsyncMock(side_effect=[mock_user_employee, None])
 
             service = ChecklistService(mock_uow, "mock-token")
@@ -261,7 +261,7 @@ class TestChecklistServiceCreate:
             mentor_id=2,
         )
 
-        with patch("checklists_service.services.checklist.auth_service_client") as mock_auth:
+        with patch("checklists_service.utils.auth_service_client") as mock_auth:
             mock_auth.get_user = AsyncMock(side_effect=[mock_user_employee, mock_user_employee])
 
             service = ChecklistService(mock_uow, "mock-token")
@@ -306,7 +306,7 @@ class TestChecklistServiceCreate:
             hr_id=3,
         )
 
-        with patch("checklists_service.services.checklist.auth_service_client") as mock_auth:
+        with patch("checklists_service.utils.auth_service_client") as mock_auth:
             mock_auth.get_user = AsyncMock(side_effect=[mock_user_employee, mock_user_hr])
 
             service = ChecklistService(mock_uow, "mock-token")
@@ -332,7 +332,7 @@ class TestChecklistServiceCreate:
             hr_id=999,  # Non-existent HR
         )
 
-        with patch("checklists_service.services.checklist.auth_service_client") as mock_auth:
+        with patch("checklists_service.utils.auth_service_client") as mock_auth:
             mock_auth.get_user = AsyncMock(side_effect=[mock_user_employee, None])
 
             service = ChecklistService(mock_uow, "mock-token")
@@ -361,7 +361,7 @@ class TestChecklistServiceCreate:
             hr_id=2,  # This will be mocked to return an employee, not HR
         )
 
-        with patch("checklists_service.services.checklist.auth_service_client") as mock_auth:
+        with patch("checklists_service.utils.auth_service_client") as mock_auth:
             mock_auth.get_user = AsyncMock(side_effect=[mock_user_employee, mock_user_employee])
 
             service = ChecklistService(mock_uow, "mock-token")
@@ -402,7 +402,7 @@ class TestChecklistServiceCreate:
             # No due_date provided - should be auto-calculated
         )
 
-        with patch("checklists_service.services.checklist.auth_service_client") as mock_auth:
+        with patch("checklists_service.utils.auth_service_client") as mock_auth:
             mock_auth.get_user = AsyncMock(return_value=mock_user_employee)
 
             service = ChecklistService(mock_uow, "mock-token")
@@ -420,7 +420,7 @@ class TestChecklistServiceCreate:
 
     async def test_validate_user_not_found(self, mock_uow: MagicMock) -> None:
         """Test _validate_user raises error when user not found."""
-        with patch("checklists_service.services.checklist.auth_service_client") as mock_auth:
+        with patch("checklists_service.utils.auth_service_client") as mock_auth:
             mock_auth.get_user = AsyncMock(return_value=None)
 
             service = ChecklistService(mock_uow, "mock-token")
@@ -467,7 +467,7 @@ class TestChecklistServiceCreate:
             mentor_id=2,
         )
 
-        with patch("checklists_service.services.checklist.auth_service_client") as mock_auth:
+        with patch("checklists_service.utils.auth_service_client") as mock_auth:
             mock_auth.get_user = AsyncMock(side_effect=[mock_user_employee, mock_user_mentor])
 
             service = ChecklistService(mock_uow, "mock-token")
@@ -561,7 +561,7 @@ class TestChecklistServiceCreate:
             mentor_id=5,
         )
 
-        with patch("checklists_service.services.checklist.auth_service_client") as mock_auth:
+        with patch("checklists_service.utils.auth_service_client") as mock_auth:
             mock_auth.get_user = AsyncMock(side_effect=[mock_user_employee, mock_user_mentor])
 
             service = ChecklistService(mock_uow, "mock-token")
@@ -1122,7 +1122,7 @@ class TestChecklistServiceHRAssignee:
             hr_id=10,  # HR assigned
         )
 
-        with patch("checklists_service.services.checklist.auth_service_client") as mock_auth:
+        with patch("checklists_service.utils.auth_service_client") as mock_auth:
             mock_auth.get_user = AsyncMock(side_effect=[mock_user_employee, mock_user_hr])
 
             service = ChecklistService(mock_uow, "mock-token")

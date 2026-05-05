@@ -5,7 +5,7 @@ from typing import Annotated
 from fastapi import APIRouter, HTTPException, Query, status
 
 from knowledge_service.api import AdminUser, CurrentUser, HRUser, TagServiceDep
-from knowledge_service.core import NotFoundException, ValidationException
+from knowledge_service.core import ConflictException, NotFoundException, ValidationException
 from knowledge_service.schemas import (
     MessageResponse,
     TagCreate,
@@ -62,6 +62,8 @@ async def create_tag(
     try:
         tag = await tag_service.create_tag(tag_data)
         return TagResponse.model_validate(tag)
+    except ConflictException:
+        raise  # Let ConflictException pass through with 409 status
     except ValidationException as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

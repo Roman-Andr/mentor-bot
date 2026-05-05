@@ -6,6 +6,7 @@ from aiogram import F, Router
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
+from loguru import logger
 
 from telegram_bot.config import settings
 from telegram_bot.i18n import t
@@ -278,6 +279,16 @@ async def progress(update: Message | CallbackQuery, user: dict, auth_token: str,
         await msg.answer(t("progress.no_checklists", locale=locale))
         return
 
+    # Calculate overall progress across all checklists
+    total_tasks = 0
+    completed_tasks = 0
+    
+    for checklist in checklists:
+        total_tasks += checklist.get("total_tasks", 0)
+        completed_tasks += checklist.get("completed_tasks", 0)
+    
+    overall_progress = int((completed_tasks / total_tasks * 100)) if total_tasks > 0 else 0
+
     # Use specific checklist_id if provided, otherwise use first checklist
     if specific_checklist_id is not None:
         active_checklist = None
@@ -314,9 +325,9 @@ async def progress(update: Message | CallbackQuery, user: dict, auth_token: str,
                 upcoming_deadline = due_date_raw
 
         progress_data = {
-            "overall_progress": active_checklist.get("progress_percentage", 0),
-            "tasks_completed": active_checklist.get("completed_tasks", 0),
-            "tasks_total": active_checklist.get("total_tasks", 0),
+            "overall_progress": overall_progress,
+            "tasks_completed": completed_tasks,
+            "tasks_total": total_tasks,
             "days_passed": 0,
             "days_total": 30,
             "next_task": next_task,
@@ -337,9 +348,9 @@ async def progress(update: Message | CallbackQuery, user: dict, auth_token: str,
                 upcoming_deadline = due_date_raw
 
         progress_data = {
-            "overall_progress": progress_info.get("progress_percentage", 0),
-            "tasks_completed": progress_info.get("completed_tasks", 0),
-            "tasks_total": progress_info.get("total_tasks", 0),
+            "overall_progress": overall_progress,
+            "tasks_completed": completed_tasks,
+            "tasks_total": total_tasks,
             "days_passed": days_passed,
             "days_total": progress_info.get("days_remaining", 30) + days_passed,
             "next_task": next_task,
@@ -377,3 +388,7 @@ async def progress(update: Message | CallbackQuery, user: dict, auth_token: str,
             reply_markup=get_progress_keyboard(locale=locale).as_markup(),
             parse_mode="Markdown",
         )
+
+
+    
+    

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { mapTemplateToItem, toCreatePayload, toUpdatePayload, toForm } from '@/hooks/use-templates'
+import { mapTemplateToItem, toCreatePayload, toUpdatePayload, toForm } from '@/shared/hooks/use-templates'
 
 describe('use-templates helper functions', () => {
   const mockTemplateData = {

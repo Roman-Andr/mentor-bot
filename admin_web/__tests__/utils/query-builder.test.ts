@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { buildQueryString } from '@/lib/utils/query-builder'
+import { buildQueryString } from '@/shared/lib/utils/query-builder'
 
 describe('buildQueryString', () => {
   it('returns empty string for undefined params', () => {

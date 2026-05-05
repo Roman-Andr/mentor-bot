@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { logger } from "@/lib/logger";
+import { logger } from "@/shared/lib/logger";
 import { NORMALIZE_MAP } from "./normalize";
-import type { NormalizedAuditEvent, AuditSource } from "@/types/audit";
+import type { NormalizedAuditEvent, AuditSource } from "@/shared/types/audit";
 
 const SERVICE_MAP: Record<string, string> = {
   auth: process.env.AUTH_SERVICE_URL || "http://localhost:8001",

@@ -259,3 +259,16 @@ class TestCategoryRepository:
 
         assert len(result) == 1
         assert total == 1
+
+    async def test_find_categories_sort_by_articles_count(self, mock_session, sample_category):
+        """Test finding categories sorted by articles count."""
+        mock_result = MagicMock()
+        mock_result.scalars.return_value.all.return_value = [sample_category]
+        mock_result.scalar_one.return_value = 1
+        mock_session.execute.return_value = mock_result
+
+        repo = CategoryRepository(mock_session)
+        result, total = await repo.find_categories(sort_by="articlesCount", sort_order="asc")
+
+        assert len(result) == 1
+        assert total == 1

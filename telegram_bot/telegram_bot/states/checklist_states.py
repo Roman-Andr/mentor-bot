@@ -13,5 +13,6 @@ class TaskAttachmentStates(StatesGroup):
     """States for task attachment upload."""
 
     waiting_for_file = State()
+    waiting_for_photo_name = State()
     waiting_for_description = State()
     confirm_upload = State()

@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { AuthProvider } from "@/lib/auth-context";
-import { ThemeProvider } from "@/components/providers/theme-provider";
-import { PaginationProvider } from "@/components/providers/pagination-provider";
-import { ConfirmProvider } from "@/components/ui/confirm-dialog";
-import { ToastProvider } from "@/components/ui/toast";
+import { AuthProvider } from "@/shared/lib/auth-context";
+import { ThemeProvider } from "@/shared/providers/theme-provider";
+import { PaginationProvider } from "@/shared/providers/pagination-provider";
+import { ConfirmProvider } from "@/shared/ui/confirm-dialog";
+import { ToastProvider } from "@/shared/ui/toast";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 function makeQueryClient() {

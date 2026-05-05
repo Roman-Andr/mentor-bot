@@ -1,0 +1,72 @@
+[
+  {
+    "user_key": "newbie_1",
+    "template_index": 0,
+    "start_days_ago": 45,
+    "completed_tasks": 3,
+    "status": "IN_PROGRESS"
+  },
+  {
+    "user_key": "newbie_3",
+    "template_index": 1,
+    "start_days_ago": 50,
+    "completed_tasks": 5,
+    "status": "IN_PROGRESS"
+  },
+  {
+    "user_key": "newbie_5",
+    "template_index": 0,
+    "start_days_ago": 60,
+    "completed_tasks": 2,
+    "status": "IN_PROGRESS"
+  },
+  {
+    "user_key": "newbie_7",
+    "template_index": 2,
+    "start_days_ago": 55,
+    "completed_tasks": 4,
+    "status": "IN_PROGRESS"
+  },
+  {
+    "user_key": "newbie_9",
+    "template_index": 1,
+    "start_days_ago": 70,
+    "completed_tasks": 6,
+    "status": "IN_PROGRESS"
+  },
+  {
+    "user_key": "newbie_11",
+    "template_index": 0,
+    "start_days_ago": 65,
+    "completed_tasks": 1,
+    "status": "IN_PROGRESS"
+  },
+  {
+    "user_key": "employee_1",
+    "template_index": 2,
+    "start_days_ago": 80,
+    "completed_tasks": 8,
+    "status": "IN_PROGRESS"
+  },
+  {
+    "user_key": "employee_3",
+    "template_index": 1,
+    "start_days_ago": 75,
+    "completed_tasks": 7,
+    "status": "IN_PROGRESS"
+  },
+  {
+    "user_key": "employee_5",
+    "template_index": 0,
+    "start_days_ago": 90,
+    "completed_tasks": 3,
+    "status": "IN_PROGRESS"
+  },
+  {
+    "user_key": "employee_7",
+    "template_index": 2,
+    "start_days_ago": 85,
+    "completed_tasks": 9,
+    "status": "IN_PROGRESS"
+  }
+]

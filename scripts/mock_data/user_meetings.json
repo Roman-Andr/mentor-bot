@@ -43,5 +43,305 @@
     "user_key": "andrusevich_roman",
     "status": "SCHEDULED",
     "days_ago": 2
+  },
+  {
+    "user_key": "newbie_1",
+    "status": "COMPLETED",
+    "days_ago": 5
+  },
+  {
+    "user_key": "newbie_1",
+    "status": "COMPLETED",
+    "days_ago": 12
+  },
+  {
+    "user_key": "newbie_1",
+    "status": "SCHEDULED",
+    "days_ago": 0
+  },
+  {
+    "user_key": "newbie_2",
+    "status": "COMPLETED",
+    "days_ago": 3
+  },
+  {
+    "user_key": "newbie_2",
+    "status": "MISSED",
+    "days_ago": 10
+  },
+  {
+    "user_key": "newbie_2",
+    "status": "COMPLETED",
+    "days_ago": 18
+  },
+  {
+    "user_key": "newbie_3",
+    "status": "COMPLETED",
+    "days_ago": 7
+  },
+  {
+    "user_key": "newbie_3",
+    "status": "CANCELLED",
+    "days_ago": 14
+  },
+  {
+    "user_key": "newbie_3",
+    "status": "SCHEDULED",
+    "days_ago": 0
+  },
+  {
+    "user_key": "newbie_4",
+    "status": "COMPLETED",
+    "days_ago": 2
+  },
+  {
+    "user_key": "newbie_4",
+    "status": "COMPLETED",
+    "days_ago": 9
+  },
+  {
+    "user_key": "newbie_4",
+    "status": "COMPLETED",
+    "days_ago": 16
+  },
+  {
+    "user_key": "newbie_5",
+    "status": "COMPLETED",
+    "days_ago": 4
+  },
+  {
+    "user_key": "newbie_5",
+    "status": "MISSED",
+    "days_ago": 11
+  },
+  {
+    "user_key": "newbie_5",
+    "status": "SCHEDULED",
+    "days_ago": 0
+  },
+  {
+    "user_key": "newbie_6",
+    "status": "COMPLETED",
+    "days_ago": 6
+  },
+  {
+    "user_key": "newbie_6",
+    "status": "COMPLETED",
+    "days_ago": 13
+  },
+  {
+    "user_key": "newbie_6",
+    "status": "COMPLETED",
+    "days_ago": 20
+  },
+  {
+    "user_key": "newbie_7",
+    "status": "COMPLETED",
+    "days_ago": 8
+  },
+  {
+    "user_key": "newbie_7",
+    "status": "CANCELLED",
+    "days_ago": 15
+  },
+  {
+    "user_key": "newbie_7",
+    "status": "SCHEDULED",
+    "days_ago": 0
+  },
+  {
+    "user_key": "newbie_8",
+    "status": "COMPLETED",
+    "days_ago": 1
+  },
+  {
+    "user_key": "newbie_8",
+    "status": "COMPLETED",
+    "days_ago": 8
+  },
+  {
+    "user_key": "newbie_8",
+    "status": "MISSED",
+    "days_ago": 15
+  },
+  {
+    "user_key": "newbie_9",
+    "status": "COMPLETED",
+    "days_ago": 3
+  },
+  {
+    "user_key": "newbie_9",
+    "status": "COMPLETED",
+    "days_ago": 10
+  },
+  {
+    "user_key": "newbie_9",
+    "status": "SCHEDULED",
+    "days_ago": 0
+  },
+  {
+    "user_key": "newbie_10",
+    "status": "COMPLETED",
+    "days_ago": 5
+  },
+  {
+    "user_key": "newbie_10",
+    "status": "COMPLETED",
+    "days_ago": 12
+  },
+  {
+    "user_key": "newbie_10",
+    "status": "CANCELLED",
+    "days_ago": 19
+  },
+  {
+    "user_key": "newbie_11",
+    "status": "COMPLETED",
+    "days_ago": 7
+  },
+  {
+    "user_key": "newbie_11",
+    "status": "MISSED",
+    "days_ago": 14
+  },
+  {
+    "user_key": "newbie_11",
+    "status": "SCHEDULED",
+    "days_ago": 0
+  },
+  {
+    "user_key": "newbie_12",
+    "status": "COMPLETED",
+    "days_ago": 2
+  },
+  {
+    "user_key": "newbie_12",
+    "status": "COMPLETED",
+    "days_ago": 9
+  },
+  {
+    "user_key": "newbie_12",
+    "status": "COMPLETED",
+    "days_ago": 16
+  },
+  {
+    "user_key": "employee_1",
+    "status": "COMPLETED",
+    "days_ago": 4
+  },
+  {
+    "user_key": "employee_1",
+    "status": "COMPLETED",
+    "days_ago": 11
+  },
+  {
+    "user_key": "employee_1",
+    "status": "COMPLETED",
+    "days_ago": 18
+  },
+  {
+    "user_key": "employee_2",
+    "status": "COMPLETED",
+    "days_ago": 6
+  },
+  {
+    "user_key": "employee_2",
+    "status": "CANCELLED",
+    "days_ago": 13
+  },
+  {
+    "user_key": "employee_2",
+    "status": "SCHEDULED",
+    "days_ago": 0
+  },
+  {
+    "user_key": "employee_3",
+    "status": "COMPLETED",
+    "days_ago": 8
+  },
+  {
+    "user_key": "employee_3",
+    "status": "COMPLETED",
+    "days_ago": 15
+  },
+  {
+    "user_key": "employee_3",
+    "status": "MISSED",
+    "days_ago": 22
+  },
+  {
+    "user_key": "employee_4",
+    "status": "COMPLETED",
+    "days_ago": 3
+  },
+  {
+    "user_key": "employee_4",
+    "status": "COMPLETED",
+    "days_ago": 10
+  },
+  {
+    "user_key": "employee_4",
+    "status": "SCHEDULED",
+    "days_ago": 0
+  },
+  {
+    "user_key": "employee_5",
+    "status": "COMPLETED",
+    "days_ago": 5
+  },
+  {
+    "user_key": "employee_5",
+    "status": "MISSED",
+    "days_ago": 12
+  },
+  {
+    "user_key": "employee_5",
+    "status": "COMPLETED",
+    "days_ago": 19
+  },
+  {
+    "user_key": "employee_6",
+    "status": "COMPLETED",
+    "days_ago": 7
+  },
+  {
+    "user_key": "employee_6",
+    "status": "COMPLETED",
+    "days_ago": 14
+  },
+  {
+    "user_key": "employee_6",
+    "status": "CANCELLED",
+    "days_ago": 21
+  },
+  {
+    "user_key": "employee_7",
+    "status": "COMPLETED",
+    "days_ago": 2
+  },
+  {
+    "user_key": "employee_7",
+    "status": "COMPLETED",
+    "days_ago": 9
+  },
+  {
+    "user_key": "employee_7",
+    "status": "SCHEDULED",
+    "days_ago": 0
+  },
+  {
+    "user_key": "employee_8",
+    "status": "COMPLETED",
+    "days_ago": 4
+  },
+  {
+    "user_key": "employee_8",
+    "status": "MISSED",
+    "days_ago": 11
+  },
+  {
+    "user_key": "employee_8",
+    "status": "COMPLETED",
+    "days_ago": 18
   }
 ]

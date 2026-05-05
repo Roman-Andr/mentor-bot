@@ -1,0 +1,105 @@
+"use client";
+
+import { useTranslations } from "@/shared/hooks/use-translations";
+import { PageContent } from "@/shared/layout/page-content";
+import { EntityPage } from "@/shared/entity";
+import { useDepartments, type DepartmentRow, type DepartmentFormData } from "@/shared/hooks/use-departments";
+import { Input } from "@/shared/ui/input";
+import { Textarea } from "@/shared/ui/textarea";
+import { TabSwitcher } from "@/shared/ui/tab-switcher";
+import { DepartmentDocumentsTab } from "@/widgets/departments/department-documents-tab";
+import { Building2, FileText } from "lucide-react";
+import type { TabItem } from "@/shared/ui/tab-switcher";
+import { useSearchParams } from "next/navigation";
+
+export function DepartmentsWidget() {
+  const t = useTranslations();
+  const searchParams = useSearchParams();
+  const activeTab = searchParams.get("tab") || "departments";
+  const entity = useDepartments();
+
+  const tabs: TabItem[] = [
+    { id: "departments", label: "Подразделения", icon: Building2 },
+    { id: "documents", label: "Документы", icon: FileText },
+  ];
+
+  return (
+    <PageContent title={t("departments.title")} subtitle={t("departments.title")}>
+      <div className="space-y-6">
+        <TabSwitcher tabs={tabs} />
+
+        {activeTab === "departments" && (
+          <EntityPage<DepartmentRow, DepartmentFormData>
+            title={t("departments.title")}
+            items={entity.items}
+            totalItems={entity.totalCount}
+            pageSize={entity.pageSize}
+            currentPage={entity.currentPage}
+            isLoading={entity.loading}
+            onPageSizeChange={entity.setPageSize}
+            isCreateOpen={entity.isCreateDialogOpen}
+            isEditOpen={entity.isEditDialogOpen}
+            selectedItem={entity.selectedItem}
+            onCreateOpen={() => { entity.resetForm(); entity.setIsCreateDialogOpen(true); }}
+            onEditOpen={entity.openEditDialog}
+            onDelete={entity.handleDelete}
+            onCloseDialog={() => { entity.setIsCreateDialogOpen(false); entity.setIsEditDialogOpen(false); entity.resetForm(); }}
+            formData={entity.formData}
+            onFormChange={entity.setFormData}
+            onSubmit={entity.handleSubmit}
+            isSubmitting={entity.isSubmitting}
+            submitError={null}
+            searchQuery={entity.searchQuery}
+            onSearchChange={entity.setSearchQuery}
+            onPageChange={entity.setCurrentPage}
+            createButtonLabel={t("departments.addDepartment")}
+            emptyStateMessage={t("departments.empty")}
+            searchPlaceholder={t("common.search")}
+            getItemKey={(item: DepartmentRow) => item.id}
+            sortField={entity.sortField}
+            sortDirection={entity.sortDirection}
+            onSort={entity.toggleSort}
+            t={t}
+            columns={[
+              {
+                key: "name",
+                header: t("departments.name"),
+                cell: (item: DepartmentRow) => <span className="font-medium">{item.name}</span>,
+                sortable: true,
+              },
+              {
+                key: "description",
+                header: t("common.description"),
+                cell: (item: DepartmentRow) => (
+                  <span className="text-muted-foreground max-w-75 truncate text-sm">{item.description || "—"}</span>
+                ),
+              },
+              {
+                key: "createdAt",
+                header: t("common.created"),
+                cell: (item: DepartmentRow) => new Date(item.createdAt).toLocaleDateString(),
+                width: "w-32",
+                sortable: true,
+              },
+            ]}
+            renderForm={({ formData, onChange }: { formData: DepartmentFormData; onChange: (data: DepartmentFormData) => void }) => (
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <label className="text-sm font-medium">{t("departments.name")} *</label>
+                  <Input placeholder={t("departments.name")} value={formData.name} onChange={(e) => onChange({ ...formData, name: e.target.value })} />
+                </div>
+                <div className="grid gap-2">
+                  <label className="text-sm font-medium">{t("common.description")}</label>
+                  <Textarea placeholder={t("common.description")} value={formData.description} onChange={(e) => onChange({ ...formData, description: e.target.value })} rows={4} />
+                </div>
+              </div>
+            )}
+            isFormValid={!!entity.formData.name}
+          />
+        )}
+
+        {activeTab === "documents" && <DepartmentDocumentsTab />}
+      </div>
+    </PageContent>
+  );
+}

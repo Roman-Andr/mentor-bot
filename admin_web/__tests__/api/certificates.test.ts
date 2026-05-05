@@ -1,11 +1,11 @@
 /** Tests for certificates API client. */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { certificatesApi } from "@/lib/api/certificates";
-import { fetchApi } from "@/lib/api/client";
+import { certificatesApi } from "@/shared/lib/api/certificates";
+import { fetchApi } from "@/shared/lib/api/client";
 
 // Mock the fetchApi function
-vi.mock("@/lib/api/client", () => ({
+vi.mock("@/shared/lib/api/client", () => ({
   fetchApi: vi.fn(),
 }));
 

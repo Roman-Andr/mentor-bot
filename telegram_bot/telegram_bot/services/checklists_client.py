@@ -215,12 +215,20 @@ class ChecklistsServiceClient:
         """Upload a file attachment to a task."""
         logger.debug("Uploading task attachment (task_id={}, filename={})", task_id, filename)
         try:
+            import mimetypes
             from io import BytesIO
 
-            # Handle both bytes and file-like objects (BytesIO)
-            file_obj = BytesIO(file_content) if isinstance(file_content, bytes) else file_content
+            if isinstance(file_content, bytes):
+                file_obj = BytesIO(file_content)
+            else:
+                file_content.seek(0)
+                file_obj = file_content
 
-            files = {"file": (filename, file_obj, "application/octet-stream")}
+            mime_type, _ = mimetypes.guess_type(filename)
+            if not mime_type:
+                mime_type = "application/octet-stream"
+
+            files = {"file": (filename, file_obj, mime_type)}
             data = {"description": description} if description else {}
             response = await self.client.post(
                 f"{settings.API_V1_PREFIX}/tasks/{task_id}/attachments",
@@ -228,10 +236,9 @@ class ChecklistsServiceClient:
                 data=data,
                 headers={"Authorization": f"Bearer {auth_token}"},
             )
-            if response.status_code == status.HTTP_200_OK:
+            if response.status_code in (status.HTTP_200_OK, status.HTTP_201_CREATED):
                 logger.info("Task attachment uploaded (task_id={}, filename={})", task_id, filename)
                 return response.json()
-            # Log error response for debugging
             logger.error(
                 "Upload failed (task_id={}, status={})",
                 task_id,

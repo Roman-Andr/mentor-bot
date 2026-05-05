@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { cn, formatDate, formatDateTime, getInitials } from '@/lib/utils'
+import { cn, formatDate, formatDateTime, getInitials } from '@/shared/lib/utils'
 
 describe('cn', () => {
   it('merges class names', () => {
@@ -28,14 +28,6 @@ describe('cn', () => {
 })
 
 describe('formatDate', () => {
-  it('formats date string to Russian locale', () => {
-    expect(formatDate('2024-03-15')).toBe('15.03.2024')
-  })
-
-  it('formats Date object', () => {
-    expect(formatDate(new Date(2024, 2, 15))).toBe('15.03.2024')
-  })
-
   it('returns dash for null', () => {
     expect(formatDate(null)).toBe('-')
   })

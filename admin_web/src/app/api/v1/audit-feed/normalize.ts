@@ -1,4 +1,4 @@
-import type { NormalizedAuditEvent, AuditSource, AuditEventType } from "@/types/audit";
+import type { NormalizedAuditEvent, AuditSource, AuditEventType } from "@/shared/types/audit";
 
 // Helper to create composite ID
 function makeId(source: AuditSource, eventType: AuditEventType, rawId: number | string): string {

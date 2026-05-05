@@ -12,7 +12,7 @@ from meeting_service.api.endpoints.audit import (
     get_meeting_status_change_history,
     require_hr_or_admin,
 )
-from meeting_service.core import UserRole
+from meeting_service.core import PermissionDenied, UserRole
 
 
 class TestRequireHrOrAdmin:
@@ -35,12 +35,12 @@ class TestRequireHrOrAdmin:
         require_hr_or_admin(mock_user)
 
     def test_require_hr_or_admin_with_employee_role_raises(self):
-        """Test that Employee role raises PermissionError."""
+        """Test that Employee role raises PermissionDenied."""
         mock_user = MagicMock()
         mock_user.role = UserRole.EMPLOYEE
 
         # Act & Assert
-        with pytest.raises(PermissionError, match="Access denied: HR or Admin role required"):
+        with pytest.raises(PermissionDenied, match="Access denied: HR or Admin role required"):
             require_hr_or_admin(mock_user)
 
 
@@ -202,7 +202,7 @@ class TestGetMeetingStatusChangeHistory:
 
     @pytest.mark.asyncio
     async def test_get_history_employee_role_forbidden(self):
-        """Test that Employee role raises PermissionError."""
+        """Test that Employee role raises PermissionDenied."""
         # Arrange
         mock_user = MagicMock()
         mock_user.role = UserRole.EMPLOYEE
@@ -210,7 +210,7 @@ class TestGetMeetingStatusChangeHistory:
         mock_uow = MagicMock()
 
         # Act & Assert
-        with pytest.raises(PermissionError, match="Access denied: HR or Admin role required"):
+        with pytest.raises(PermissionDenied, match="Access denied: HR or Admin role required"):
             await get_meeting_status_change_history(
                 current_user=mock_user,
                 uow=mock_uow,
@@ -422,7 +422,7 @@ class TestGetMeetingParticipantHistory:
 
     @pytest.mark.asyncio
     async def test_get_participant_history_employee_role_forbidden(self):
-        """Test that Employee role raises PermissionError."""
+        """Test that Employee role raises PermissionDenied."""
         # Arrange
         mock_user = MagicMock()
         mock_user.role = UserRole.EMPLOYEE
@@ -430,7 +430,7 @@ class TestGetMeetingParticipantHistory:
         mock_uow = MagicMock()
 
         # Act & Assert
-        with pytest.raises(PermissionError, match="Access denied: HR or Admin role required"):
+        with pytest.raises(PermissionDenied, match="Access denied: HR or Admin role required"):
             await get_meeting_participant_history(
                 current_user=mock_user,
                 uow=mock_uow,

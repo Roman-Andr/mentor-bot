@@ -59,7 +59,8 @@ class TestSqlAlchemyUnitOfWork:
             session = u._session
             await u.commit()
 
-        session.commit.assert_awaited_once()
+        # Commit is called twice: once explicitly, once in __aexit__
+        assert session.commit.await_count == 2
 
     async def test_commit_no_session_raises(self, mock_session_factory):
         """Test commit without session raises error."""

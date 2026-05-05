@@ -365,9 +365,7 @@ def get_faq_scenario_keyboard(
                     )
                 )
 
-    builder.adjust(1)
-
-    # Add navigation buttons
+    # Add navigation buttons before adjusting layout
     builder.add(
         create_inline_button(
             f"\u2190 {t('knowledge.back_to_faq', locale=locale)}",
@@ -378,6 +376,8 @@ def get_faq_scenario_keyboard(
             callback_data="knowledge_base",
         ),
     )
+
+    builder.adjust(1)
     return builder
 
 

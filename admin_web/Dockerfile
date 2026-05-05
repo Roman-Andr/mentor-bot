@@ -16,6 +16,8 @@ ENV NEXT_TELEMETRY_DISABLED=1 \
   PORT=3000 \
   HOSTNAME="0.0.0.0"
 
+RUN apk add --no-cache curl
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
@@ -57,7 +59,8 @@ ENV NEXT_TELEMETRY_DISABLED=1 \
   PORT=3000 \
   HOSTNAME="0.0.0.0"
 
-RUN addgroup --system --gid 1001 nodejs && \
+RUN apk add --no-cache curl && \
+  addgroup --system --gid 1001 nodejs && \
   adduser --system --uid 1001 nextjs
 
 COPY --from=builder --chown=nextjs:nodejs /build/runner/ ./

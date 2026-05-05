@@ -1,0 +1,191 @@
+[
+  {
+    "entity_type": "TEMPLATE",
+    "entity_id": 1,
+    "change_type": "STATUS_CHANGE",
+    "old_value": "DRAFT",
+    "new_value": "ACTIVE",
+    "changed_by_user_key": "hr_director",
+    "changed_days_ago": 30
+  },
+  {
+    "entity_type": "TEMPLATE",
+    "entity_id": 2,
+    "change_type": "TASK_ADDED",
+    "old_value": null,
+    "new_value": "New task: Complete security training",
+    "changed_by_user_key": "hr_specialist",
+    "changed_days_ago": 25
+  },
+  {
+    "entity_type": "TEMPLATE",
+    "entity_id": 3,
+    "change_type": "DURATION_CHANGE",
+    "old_value": "30",
+    "new_value": "45",
+    "changed_by_user_key": "hr_director",
+    "changed_days_ago": 20
+  },
+  {
+    "entity_type": "ESCALATION",
+    "entity_id": 1,
+    "change_type": "STATUS_CHANGE",
+    "old_value": "PENDING",
+    "new_value": "ASSIGNED",
+    "changed_by_user_key": "hr_specialist",
+    "changed_days_ago": 15
+  },
+  {
+    "entity_type": "ESCALATION",
+    "entity_id": 2,
+    "change_type": "STATUS_CHANGE",
+    "old_value": "ASSIGNED",
+    "new_value": "IN_PROGRESS",
+    "changed_by_user_key": "mentor_1",
+    "changed_days_ago": 10
+  },
+  {
+    "entity_type": "ESCALATION",
+    "entity_id": 3,
+    "change_type": "STATUS_CHANGE",
+    "old_value": "IN_PROGRESS",
+    "new_value": "RESOLVED",
+    "changed_by_user_key": "hr_director",
+    "changed_days_ago": 5
+  },
+  {
+    "entity_type": "CHECKLIST",
+    "entity_id": 1,
+    "change_type": "STATUS_CHANGE",
+    "old_value": "IN_PROGRESS",
+    "new_value": "COMPLETED",
+    "changed_by_user_key": "mentor_1",
+    "changed_days_ago": 12
+  },
+  {
+    "entity_type": "CHECKLIST",
+    "entity_id": 2,
+    "change_type": "MENTOR_CHANGE",
+    "old_value": "mentor_1",
+    "new_value": "mentor_2",
+    "changed_by_user_key": "hr_director",
+    "changed_days_ago": 18
+  },
+  {
+    "entity_type": "CHECKLIST",
+    "entity_id": 3,
+    "change_type": "TEMPLATE_CHANGE",
+    "old_value": "1",
+    "new_value": "2",
+    "changed_by_user_key": "hr_specialist",
+    "changed_days_ago": 22
+  },
+  {
+    "entity_type": "USER_ROLE",
+    "entity_id": 101,
+    "change_type": "ROLE_CHANGE",
+    "old_value": "NEWBIE",
+    "new_value": "MENTOR",
+    "changed_by_user_key": "hr_director",
+    "changed_days_ago": 35
+  },
+  {
+    "entity_type": "USER_ROLE",
+    "entity_id": 102,
+    "change_type": "ROLE_CHANGE",
+    "old_value": "NEWBIE",
+    "new_value": "MENTOR",
+    "changed_by_user_key": "hr_director",
+    "changed_days_ago": 28
+  },
+  {
+    "entity_type": "USER_ROLE",
+    "entity_id": 103,
+    "change_type": "ROLE_CHANGE",
+    "old_value": "MENTOR",
+    "new_value": "HR",
+    "changed_by_user_key": "hr_director",
+    "changed_days_ago": 40
+  },
+  {
+    "entity_type": "TEMPLATE",
+    "entity_id": 4,
+    "change_type": "DESCRIPTION_UPDATE",
+    "old_value": "Old description",
+    "new_value": "Updated description with new requirements",
+    "changed_by_user_key": "hr_specialist",
+    "changed_days_ago": 14
+  },
+  {
+    "entity_type": "TEMPLATE",
+    "entity_id": 5,
+    "change_type": "TASK_REMOVED",
+    "old_value": "Old task: Legacy training",
+    "new_value": null,
+    "changed_by_user_key": "hr_director",
+    "changed_days_ago": 8
+  },
+  {
+    "entity_type": "ESCALATION",
+    "entity_id": 4,
+    "change_type": "PRIORITY_CHANGE",
+    "old_value": "MEDIUM",
+    "new_value": "HIGH",
+    "changed_by_user_key": "hr_specialist",
+    "changed_days_ago": 6
+  },
+  {
+    "entity_type": "ESCALATION",
+    "entity_id": 5,
+    "change_type": "ASSIGNEE_CHANGE",
+    "old_value": "mentor_1",
+    "new_value": "mentor_3",
+    "changed_by_user_key": "hr_director",
+    "changed_days_ago": 11
+  },
+  {
+    "entity_type": "CHECKLIST",
+    "entity_id": 4,
+    "change_type": "HR_CHANGE",
+    "old_value": "hr_specialist",
+    "new_value": "hr_director",
+    "changed_by_user_key": "hr_director",
+    "changed_days_ago": 16
+  },
+  {
+    "entity_type": "CHECKLIST",
+    "entity_id": 5,
+    "change_type": "STATUS_CHANGE",
+    "old_value": "NOT_STARTED",
+    "new_value": "IN_PROGRESS",
+    "changed_by_user_key": "mentor_2",
+    "changed_days_ago": 9
+  },
+  {
+    "entity_type": "USER_ROLE",
+    "entity_id": 104,
+    "change_type": "DEPARTMENT_CHANGE",
+    "old_value": "Engineering",
+    "new_value": "Product",
+    "changed_by_user_key": "hr_director",
+    "changed_days_ago": 45
+  },
+  {
+    "entity_type": "USER_ROLE",
+    "entity_id": 105,
+    "change_type": "LEVEL_CHANGE",
+    "old_value": "JUNIOR",
+    "new_value": "MIDDLE",
+    "changed_by_user_key": "hr_director",
+    "changed_days_ago": 32
+  },
+  {
+    "entity_type": "TEMPLATE",
+    "entity_id": 6,
+    "change_type": "POSITION_UPDATE",
+    "old_value": "Software Engineer",
+    "new_value": "Software Engineer / DevOps Engineer",
+    "changed_by_user_key": "hr_specialist",
+    "changed_days_ago": 19
+  }
+]

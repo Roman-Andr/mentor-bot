@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from knowledge_service.core import NotFoundException, ValidationException
+from knowledge_service.core import ConflictException, NotFoundException, ValidationException
 from knowledge_service.models import Article, Tag
 from knowledge_service.schemas import TagCreate, TagUpdate
 from knowledge_service.services.tag import TagService
@@ -104,7 +104,7 @@ class TestCreateTag:
             description="Description",
         )
 
-        with pytest.raises(ValidationException, match="already exists"):
+        with pytest.raises(ConflictException, match="already exists"):
             await service.create_tag(tag_data)
 
     async def test_create_tag_duplicate_slug(self, mock_uow, sample_tag):
@@ -118,7 +118,7 @@ class TestCreateTag:
             description="Description",
         )
 
-        with pytest.raises(ValidationException, match="already exists"):
+        with pytest.raises(ConflictException, match="already exists"):
             await service.create_tag(tag_data)
 
 

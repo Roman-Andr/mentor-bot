@@ -138,11 +138,13 @@ def main() -> None:
                 output_lines.append(f"{key}={auto_values[key]}")
             # Replace domain-based values
             elif key == "GOOGLE_REDIRECT_URI":
-                output_lines.append(f"{key}=https://{domain}/auth/google/callback")
+                output_lines.append(f"{key}=https://{domain}/api/v1/calendar/callback")
             elif key == "DEFAULT_FROM_EMAIL":
                 output_lines.append(f"{key}=noreply@{domain}")
             elif key in ("PGADMIN_DEFAULT_EMAIL", "ADMIN_EMAIL"):
                 output_lines.append(f"{key}=admin@{domain}")
+            elif key == "ADMIN_WEB_URL":
+                output_lines.append(f"{key}=https://{domain}")
             elif key == "CORS_ORIGINS":
                 output_lines.append(f'{key}=["https://{domain}", "https://www.{domain}"]')
             elif key == "ALLOWED_HOSTS":

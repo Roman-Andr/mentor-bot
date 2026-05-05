@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { queryKeys, getEntityListKey } from '@/lib/query-keys'
+import { queryKeys, getEntityListKey } from '@/shared/lib/query-keys'
 
 describe('queryKeys', () => {
   describe('departments', () => {

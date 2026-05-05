@@ -264,7 +264,15 @@
     "toHr": "К HR",
     "toMentor": "К наставнику",
     "totalUsers": "Всего пользователей",
-    "welcome": "Добро пожаловать"
+    "welcome": "Добро пожаловать",
+    "registeredInSystem": "Зарегистрировано в системе",
+    "currentlyOnboarding": "Проходят онбординг",
+    "completedOnboarding": "Завершили онбординг",
+    "successfullyCompleted": "Успешно завершено",
+    "requiresAttention": "Требует внимания",
+    "openEscalations": "Открытые эскалации",
+    "days": "дней",
+    "notStarted": "Не начато"
   },
   "departments": {
     "addDepartment": "Добавить подразделение",
@@ -445,7 +453,9 @@
     "sendInvitationDescription": "Отправьте приглашение новому сотруднику для регистрации в системе",
     "title": "Приглашения",
     "total": "Всего",
-    "totalInvitations": "Всего приглашений"
+    "totalInvitations": "Всего приглашений",
+    "resendSuccess": "Приглашение успешно отправлено повторно",
+    "revokeSuccess": "Приглашение успешно отозвано"
   },
   "knowledge": {
     "addArticle": "Добавить статью",
@@ -613,7 +623,6 @@
   },
   "nav": {
     "analytics": "Аналитика",
-
     "appName": "Ментор-бот",
     "checklists": "Чек-листы",
     "dashboard": "Дашборд",

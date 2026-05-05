@@ -1213,3 +1213,32 @@ class TestUpdateMyPreferences:
 
         assert exc_info.value.status_code == 404
         assert "not found" in str(exc_info.value.detail).lower()
+
+    async def test_get_my_preferences_not_found(self, admin_user, mock_user_service):
+        """Test get_my_preferences with NotFoundException (covers lines 358-366)."""
+        from auth_service.api.endpoints.users import get_my_preferences
+        from fastapi import HTTPException
+
+        mock_user_service.get_user_by_id = AsyncMock(side_effect=NotFoundException("User not found"))
+
+        with pytest.raises(HTTPException) as exc_info:
+            await get_my_preferences(
+                user_service=mock_user_service,
+                current_user=admin_user,
+            )
+
+        assert exc_info.value.status_code == 404
+
+    async def test_get_my_preferences_success(self, admin_user, mock_user_service):
+        """Test get_my_preferences success (covers line 360)."""
+        from auth_service.api.endpoints.users import get_my_preferences
+
+        mock_user_service.get_user_by_id = AsyncMock(return_value=admin_user)
+
+        result = await get_my_preferences(
+            user_service=mock_user_service,
+            current_user=admin_user,
+        )
+
+        assert result.language == "ru"
+        assert result.notification_telegram_enabled is True

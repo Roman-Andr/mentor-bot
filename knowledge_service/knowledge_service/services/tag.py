@@ -1,6 +1,6 @@
 """Tag management service with repository pattern."""
 
-from knowledge_service.core import NotFoundException, ValidationException
+from knowledge_service.core import ConflictException, NotFoundException, ValidationException
 from knowledge_service.models import Tag
 from knowledge_service.repositories import IUnitOfWork
 from knowledge_service.schemas import TagCreate, TagUpdate
@@ -18,7 +18,7 @@ class TagService:
         existing = await self._uow.tags.find_by_name_or_slug(tag_data.name, tag_data.slug)
         if existing:
             msg = "Tag with this name or slug already exists"
-            raise ValidationException(msg)
+            raise ConflictException(msg)
 
         tag = Tag(
             name=tag_data.name,
