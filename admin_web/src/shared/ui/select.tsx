@@ -47,7 +47,7 @@ export function Select({
   }, []);
 
   return (
-    <div ref={containerRef} className={cn("relative inline-block w-full", className)}>
+    <div ref={containerRef} className={cn("relative inline-block min-w-[160px]", className)}>
       <button
         type="button"
         id={id}

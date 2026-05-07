@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { useTranslations } from "@/shared/hooks/use-translations";
 import { Dialog } from "@/shared/ui/dialog";
 import { PageContent } from "@/shared/layout/page-content";
@@ -36,6 +36,15 @@ export function MeetingsWidget() {
 
   const typeOptions = getMeetingTypeOptions(t, true);
   const mandatoryCount = m.meetings.filter((meet) => meet.isMandatory).length;
+
+  const getMandatoryForm = (n: number) => {
+    const mod10 = n % 10;
+    const mod100 = n % 100;
+    if (mod100 >= 11 && mod100 <= 14) return t("meetings.mandatoryMany");
+    if (mod10 === 1) return t("meetings.mandatoryOne");
+    if (mod10 >= 2 && mod10 <= 4) return t("meetings.mandatoryFew");
+    return t("meetings.mandatoryMany");
+  };
 
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
@@ -176,7 +185,7 @@ export function MeetingsWidget() {
                 {mandatoryCount > 0 && (
                   <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">
                     <Shield className="size-3" />
-                    {mandatoryCount} {t("meetings.mandatory") || "mandatory"}
+                    {mandatoryCount} {getMandatoryForm(mandatoryCount)}
                   </span>
                 )}
               </div>
@@ -210,9 +219,8 @@ export function MeetingsWidget() {
           </TableHeader>
           <TableBody>
             {m.meetings.map((meeting) => (
-              <>
+              <Fragment key={meeting.id}>
                 <TableRow
-                  key={meeting.id}
                   className={cn("hover:bg-muted cursor-pointer transition-colors", expandedId === meeting.id && "bg-muted/50")}
                   onClick={() => toggleExpand(meeting.id)}
                 >
@@ -241,7 +249,7 @@ export function MeetingsWidget() {
                     </TableCell>
                   </TableRow>
                 )}
-              </>
+              </Fragment>
             ))}
           </TableBody>
         </Table>

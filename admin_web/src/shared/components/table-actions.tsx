@@ -70,8 +70,8 @@ export function TableActions({ actions }: TableActionsProps) {
   return (
     <TooltipProvider>
       <div className="flex items-center justify-end gap-1">
-        {sorted.map((action) => (
-          <div key={action.type} className="flex size-9 items-center justify-center">
+        {sorted.map((action, i) => (
+          <div key={`${action.type}-${i}`} className="flex size-9 items-center justify-center">
             {action.show !== false && (
               <Tooltip>
                 <TooltipTrigger asChild>

@@ -262,13 +262,13 @@ async def wait_for_admin_web(url: str, max_attempts: int = 30, delay: int = 1) -
     async with httpx.AsyncClient(timeout=5.0, follow_redirects=False) as client:
         for attempt in range(1, max_attempts + 1):
             try:
-                response = await client.get(f"{url}/api")
+                response = await client.get(f"{url}")
                 # Any response (even 404) means the app is up and proxy is working
                 log_success("admin_web is available")
                 return True
             except Exception as e:
                 logger.debug("Admin_web not ready yet: %s", e)
-            log_warning(f"Attempt {attempt}/{max_attempts}: admin_web not ready yet")
+            log_warning(f"Attempt {attempt}/{max_attempts}: admin_web not ready yet {url}")
             await asyncio.sleep(delay)
     log_error(f"admin_web failed to respond after {max_attempts} attempts")
     return False
