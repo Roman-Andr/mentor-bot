@@ -593,6 +593,22 @@ class TestChecklistsClientEdgeCases:
 
         assert result is not None
 
+    @patch("telegram_bot.services.checklists_client.httpx.AsyncClient.post")
+    async def test_upload_task_attachment_unknown_mime(self, mock_post):
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {"id": 1, "filename": "test.xyz"}
+        mock_post.return_value = mock_response
+
+        result = await self.client.upload_task_attachment(
+            task_id=1,
+            file_content=b"file content",
+            filename="test.xyz",
+            auth_token=self.auth_token,
+        )
+
+        assert result is not None
+
     @patch("telegram_bot.services.checklists_client.httpx.AsyncClient.get")
     async def test_get_task_attachments_non_200(self, mock_get):
         """Test getting attachments with non-200 status."""

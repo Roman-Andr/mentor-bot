@@ -952,6 +952,7 @@ class TestDownloadTaskFile:
         self.mock_callback.data = "download_task_file_1_1"
         self.mock_callback.message = MagicMock()
         self.mock_callback.message.answer_document = AsyncMock()
+        self.mock_callback.message.answer = AsyncMock()
 
         self.auth_token = "test_token_123"
 
@@ -1004,14 +1005,9 @@ class TestDownloadTaskFile:
 
                 await download_task_file(self.mock_callback, self.auth_token, locale="en")
 
-                # Handler calls answer() for loading, then for error alert
-                assert self.mock_callback.answer.call_count >= 2
-                # Verify the loading message was shown
-                loading_call_found = any(
-                    call.args and "common.loading" in str(call.args[0])
-                    for call in self.mock_callback.answer.call_args_list
-                )
-                assert loading_call_found
+                # Handler calls answer() for loading, then message.answer() for error
+                self.mock_callback.answer.assert_called_once()
+                self.mock_callback.message.answer.assert_called_once()
 
     async def test_download_task_file_send_error(self):
         """Test download file with send error."""
@@ -1029,9 +1025,9 @@ class TestDownloadTaskFile:
 
                 await download_task_file(self.mock_callback, self.auth_token, locale="en")
 
-                # Handler calls answer() for loading, then for error alert on exception
-                assert self.mock_callback.answer.call_count >= 2
-                # Verify the loading message was shown
+                # Handler calls answer() for loading, then message.answer() for error on exception
+                self.mock_callback.answer.assert_called_once()
+                self.mock_callback.message.answer.assert_called_once()
                 loading_call_found = any(
                     call.args and "common.loading" in str(call.args[0])
                     for call in self.mock_callback.answer.call_args_list
