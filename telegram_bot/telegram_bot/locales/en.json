@@ -11,7 +11,8 @@
     "loading": "Loading...",
     "no_data": "No data available.",
     "success": "Success!",
-    "failed": "Failed. Please try again."
+    "failed": "Failed. Please try again.",
+    "service_unavailable": "Service unavailable. Please try again later."
   },
   "start": {
     "welcome_new": "Welcome to Mentor Bot!\n\nYour personal onboarding assistant for a smooth transition into your new role.\n\nWhat I can help you with:\n- Complete your onboarding checklist\n- Search the knowledge base for answers\n- Schedule meetings with your mentor\n- Access important documents\n- Track your progress\n- Get help from HR\n\nTo get started, you need to register using your invitation link.\nPlease send me your invitation token or use the link from your email.",

@@ -48,16 +48,23 @@ class CalendarClient:
                 params={"state": formatted_state},
                 follow_redirects=False,
             )
-            response.raise_for_status()
 
-            # Extract the authorization URL from the redirect response
-            authorization_url = response.headers.get("location")
-            if not authorization_url:
-                logger.error("Meeting Service did not return authorization URL (user_id={})", user_id)
-                raise ValueError("Failed to get authorization URL from Meeting Service")
+            # 307 Temporary Redirect is expected - extract authorization URL from location header
+            if response.status_code == 307:
+                authorization_url = response.headers.get("location")
+                if not authorization_url:
+                    logger.error("Meeting Service returned 307 without location header (user_id={})", user_id)
+                    raise ValueError("Failed to get authorization URL from Meeting Service")
+                logger.debug("Google Calendar connect URL retrieved (user_id={})", user_id)
+                return authorization_url
 
-            logger.debug("Google Calendar connect URL retrieved (user_id={})", user_id)
-            return authorization_url
+            # If not a redirect, check for other errors
+            if response.status_code >= 400:
+                raise httpx.HTTPStatusError(
+                    f"Meeting Service returned error status {response.status_code}",
+                    request=response.request,
+                    response=response,
+                )
 
         except httpx.HTTPStatusError as e:
             logger.warning("Meeting Service connect request failed (user_id={}, status={})", user_id, e.response.status_code)

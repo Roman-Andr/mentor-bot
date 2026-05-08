@@ -104,7 +104,8 @@ class TestCalendarClient:
 
         mock_response = MagicMock()
         mock_response.status_code = 500
-        mock_get.side_effect = httpx.HTTPStatusError("Server error", request=MagicMock(), response=mock_response)
+        mock_response.request = MagicMock()
+        mock_get.return_value = mock_response
 
         with pytest.raises(httpx.HTTPStatusError):
             await self.client.get_connect_url(self.user_id, "test_state")
