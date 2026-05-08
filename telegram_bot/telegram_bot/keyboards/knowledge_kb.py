@@ -1,5 +1,6 @@
 """Knowledge base keyboards."""
 
+from aiogram.types import InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from telegram_bot.core.enums import ButtonStyle
@@ -30,6 +31,16 @@ def get_knowledge_base_menu_keyboard(*, locale: str = "en") -> InlineKeyboardBui
     )
     builder.adjust(1)
     return builder
+
+
+def get_search_prompt_keyboard(*, locale: str = "en") -> InlineKeyboardMarkup:
+    """Build keyboard shown on search prompt screen with back button."""
+    builder = InlineKeyboardBuilder()
+    builder.add(
+        create_inline_button(f"← {t('common.back_button', locale=locale)}", callback_data="knowledge_base"),
+    )
+    builder.adjust(1)
+    return builder.as_markup()
 
 
 def get_search_no_results_keyboard(*, locale: str = "en") -> InlineKeyboardBuilder:

@@ -170,13 +170,18 @@ export function ArticlesTable({
               onClick={() => onEdit(article)}
             >
               <TableCell>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <p className="font-medium">{article.title}</p>
-                    {article.isPinned && <Pin className="size-3 text-purple-500" />}
-                    {article.isFeatured && <Star className="size-3 text-yellow-500" />}
+                <div className="flex items-start gap-3">
+                  <div className="bg-muted flex size-8 shrink-0 items-center justify-center rounded-lg">
+                    <BookOpen className="text-muted-foreground size-4" />
                   </div>
-                  <p className="text-muted-foreground text-sm">{article.excerpt}</p>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium">{article.title}</p>
+                      {article.isPinned && <Pin className="size-3 text-purple-500" />}
+                      {article.isFeatured && <Star className="size-3 text-yellow-500" />}
+                    </div>
+                    <p className="text-muted-foreground text-sm">{article.excerpt}</p>
+                  </div>
                 </div>
               </TableCell>
               <TableCell>

@@ -24,28 +24,52 @@ class MeetingServiceClient:
         scheduled_at: str,
         auth_token: str,
         duration_minutes: int = 60,
-        meeting_type: str = "onboarding",
+        meeting_type: str = "OTHER",
     ) -> dict | None:
-        """Create meeting."""
+        """Create meeting template and assign to user."""
         logger.info("Creating meeting (user_id={}, title={})", user_id, title)
+        headers = {"Authorization": f"Bearer {auth_token}"}
         try:
-            response = await self.client.post(
-                f"{settings.API_V1_PREFIX}/user-meetings",
+            template_response = await self.client.post(
+                f"{settings.API_V1_PREFIX}/meetings/",
                 json={
-                    "user_id": user_id,
                     "title": title,
-                    "description": description,
-                    "participant_ids": participant_ids,
-                    "scheduled_at": scheduled_at,
+                    "description": description or "",
+                    "type": meeting_type,
                     "duration_minutes": duration_minutes,
-                    "meeting_type": meeting_type,
+                    "is_mandatory": False,
                 },
-                headers={"Authorization": f"Bearer {auth_token}"},
+                headers=headers,
             )
-            if response.status_code == status.HTTP_201_CREATED:
-                logger.info("Meeting created (user_id={})", user_id)
-                return response.json()
-            logger.warning("Meeting creation failed (user_id={}, status={})", user_id, response.status_code)
+            if template_response.status_code != status.HTTP_201_CREATED:
+                logger.warning(
+                    "Meeting template creation failed (user_id={}, status={})",
+                    user_id,
+                    template_response.status_code,
+                )
+                return None
+
+            meeting_id = template_response.json()["id"]
+
+            assign_payload: dict = {"user_id": user_id, "meeting_id": meeting_id}
+            if scheduled_at:
+                assign_payload["scheduled_at"] = scheduled_at
+
+            assign_response = await self.client.post(
+                f"{settings.API_V1_PREFIX}/user-meetings/assign",
+                json=assign_payload,
+                headers=headers,
+            )
+            if assign_response.status_code in (status.HTTP_200_OK, status.HTTP_201_CREATED):
+                logger.info("Meeting created and assigned (user_id={}, meeting_id={})", user_id, meeting_id)
+                return assign_response.json()
+
+            logger.warning(
+                "Meeting assignment failed (user_id={}, meeting_id={}, status={})",
+                user_id,
+                meeting_id,
+                assign_response.status_code,
+            )
         except httpx.RequestError:
             logger.exception("Meeting service request failed (user_id={})", user_id)
         return None
@@ -55,7 +79,7 @@ class MeetingServiceClient:
         logger.debug("Fetching user meetings (user_id={}, limit={})", user_id, limit)
         try:
             response = await self.client.get(
-                f"{settings.API_V1_PREFIX}/user-meetings",
+                f"{settings.API_V1_PREFIX}/meetings/user/{user_id}",
                 params={"limit": limit},
                 headers={"Authorization": f"Bearer {auth_token}"},
             )
@@ -72,7 +96,7 @@ class MeetingServiceClient:
         logger.debug("Fetching upcoming meetings (user_id={}, limit={})", user_id, limit)
         try:
             response = await self.client.get(
-                f"{settings.API_V1_PREFIX}/user-meetings/upcoming",
+                f"{settings.API_V1_PREFIX}/meetings/user/{user_id}/upcoming",
                 params={"limit": limit},
                 headers={"Authorization": f"Bearer {auth_token}"},
             )
@@ -89,8 +113,7 @@ class MeetingServiceClient:
         logger.info("Confirming meeting (meeting_id={}, user_id={})", meeting_id, user_id)
         try:
             response = await self.client.post(
-                f"{settings.API_V1_PREFIX}/user-meetings/{meeting_id}/confirm",
-                json={"user_id": user_id},
+                f"{settings.API_V1_PREFIX}/meetings/{meeting_id}/confirm",
                 headers={"Authorization": f"Bearer {auth_token}"},
             )
             if response.status_code == status.HTTP_200_OK:
@@ -112,12 +135,11 @@ class MeetingServiceClient:
         """Cancel meeting."""
         logger.info("Canceling meeting (meeting_id={}, user_id={})", meeting_id, user_id)
         try:
-            json_data: dict[str, int | str] = {"user_id": user_id}
+            json_data: dict = {}
             if reason:
                 json_data["reason"] = reason
-
             response = await self.client.post(
-                f"{settings.API_V1_PREFIX}/user-meetings/{meeting_id}/cancel",
+                f"{settings.API_V1_PREFIX}/meetings/{meeting_id}/cancel",
                 json=json_data,
                 headers={"Authorization": f"Bearer {auth_token}"},
             )

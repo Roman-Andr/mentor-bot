@@ -9,7 +9,8 @@
     },
     "related_entity_type": "checklist",
     "related_entity_id": 1,
-    "status": "RESOLVED"
+    "status": "RESOLVED",
+    "days_ago": 120
   },
   {
     "type": "MENTOR",
@@ -21,7 +22,8 @@
     },
     "related_entity_type": "task",
     "related_entity_id": 5,
-    "status": "IN_PROGRESS"
+    "status": "IN_PROGRESS",
+    "days_ago": 90
   },
   {
     "type": "IT",
@@ -33,7 +35,8 @@
     },
     "related_entity_type": null,
     "related_entity_id": null,
-    "status": "ASSIGNED"
+    "status": "ASSIGNED",
+    "days_ago": 75
   },
   {
     "type": "GENERAL",
@@ -44,7 +47,8 @@
     },
     "related_entity_type": null,
     "related_entity_id": null,
-    "status": "PENDING"
+    "status": "PENDING",
+    "days_ago": 60
   },
   {
     "type": "HR",
@@ -56,7 +60,8 @@
     },
     "related_entity_type": "checklist",
     "related_entity_id": 1,
-    "status": "CLOSED"
+    "status": "CLOSED",
+    "days_ago": 110
   },
   {
     "type": "MENTOR",
@@ -68,7 +73,8 @@
     },
     "related_entity_type": "task",
     "related_entity_id": 2,
-    "status": "RESOLVED"
+    "status": "RESOLVED",
+    "days_ago": 45
   },
   {
     "type": "IT",
@@ -80,7 +86,8 @@
     },
     "related_entity_type": null,
     "related_entity_id": null,
-    "status": "REJECTED"
+    "status": "REJECTED",
+    "days_ago": 30
   },
   {
     "type": "GENERAL",
@@ -92,7 +99,8 @@
     },
     "related_entity_type": null,
     "related_entity_id": null,
-    "status": "PENDING"
+    "status": "PENDING",
+    "days_ago": 20
   },
   {
     "type": "HR",
@@ -104,7 +112,8 @@
     },
     "related_entity_type": null,
     "related_entity_id": null,
-    "status": "RESOLVED"
+    "status": "RESOLVED",
+    "days_ago": 150
   },
   {
     "type": "MENTOR",
@@ -116,7 +125,8 @@
     },
     "related_entity_type": "checklist",
     "related_entity_id": 2,
-    "status": "IN_PROGRESS"
+    "status": "IN_PROGRESS",
+    "days_ago": 85
   },
   {
     "type": "IT",
@@ -128,7 +138,8 @@
     },
     "related_entity_type": null,
     "related_entity_id": null,
-    "status": "ASSIGNED"
+    "status": "ASSIGNED",
+    "days_ago": 15
   },
   {
     "type": "GENERAL",
@@ -139,7 +150,8 @@
     },
     "related_entity_type": null,
     "related_entity_id": null,
-    "status": "PENDING"
+    "status": "PENDING",
+    "days_ago": 7
   },
   {
     "type": "HR",
@@ -151,7 +163,8 @@
     },
     "related_entity_type": "checklist",
     "related_entity_id": 3,
-    "status": "REJECTED"
+    "status": "REJECTED",
+    "days_ago": 50
   },
   {
     "type": "MENTOR",
@@ -164,7 +177,8 @@
     },
     "related_entity_type": "task",
     "related_entity_id": 10,
-    "status": "IN_PROGRESS"
+    "status": "IN_PROGRESS",
+    "days_ago": 35
   },
   {
     "type": "IT",
@@ -177,6 +191,7 @@
     },
     "related_entity_type": null,
     "related_entity_id": null,
-    "status": "ASSIGNED"
+    "status": "ASSIGNED",
+    "days_ago": 3
   }
 ]

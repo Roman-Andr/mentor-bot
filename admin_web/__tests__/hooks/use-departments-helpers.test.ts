@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { mapDepartment, toCreatePayload, toUpdatePayload, toForm } from '@/shared/hooks/use-departments'
-import type { Department } from '@/types/department'
+import type { Department } from '@/shared/types/department'
 import type { DepartmentRow } from '@/shared/hooks/use-departments'
 
 describe('use-departments helper functions', () => {

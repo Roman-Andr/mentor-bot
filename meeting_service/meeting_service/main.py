@@ -19,6 +19,7 @@ from meeting_service.config import settings
 from meeting_service.database import engine, init_db
 from meeting_service.middleware.request_id import RequestIDMiddleware
 from meeting_service.schemas import HealthCheck, ServiceStatus
+from meeting_service.utils.cache import cache
 from meeting_service.utils.logging import configure_logging
 
 configure_logging(service_name="meeting_service", log_level=settings.LOG_LEVEL)
@@ -30,8 +31,11 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     logger.info("Starting Meeting Service...")
     await init_db()
     logger.info("Database initialized")
+    await cache.connect()
+    logger.info("Redis cache initialized")
     yield
     logger.info("Shutting down Meeting Service...")
+    await cache.disconnect()
 
 
 # Create FastAPI application
@@ -100,6 +104,7 @@ async def health_check() -> HealthCheck:
         timestamp=datetime.now(UTC).isoformat(),
         dependencies={
             "database": db_status,
+            "redis": "connected" if cache.is_connected else "disconnected",
             "auth_service": "enabled",
         },
     )

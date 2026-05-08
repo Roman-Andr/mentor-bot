@@ -27,12 +27,12 @@ describe('auditApi', () => {
   })
 
   it('feed with sources', async () => {
-    await auditApi.feed({ sources: ['users', 'meetings'], page: 1, page_size: 10 })
+    await auditApi.feed({ sources: ['checklists', 'meetings'], page: 1, page_size: 10 })
     expect(mockFetchApi).toHaveBeenCalled()
   })
 
   it('feed with event_types', async () => {
-    await auditApi.feed({ event_types: ['create', 'update'], page: 1, page_size: 10 })
+    await auditApi.feed({ event_types: ['checklist_status_change', 'meeting_status_change'], page: 1, page_size: 10 })
     expect(mockFetchApi).toHaveBeenCalled()
   })
 
@@ -45,8 +45,8 @@ describe('auditApi', () => {
     await auditApi.feed({
       from_date: '2024-01-01',
       to_date: '2024-12-31',
-      sources: ['users', 'meetings'],
-      event_types: ['create'],
+      sources: ['checklists', 'meetings'],
+      event_types: ['checklist_status_change'],
       actor_id: 123,
       page: 1,
       page_size: 10,
@@ -79,24 +79,25 @@ describe('auditApi', () => {
       success: true,
       data: { items: [] },
     })
-    const result = await auditApi.fetchAll({ page: 1, page_size: 10 })
+    const result = await auditApi.fetchAll({ from_date: '2024-01-01', to_date: '2024-12-31' })
     expect(result).toEqual([])
   })
 
   it('fetchAll handles success false', async () => {
     mockFetchApi.mockResolvedValueOnce({
       success: false,
+      data: { items: [] },
     })
-    const result = await auditApi.fetchAll({ page: 1, page_size: 10 })
+    const result = await auditApi.fetchAll({ from_date: '2024-01-01', to_date: '2024-12-31' })
     expect(result).toEqual([])
   })
 
   it('fetchAll handles data null', async () => {
     mockFetchApi.mockResolvedValueOnce({
       success: true,
-      data: null,
+      data: null as any,
     })
-    const result = await auditApi.fetchAll({ page: 1, page_size: 10 })
+    const result = await auditApi.fetchAll({ from_date: '2024-01-01', to_date: '2024-12-31' })
     expect(result).toEqual([])
   })
 })

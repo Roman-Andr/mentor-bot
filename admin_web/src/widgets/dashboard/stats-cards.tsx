@@ -2,6 +2,7 @@ import { Card, CardContent } from "@/shared/ui/card";
 import type { LucideIcon } from "lucide-react";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
+import Link from "next/link";
 
 interface StatItem {
   title: string;
@@ -11,6 +12,7 @@ interface StatItem {
   icon: LucideIcon;
   color: string;
   description?: string;
+  href?: string;
 }
 
 interface StatsCardsProps {
@@ -31,11 +33,11 @@ export function StatsCards({ statsData }: StatsCardsProps) {
       {statsData.map((stat) => {
         const Icon = stat.icon;
         const colorClass = colorMap[stat.color] ?? colorMap["bg-blue-500"];
-        return (
+        const card = (
           <Card
-            key={stat.title}
             className={cn(
               "relative overflow-hidden border bg-gradient-to-br transition-shadow hover:shadow-md",
+              stat.href && "cursor-pointer",
               colorClass,
             )}
           >
@@ -78,6 +80,13 @@ export function StatsCards({ statsData }: StatsCardsProps) {
               )}
             </CardContent>
           </Card>
+        );
+        return stat.href ? (
+          <Link key={stat.title} href={stat.href} className="block">
+            {card}
+          </Link>
+        ) : (
+          <div key={stat.title}>{card}</div>
         );
       })}
     </div>

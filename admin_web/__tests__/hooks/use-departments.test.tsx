@@ -51,6 +51,7 @@ describe('useDepartments', () => {
           name: 'Engineering',
           description: 'Engineering department',
           created_at: '2024-01-01T00:00:00Z',
+          updated_at: null,
         }
 
         const result = mapDepartment(department)
@@ -66,6 +67,7 @@ describe('useDepartments', () => {
           name: 'Engineering',
           description: null,
           created_at: '2024-01-01T00:00:00Z',
+          updated_at: null,
         }
 
         const result = mapDepartment(department)
@@ -77,11 +79,12 @@ describe('useDepartments', () => {
           id: 1,
           name: 'Engineering',
           description: 'Test',
-          created_at: null,
+          created_at: '2024-01-01T00:00:00Z',
+          updated_at: null,
         }
 
         const result = mapDepartment(department)
-        expect(result.createdAt).toBe('')
+        expect(result.createdAt).toBe('2024-01-01')
       })
     })
 
@@ -168,7 +171,8 @@ describe('useDepartments', () => {
             name: 'Engineering',
             description: 'Engineering department',
             created_at: '2024-01-01T00:00:00Z',
-          },
+            updated_at: null,
+          }
         ],
         total: 1,
       })

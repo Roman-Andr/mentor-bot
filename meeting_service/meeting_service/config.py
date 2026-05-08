@@ -7,8 +7,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 if TYPE_CHECKING:
     PostgresDsn = str
+    RedisDsn = str
 else:
-    from pydantic import PostgresDsn
+    from pydantic import PostgresDsn, RedisDsn
 
 
 class Settings(BaseSettings):
@@ -36,6 +37,9 @@ class Settings(BaseSettings):
 
     # Service-to-service authentication
     SERVICE_API_KEY: str = Field(...)
+
+    # Redis
+    REDIS_URL: RedisDsn = Field(...)
 
     # Google Calendar Integration
     GOOGLE_CLIENT_ID: str = Field(...)

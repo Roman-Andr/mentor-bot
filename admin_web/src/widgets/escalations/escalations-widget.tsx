@@ -16,7 +16,8 @@ import { useEscalations } from "@/shared/hooks/use-escalations";
 import { useToast } from "@/shared/hooks/use-toast";
 import { api } from "@/shared/lib/api";
 import { SortableTableHead } from "@/shared/ui/sortable-table-head";
-import { AlertTriangle, Clock, CheckCircle2, XCircle, UserCheck, User } from "lucide-react";
+import { AlertTriangle, Clock, CheckCircle2, XCircle, UserCheck } from "lucide-react";
+import { UserAvatar } from "@/shared/ui/user-avatar";
 import { cn } from "@/shared/lib/utils";
 import { FormDialog } from "@/shared/ui/form-dialog";
 import { Label } from "@/shared/ui/label";
@@ -179,9 +180,7 @@ export function EscalationsWidget() {
                 <TableCell className="text-muted-foreground font-mono text-xs">#{esc.id}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    <div className="flex size-6 items-center justify-center rounded-full bg-muted">
-                      <User className="text-muted-foreground size-3.5" />
-                    </div>
+                    <UserAvatar name={e.getUserName(esc.userId)} id={esc.userId} size="sm" />
                     <span className="text-sm">{e.getUserName(esc.userId)}</span>
                   </div>
                 </TableCell>

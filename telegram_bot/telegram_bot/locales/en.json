@@ -247,7 +247,9 @@
     "cancelled": "Meeting cancelled.",
     "cancel_failed": "Failed to cancel meeting",
     "btn_confirm": "Confirm",
-    "btn_cancel": "Cancel"
+    "btn_cancel": "Cancel",
+    "btn_skip": "Skip",
+    "enter_description_hint": "Press Skip to leave blank."
   },
   "escalation": {
     "title": "Escalation Center",
@@ -271,7 +273,9 @@
     "status_open": "Open",
     "status_in_progress": "In Progress",
     "status_resolved": "Resolved",
-    "status_closed": "Closed"
+    "status_closed": "Closed",
+    "my_escalations_title": "Your Escalations",
+    "more_escalations": "... and {count} more escalations"
   },
   "feedback": {
     "title": "Feedback & Surveys",

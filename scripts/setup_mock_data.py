@@ -177,7 +177,6 @@ def create_admin_user() -> bool:
         )
 
         if result.returncode == 0 and result.stdout.strip() == "t":
-            log_success("")
             return True
 
         if result.returncode != 0:
@@ -205,7 +204,6 @@ def create_admin_user() -> bool:
         )
 
         if result.returncode == 0:
-            log_success("")
             return True
         log_warning(f"Failed to create admin: {result.stderr.strip()}")
     except FileNotFoundError:
@@ -242,7 +240,6 @@ def create_admin_user_direct() -> bool:
             env={**os.environ, "PGPASSWORD": POSTGRES_PASSWORD},
         )
         if result.returncode == 0:
-            log_success("")
             return True
         log_warning(f"Failed to create admin: {result.stderr.strip()}")
     except Exception as e:
@@ -264,7 +261,6 @@ async def wait_for_admin_web(url: str, max_attempts: int = 30, delay: int = 1) -
             try:
                 response = await client.get(f"{url}")
                 # Any response (even 404) means the app is up and proxy is working
-                log_success("admin_web is available")
                 return True
             except Exception as e:
                 logger.debug("Admin_web not ready yet: %s", e)
@@ -292,7 +288,6 @@ async def get_admin_token() -> str | None:
                 data = response.json()
                 token = data.get("access_token")
                 if token:
-                    log_success("Admin token obtained")
                     return token
             log_error(f"Failed to get admin token: {response.status_code} - {response.text}")
         except Exception as e:
@@ -313,6 +308,35 @@ async def create_departments(token: str) -> dict[str, int]:
         log_success_newline()
 
     dept_ids = {name: dept_id for name, dept_id in results if dept_id is not None}
+    return dept_ids
+
+
+async def fetch_existing_departments(token: str) -> dict[str, int]:
+    """Fetch existing departments from the API."""
+    log_step("Fetching existing departments")
+    departments = load_json("departments.json")
+    dept_ids: dict[str, int] = {}
+    headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+
+    async with httpx.AsyncClient(follow_redirects=True) as client:
+        for dept in departments:
+            name = dept["name"]
+            try:
+                response = await client.get(
+                    f"{ADMIN_WEB_URL}/api/v1/departments/",
+                    headers=headers,
+                    params={"search": name},
+                )
+                if response.status_code == 200:
+                    existing = response.json().get("departments", [])
+                    if existing:
+                        dept_id = existing[0]["id"]
+                        dept_ids[name] = dept_id
+                        log_success("")
+            except Exception as e:
+                log_warning(f"  Error fetching department '{name}': {e}")
+        log_success_newline()
+
     return dept_ids
 
 
@@ -396,6 +420,16 @@ async def create_user(
             user_id = response.json()["id"]
             log_success("")
             return (user_data.get("key", ""), user_id)
+        if response.status_code == 409:
+            # User already exists, try to get ID by email
+            response = await client.get(
+                f"{ADMIN_WEB_URL}/api/v1/users/by-email/{user_data['email']}",
+                headers=headers,
+            )
+            if response.status_code == 200:
+                user_id = response.json()["id"]
+                log_success("")
+                return (user_data.get("key", ""), user_id)
         log_warning(f"  Failed to create user '{user_data['email']}': {response.status_code} - {response.text}")
     except Exception as e:
         log_warning(f"  Error creating user '{user_data['email']}': {e}")
@@ -435,7 +469,43 @@ async def create_all_users_async(
                 elif user_data.get("role") in ["HR", "ADMIN"]:
                     hr_ids.append(user_id)
 
-    log_step(f"Created {len(user_ids)} users: {len(mentor_ids)} mentors, {len(hr_ids)} HR")
+    return user_ids, mentor_ids, hr_ids
+
+
+async def fetch_existing_users(
+    token: str,
+    dept_ids: dict[str, int],
+    users_data: dict,
+) -> tuple[dict[str, int], list[int], list[int]]:
+    """Fetch existing users from the API."""
+    log_step("Fetching existing users")
+    headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+
+    user_ids: dict[str, int] = {}
+    mentor_ids: list[int] = []
+    hr_ids: list[int] = []
+
+    async with httpx.AsyncClient(follow_redirects=True) as client:
+        for key, user in users_data.items():
+            try:
+                response = await client.get(
+                    f"{ADMIN_WEB_URL}/api/v1/users/by-email/{user['email']}",
+                    headers=headers,
+                )
+                if response.status_code == 200:
+                    user_id = response.json()["id"]
+                    user_ids[key] = user_id
+                    if user.get("role") == "MENTOR":
+                        mentor_ids.append(user_id)
+                    elif user.get("role") in ["HR", "ADMIN"]:
+                        hr_ids.append(user_id)
+                    log_success("")
+                else:
+                    log_warning(f"  User '{user['email']}' not found (status {response.status_code}): {response.text[:100]}")
+            except Exception as e:
+                log_warning(f"  Error fetching user '{user['email']}': {e}")
+        log_success_newline()
+
     return user_ids, mentor_ids, hr_ids
 
 
@@ -536,8 +606,10 @@ async def create_checklist_instances_async(
     log_step("Creating checklist instances (async)")
 
     checklist_instances = load_json("checklist_instances.json")
+    created_count = 0
 
     async def create_single_instance(instance: dict) -> None:
+        nonlocal created_count
         newbie_key = instance.get("user_key")
         status = instance.get("status")
         days_ago = instance.get("days_ago", 0)
@@ -545,7 +617,7 @@ async def create_checklist_instances_async(
         template_index = instance.get("template_index", 0)
 
         if newbie_key in user_ids:
-            await create_checklist_instances(
+            result = await create_checklist_instances(
                 token,
                 template_ids,
                 users_data[newbie_key],
@@ -557,9 +629,12 @@ async def create_checklist_instances_async(
                 completed_tasks,
                 template_index,
             )
+            if result:
+                created_count += 1
 
     await asyncio.gather(*[create_single_instance(inst) for inst in checklist_instances])
-    log_success_newline()
+    if created_count > 0:
+        log_success_newline()
 
 
 async def create_checklist_instances(
@@ -728,6 +803,48 @@ async def create_knowledge_categories(
                 cat_ids[slug] = cat_id
             await asyncio.sleep(0.1)  # Small delay between requests
 
+    if cat_ids:
+        log_success_newline()
+    return cat_ids
+
+
+async def fetch_existing_categories(
+    token: str,
+    dept_ids: dict[str, int],
+    category_data: list[dict],
+) -> dict[str, int]:
+    """Fetch existing knowledge base categories."""
+    log_step("Fetching existing categories")
+    headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+
+    cat_ids: dict[str, int] = {}
+
+    async with httpx.AsyncClient(follow_redirects=True) as client:
+        # Fetch all categories first
+        try:
+            response = await client.get(
+                f"{ADMIN_WEB_URL}/api/v1/categories/",
+                headers=headers,
+            )
+            if response.status_code == 200:
+                all_categories = response.json()
+                # Handle both list and paginated response formats
+                if isinstance(all_categories, dict) and "categories" in all_categories:
+                    all_categories = all_categories["categories"]
+                if isinstance(all_categories, list):
+                    # Create a mapping of name to id
+                    cat_map = {cat["name"]: cat["id"] for cat in all_categories}
+                    # Match with our category data
+                    for cat in category_data:
+                        slug = cat["slug"]
+                        if cat["name"] in cat_map:
+                            cat_ids[slug] = cat_map[cat["name"]]
+                            log_success("")
+        except Exception as e:
+            log_warning(f"  Error fetching categories: {e}")
+
+    if cat_ids:
+        log_success_newline()
     return cat_ids
 
 
@@ -767,6 +884,42 @@ async def create_knowledge_tags(
                 tag_ids[slug] = tag_id
             await asyncio.sleep(0.1)  # Small delay between requests
 
+    if tag_ids:
+        log_success_newline()
+    return tag_ids
+
+
+async def fetch_existing_tags(
+    token: str,
+    tag_data: list[dict],
+) -> dict[str, int]:
+    """Fetch existing knowledge base tags."""
+    log_step("Fetching existing tags")
+    headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+
+    tag_ids: dict[str, int] = {}
+
+    async with httpx.AsyncClient(follow_redirects=True) as client:
+        for tag in tag_data:
+            slug = tag["slug"]
+            try:
+                response = await client.get(
+                    f"{ADMIN_WEB_URL}/api/v1/tags/",
+                    headers=headers,
+                    params={"search": tag["name"]},
+                )
+                if response.status_code == 200:
+                    tags = response.json()
+                    if tags:
+                        tag_id = tags[0]["id"]
+                        tag_ids[slug] = tag_id
+                        log_success("")
+            except Exception as e:
+                log_warning(f"  Error fetching tag '{tag['name']}': {e}")
+            await asyncio.sleep(0.05)
+
+    if tag_ids:
+        log_success_newline()
     return tag_ids
 
 
@@ -814,8 +967,8 @@ async def create_knowledge_articles(
                     json=art_payload,
                 )
                 if response.status_code in (200, 201):
-                    art_data = response.json()
-                    art_id = art_data["id"]
+                    article_resp = response.json()
+                    art_id = article_resp["id"]
                     log_success(
                         f"  Article '{article['title']}' created (ID: {art_id}, status: {article.get('status')})"
                     )
@@ -835,6 +988,49 @@ async def create_knowledge_articles(
                 article_ids.append(art_id)
             await asyncio.sleep(0.15)  # Slightly longer delay for articles (larger payloads)
 
+    if article_ids:
+        log_success_newline()
+    return article_ids
+
+
+async def fetch_existing_articles(
+    token: str,
+    cat_ids: dict[str, int],
+    tag_ids: dict[str, int],
+    dept_ids: dict[str, int],
+    article_data: list[dict],
+) -> list[int]:
+    """Fetch existing knowledge base articles."""
+    log_step("Fetching existing articles")
+    headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+
+    article_ids: list[int] = []
+
+    async with httpx.AsyncClient(follow_redirects=True) as client:
+        # Fetch all articles first
+        try:
+            response = await client.get(
+                f"{ADMIN_WEB_URL}/api/v1/articles/",
+                headers=headers,
+            )
+            if response.status_code == 200:
+                all_articles = response.json()
+                # Handle both list and paginated response formats
+                if isinstance(all_articles, dict) and "articles" in all_articles:
+                    all_articles = all_articles["articles"]
+                if isinstance(all_articles, list):
+                    # Create a mapping of title to id
+                    article_map = {art["title"]: art["id"] for art in all_articles}
+                    # Match with our article data
+                    for article in article_data:
+                        if article["title"] in article_map:
+                            article_ids.append(article_map[article["title"]])
+                            log_success("")
+        except Exception as e:
+            log_warning(f"  Error fetching articles: {e}")
+
+    if article_ids:
+        log_success_newline()
     return article_ids
 
 
@@ -895,7 +1091,6 @@ async def create_article_views_async(
                         total_views += 1
 
     log_success_newline()
-    log_success("")
 
 
 async def create_mock_article_attachments(
@@ -1007,8 +1202,6 @@ async def create_mock_article_attachments(
                 for article_id, filename, content, content_type, description, i in upload_tasks
             ]
         )
-
-    log_success("")
 
 
 def generate_mock_file_content(filename: str, content_type: str, file_size: int, article_id: int, seed: int) -> bytes:
@@ -1201,8 +1394,6 @@ async def create_mock_task_attachments(
             ]
         )
 
-    log_success("")
-
 
 async def create_dialogue_scenarios(
     token: str,
@@ -1232,9 +1423,14 @@ async def create_dialogue_scenarios(
                 log_warning(f"  Error creating scenario '{scenario_title}': {e}")
 
         # Create scenarios with small delay between each to avoid overwhelming the DB
+        created_count = 0
         for scenario in scenario_data:
             await create_scenario(scenario)
+            created_count += 1
             await asyncio.sleep(0.1)  # Small delay between requests
+
+    if created_count > 0:
+        log_success_newline()
 
 
 async def create_meeting_templates(
@@ -1276,17 +1472,55 @@ async def create_meeting_templates(
                     meet_id = meet_data["id"]
                     log_success("")
                     return meet_id
-                log_warning(
-                    f"  Failed to create meeting '{meeting['title']}': {response.status_code} - {response.text}"
-                )
+                log_warning(f"  Failed to create meeting '{meeting['title']}': {response.status_code} - {response.text}")
             except Exception as e:
                 log_warning(f"  Error creating meeting '{meeting['title']}': {e}")
             return None
 
-        results = await asyncio.gather(*[create_meeting(meet) for meet in meeting_data])
-        log_success_newline()
-        meeting_ids = [meet_id for meet_id in results if meet_id is not None]
+        # Create meetings with small delay between each to avoid overwhelming the DB
+        meeting_ids = []
+        for meet in meeting_data:
+            meet_id = await create_meeting(meet)
+            if meet_id is not None:
+                meeting_ids.append(meet_id)
+            await asyncio.sleep(0.1)  # Small delay between requests
 
+    if meeting_ids:
+        log_success_newline()
+    return meeting_ids
+
+
+async def fetch_existing_meeting_templates(
+    token: str,
+    dept_ids: dict[str, int],
+    meeting_data: list[dict],
+) -> list[int]:
+    """Fetch existing meeting templates."""
+    log_step("Fetching existing meeting templates")
+    headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+
+    meeting_ids: list[int] = []
+
+    async with httpx.AsyncClient(follow_redirects=True) as client:
+        for meeting in meeting_data:
+            try:
+                response = await client.get(
+                    f"{ADMIN_WEB_URL}/api/v1/meetings/",
+                    headers=headers,
+                    params={"search": meeting["title"]},
+                )
+                if response.status_code == 200:
+                    meetings = response.json()
+                    if meetings:
+                        meeting_id = meetings[0]["id"]
+                        meeting_ids.append(meeting_id)
+                        log_success("")
+            except Exception as e:
+                log_warning(f"  Error fetching meeting '{meeting['title']}': {e}")
+            await asyncio.sleep(0.05)
+
+    if meeting_ids:
+        log_success_newline()
     return meeting_ids
 
 
@@ -1299,8 +1533,10 @@ async def create_user_meetings_async(
     log_step("Creating user meetings (async)")
 
     user_meetings_data = load_json("user_meetings.json")
+    created_count = 0
 
     async def create_single_meeting(meeting: dict) -> None:
+        nonlocal created_count
         user_key = meeting.get("user_key")
         status = meeting.get("status")
         days_ago = meeting.get("days_ago", 0)
@@ -1315,9 +1551,11 @@ async def create_user_meetings_async(
                 status,
                 duration_minutes,
             )
+            created_count += 1
 
     await asyncio.gather(*[create_single_meeting(m) for m in user_meetings_data])
-    log_success_newline()
+    if created_count > 0:
+        log_success_newline()
 
 
 async def create_user_meetings(
@@ -1337,7 +1575,7 @@ async def create_user_meetings(
     # Use only first 3 templates per user to avoid duplicates
     templates_to_assign = meeting_template_ids[:3]
 
-    async with httpx.AsyncClient(follow_redirects=True) as client:
+    async with httpx.AsyncClient(timeout=60.0, follow_redirects=True) as client:
         for idx, meet_tpl_id in enumerate(templates_to_assign):
             # For SCHEDULED: use future date (1-7 days ahead)
             # For COMPLETED/MISSED/CANCELLED: schedule in future then update status
@@ -1419,7 +1657,8 @@ async def create_notifications_async(
         tasks = [send_notification(notif, user_id) for notif in notification_data for user_id in user_ids[:3]]
 
         await asyncio.gather(*tasks)
-        log_success_newline()
+        if tasks:
+            log_success_newline()
 
 
 async def create_escalations_async(
@@ -1438,6 +1677,8 @@ async def create_escalations_async(
             if not user_id:
                 return
 
+            days_ago = esc.get("days_ago", 0)
+            created_at = (datetime.now() - timedelta(days=days_ago)).isoformat()
             esc_payload = {
                 "user_id": user_id,
                 "type": esc.get("type", "GENERAL"),
@@ -1446,6 +1687,7 @@ async def create_escalations_async(
                 "context": esc.get("context", {}),
                 "related_entity_type": esc.get("related_entity_type"),
                 "related_entity_id": esc.get("related_entity_id"),
+                "created_at": created_at,
             }
 
             try:
@@ -1473,8 +1715,9 @@ async def create_escalations_async(
                 log_warning(f"  Error creating escalation: {e}")
 
         tasks = [create_single_escalation(esc, i) for i, esc in enumerate(escalation_data)]
-        await asyncio.gather(*tasks)
-        log_success_newline()
+        results = await asyncio.gather(*tasks)
+        if results:
+            log_success_newline()
 
 
 async def create_feedback_async(
@@ -1577,9 +1820,13 @@ async def create_feedback_async(
             await create_experience(exp)
             await asyncio.sleep(0.05)
 
+        total_created = len(pulse_data) + len(exp_data) + len(comment_data)
         for comment in comment_data:
             await create_comment(comment)
             await asyncio.sleep(0.05)
+
+    if total_created > 0:
+        log_success_newline()
 
 
 async def create_pending_invitations_async(
@@ -1714,28 +1961,36 @@ async def create_search_queries_async(
             if user_key not in user_ids:
                 return
 
-            user_id = user_ids[user_key]
+            # Use the correct SearchQuery schema format
+            # The user_id is extracted from the auth token automatically
             payload = {
-                "user_id": user_id,
                 "query": query_data["query"],
-                "has_results": query_data.get("has_results", True),
+                "page": 1,
+                "size": 10,
             }
+
+            # Simulate timing by adding delay based on days_ago
+            # More recent queries (lower days_ago) get less delay
+            days_ago = query_data.get("days_ago", 0)
+            if days_ago > 0:
+                delay = min(days_ago * 0.01, 1.0)  # Max 1 second delay
+                await asyncio.sleep(delay)
 
             try:
                 response = await client.post(
-                    f"{ADMIN_WEB_URL}/api/v1/knowledge/search",
+                    f"{ADMIN_WEB_URL}/api/v1/search",
                     headers=headers,
                     json=payload,
                 )
                 if response.status_code in (200, 201):
                     log_success("")
-            except Exception:
-                pass  # Search endpoint might not exist, skip silently
+                else:
+                    log_warning(f"  Search failed with status {response.status_code}: {response.text[:100]}")
+            except Exception as e:
+                log_warning(f"  Search request failed: {e}")
 
         await asyncio.gather(*[create_query(q) for q in search_queries[:100]])  # Limit to avoid overwhelming
         log_success_newline()
-
-    log_success("")
 
 
 async def create_user_sessions_async(
@@ -1751,7 +2006,9 @@ async def create_user_sessions_async(
         log_warning("  user_sessions.json not found, skipping user sessions")
         return
 
-    log_success("")
+    log_warning("  User sessions cannot be created via API (created automatically during login)")
+    log_warning("  Skipping user sessions creation")
+    return
 
 
 async def create_overdue_checklists_async(
@@ -1795,8 +2052,6 @@ async def create_overdue_checklists_async(
     await asyncio.gather(*[create_single_instance(inst) for inst in overdue_checklists])
     log_success_newline()
 
-    log_success("")
-
 
 async def create_deactivated_dialogs_async(
     token: str,
@@ -1838,12 +2093,12 @@ async def create_deactivated_dialogs_async(
         await asyncio.gather(*[create_dialog(d) for d in deactivated_dialogs])
     log_success_newline()
 
-    log_success("")
-
 
 async def create_requests_resolved_closed_async(
     token: str,
     user_ids: dict[str, int],
+    hr_ids: list[int],
+    mentor_ids: list[int],
 ) -> None:
     """Create requests with resolved and closed statuses."""
     log_step("Creating resolved/closed requests (async)")
@@ -1854,7 +2109,89 @@ async def create_requests_resolved_closed_async(
         log_warning("  requests_resolved_closed.json not found, skipping")
         return
 
-    log_success("")
+    headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+
+    async with httpx.AsyncClient(follow_redirects=True) as client:
+
+        async def create_request(request_data: dict) -> None:
+            user_key = request_data.get("user_key")
+            if user_key not in user_ids:
+                log_warning(f"  User '{user_key}' not found, skipping request")
+                return
+
+            user_id = user_ids[user_key]
+            created_days_ago = request_data.get("created_days_ago", 0)
+            created_at = datetime.now() - timedelta(days=created_days_ago)
+
+            # Create escalation request
+            escalation_payload = {
+                "user_id": user_id,
+                "type": "GENERAL",
+                "source": "MANUAL",
+                "reason": request_data.get("subject"),
+                "context": {"description": request_data.get("description")},
+            }
+
+            try:
+                response = await client.post(
+                    f"{ADMIN_WEB_URL}/api/v1/escalations/",
+                    headers=headers,
+                    json=escalation_payload,
+                )
+
+                if response.status_code in (200, 201):
+                    escalation = response.json()
+                    escalation_id = escalation["id"]
+                    status = request_data.get("status", "PENDING")
+
+                    # Update status if not PENDING
+                    if status in ["RESOLVED", "CLOSED"]:
+                        # First assign to an HR user
+                        assignee_id = hr_ids[0] if hr_ids else mentor_ids[0] if mentor_ids else None
+                        if assignee_id:
+                            assign_resp = await client.post(
+                                f"{ADMIN_WEB_URL}/api/v1/escalations/{escalation_id}/assign/{assignee_id}",
+                                headers=headers,
+                            )
+                            if assign_resp.status_code in (200, 201):
+                                # Set to IN_PROGRESS first
+                                progress_resp = await client.patch(
+                                    f"{ADMIN_WEB_URL}/api/v1/escalations/{escalation_id}",
+                                    headers=headers,
+                                    json={"status": "IN_PROGRESS"},
+                                )
+                                if progress_resp.status_code in (200, 201):
+                                    # Resolve using the resolve endpoint
+                                    update_resp = await client.post(
+                                        f"{ADMIN_WEB_URL}/api/v1/escalations/{escalation_id}/resolve",
+                                        headers=headers,
+                                    )
+                                    if update_resp.status_code in (200, 201):
+                                        log_success("")
+                                    else:
+                                        log_warning(f"  Failed to resolve escalation: {update_resp.status_code} - {update_resp.text[:100]}")
+                                else:
+                                    log_warning(f"  Failed to set IN_PROGRESS: {progress_resp.status_code}")
+                            else:
+                                log_warning(f"  Failed to assign escalation: {assign_resp.status_code}")
+                        else:
+                            log_warning("  No HR or mentor available to assign escalation")
+                    else:
+                        log_success("")
+                else:
+                    log_warning(f"  Failed to create escalation: {response.status_code}")
+            except Exception as e:
+                import traceback
+                log_warning(f"  Error creating escalation: {e}")
+                log_warning(f"  Traceback: {traceback.format_exc()[:500]}")
+
+        # Limit concurrency to avoid connection pool exhaustion
+        semaphore = asyncio.Semaphore(5)
+        async def create_with_semaphore(req):
+            async with semaphore:
+                return await create_request(req)
+        await asyncio.gather(*[create_with_semaphore(req) for req in requests_data])
+    log_success_newline()
 
 
 async def create_history_changes_async(
@@ -1870,7 +2207,9 @@ async def create_history_changes_async(
         log_warning("  history_changes.json not found, skipping")
         return
 
-    log_success("")
+    log_warning("  History changes cannot be created via API (created automatically by services)")
+    log_warning("  Skipping history changes creation")
+    return
 
 
 async def create_notification_templates_async(token: str) -> int:
@@ -1906,9 +2245,9 @@ async def create_notification_templates_async(token: str) -> int:
                 log_warning(f"  Error creating template '{template['name']}': {e}")
 
     if skipped_count > 0:
-        log_success("")
+        pass
     else:
-        log_success("")
+        pass
 
     return created_count
 
@@ -1946,8 +2285,9 @@ async def create_supplementary_data(
     meeting_template_ids: list[int],
     article_ids: list[int],
     users_data: dict,
-    mentor_id: int | None,
     hr_id: int | None,
+    hr_ids: list[int],
+    mentor_ids: list[int],
     skip_services: list[str] | None = None,
     only_data_types: list[str] | None = None,
     should_run: Callable | None = None,
@@ -1961,6 +2301,7 @@ async def create_supplementary_data(
     log_divider()
     log_step("Creating supplementary mock data")
     log_divider()
+    print()
 
     # Core supplementary data
     if should_run("search_queries"):
@@ -1972,7 +2313,7 @@ async def create_supplementary_data(
         log_success_newline()
 
     if should_run("requests_resolved_closed"):
-        await create_requests_resolved_closed_async(token, user_ids)
+        await create_requests_resolved_closed_async(token, user_ids, hr_ids, mentor_ids)
         log_success_newline()
 
     if should_run("history_changes"):
@@ -1981,11 +2322,13 @@ async def create_supplementary_data(
 
     if should_run("notification_templates") and "notification" not in skip_services:
         notification_templates_created = await create_notification_templates_async(token)
+        log_success_newline()
     else:
         notification_templates_created = 0
 
     # Service-dependent supplementary data
     if should_run("overdue_checklists") and "checklists" not in skip_services:
+        print()
         await create_overdue_checklists_async(
             token,
             template_ids,
@@ -2000,7 +2343,7 @@ async def create_supplementary_data(
         await create_deactivated_dialogs_async(token)
         log_success_newline()
 
-    log_success("Supplementary data creation completed")
+    log_info("Supplementary data creation completed")
 
     return {"notification_templates": notification_templates_created}
 
@@ -2051,8 +2394,29 @@ async def main(
     log_divider()
 
     # Departments
-    if should_run("departments"):
-        dept_ids = await create_departments(token)
+    if should_run("departments") or any(
+        should_run(dt)
+        for dt in [
+            "users",
+            "invitations",
+            "checklists",
+            "meeting",
+            "notification",
+            "escalation",
+            "feedback",
+            "knowledge",
+            "search_queries",
+            "user_sessions",
+            "overdue_checklists",
+            "requests_resolved_closed",
+            "history_changes",
+        ]
+    ):
+        if should_run("departments"):
+            dept_ids = await create_departments(token)
+        else:
+            # Fetch existing departments
+            dept_ids = await fetch_existing_departments(token)
     else:
         dept_ids = {}
 
@@ -2075,7 +2439,13 @@ async def main(
         ]
     ):
         users_data = load_json("users.json")
-        user_ids, mentor_ids, hr_ids = await create_all_users_async(token, dept_ids)
+        if should_run("users"):
+            user_ids, mentor_ids, hr_ids = await create_all_users_async(token, dept_ids)
+        else:
+            # Fetch existing users only (don't create in selective mode)
+            user_ids, mentor_ids, hr_ids = await fetch_existing_users(token, dept_ids, users_data)
+            if not user_ids:
+                log_warning("  No existing users found - operations requiring users will be skipped")
     else:
         users_data = {}
         user_ids = {}
@@ -2110,6 +2480,10 @@ async def main(
         meeting_template_ids = await create_meeting_templates(token, dept_ids, meetings)
         await create_user_meetings_async(token, meeting_template_ids, user_ids)
         log_success_newline()
+    elif should_run("user_meetings"):
+        # Fetch existing meeting templates if needed for user_meetings
+        meetings = load_json("meetings.json")
+        meeting_template_ids = await fetch_existing_meeting_templates(token, dept_ids, meetings)
 
     if should_run("notifications") and "notification" not in skip_services:
         notifications = load_json("notifications.json")
@@ -2150,6 +2524,16 @@ async def main(
         # Create mock file attachments for articles
         await create_mock_article_attachments(token, article_ids, user_ids)
         log_success_newline()
+    elif should_run("search_queries"):
+        # Fetch existing knowledge data if needed for search queries
+        categories = load_json("knowledge_categories.json")
+        cat_ids = await fetch_existing_categories(token, dept_ids, categories)
+
+        tags = load_json("knowledge_tags.json")
+        tag_ids = await fetch_existing_tags(token, tags)
+
+        articles = load_json("knowledge_articles.json")
+        article_ids = await fetch_existing_articles(token, cat_ids, tag_ids, dept_ids, articles)
 
     if should_run("invitations"):
         await create_pending_invitations_async(token, dept_ids, mentor_ids[0] if mentor_ids else None)
@@ -2177,15 +2561,16 @@ async def main(
             meeting_template_ids=meeting_template_ids,
             article_ids=article_ids,
             users_data=users_data,
-            mentor_id=mentor_ids[0] if mentor_ids else None,
             hr_id=hr_ids[0] if hr_ids else None,
+            hr_ids=hr_ids,
+            mentor_ids=mentor_ids,
             skip_services=skip_services,
             only_data_types=only_data_types,
             should_run=should_run,
         )
 
     log_divider()
-    log_success("Mock data setup completed successfully!")
+    log_step("Mock data setup completed successfully!")
     log_divider()
     log_info("Summary:")
     if dept_ids:

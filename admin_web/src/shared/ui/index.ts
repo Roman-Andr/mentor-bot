@@ -18,6 +18,7 @@ export * from "./data-table";
 export * from "./searchable-select";
 export * from "./tab-switcher";
 export * from "./form-dialog";
+export * from "./user-avatar";
 export * from "./stat-card";
 export * from "./date-picker";
 export * from "./tooltip";

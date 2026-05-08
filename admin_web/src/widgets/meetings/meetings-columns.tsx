@@ -59,7 +59,7 @@ export function useMeetingsColumns({ departments, onOpenAssignDialog, onOpenAssi
       cell: (item: MeetingItem) => (
         <div className="flex items-start gap-3">
           <div className="bg-muted flex size-8 shrink-0 items-center justify-center rounded-lg">
-            <User2 className="text-muted-foreground size-4" />
+            <Calendar className="text-muted-foreground size-4" />
           </div>
           <div className="min-w-0">
             <p className="font-medium leading-none">{item.title}</p>

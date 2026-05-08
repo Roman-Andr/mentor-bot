@@ -247,7 +247,9 @@
     "cancelled": "Встреча отменена.",
     "cancel_failed": "Не удалось отменить встречу",
     "btn_confirm": "Подтвердить",
-    "btn_cancel": "Отменить"
+    "btn_cancel": "Отменить",
+    "btn_skip": "Пропустить",
+    "enter_description_hint": "Нажмите Пропустить, чтобы оставить пустым."
   },
   "escalation": {
     "title": "Центр эскалации",
@@ -271,7 +273,9 @@
     "status_open": "Открыта",
     "status_in_progress": "В работе",
     "status_resolved": "Решена",
-    "status_closed": "Закрыта"
+    "status_closed": "Закрыта",
+    "my_escalations_title": "Ваши эскалации",
+    "more_escalations": "... и ещё {count} эскалаций"
   },
   "feedback": {
     "title": "Обратная связь и опросы",

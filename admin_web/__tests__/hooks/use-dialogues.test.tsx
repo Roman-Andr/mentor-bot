@@ -54,10 +54,11 @@ describe('useDialogues', () => {
         is_active: true,
         display_order: 0,
         steps: [
-          { id: 1, step_number: 1, question: 'Question 1', answer_type: 'text' as const, options: null, answer_content: null, is_final: false },
-          { id: 2, step_number: 2, question: 'Question 2', answer_type: 'text' as const, options: null, answer_content: null, is_final: true },
+          { id: 1, scenario_id: 1, step_number: 1, question: 'Question 1', answer_type: 'TEXT' as const, options: null, answer_content: null, next_step_id: null, parent_step_id: null, is_final: false, created_at: '2024-01-01T00:00:00Z', updated_at: null },
+          { id: 2, scenario_id: 1, step_number: 2, question: 'Question 2', answer_type: 'TEXT' as const, options: null, answer_content: null, next_step_id: null, parent_step_id: null, is_final: true, created_at: '2024-01-01T00:00:00Z', updated_at: null },
         ],
         created_at: '2024-01-01T00:00:00Z',
+        updated_at: null,
       }
 
       const result = mapDialogue(scenario)
@@ -82,7 +83,8 @@ describe('useDialogues', () => {
         is_active: true,
         display_order: 0,
         steps: [],
-        created_at: null,
+        created_at: '2024-01-01T00:00:00Z',
+        updated_at: null,
       }
 
       const result = mapDialogue(scenario)
@@ -99,8 +101,9 @@ describe('useDialogues', () => {
         category: 'VACATION' as const,
         is_active: true,
         display_order: 0,
-        steps: null,
+        steps: [],
         created_at: '2024-01-01T00:00:00Z',
+        updated_at: null,
       }
 
       const result = mapDialogue(scenario)

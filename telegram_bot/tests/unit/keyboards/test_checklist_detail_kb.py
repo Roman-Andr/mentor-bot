@@ -79,6 +79,14 @@ class TestChecklistDetailKeyboards:
         assert markup is not None
         assert hasattr(markup, "inline_keyboard")
 
+    def test_get_task_info_keyboard_in_progress_with_attachments(self):
+        """Test task info keyboard for in-progress task with attachments."""
+        builder = get_task_info_keyboard(1, 2, "IN_PROGRESS", 3, locale="en")
+        markup = builder.as_markup()
+
+        assert markup is not None
+        assert hasattr(markup, "inline_keyboard")
+
     def test_get_task_info_keyboard_pending(self):
         """Test task info keyboard for pending task."""
         builder = get_task_info_keyboard(1, 2, "PENDING", 0, locale="en")

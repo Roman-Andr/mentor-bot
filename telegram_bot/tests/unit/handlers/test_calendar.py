@@ -169,6 +169,51 @@ class TestCalendarHandlers:
         mock_callback.answer.assert_called_once()
         assert "show_alert" in mock_callback.answer.call_args.kwargs
 
+    async def test_connect_calendar_value_error(self, mock_callback, mock_user):
+        """Test connect calendar when ValueError occurs."""
+        with patch(
+            "telegram_bot.handlers.calendar.calendar_client.get_connect_url",
+            new_callable=AsyncMock,
+        ) as mock_get_url:
+            mock_get_url.side_effect = ValueError("Failed to get authorization URL")
+
+            await connect_calendar(mock_callback, mock_user, locale="en")
+
+        mock_callback.answer.assert_called_once()
+        assert "show_alert" in mock_callback.answer.call_args.kwargs
+
+    async def test_connect_calendar_http_error(self, mock_callback, mock_user):
+        """Test connect calendar when HTTPStatusError occurs."""
+        import httpx
+
+        with patch(
+            "telegram_bot.handlers.calendar.calendar_client.get_connect_url",
+            new_callable=AsyncMock,
+        ) as mock_get_url:
+            mock_response = MagicMock()
+            mock_response.status_code = 500
+            mock_get_url.side_effect = httpx.HTTPStatusError("Server error", request=MagicMock(), response=mock_response)
+
+            await connect_calendar(mock_callback, mock_user, locale="en")
+
+        mock_callback.answer.assert_called_once()
+        assert "show_alert" in mock_callback.answer.call_args.kwargs
+
+    async def test_connect_calendar_request_error(self, mock_callback, mock_user):
+        """Test connect calendar when RequestError occurs."""
+        import httpx
+
+        with patch(
+            "telegram_bot.handlers.calendar.calendar_client.get_connect_url",
+            new_callable=AsyncMock,
+        ) as mock_get_url:
+            mock_get_url.side_effect = httpx.RequestError("Connection failed")
+
+            await connect_calendar(mock_callback, mock_user, locale="en")
+
+        mock_callback.answer.assert_called_once()
+        assert "show_alert" in mock_callback.answer.call_args.kwargs
+
     async def test_disconnect_calendar_success(self, mock_callback, mock_user, mock_auth_token):
         """Test disconnect calendar - success."""
         with patch(

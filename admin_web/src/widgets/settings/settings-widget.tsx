@@ -15,25 +15,12 @@ import { Switch } from "@/shared/ui/switch";
 import { Select } from "@/shared/ui/select";
 import { PageContent } from "@/shared/layout/page-content";
 import { useToast } from "@/shared/hooks/use-toast";
-import { notificationsApi } from "@/shared/lib/api/notifications";
 import {
-  Bell, Globe, Palette, Save, Send, Clock, Sun, Moon, Monitor, CheckCircle2,
+  Bell, Globe, Palette, Save, Sun, Moon, Monitor, CheckCircle2,
 } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 
-type Section = "appearance" | "language" | "notifications" | "send-notification";
-
-const NOTIFICATION_TYPES = [
-  { value: "SYSTEM", label: "System" },
-  { value: "REMINDER", label: "Reminder" },
-  { value: "INFO", label: "Info" },
-];
-
-const NOTIFICATION_CHANNELS = [
-  { value: "TELEGRAM", label: "Telegram" },
-  { value: "EMAIL", label: "Email" },
-  { value: "BOTH", label: "Both" },
-];
+type Section = "appearance" | "language" | "notifications";
 
 interface NavItemProps {
   icon: React.ElementType;
@@ -78,11 +65,6 @@ export function SettingsWidget() {
   const [emailEnabled, setEmailEnabled] = useState(
     preferences?.success && preferences.data ? preferences.data.notification_email_enabled ?? true : true,
   );
-
-  const [notifForm, setNotifForm] = useState({
-    userId: "", type: "SYSTEM", channel: "TELEGRAM", subject: "", body: "", scheduledAt: "",
-  });
-  const [notifSending, setNotifSending] = useState(false);
 
   useEffect(() => {
     if (preferences?.success && preferences.data) {
@@ -136,39 +118,6 @@ export function SettingsWidget() {
     router.replace(`${pathname}?${params.toString()}`);
   }, [searchParams, pathname, router]);
 
-  const handleSendNotification = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!notifForm.userId || !notifForm.body) return;
-    setNotifSending(true);
-    try {
-      if (notifForm.scheduledAt) {
-        await notificationsApi.schedule({
-          user_id: Number(notifForm.userId),
-          type: notifForm.type,
-          channel: notifForm.channel,
-          body: notifForm.body,
-          subject: notifForm.subject || null,
-          scheduled_time: new Date(notifForm.scheduledAt).toISOString(),
-        });
-        toast(t("settings.notificationScheduled") || "Notification scheduled", "success");
-      } else {
-        await notificationsApi.send({
-          user_id: Number(notifForm.userId),
-          type: notifForm.type,
-          channel: notifForm.channel,
-          body: notifForm.body,
-          subject: notifForm.subject || null,
-        });
-        toast(t("settings.notificationSent") || "Notification sent", "success");
-      }
-      setNotifForm((f) => ({ ...f, userId: "", body: "", subject: "", scheduledAt: "" }));
-    } catch {
-      toast(t("common.error") || "Error", "error");
-    } finally {
-      setNotifSending(false);
-    }
-  };
-
   return (
     <PageContent title={t("settings.title")} subtitle={t("settings.subtitle")}>
       <div className="grid gap-6 md:grid-cols-4 md:items-start">
@@ -178,12 +127,6 @@ export function SettingsWidget() {
               <NavItem icon={Palette} label={t("settings.appearance")} active={activeSection === "appearance"} onClick={() => handleSectionChange("appearance")} />
               <NavItem icon={Globe} label={t("settings.language")} active={activeSection === "language"} onClick={() => handleSectionChange("language")} />
               <NavItem icon={Bell} label={t("settings.notifications")} active={activeSection === "notifications"} onClick={() => handleSectionChange("notifications")} />
-              <NavItem
-                icon={Send}
-                label={t("settings.sendNotification") || "Send Notification"}
-                active={activeSection === "send-notification"}
-                onClick={() => handleSectionChange("send-notification")}
-              />
             </nav>
           </CardContent>
         </Card>
@@ -271,85 +214,13 @@ export function SettingsWidget() {
             </Card>
           )}
 
-          {activeSection === "send-notification" && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2"><Send className="size-5" />{t("settings.sendNotification") || "Send Notification"}</CardTitle>
-                <CardDescription>{t("settings.sendNotificationDesc") || "Send an immediate or scheduled notification to a user"}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleSendNotification} className="space-y-4">
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="space-y-1.5">
-                      <Label>{t("settings.recipientUserId") || "Recipient User ID"}</Label>
-                      <Input
-                        type="number"
-                        value={notifForm.userId}
-                        onChange={(ev) => setNotifForm((f) => ({ ...f, userId: ev.target.value }))}
-                        placeholder="User ID"
-                        required
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label>{t("settings.notificationType") || "Type"}</Label>
-                      <Select value={notifForm.type} onChange={(v) => setNotifForm((f) => ({ ...f, type: v }))} options={NOTIFICATION_TYPES} />
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label>{t("settings.channel") || "Channel"}</Label>
-                      <Select value={notifForm.channel} onChange={(v) => setNotifForm((f) => ({ ...f, channel: v }))} options={NOTIFICATION_CHANNELS} />
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label>{t("settings.subject") || "Subject (optional)"}</Label>
-                      <Input
-                        value={notifForm.subject}
-                        onChange={(ev) => setNotifForm((f) => ({ ...f, subject: ev.target.value }))}
-                        placeholder={t("common.optional") || "Optional"}
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label>{t("settings.messageBody") || "Message"}</Label>
-                    <textarea
-                      value={notifForm.body}
-                      onChange={(ev) => setNotifForm((f) => ({ ...f, body: ev.target.value }))}
-                      placeholder={t("settings.messagePlaceholder") || "Enter notification message..."}
-                      required
-                      rows={3}
-                      className="border-input bg-background placeholder:text-muted-foreground focus-visible:ring-ring flex min-h-[80px] w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-1 focus-visible:outline-none"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="flex items-center gap-1.5">
-                      <Clock className="size-3.5" />
-                      {t("settings.scheduledAt") || "Schedule for (optional)"}
-                    </Label>
-                    <Input
-                      type="datetime-local"
-                      value={notifForm.scheduledAt}
-                      onChange={(ev) => setNotifForm((f) => ({ ...f, scheduledAt: ev.target.value }))}
-                    />
-                    <p className="text-muted-foreground text-xs">{t("settings.leaveBlankToSendNow") || "Leave blank to send immediately"}</p>
-                  </div>
-                  <div className="flex justify-end">
-                    <Button type="submit" disabled={notifSending} className="gap-2">
-                      {notifForm.scheduledAt ? <Clock className="size-4" /> : <Send className="size-4" />}
-                      {notifForm.scheduledAt ? t("settings.scheduleNotification") || "Schedule" : t("settings.sendNow") || "Send Now"}
-                    </Button>
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
-          )}
-
-          {activeSection !== "send-notification" && (
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={handleCancel}>{t("settings.cancel")}</Button>
-              <Button className="gap-2" onClick={handleSave} disabled={isPending || prefsUpdating}>
-                <Save className="size-4" />
-                {t("settings.save")}
-              </Button>
-            </div>
-          )}
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={handleCancel}>{t("settings.cancel")}</Button>
+            <Button className="gap-2" onClick={handleSave} disabled={isPending || prefsUpdating}>
+              <Save className="size-4" />
+              {t("settings.save")}
+            </Button>
+          </div>
         </div>
       </div>
     </PageContent>

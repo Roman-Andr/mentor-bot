@@ -276,7 +276,7 @@ class TestCreateEscalation:
         response = client.post("/api/v1/escalations/", json=create_data)
 
         # Assert
-        assert response.status_code == 200
+        assert response.status_code == 201
         data = response.json()
         assert data["user_id"] == regular_user.id
         assert data["status"] == "PENDING"
@@ -332,7 +332,7 @@ class TestCreateEscalation:
         response = client.post("/api/v1/escalations/", json=create_data)
 
         # Assert
-        assert response.status_code == 200
+        assert response.status_code == 201
         data = response.json()
         assert data["status"] == "PENDING"
 
@@ -365,11 +365,42 @@ class TestCreateEscalation:
         response = client.post("/api/v1/escalations/", json=create_data)
 
         # Assert
-        assert response.status_code == 200
+        assert response.status_code == 201
 
         # Verify create was called
         mock_uow.escalations.create.assert_awaited_once()
         mock_uow.commit.assert_awaited_once()
+
+        app.dependency_overrides.clear()
+
+    def test_create_escalation_with_created_at(self, regular_user):
+        """Create escalation with created_at field to cover line 100."""
+        # Arrange
+        mock_uow = create_mock_uow()
+        mock_created = create_mock_escalation(user_id=regular_user.id)
+        mock_uow.escalations.create.return_value = mock_created
+
+        app.dependency_overrides[get_current_active_user] = lambda: regular_user
+        app.dependency_overrides[get_uow] = lambda: mock_uow
+        app.dependency_overrides[get_escalation_service] = lambda: EscalationService(mock_uow)
+
+        from datetime import UTC, datetime
+        created_at = datetime.now(tz=UTC)
+        create_data = {
+            "user_id": regular_user.id,
+            "type": "GENERAL",
+            "source": "MANUAL",
+            "reason": "Test with created_at",
+            "created_at": created_at.isoformat(),
+        }
+
+        # Act
+        client = TestClient(app)
+        response = client.post("/api/v1/escalations/", json=create_data)
+
+        # Assert
+        assert response.status_code == 201
+        mock_uow.escalations.create.assert_awaited_once()
 
         app.dependency_overrides.clear()
 

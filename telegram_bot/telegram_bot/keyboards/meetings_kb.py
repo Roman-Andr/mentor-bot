@@ -37,7 +37,52 @@ def get_my_meetings_keyboard(*, locale: str = "en") -> InlineKeyboardMarkup:
             callback_data="meetings_menu",
         )
     )
-    return builder
+    return builder.as_markup()
+
+
+def get_title_keyboard(*, locale: str = "en") -> InlineKeyboardMarkup:
+    """Build keyboard with back button for title step."""
+    builder = InlineKeyboardBuilder()
+    builder.add(
+        create_inline_button(f"← {t('common.back_button', locale=locale)}", callback_data="meetings_menu"),
+    )
+    return builder.as_markup()
+
+
+def get_skip_description_keyboard(*, locale: str = "en") -> InlineKeyboardMarkup:
+    """Build keyboard with skip button for description step."""
+    builder = InlineKeyboardBuilder()
+    builder.add(
+        create_inline_button(
+            f"⏩ {t('meetings.btn_skip', locale=locale)}",
+            callback_data="meeting_skip_description",
+        ),
+        create_inline_button(f"← {t('common.back_button', locale=locale)}", callback_data="schedule_meeting"),
+    )
+    builder.adjust(1)
+    return builder.as_markup()
+
+
+def get_datetime_keyboard(*, locale: str = "en") -> InlineKeyboardMarkup:
+    """Build keyboard with back button for datetime step."""
+    builder = InlineKeyboardBuilder()
+    builder.add(
+        create_inline_button(f"← {t('common.back_button', locale=locale)}", callback_data="meeting_back_to_description"),
+    )
+    return builder.as_markup()
+
+
+def get_duration_keyboard(*, locale: str = "en") -> InlineKeyboardMarkup:
+    """Build keyboard with duration options (30/60/120 min)."""
+    builder = InlineKeyboardBuilder()
+    builder.add(
+        create_inline_button("30 мин" if locale == "ru" else "30 min", callback_data="meeting_duration_30"),
+        create_inline_button("60 мин" if locale == "ru" else "60 min", callback_data="meeting_duration_60"),
+        create_inline_button("120 мин" if locale == "ru" else "120 min", callback_data="meeting_duration_120"),
+        create_inline_button(f"← {t('common.back_button', locale=locale)}", callback_data="meeting_back_to_datetime"),
+    )
+    builder.adjust(1, 1, 1, 1)
+    return builder.as_markup()
 
 
 def get_meeting_details_keyboard(meeting_id: int, *, locale: str = "en") -> InlineKeyboardMarkup:

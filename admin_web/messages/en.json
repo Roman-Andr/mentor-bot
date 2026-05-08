@@ -146,7 +146,7 @@
     "deleteError": "Error deleting checklist",
     "dueDate": "Due Date",
     "editChecklist": "Edit Checklist",
-    "employee": "Employee",
+    "employee": "User",
     "employeeId": "Employee ID",
     "markComplete": "Mark complete",
     "mentor": "Mentor",
@@ -678,7 +678,12 @@
     "notificationTemplates": "Notification Templates",
     "settings": "Settings",
     "templates": "Templates",
-    "users": "Users"
+    "users": "Users",
+    "groupPeople": "People",
+    "groupOnboarding": "Onboarding",
+    "groupKnowledge": "Knowledge",
+    "groupInsights": "Insights",
+    "groupSystem": "System"
   },
   "pagination": {
     "back": "Back",

@@ -61,4 +61,5 @@ def get_calendar_connect_keyboard(connect_url: str, *, locale: str = "en") -> In
             callback_data="calendar_menu",
         )
     )
+    builder.adjust(1)
     return builder.as_markup()

@@ -67,17 +67,57 @@ class TestCalendarClient:
         assert result["connected"] is False
         assert "error" in result
 
-    @patch("telegram_bot.services.calendar_client.Flow")
-    async def test_get_connect_url(self, mock_flow_class):
-        """Test getting connect URL."""
-        mock_flow = MagicMock()
-        mock_flow.authorization_url.return_value = ("https://auth.url", "state")
-        mock_flow_class.from_client_config.return_value = mock_flow
+    @patch("telegram_bot.services.calendar_client.httpx.AsyncClient.get")
+    async def test_get_connect_url(self, mock_get):
+        """Test getting connect URL by calling Meeting Service."""
+        mock_response = MagicMock()
+        mock_response.status_code = 307
+        mock_response.headers = {"location": "https://accounts.google.com/o/oauth2/auth?code=test"}
+        mock_get.return_value = mock_response
 
         result = await self.client.get_connect_url(self.user_id, "test_state")
 
-        assert result == "https://auth.url"
-        mock_flow_class.from_client_config.assert_called_once()
+        assert result == "https://accounts.google.com/o/oauth2/auth?code=test"
+        mock_get.assert_called_once()
+        # Verify it calls the Meeting Service /connect endpoint with the state parameter
+        call_args = mock_get.call_args
+        assert "calendar/connect" in call_args[0][0]
+        assert call_args[1]["params"]["state"] == f"{self.user_id}:test_state"
+
+    @patch("telegram_bot.services.calendar_client.httpx.AsyncClient.get")
+    async def test_get_connect_url_no_location_header(self, mock_get):
+        """Test getting connect URL when response has no location header."""
+        import httpx
+
+        mock_response = MagicMock()
+        mock_response.status_code = 307
+        mock_response.headers = {}
+        mock_get.return_value = mock_response
+
+        with pytest.raises(ValueError, match="Failed to get authorization URL"):
+            await self.client.get_connect_url(self.user_id, "test_state")
+
+    @patch("telegram_bot.services.calendar_client.httpx.AsyncClient.get")
+    async def test_get_connect_url_http_error(self, mock_get):
+        """Test getting connect URL with HTTP error."""
+        import httpx
+
+        mock_response = MagicMock()
+        mock_response.status_code = 500
+        mock_get.side_effect = httpx.HTTPStatusError("Server error", request=MagicMock(), response=mock_response)
+
+        with pytest.raises(httpx.HTTPStatusError):
+            await self.client.get_connect_url(self.user_id, "test_state")
+
+    @patch("telegram_bot.services.calendar_client.httpx.AsyncClient.get")
+    async def test_get_connect_url_request_error(self, mock_get):
+        """Test getting connect URL with request error."""
+        import httpx
+
+        mock_get.side_effect = httpx.RequestError("Connection failed")
+
+        with pytest.raises(httpx.RequestError):
+            await self.client.get_connect_url(self.user_id, "test_state")
 
     @patch("telegram_bot.services.calendar_client.httpx.AsyncClient.delete")
     async def test_disconnect_calendar_success(self, mock_delete):

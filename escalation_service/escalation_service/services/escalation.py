@@ -96,6 +96,8 @@ class EscalationService:
             related_entity_id=data.related_entity_id,
             status=EscalationStatus.PENDING,
         )
+        if data.created_at is not None:
+            request.created_at = data.created_at
         created = await self._uow.escalations.create(request)
         await self._uow.commit()
         logger.info(

@@ -6,7 +6,7 @@
     "old_value": "DRAFT",
     "new_value": "ACTIVE",
     "changed_by_user_key": "hr_director",
-    "changed_days_ago": 30
+    "changed_days_ago": 120
   },
   {
     "entity_type": "TEMPLATE",
@@ -15,7 +15,7 @@
     "old_value": null,
     "new_value": "New task: Complete security training",
     "changed_by_user_key": "hr_specialist",
-    "changed_days_ago": 25
+    "changed_days_ago": 100
   },
   {
     "entity_type": "TEMPLATE",
@@ -24,7 +24,7 @@
     "old_value": "30",
     "new_value": "45",
     "changed_by_user_key": "hr_director",
-    "changed_days_ago": 20
+    "changed_days_ago": 80
   },
   {
     "entity_type": "ESCALATION",
@@ -33,7 +33,7 @@
     "old_value": "PENDING",
     "new_value": "ASSIGNED",
     "changed_by_user_key": "hr_specialist",
-    "changed_days_ago": 15
+    "changed_days_ago": 60
   },
   {
     "entity_type": "ESCALATION",
@@ -42,7 +42,7 @@
     "old_value": "ASSIGNED",
     "new_value": "IN_PROGRESS",
     "changed_by_user_key": "mentor_1",
-    "changed_days_ago": 10
+    "changed_days_ago": 40
   },
   {
     "entity_type": "ESCALATION",
@@ -51,7 +51,7 @@
     "old_value": "IN_PROGRESS",
     "new_value": "RESOLVED",
     "changed_by_user_key": "hr_director",
-    "changed_days_ago": 5
+    "changed_days_ago": 20
   },
   {
     "entity_type": "CHECKLIST",
@@ -60,7 +60,7 @@
     "old_value": "IN_PROGRESS",
     "new_value": "COMPLETED",
     "changed_by_user_key": "mentor_1",
-    "changed_days_ago": 12
+    "changed_days_ago": 48
   },
   {
     "entity_type": "CHECKLIST",
@@ -69,7 +69,7 @@
     "old_value": "mentor_1",
     "new_value": "mentor_2",
     "changed_by_user_key": "hr_director",
-    "changed_days_ago": 18
+    "changed_days_ago": 72
   },
   {
     "entity_type": "CHECKLIST",
@@ -78,7 +78,7 @@
     "old_value": "1",
     "new_value": "2",
     "changed_by_user_key": "hr_specialist",
-    "changed_days_ago": 22
+    "changed_days_ago": 88
   },
   {
     "entity_type": "USER_ROLE",
@@ -87,7 +87,7 @@
     "old_value": "NEWBIE",
     "new_value": "MENTOR",
     "changed_by_user_key": "hr_director",
-    "changed_days_ago": 35
+    "changed_days_ago": 140
   },
   {
     "entity_type": "USER_ROLE",
@@ -96,7 +96,7 @@
     "old_value": "NEWBIE",
     "new_value": "MENTOR",
     "changed_by_user_key": "hr_director",
-    "changed_days_ago": 28
+    "changed_days_ago": 112
   },
   {
     "entity_type": "USER_ROLE",
@@ -105,7 +105,7 @@
     "old_value": "MENTOR",
     "new_value": "HR",
     "changed_by_user_key": "hr_director",
-    "changed_days_ago": 40
+    "changed_days_ago": 160
   },
   {
     "entity_type": "TEMPLATE",
@@ -114,7 +114,7 @@
     "old_value": "Old description",
     "new_value": "Updated description with new requirements",
     "changed_by_user_key": "hr_specialist",
-    "changed_days_ago": 14
+    "changed_days_ago": 56
   },
   {
     "entity_type": "TEMPLATE",
@@ -123,7 +123,7 @@
     "old_value": "Old task: Legacy training",
     "new_value": null,
     "changed_by_user_key": "hr_director",
-    "changed_days_ago": 8
+    "changed_days_ago": 32
   },
   {
     "entity_type": "ESCALATION",
@@ -132,7 +132,7 @@
     "old_value": "MEDIUM",
     "new_value": "HIGH",
     "changed_by_user_key": "hr_specialist",
-    "changed_days_ago": 6
+    "changed_days_ago": 24
   },
   {
     "entity_type": "ESCALATION",
@@ -141,7 +141,7 @@
     "old_value": "mentor_1",
     "new_value": "mentor_3",
     "changed_by_user_key": "hr_director",
-    "changed_days_ago": 11
+    "changed_days_ago": 44
   },
   {
     "entity_type": "CHECKLIST",
@@ -150,7 +150,7 @@
     "old_value": "hr_specialist",
     "new_value": "hr_director",
     "changed_by_user_key": "hr_director",
-    "changed_days_ago": 16
+    "changed_days_ago": 64
   },
   {
     "entity_type": "CHECKLIST",
@@ -159,7 +159,7 @@
     "old_value": "NOT_STARTED",
     "new_value": "IN_PROGRESS",
     "changed_by_user_key": "mentor_2",
-    "changed_days_ago": 9
+    "changed_days_ago": 36
   },
   {
     "entity_type": "USER_ROLE",
@@ -168,7 +168,7 @@
     "old_value": "Engineering",
     "new_value": "Product",
     "changed_by_user_key": "hr_director",
-    "changed_days_ago": 45
+    "changed_days_ago": 180
   },
   {
     "entity_type": "USER_ROLE",
@@ -177,7 +177,7 @@
     "old_value": "JUNIOR",
     "new_value": "MIDDLE",
     "changed_by_user_key": "hr_director",
-    "changed_days_ago": 32
+    "changed_days_ago": 128
   },
   {
     "entity_type": "TEMPLATE",
@@ -186,6 +186,6 @@
     "old_value": "Software Engineer",
     "new_value": "Software Engineer / DevOps Engineer",
     "changed_by_user_key": "hr_specialist",
-    "changed_days_ago": 19
+    "changed_days_ago": 76
   }
 ]

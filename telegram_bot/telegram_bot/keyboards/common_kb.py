@@ -12,14 +12,8 @@ def get_help_keyboard(*, locale: str = "en") -> InlineKeyboardBuilder:
     builder = InlineKeyboardBuilder()
     builder.add(
         create_inline_button(
-            t("buttons.open_menu", locale=locale),
+            f"\u2190 {t('common.menu_button', locale=locale)}",
             callback_data="menu",
-            style=ButtonStyle.PRIMARY,
-        ),
-        create_inline_button(
-            t("buttons.my_mentor", locale=locale),
-            callback_data="my_mentor",
-            style=ButtonStyle.PRIMARY,
         ),
     )
     builder.adjust(1)

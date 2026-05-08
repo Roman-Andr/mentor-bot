@@ -35,12 +35,14 @@ describe('notificationTemplatesApi', () => {
       language: 'en',
       subject: 'Test',
       body_text: 'Body',
+      body_html: null,
+      variables: [],
     })
     expect(mockFetchApi).toHaveBeenCalled()
   })
 
   it('update calls fetchApi with PUT', () => {
-    notificationTemplatesApi.update(123, { subject: 'Updated' })
+    notificationTemplatesApi.update(123, { subject: 'Updated', body_html: null, body_text: null, variables: null, is_active: null })
     expect(mockFetchApi).toHaveBeenCalled()
   })
 
@@ -50,7 +52,7 @@ describe('notificationTemplatesApi', () => {
   })
 
   it('render calls fetchApi with POST', () => {
-    notificationTemplatesApi.render({ template_id: 123, variables: {} })
+    notificationTemplatesApi.render({ template_name: 'test', channel: 'email', language: 'en', variables: {} })
     expect(mockFetchApi).toHaveBeenCalled()
   })
 

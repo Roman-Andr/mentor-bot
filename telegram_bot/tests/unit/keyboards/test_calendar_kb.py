@@ -59,9 +59,10 @@ class TestGetCalendarConnectKeyboard:
         keyboard = get_calendar_connect_keyboard(connect_url, locale="en")
 
         assert isinstance(keyboard, InlineKeyboardMarkup)
-        # Buttons are in one row with 2 buttons
-        assert len(keyboard.inline_keyboard) == 1
-        assert len(keyboard.inline_keyboard[0]) == 2  # Authorize URL, back
+        # Buttons are in separate rows (adjust(1))
+        assert len(keyboard.inline_keyboard) == 2  # Authorize URL row, back button row
+        assert len(keyboard.inline_keyboard[0]) == 1  # Authorize URL button
+        assert len(keyboard.inline_keyboard[1]) == 1  # Back button
 
     def test_connect_keyboard_url_button(self):
         """Test that authorize button has URL."""
@@ -75,6 +76,6 @@ class TestGetCalendarConnectKeyboard:
         """Test back button in connect keyboard."""
         keyboard = get_calendar_connect_keyboard("https://example.com", locale="en")
 
-        # Second button in first row should be back
-        assert "\u2190" in keyboard.inline_keyboard[0][1].text
-        assert keyboard.inline_keyboard[0][1].callback_data == "calendar_menu"
+        # Back button is in second row, first position
+        assert "\u2190" in keyboard.inline_keyboard[1][0].text
+        assert keyboard.inline_keyboard[1][0].callback_data == "calendar_menu"

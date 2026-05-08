@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { mapUser, toForm, toCreatePayload, toUpdatePayload } from '@/shared/hooks/use-users'
-import type { User } from '@/types'
+import type { User } from '@/shared/types/user'
 
 describe('use-users helper functions', () => {
   const mockUser: User = {

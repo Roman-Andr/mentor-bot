@@ -22,6 +22,7 @@ from telegram_bot.keyboards.knowledge_kb import (
     get_kb_upload_files_keyboard,
     get_knowledge_base_menu_keyboard,
     get_search_no_results_keyboard,
+    get_search_prompt_keyboard,
     get_search_results_keyboard,
 )
 from telegram_bot.services.knowledge_client import knowledge_client
@@ -111,6 +112,7 @@ async def start_search(callback: CallbackQuery, state: FSMContext, *, locale: st
     if callback.message:
         await callback.message.edit_text(
             f"\U0001f50d *{t('knowledge.search_prompt', locale=locale)}*",
+            reply_markup=get_search_prompt_keyboard(locale=locale),
             parse_mode="Markdown",
         )
     await state.set_state(SearchStates.waiting_for_query)

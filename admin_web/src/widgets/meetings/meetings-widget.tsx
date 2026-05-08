@@ -18,7 +18,8 @@ import { Select } from "@/shared/ui/select";
 import { Button } from "@/shared/ui/button";
 import { SearchInput } from "@/shared/ui/search-input";
 import { CardHeader, CardTitle } from "@/shared/ui/card";
-import { Plus, Pencil, Trash2, ChevronDown, ChevronRight, Shield } from "lucide-react";
+import { Plus, Pencil, Trash2, ChevronDown, ChevronRight, Shield, Send } from "lucide-react";
+import { SendNotificationDialog } from "@/widgets/meetings/send-notification-dialog";
 import { getMeetingTypeOptions } from "@/shared/lib/constants";
 import { useMeetingsColumns } from "@/widgets/meetings/meetings-columns";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
@@ -47,6 +48,7 @@ export function MeetingsWidget() {
   };
 
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [isSendNotifOpen, setIsSendNotifOpen] = useState(false);
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
   const [assignMeetingId, setAssignMeetingId] = useState<number | null>(null);
   const [assignMeetingTitle, setAssignMeetingTitle] = useState("");
@@ -123,6 +125,8 @@ export function MeetingsWidget() {
 
   return (
     <PageContent title={t("meetings.title")} subtitle={t("meetings.title")}>
+      <SendNotificationDialog open={isSendNotifOpen} onOpenChange={setIsSendNotifOpen} />
+
       <Dialog open={m.isCreateDialogOpen} onOpenChange={m.setIsCreateDialogOpen}>
         <MeetingFormDialog
           mode="create"
@@ -192,6 +196,10 @@ export function MeetingsWidget() {
               <div className="flex items-center gap-2">
                 <SearchInput placeholder={t("common.searchPlaceholder")} value={m.searchQuery} onChange={m.setSearchQuery} />
                 <Select value={m.typeFilter} onChange={m.setTypeFilter} options={typeOptions} className="w-[180px]" />
+                <Button variant="outline" onClick={() => setIsSendNotifOpen(true)} className="gap-2">
+                  <Send className="size-4" />
+                  {t("settings.sendNotification") || "Send Notification"}
+                </Button>
                 <Button onClick={() => { m.resetForm(); m.setIsCreateDialogOpen(true); }} className="gap-2">
                   <Plus className="size-4" />
                   {t("meetings.scheduleMeeting")}

@@ -92,7 +92,7 @@ describe('logger', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    process.env.NODE_ENV = originalEnv
+    ;(process.env as any).NODE_ENV = originalEnv
     vi.spyOn(console, 'error').mockImplementation(() => undefined)
   })
 
@@ -212,7 +212,7 @@ describe('logger', () => {
 
     beforeEach(() => {
       vi.clearAllMocks()
-      process.env.NODE_ENV = 'development'
+      ;(process.env as any).NODE_ENV = 'development'
       consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined)
       consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
       consoleDebugSpy = vi.spyOn(console, 'debug').mockImplementation(() => undefined)
@@ -273,7 +273,7 @@ describe('logger', () => {
 
     beforeEach(() => {
       vi.clearAllMocks()
-      process.env.NODE_ENV = 'production'
+      ;(process.env as any).NODE_ENV = 'production'
       consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined)
       consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined)
       consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined)

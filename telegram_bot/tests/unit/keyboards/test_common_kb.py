@@ -28,8 +28,8 @@ class TestGetHelpKeyboard:
         all_buttons = [btn for row in markup.inline_keyboard for btn in row]
         callback_data = [btn.callback_data for btn in all_buttons]
 
-        assert "menu" in callback_data
-        assert "my_mentor" in callback_data
+        assert len(all_buttons) == 1
+        assert all_buttons[0].callback_data == "menu"
 
     def test_different_locales(self):
         """Test keyboard with different locales."""

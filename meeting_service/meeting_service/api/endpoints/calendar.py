@@ -14,6 +14,7 @@ from meeting_service.core import ValidationException
 from meeting_service.database import AsyncSessionLocal
 from meeting_service.repositories.unit_of_work import SqlAlchemyUnitOfWork
 from meeting_service.services.google_calendar_service import GoogleCalendarService
+from meeting_service.utils.cache import cache
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -40,10 +41,12 @@ async def connect_calendar(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Google Calendar integration not configured"
         )
 
-    # Create OAuth flow.
-    # autogenerate_code_verifier=False disables PKCE: the verifier would only
-    # live on this Flow instance and the /callback handler builds a fresh Flow,
-    # so Google would reject the token exchange with "Missing code verifier".
+    if not cache.is_connected:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Redis cache not available. Please try again later."
+        )
+
+    # Create OAuth flow with PKCE enabled
     flow = Flow.from_client_config(
         client_config={
             "web": {
@@ -55,7 +58,6 @@ async def connect_calendar(
         },
         scopes=settings.GOOGLE_CALENDAR_SCOPES,
         redirect_uri=settings.GOOGLE_REDIRECT_URI,
-        autogenerate_code_verifier=False,
     )
 
     # Generate authorization URL with state for CSRF protection
@@ -65,6 +67,11 @@ async def connect_calendar(
         prompt="consent",
         state=state,  # Pass the original state for CSRF protection
     )
+
+    # Store code_verifier in Redis for later use in callback
+    # Use state as key to retrieve it in callback
+    verifier_key = f"oauth_verifier:{state}"
+    await cache.set(verifier_key, flow.code_verifier, ttl=600)  # 10 minutes TTL
 
     return RedirectResponse(url=authorization_url)
 
@@ -85,6 +92,17 @@ async def oauth_callback(
         user_id_str, _auth_state = state.split(":", 1)
         user_id = int(user_id_str)
 
+        if not cache.is_connected:
+            msg = "Redis cache not available. Please try again later."
+            raise ValidationException(msg)
+
+        # Retrieve code_verifier from Redis
+        verifier_key = f"oauth_verifier:{state}"
+        code_verifier = await cache.get(verifier_key)
+        if not code_verifier:
+            msg = "OAuth session expired or invalid. Please try connecting again."
+            raise ValidationException(msg)
+
         # Create OAuth flow
         flow = Flow.from_client_config(
             client_config={
@@ -99,8 +117,16 @@ async def oauth_callback(
             redirect_uri=settings.GOOGLE_REDIRECT_URI,
         )
 
-        # Exchange authorization code for tokens
-        flow.fetch_token(code=code)
+        # Set the code_verifier before fetching token
+        flow.code_verifier = code_verifier
+
+        try:
+            # Exchange authorization code for tokens
+            flow.fetch_token(code=code)
+        finally:
+            # Always delete the verifier from Redis to prevent reuse
+            await cache.delete(verifier_key)
+
         credentials = flow.credentials
 
         # Save credentials

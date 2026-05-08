@@ -14,6 +14,7 @@ function AnonStatCard({
   attributedCount: number;
   className?: string;
 }) {
+  const t = useTranslations();
   const total = anonCount + attributedCount;
   const anonPct = total > 0 ? Math.round((anonCount / total) * 100) : 0;
 
@@ -27,9 +28,9 @@ function AnonStatCard({
         <div>
           <div className="flex items-baseline gap-1">
             <span className="text-2xl font-bold">{anonCount}</span>
-            <span className="text-muted-foreground text-sm">anon</span>
+            <span className="text-muted-foreground text-sm">{t("feedback.anonymous")}</span>
           </div>
-          <div className="text-muted-foreground text-xs">{attributedCount} attributed</div>
+          <div className="text-muted-foreground text-xs">{attributedCount} {t("feedback.attributed")}</div>
         </div>
         <div className="flex-1">
           <div className="bg-muted mb-1 h-2 overflow-hidden rounded-full">
@@ -38,7 +39,7 @@ function AnonStatCard({
               style={{ width: `${anonPct}%` }}
             />
           </div>
-          <p className="text-muted-foreground text-right text-xs">{anonPct}% anonymous</p>
+          <p className="text-muted-foreground text-right text-xs">{anonPct}% {t("feedback.anonymous")}</p>
         </div>
       </div>
     </div>

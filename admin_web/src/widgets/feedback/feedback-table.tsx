@@ -7,7 +7,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/shared/ui/table";
-import { UserX, User, Star, TrendingUp, MessageSquare } from "lucide-react";
+import { UserX, Star, TrendingUp, MessageSquare } from "lucide-react";
+import { UserAvatar } from "@/shared/ui/user-avatar";
 import { TableActions, buildViewAction, buildReplyAction } from "@/shared/components";
 import { formatDateTime } from "@/shared/lib/utils";
 import { SortableTableHead } from "@/shared/ui/sortable-table-head";
@@ -66,10 +67,10 @@ export function FeedbackTable({ items, getUserName, onViewDetails, onReply, sort
             onSort={onSort}
             className="w-32"
           >
-            Type
+            {t("feedback.type")}
           </SortableTableHead>
-          <TableHead className="w-48">User</TableHead>
-          <TableHead>Content</TableHead>
+          <TableHead className="w-48">{t("feedback.user")}</TableHead>
+          <TableHead>{t("feedback.content")}</TableHead>
           <SortableTableHead
             field="submitted_at"
             sortable
@@ -78,10 +79,10 @@ export function FeedbackTable({ items, getUserName, onViewDetails, onReply, sort
             onSort={onSort}
             className="w-40"
           >
-            Submitted At
+            {t("feedback.submittedAt")}
           </SortableTableHead>
-          <TableHead className="w-32">Status</TableHead>
-          <TableHead className="w-32 text-right">Actions</TableHead>
+          <TableHead className="w-32">{t("feedback.status")}</TableHead>
+          <TableHead className="w-32 text-right">{t("common.actions")}</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -105,13 +106,11 @@ export function FeedbackTable({ items, getUserName, onViewDetails, onReply, sort
                 {item.is_anonymous ? (
                   <div className="bg-muted flex items-center gap-1.5 rounded-full px-2.5 py-1">
                     <UserX className="text-muted-foreground size-3.5" />
-                    <span className="text-muted-foreground text-xs">Anonymous</span>
+                    <span className="text-muted-foreground text-xs">{t("feedback.anonymous")}</span>
                   </div>
                 ) : (
                   <div className="flex items-center gap-1.5">
-                    <div className="flex size-6 items-center justify-center rounded-full bg-primary/10">
-                      <User className="text-primary size-3.5" />
-                    </div>
+                    <UserAvatar name={getUserName(item.user_id)} id={item.user_id ?? 0} size="sm" />
                     <span className="text-sm font-medium">{getUserName(item.user_id)}</span>
                   </div>
                 )}

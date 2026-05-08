@@ -38,15 +38,7 @@ async def escalation_menu(update: Message | CallbackQuery, user: dict, auth_toke
         await msg.answer(t("common.auth_required", locale=locale))
         return
 
-    escalations = await escalation_client.get_user_escalations(user["id"], auth_token, limit=5)
-
     text = f"*\U0001f4de {t('escalation.title', locale=locale)}*\n\n"
-    if escalations:
-        text += format_escalation_list(escalations, locale=locale)
-        text += "\n"
-    else:
-        text += f"{t('escalation.no_escalations', locale=locale)}\n\n"
-
     text += t("escalation.use_options", locale=locale)
 
     keyboard = get_escalation_menu_keyboard(locale=locale)
@@ -153,6 +145,7 @@ async def process_escalation_title(
                 category=category,
                 id=escalation_id,
             ),
+            reply_markup=get_escalation_menu_keyboard(locale=locale),
             parse_mode="Markdown",
         )
     else:

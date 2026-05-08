@@ -55,17 +55,13 @@ class TestGetMyMeetingsKeyboard:
         """Test basic my meetings keyboard."""
         keyboard = get_my_meetings_keyboard(locale="en")
 
-        # Returns InlineKeyboardBuilder, not InlineKeyboardMarkup
-        from aiogram.utils.keyboard import InlineKeyboardBuilder
-
-        assert isinstance(keyboard, InlineKeyboardBuilder)
+        assert isinstance(keyboard, InlineKeyboardMarkup)
 
     def test_back_button_callback(self):
         """Test back button has correct callback."""
         keyboard = get_my_meetings_keyboard(locale="en")
 
-        markup = keyboard.as_markup()
-        all_buttons = [btn for row in markup.inline_keyboard for btn in row]
+        all_buttons = [btn for row in keyboard.inline_keyboard for btn in row]
         callback_data_values = [btn.callback_data for btn in all_buttons]
 
         assert "meetings_menu" in callback_data_values
@@ -74,8 +70,7 @@ class TestGetMyMeetingsKeyboard:
         """Test back button has emoji."""
         keyboard = get_my_meetings_keyboard(locale="en")
 
-        markup = keyboard.as_markup()
-        all_texts = [btn.text for row in markup.inline_keyboard for btn in row]
+        all_texts = [btn.text for row in keyboard.inline_keyboard for btn in row]
 
         assert any("\u2190" in text for text in all_texts)
 

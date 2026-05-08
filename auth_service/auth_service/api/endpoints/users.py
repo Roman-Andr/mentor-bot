@@ -227,7 +227,33 @@ async def get_user_by_email(
             detail="User not found",
         )
 
-    return UserResponse.model_validate(user)
+    # Build response dict to avoid lazy loading issues with mentor_id property
+    response_dict = {
+        "id": user.id,
+        "employee_id": user.employee_id,
+        "telegram_id": user.telegram_id,
+        "username": user.username,
+        "first_name": user.first_name,
+        "last_name": user.last_name,
+        "email": user.email,
+        "phone": user.phone,
+        "department_id": user.department_id,
+        "position": user.position,
+        "level": user.level,
+        "hire_date": user.hire_date,
+        "role": user.role,
+        "is_active": user.is_active,
+        "is_verified": user.is_verified,
+        "language": user.language,
+        "notification_telegram_enabled": user.notification_telegram_enabled,
+        "notification_email_enabled": user.notification_email_enabled,
+        "created_at": user.created_at,
+        "updated_at": user.updated_at,
+        "last_login_at": user.last_login_at,
+        "department": user.department,
+        "mentor_id": None,  # Set to None to avoid lazy loading
+    }
+    return UserResponse(**response_dict)
 
 
 @router.post("/{user_id}/link-telegram")

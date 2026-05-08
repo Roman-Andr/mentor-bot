@@ -16,7 +16,7 @@ async def cmd_language(message: Message, *, locale: str = "en") -> None:
     """Show language selection (deprecated, redirects to settings)."""
     await message.answer(
         t("settings.language_deprecated", locale=locale),
-        reply_markup=get_language_keyboard(locale=locale).as_markup(),
+        reply_markup=get_language_keyboard(locale=locale),
     )
 
 
@@ -29,7 +29,7 @@ async def cb_language_menu(callback: CallbackQuery, *, locale: str = "en") -> No
 
     await callback.message.edit_text(
         t("settings.choose_language", locale=locale),
-        reply_markup=get_language_keyboard(locale=locale).as_markup(),
+        reply_markup=get_language_keyboard(locale=locale),
     )
     await callback.answer()
 

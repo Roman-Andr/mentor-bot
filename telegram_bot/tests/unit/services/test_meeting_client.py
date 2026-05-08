@@ -40,10 +40,10 @@ class TestCreateMeeting:
 
     async def test_create_meeting_with_duration(self, meeting_client, monkeypatch):
         """Test meeting creation with custom duration."""
-        captured_json = {}
+        captured_jsons = []
 
         async def mock_post(*args, **kwargs):
-            captured_json["data"] = kwargs.get("json", {})
+            captured_jsons.append(kwargs.get("json", {}))
             return Response(status_code=status.HTTP_201_CREATED, json={"id": 1})
 
         monkeypatch.setattr(meeting_client.client, "post", mock_post)
@@ -58,14 +58,15 @@ class TestCreateMeeting:
             duration_minutes=30,
         )
         assert result is not None
-        assert captured_json["data"].get("duration_minutes") == 30
+        # First POST is template creation, should have duration_minutes
+        assert captured_jsons[0].get("duration_minutes") == 30
 
     async def test_create_meeting_with_type(self, meeting_client, monkeypatch):
         """Test meeting creation with custom type."""
-        captured_json = {}
+        captured_jsons = []
 
         async def mock_post(*args, **kwargs):
-            captured_json["data"] = kwargs.get("json", {})
+            captured_jsons.append(kwargs.get("json", {}))
             return Response(status_code=status.HTTP_201_CREATED, json={"id": 1})
 
         monkeypatch.setattr(meeting_client.client, "post", mock_post)
@@ -80,7 +81,8 @@ class TestCreateMeeting:
             meeting_type="review",
         )
         assert result is not None
-        assert captured_json["data"].get("meeting_type") == "review"
+        # First POST is template creation, should have type
+        assert captured_jsons[0].get("type") == "review"
 
     async def test_create_meeting_failure(self, meeting_client, monkeypatch):
         """Test failed meeting creation."""
@@ -106,6 +108,31 @@ class TestCreateMeeting:
         async def mock_post(*args, **kwargs) -> Never:
             msg = "Connection failed"
             raise RequestError(msg)
+
+        monkeypatch.setattr(meeting_client.client, "post", mock_post)
+
+        result = await meeting_client.create_meeting(
+            user_id=1,
+            title="Test",
+            description="Test",
+            participant_ids=[2],
+            scheduled_at="2024-01-01T10:00:00",
+            auth_token="test-token",
+        )
+        assert result is None
+
+    async def test_create_meeting_assignment_failure(self, meeting_client, monkeypatch):
+        """Test meeting creation when assignment fails after template creation."""
+        post_call_count = [0]
+
+        async def mock_post(*args, **kwargs):
+            post_call_count[0] += 1
+            if post_call_count[0] == 1:
+                # First call: template creation succeeds
+                return Response(status_code=status.HTTP_201_CREATED, json={"id": 1})
+            else:
+                # Second call: assignment fails
+                return Response(status_code=status.HTTP_400_BAD_REQUEST)
 
         monkeypatch.setattr(meeting_client.client, "post", mock_post)
 

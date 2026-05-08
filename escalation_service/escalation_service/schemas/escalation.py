@@ -23,6 +23,8 @@ class EscalationRequestBase(BaseModel):
 class EscalationRequestCreate(EscalationRequestBase):
     """Escalation request creation schema."""
 
+    created_at: datetime | None = None
+
 
 class EscalationRequestUpdate(BaseModel):
     """Escalation request update schema (for status changes)."""

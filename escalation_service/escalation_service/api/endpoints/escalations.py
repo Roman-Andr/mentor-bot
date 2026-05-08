@@ -109,8 +109,8 @@ async def get_escalations(
     )
 
 
-@router.post("/")
-@router.post("")
+@router.post("/", status_code=status.HTTP_201_CREATED)
+@router.post("", status_code=status.HTTP_201_CREATED)
 async def create_escalation(
     data: EscalationRequestCreate,
     escalation_service: EscalationServiceDep,

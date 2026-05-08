@@ -14,7 +14,7 @@ describe('meetingsApi', () => {
   })
 
   it('list with params', () => {
-    meetingsApi.list({ mentor_id: 123, skip: 0, limit: 10 })
+    meetingsApi.list({ department_id: 123, skip: 0, limit: 10 })
     expect(mockFetchApi).toHaveBeenCalled()
   })
 
@@ -24,23 +24,27 @@ describe('meetingsApi', () => {
   })
 
   it('create calls fetchApi with POST', () => {
-    meetingsApi.create({ title: 'Test' })
+    meetingsApi.create({ title: 'Test', type: 'ONBOARDING' })
     expect(mockFetchApi).toHaveBeenCalled()
   })
 
   it('create with all fields', () => {
     meetingsApi.create({
       title: 'Test Meeting',
-      scheduled_at: '2024-12-31T10:00:00Z',
-      mentor_id: 123,
-      mentee_id: 456,
-      notes: 'Test notes',
+      description: 'Test description',
+      type: 'ONBOARDING',
+      department_id: 5,
+      position: 'Developer',
+      level: 'MIDDLE',
+      deadline_days: 30,
+      duration_minutes: 60,
+      is_mandatory: true,
     })
     expect(mockFetchApi).toHaveBeenCalled()
   })
 
   it('update calls fetchApi with PUT', () => {
-    meetingsApi.update(123, { title: 'Updated' })
+    meetingsApi.update(123, { title: 'Updated', type: 'ONBOARDING' })
     expect(mockFetchApi).toHaveBeenCalled()
   })
 

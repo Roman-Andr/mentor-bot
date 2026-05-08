@@ -46,7 +46,7 @@ const ICON_MAP = {
 
 const NAV_GROUPS = [
   {
-    label: "People",
+    labelKey: "nav.groupPeople",
     items: [
       { key: "dashboard", href: "/", icon: "LayoutDashboard" },
       { key: "users", href: "/users", icon: "Users" },
@@ -54,7 +54,7 @@ const NAV_GROUPS = [
     ],
   },
   {
-    label: "Onboarding",
+    labelKey: "nav.groupOnboarding",
     items: [
       { key: "templates", href: "/templates", icon: "FileText" },
       { key: "checklists", href: "/checklists", icon: "ClipboardCheck" },
@@ -63,13 +63,13 @@ const NAV_GROUPS = [
     ],
   },
   {
-    label: "Knowledge",
+    labelKey: "nav.groupKnowledge",
     items: [
       { key: "knowledgeBase", href: "/knowledge", icon: "BookOpen" },
     ],
   },
   {
-    label: "Insights",
+    labelKey: "nav.groupInsights",
     items: [
       { key: "feedback", href: "/feedback", icon: "MessageCircle" },
       { key: "escalations", href: "/escalations", icon: "AlertTriangle" },
@@ -77,7 +77,7 @@ const NAV_GROUPS = [
     ],
   },
   {
-    label: "System",
+    labelKey: "nav.groupSystem",
     items: [
       { key: "settings", href: "/settings", icon: "Settings" },
     ],
@@ -148,10 +148,10 @@ export function Sidebar() {
       <TooltipProvider>
         <nav className="flex-1 overflow-y-auto py-3">
           {NAV_GROUPS.map((group) => (
-            <div key={group.label} className={cn("mb-2", collapsed ? "px-2" : "px-3")}>
+            <div key={group.labelKey} className={cn("mb-2", collapsed ? "px-2" : "px-3")}>
               {!collapsed && (
                 <p className="text-muted-foreground mb-1 px-2 text-xs font-medium uppercase tracking-wider">
-                  {group.label}
+                  {t(group.labelKey as Parameters<typeof t>[0])}
                 </p>
               )}
               <div className="space-y-0.5">

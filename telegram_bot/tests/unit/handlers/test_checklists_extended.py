@@ -8,6 +8,7 @@ from telegram_bot.handlers.checklists import (
     attach_task,
     complete_task,
     download_task_file,
+    receive_photo_name,
     receive_task_description,
     receive_task_file,
     receive_task_file_invalid,
@@ -17,6 +18,7 @@ from telegram_bot.handlers.checklists import (
     show_task_attachments,
     show_task_detail,
     skip_description,
+    skip_photo_name,
     start_task,
     task_info,
 )
@@ -390,12 +392,17 @@ class TestStartTask:
             new_callable=AsyncMock,
         ) as mock_get:
             mock_get.return_value = [{"id": 1, "status": "IN_PROGRESS"}]
-            with patch("telegram_bot.handlers.checklists.get_task_detail_keyboard") as mock_kb:
-                mock_kb.return_value = MagicMock()
+            with patch(
+                "telegram_bot.handlers.checklists.checklists_client.get_task_attachments",
+                new_callable=AsyncMock,
+            ) as mock_att:
+                mock_att.return_value = []
+                with patch("telegram_bot.handlers.checklists.get_task_detail_keyboard") as mock_kb:
+                    mock_kb.return_value = MagicMock()
 
-                await start_task(self.mock_callback, self.auth_token, locale="en")
+                    await start_task(self.mock_callback, self.auth_token, locale="en")
 
-                self.mock_callback.answer.assert_called_once()
+                    self.mock_callback.answer.assert_called_once()
 
     async def test_start_task_success(self):
         """Test start task success."""
@@ -413,12 +420,17 @@ class TestStartTask:
                     "telegram_bot.handlers.checklists.checklists_client.invalidate_task_cache",
                     new_callable=AsyncMock,
                 ):
-                    with patch("telegram_bot.handlers.checklists.get_task_detail_keyboard") as mock_kb:
-                        mock_kb.return_value = MagicMock()
+                    with patch(
+                        "telegram_bot.handlers.checklists.checklists_client.get_task_attachments",
+                        new_callable=AsyncMock,
+                    ) as mock_att:
+                        mock_att.return_value = []
+                        with patch("telegram_bot.handlers.checklists.get_task_detail_keyboard") as mock_kb:
+                            mock_kb.return_value = MagicMock()
 
-                        await start_task(self.mock_callback, self.auth_token, locale="en")
+                            await start_task(self.mock_callback, self.auth_token, locale="en")
 
-                        mock_start.assert_called_once_with(1, self.auth_token)
+                            mock_start.assert_called_once_with(1, self.auth_token)
 
     async def test_start_task_failure(self):
         """Test start task failure."""
@@ -1033,3 +1045,105 @@ class TestDownloadTaskFile:
                     for call in self.mock_callback.answer.call_args_list
                 )
                 assert loading_call_found
+
+    async def test_download_task_file_no_message(self):
+        """Test download file when callback.message is None."""
+        with patch(
+            "telegram_bot.handlers.checklists.checklists_client.get_task_attachments",
+            new_callable=AsyncMock,
+        ) as mock_get:
+            mock_get.return_value = [{"id": 1, "filename": "file.pdf"}]
+            with patch(
+                "telegram_bot.handlers.checklists.checklists_client.download_task_attachment",
+                new_callable=AsyncMock,
+            ) as mock_dl:
+                mock_dl.return_value = b"file content"
+                self.mock_callback.message = None
+
+                await download_task_file(self.mock_callback, self.auth_token, locale="en")
+
+                # Handler calls answer() for loading, then returns early when message is None
+                self.mock_callback.answer.assert_called_once()
+
+
+class TestReceivePhotoName:
+    """Test cases for receive_photo_name handler."""
+
+    @pytest.fixture(autouse=True)
+    def setup_mocks(self):
+        """Set up common mocks."""
+        self.mock_message = MagicMock(spec=Message)
+        self.mock_message.answer = AsyncMock()
+        self.mock_message.text = "my_photo"
+
+        self.mock_state = MagicMock()
+        self.mock_state.update_data = AsyncMock()
+        self.mock_state.set_state = AsyncMock()
+
+    async def test_receive_photo_name_success(self):
+        """Test receive photo name with valid name."""
+        await receive_photo_name(self.mock_message, self.mock_state, locale="en")
+
+        self.mock_state.update_data.assert_called_once()
+        self.mock_state.set_state.assert_called_once_with(TaskAttachmentStates.waiting_for_description)
+        self.mock_message.answer.assert_called_once()
+
+    async def test_receive_photo_name_empty(self):
+        """Test receive photo name with empty text (defaults to photo.jpg)."""
+        self.mock_message.text = ""
+
+        await receive_photo_name(self.mock_message, self.mock_state, locale="en")
+
+        self.mock_state.update_data.assert_called_once()
+        self.mock_state.set_state.assert_called_once_with(TaskAttachmentStates.waiting_for_description)
+        self.mock_message.answer.assert_called_once()
+
+    async def test_receive_photo_name_no_extension(self):
+        """Test receive photo name without extension (adds .jpg)."""
+        self.mock_message.text = "my_photo"
+
+        await receive_photo_name(self.mock_message, self.mock_state, locale="en")
+
+        self.mock_state.update_data.assert_called_once()
+        self.mock_state.set_state.assert_called_once_with(TaskAttachmentStates.waiting_for_description)
+        self.mock_message.answer.assert_called_once()
+
+
+class TestSkipPhotoName:
+    """Test cases for skip_photo_name handler."""
+
+    @pytest.fixture(autouse=True)
+    def setup_mocks(self):
+        """Set up common mocks."""
+        self.mock_callback = MagicMock(spec=CallbackQuery)
+        self.mock_callback.answer = AsyncMock()
+        self.mock_callback.data = "skip_photo_name"
+        self.mock_callback.message = MagicMock()
+        self.mock_callback.message.edit_text = AsyncMock()
+
+        self.mock_state = MagicMock()
+        self.mock_state.update_data = AsyncMock()
+        self.mock_state.set_state = AsyncMock()
+
+    async def test_skip_photo_name_success(self):
+        """Test skip photo name success."""
+        with patch("telegram_bot.handlers.checklists.get_skip_description_keyboard") as mock_kb:
+            mock_kb.return_value.as_markup.return_value = MagicMock()
+
+            await skip_photo_name(self.mock_callback, self.mock_state, locale="en")
+
+            self.mock_state.update_data.assert_called_once()
+            self.mock_state.set_state.assert_called_once_with(TaskAttachmentStates.waiting_for_description)
+            self.mock_callback.answer.assert_called_once()
+            self.mock_callback.message.edit_text.assert_called_once()
+
+    async def test_skip_photo_name_no_message(self):
+        """Test skip photo name with no message."""
+        self.mock_callback.message = None
+
+        await skip_photo_name(self.mock_callback, self.mock_state, locale="en")
+
+        self.mock_state.update_data.assert_called_once()
+        self.mock_state.set_state.assert_called_once_with(TaskAttachmentStates.waiting_for_description)
+        self.mock_callback.answer.assert_called_once()
+

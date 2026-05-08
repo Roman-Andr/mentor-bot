@@ -54,12 +54,16 @@ describe('useUsers', () => {
           employee_id: 'EMP001',
           role: 'NEWBIE',
           department_id: 5,
-          department: { id: 5, name: 'Engineering' },
+          department: { id: 5, name: 'Engineering', description: null, created_at: '2024-01-01T00:00:00Z', updated_at: null },
           position: 'Developer',
           is_active: true,
           created_at: '2024-01-01T00:00:00Z',
           telegram_id: 123456,
           phone: '+1234567890',
+          username: 'johndoe',
+          level: 'MIDDLE',
+          hire_date: '2024-01-01T00:00:00Z',
+          is_verified: true,
         }
 
         const result = mapUser(user)
@@ -91,6 +95,10 @@ describe('useUsers', () => {
           created_at: '2024-01-01T00:00:00Z',
           telegram_id: null,
           phone: null,
+          username: null,
+          level: null,
+          hire_date: null,
+          is_verified: false,
         }
 
         const result = mapUser(user)
@@ -114,6 +122,10 @@ describe('useUsers', () => {
           created_at: '2024-01-01T00:00:00Z',
           telegram_id: null,
           phone: null,
+          username: null,
+          level: null,
+          hire_date: null,
+          is_verified: false,
         }
 
         const result = mapUser(user)

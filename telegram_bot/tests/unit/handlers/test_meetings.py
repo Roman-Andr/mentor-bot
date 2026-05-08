@@ -7,15 +7,20 @@ import pytest
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 from telegram_bot.handlers.meetings import (
+    back_to_datetime,
+    back_to_description,
+    back_to_meetings_menu,
     cancel_meeting,
     confirm_meeting,
     meeting_details,
     meetings_menu,
     my_meetings,
+    process_duration_button,
     process_meeting_datetime,
     process_meeting_description,
     process_meeting_duration,
     process_meeting_title,
+    skip_meeting_description,
     start_schedule_meeting,
 )
 from telegram_bot.states.meeting_states import MeetingStates
@@ -47,6 +52,7 @@ class TestMeetingsHandlers:
         msg_mock.chat = MagicMock()
         msg_mock.chat.id = 123456
         msg_mock.edit_text = AsyncMock()
+        msg_mock.answer = AsyncMock()
         cb.message = msg_mock
         return cb
 
@@ -196,7 +202,8 @@ class TestMeetingsHandlers:
 
         await process_meeting_description(mock_message, mock_state, locale="en")
 
-        mock_state.update_data.assert_called_once_with(description="")
+        # Handler saves the text as-is, skip is handled via callback button
+        mock_state.update_data.assert_called_once_with(description="skip")
         mock_state.set_state.assert_called_once_with(MeetingStates.waiting_for_datetime)
 
     async def test_process_meeting_description_skip_russian(self, mock_message, mock_state):
@@ -205,7 +212,8 @@ class TestMeetingsHandlers:
 
         await process_meeting_description(mock_message, mock_state, locale="en")
 
-        mock_state.update_data.assert_called_once_with(description="")
+        # Handler saves the text as-is, skip is handled via callback button
+        mock_state.update_data.assert_called_once_with(description="пропустить")
 
     async def test_process_meeting_datetime_valid(self, mock_message, mock_state):
         """Test processing valid meeting datetime."""
@@ -284,22 +292,12 @@ class TestMeetingsHandlers:
     async def test_process_meeting_duration_invalid_number(self, mock_message, mock_state, mock_user, mock_auth_token):
         """Test processing invalid meeting duration."""
         mock_message.text = "abc"
-        mock_state.get_data.return_value = {
-            "title": "Team Standup",
-            "description": "Weekly sync",
-            "scheduled_at": "2024-12-25T14:30:00+00:00",
-        }
 
-        with patch(
-            "telegram_bot.handlers.meetings.meeting_client.create_meeting",
-            new_callable=AsyncMock,
-        ) as mock_create:
-            mock_create.return_value = {"id": 123, "title": "Team Standup"}
+        await process_meeting_duration(mock_message, mock_state, mock_user, mock_auth_token, locale="en")
 
-            await process_meeting_duration(mock_message, mock_state, mock_user, mock_auth_token, locale="en")
-
-        # Should default to 60 minutes
-        mock_create.assert_called_once()
+        # Should show error message and not call create_meeting
+        mock_message.answer.assert_called_once()
+        mock_state.update_data.assert_not_called()
 
     async def test_process_meeting_duration_create_failed(self, mock_message, mock_state, mock_user, mock_auth_token):
         """Test processing meeting duration when create fails."""
@@ -513,3 +511,106 @@ class TestMeetingsHandlers:
                     await meetings_menu(mock_message, mock_user, mock_auth_token, locale="en")
 
         mock_message.answer.assert_called_once()
+
+    async def test_back_to_meetings_menu_success(self, mock_callback, mock_user, mock_auth_token):
+        """Test back to meetings menu success."""
+        mock_state = MagicMock()
+        mock_state.clear = AsyncMock()
+        with patch("telegram_bot.handlers.meetings.get_meetings_menu_keyboard") as mock_kb:
+            mock_kb.return_value.as_markup.return_value = MagicMock()
+
+            await back_to_meetings_menu(mock_callback, mock_state, mock_user, mock_auth_token, locale="en")
+
+        mock_callback.answer.assert_called_once()
+        mock_callback.message.edit_text.assert_called_once()
+        mock_state.clear.assert_called_once()
+
+    async def test_back_to_meetings_menu_no_auth(self, mock_callback):
+        """Test back to meetings menu without auth."""
+        mock_state = MagicMock()
+        mock_state.clear = AsyncMock()
+        await back_to_meetings_menu(mock_callback, mock_state, None, None, locale="en")
+
+        mock_callback.answer.assert_called_once()
+
+    async def test_skip_meeting_description_success(self, mock_callback):
+        """Test skip meeting description success."""
+        mock_state = MagicMock()
+        mock_state.update_data = AsyncMock()
+        mock_state.set_state = AsyncMock()
+        with patch("telegram_bot.handlers.meetings.get_datetime_keyboard") as mock_kb:
+            mock_kb.return_value.as_markup.return_value = MagicMock()
+
+            await skip_meeting_description(mock_callback, mock_state, locale="en")
+
+        mock_callback.answer.assert_called_once()
+        mock_callback.message.edit_text.assert_called_once()
+        mock_state.update_data.assert_called_once()
+        mock_state.set_state.assert_called_once()
+
+    async def test_back_to_datetime_success(self, mock_callback):
+        """Test back to datetime entry success."""
+        mock_state = MagicMock()
+        mock_state.set_state = AsyncMock()
+        with patch("telegram_bot.handlers.meetings.get_datetime_keyboard") as mock_kb:
+            mock_kb.return_value.as_markup.return_value = MagicMock()
+
+            await back_to_datetime(mock_callback, mock_state, locale="en")
+
+        mock_callback.answer.assert_called_once()
+        mock_callback.message.edit_text.assert_called_once()
+        mock_state.set_state.assert_called_once()
+
+    async def test_back_to_description_success(self, mock_callback):
+        """Test back to description entry success."""
+        mock_state = MagicMock()
+        mock_state.set_state = AsyncMock()
+        with patch("telegram_bot.handlers.meetings.get_skip_description_keyboard") as mock_kb:
+            mock_kb.return_value.as_markup.return_value = MagicMock()
+
+            await back_to_description(mock_callback, mock_state, locale="en")
+
+        mock_callback.answer.assert_called_once()
+        mock_callback.message.edit_text.assert_called_once()
+        mock_state.set_state.assert_called_once()
+
+    async def test_process_duration_button_success(self, mock_callback, mock_user, mock_auth_token):
+        """Test process duration button success."""
+        mock_callback.data = "meeting_duration_30"
+        with patch(
+            "telegram_bot.handlers.meetings._finish_meeting_creation",
+            new_callable=AsyncMock,
+        ) as mock_finish:
+            await process_duration_button(mock_callback, MagicMock(), mock_user, mock_auth_token, locale="en")
+
+        mock_callback.answer.assert_called_once()
+        mock_finish.assert_called_once()
+
+    async def test_process_duration_button_no_message(self, mock_callback, mock_user, mock_auth_token):
+        """Test process duration button with no message."""
+        mock_callback.data = "meeting_duration_30"
+        mock_callback.message = None
+        with patch(
+            "telegram_bot.handlers.meetings._finish_meeting_creation",
+            new_callable=AsyncMock,
+        ) as mock_finish:
+            await process_duration_button(mock_callback, MagicMock(), mock_user, mock_auth_token, locale="en")
+
+        mock_callback.answer.assert_called_once()
+        mock_finish.assert_called_once()
+
+    async def test_process_duration_button_with_message(self, mock_callback, mock_user, mock_auth_token):
+        """Test process duration button with message (covers send_fn edit_text call)."""
+        mock_callback.data = "meeting_duration_30"
+        mock_callback.message.edit_text = AsyncMock()
+        with patch(
+            "telegram_bot.handlers.meetings._finish_meeting_creation",
+            new_callable=AsyncMock,
+        ) as mock_finish:
+            async def call_send_fn(send_fn, *args, **kwargs):
+                await send_fn("test text")
+            mock_finish.side_effect = call_send_fn
+            await process_duration_button(mock_callback, MagicMock(), mock_user, mock_auth_token, locale="en")
+
+        mock_callback.answer.assert_called_once()
+        mock_callback.message.edit_text.assert_called_once_with("test text")

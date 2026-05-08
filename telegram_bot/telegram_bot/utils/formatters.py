@@ -273,7 +273,7 @@ def format_escalation_list(escalations: list[dict[str, Any]], *, locale: str = "
     if not escalations:
         return t("escalation.no_escalations", locale=locale)
 
-    text = "\U0001f4de *Your Escalations*\n\n"
+    text = f"\U0001f4de *{t('escalation.my_escalations_title', locale=locale)}*\n\n"
 
     for i, escalation in enumerate(escalations[:MAX_DISPLAYED_ESCALATIONS], 1):
         title = escalation.get("title", f"Escalation #{escalation['id']}")
@@ -298,6 +298,7 @@ def format_escalation_list(escalations: list[dict[str, Any]], *, locale: str = "
         text += f"   \U0001f4c1 {category} | \U0001f4c5 {formatted_date}\n\n"
 
     if len(escalations) > MAX_DISPLAYED_ESCALATIONS:
-        text += f"... and {len(escalations) - MAX_DISPLAYED_ESCALATIONS} more escalations\n\n"
+        count = len(escalations) - MAX_DISPLAYED_ESCALATIONS
+        text += t("escalation.more_escalations", locale=locale, count=count) + "\n\n"
 
     return text

@@ -146,7 +146,7 @@
     "deleteError": "Ошибка удаления чек-листа",
     "dueDate": "Дедлайн",
     "editChecklist": "Редактировать чек-лист",
-    "employee": "Сотрудник",
+    "employee": "Пользователь",
     "employeeId": "ID сотрудника",
     "markComplete": "Отметить как выполненный",
     "mentor": "Наставник",
@@ -678,7 +678,12 @@
     "notificationTemplates": "Шаблоны уведомлений",
     "settings": "Настройки",
     "templates": "Шаблоны",
-    "users": "Пользователи"
+    "users": "Пользователи",
+    "groupPeople": "Люди",
+    "groupOnboarding": "Онбординг",
+    "groupKnowledge": "Знания",
+    "groupInsights": "Аналитика",
+    "groupSystem": "Система"
   },
   "pagination": {
     "back": "Назад",

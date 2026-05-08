@@ -4,7 +4,7 @@ import { useEntityFilters } from '@/shared/hooks/entity/use-entity-filters'
 
 describe('useEntityFilters', () => {
   it('initializes with default filter values', () => {
-    const filters = [
+    const filters: Array<{ name: string; defaultValue: string }> = [
       { name: 'status', defaultValue: 'ALL' },
       { name: 'category', defaultValue: 'default' },
     ]
@@ -19,13 +19,13 @@ describe('useEntityFilters', () => {
 
   it('initializes with empty filter values when no filters provided', () => {
     const setCurrentPage = vi.fn()
-    const { result } = renderHook(() => useEntityFilters([], setCurrentPage))
+    const { result } = renderHook(() => useEntityFilters([] as Array<{ name: string; defaultValue: string }>, setCurrentPage))
 
     expect(result.current.filterValues).toEqual({})
   })
 
   it('sets filter value and resets page', () => {
-    const filters = [{ name: 'status', defaultValue: 'ALL' }]
+    const filters: Array<{ name: string; defaultValue: string }> = [{ name: 'status', defaultValue: 'ALL' }]
     const setCurrentPage = vi.fn()
     const { result } = renderHook(() => useEntityFilters(filters, setCurrentPage))
 
@@ -38,7 +38,7 @@ describe('useEntityFilters', () => {
   })
 
   it('resets filters to defaults', () => {
-    const filters = [
+    const filters: Array<{ name: string; defaultValue: string }> = [
       { name: 'status', defaultValue: 'ALL' },
       { name: 'category', defaultValue: 'default' },
     ]
@@ -64,7 +64,7 @@ describe('useEntityFilters', () => {
   })
 
   it('resets sort when resetting filters', () => {
-    const filters = [{ name: 'status', defaultValue: 'ALL' }]
+    const filters: Array<{ name: string; defaultValue: string }> = [{ name: 'status', defaultValue: 'ALL' }]
     const setCurrentPage = vi.fn()
     const { result } = renderHook(() => useEntityFilters(filters, setCurrentPage))
 
@@ -84,7 +84,7 @@ describe('useEntityFilters', () => {
   })
 
   it('toggles sort direction on same field', () => {
-    const filters = []
+    const filters: Array<{ name: string; defaultValue: string }> = []
     const setCurrentPage = vi.fn()
     const { result } = renderHook(() => useEntityFilters(filters, setCurrentPage))
 
@@ -104,7 +104,7 @@ describe('useEntityFilters', () => {
   })
 
   it('sets sort field and toggles direction when toggling new field', () => {
-    const filters = []
+    const filters: Array<{ name: string; defaultValue: string }> = []
     const setCurrentPage = vi.fn()
     const { result } = renderHook(() => useEntityFilters(filters, setCurrentPage))
 
@@ -122,7 +122,7 @@ describe('useEntityFilters', () => {
   })
 
   it('sets sort with explicit direction', () => {
-    const filters = []
+    const filters: Array<{ name: string; defaultValue: string }> = []
     const setCurrentPage = vi.fn()
     const { result } = renderHook(() => useEntityFilters(filters, setCurrentPage))
 
@@ -142,7 +142,7 @@ describe('useEntityFilters', () => {
   })
 
   it('clears sort', () => {
-    const filters = []
+    const filters: Array<{ name: string; defaultValue: string }> = []
     const setCurrentPage = vi.fn()
     const { result } = renderHook(() => useEntityFilters(filters, setCurrentPage))
 
@@ -161,7 +161,7 @@ describe('useEntityFilters', () => {
   })
 
   it('initializes sort with null field and asc direction', () => {
-    const filters = []
+    const filters: Array<{ name: string; defaultValue: string }> = []
     const setCurrentPage = vi.fn()
     const { result } = renderHook(() => useEntityFilters(filters, setCurrentPage))
 

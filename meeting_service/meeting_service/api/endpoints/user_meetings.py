@@ -63,14 +63,26 @@ async def get_my_meetings(
 async def assign_meeting(
     assignment_data: UserMeetingCreate,
     uow: UOWDep,
-    _current_user: HRUser,
+    current_user: CurrentUser,
 ) -> UserMeetingResponse:
-    """Assign a meeting to a user (HR/Admin only)."""
+    """Assign a meeting to a user (HR/Admin can assign to anyone, users can assign to themselves)."""
     logger.info(
-        "POST /user-meetings/assign request (user_id={}, meeting_id={})",
+        "POST /user-meetings/assign request (user_id={}, meeting_id={}, current_user_id={})",
         assignment_data.user_id,
         assignment_data.meeting_id,
+        current_user.id,
     )
+    # Allow HR/Admin to assign to anyone, but regular users can only assign to themselves
+    if not current_user.has_role(["HR", "ADMIN"]) and assignment_data.user_id != current_user.id:
+        logger.warning(
+            "Assign meeting forbidden: user {} cannot assign to user {}",
+            current_user.id,
+            assignment_data.user_id,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only assign meetings to yourself",
+        )
     service = MeetingService(uow)
     try:
         assignment = await service.assign_meeting(assignment_data)

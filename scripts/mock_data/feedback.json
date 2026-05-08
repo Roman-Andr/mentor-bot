@@ -4,7 +4,7 @@
       "user_key": "newbie_1",
       "rating": 8,
       "is_anonymous": false,
-      "days_ago": 1,
+      "days_ago": 9,
       "department_id": 1,
       "position_level": "JUNIOR"
     },
@@ -12,7 +12,7 @@
       "user_key": "newbie_1",
       "rating": 7,
       "is_anonymous": false,
-      "days_ago": 5,
+      "days_ago": 45,
       "department_id": 1,
       "position_level": "JUNIOR"
     },
@@ -20,7 +20,7 @@
       "user_key": "newbie_2",
       "rating": 9,
       "is_anonymous": false,
-      "days_ago": 2,
+      "days_ago": 18,
       "department_id": 1,
       "position_level": "MIDDLE"
     },
@@ -28,7 +28,7 @@
       "user_key": "newbie_2",
       "rating": 8,
       "is_anonymous": false,
-      "days_ago": 8,
+      "days_ago": 72,
       "department_id": 1,
       "position_level": "MIDDLE"
     },
@@ -36,7 +36,7 @@
       "user_key": "newbie_3",
       "rating": 6,
       "is_anonymous": false,
-      "days_ago": 3,
+      "days_ago": 27,
       "department_id": 2,
       "position_level": "JUNIOR"
     },
@@ -44,7 +44,7 @@
       "user_key": "newbie_4",
       "rating": 8,
       "is_anonymous": false,
-      "days_ago": 1,
+      "days_ago": 9,
       "department_id": 3,
       "position_level": "JUNIOR"
     },
@@ -52,7 +52,7 @@
       "user_key": "newbie_5",
       "rating": 5,
       "is_anonymous": false,
-      "days_ago": 4,
+      "days_ago": 36,
       "department_id": 4,
       "position_level": "JUNIOR"
     },
@@ -60,7 +60,7 @@
       "user_key": "newbie_6",
       "rating": 9,
       "is_anonymous": false,
-      "days_ago": 2,
+      "days_ago": 18,
       "department_id": 5,
       "position_level": "JUNIOR"
     },
@@ -68,7 +68,7 @@
       "user_key": "newbie_7",
       "rating": 7,
       "is_anonymous": false,
-      "days_ago": 6,
+      "days_ago": 54,
       "department_id": 1,
       "position_level": "MIDDLE"
     },
@@ -76,7 +76,7 @@
       "user_key": "newbie_8",
       "rating": 8,
       "is_anonymous": false,
-      "days_ago": 1,
+      "days_ago": 9,
       "department_id": 1,
       "position_level": "JUNIOR"
     },
@@ -84,7 +84,7 @@
       "user_key": "newbie_9",
       "rating": 9,
       "is_anonymous": false,
-      "days_ago": 3,
+      "days_ago": 27,
       "department_id": 2,
       "position_level": "JUNIOR"
     },
@@ -92,7 +92,7 @@
       "user_key": "newbie_10",
       "rating": 6,
       "is_anonymous": false,
-      "days_ago": 5,
+      "days_ago": 45,
       "department_id": 3,
       "position_level": "MIDDLE"
     },
@@ -100,7 +100,7 @@
       "user_key": "newbie_11",
       "rating": 8,
       "is_anonymous": false,
-      "days_ago": 2,
+      "days_ago": 18,
       "department_id": 4,
       "position_level": "JUNIOR"
     },
@@ -108,7 +108,7 @@
       "user_key": "newbie_12",
       "rating": 7,
       "is_anonymous": false,
-      "days_ago": 4,
+      "days_ago": 36,
       "department_id": 5,
       "position_level": "JUNIOR"
     },
@@ -116,7 +116,7 @@
       "user_key": "employee_1",
       "rating": 8,
       "is_anonymous": false,
-      "days_ago": 7,
+      "days_ago": 63,
       "department_id": 1,
       "position_level": "MIDDLE"
     },
@@ -124,7 +124,7 @@
       "user_key": "employee_2",
       "rating": 9,
       "is_anonymous": false,
-      "days_ago": 3,
+      "days_ago": 27,
       "department_id": 1,
       "position_level": "SENIOR"
     },
@@ -132,7 +132,7 @@
       "user_key": "employee_3",
       "rating": 7,
       "is_anonymous": false,
-      "days_ago": 10,
+      "days_ago": 90,
       "department_id": 2,
       "position_level": "MIDDLE"
     },
@@ -140,7 +140,7 @@
       "user_key": "employee_4",
       "rating": 8,
       "is_anonymous": false,
-      "days_ago": 5,
+      "days_ago": 45,
       "department_id": 3,
       "position_level": "SENIOR"
     },
@@ -148,7 +148,7 @@
       "user_key": "employee_5",
       "rating": 6,
       "is_anonymous": false,
-      "days_ago": 8,
+      "days_ago": 72,
       "department_id": 4,
       "position_level": "MIDDLE"
     },
@@ -156,7 +156,7 @@
       "user_key": "andrusevich_roman",
       "rating": 8,
       "is_anonymous": false,
-      "days_ago": 1,
+      "days_ago": 9,
       "department_id": 1,
       "position_level": "JUNIOR"
     },
@@ -164,7 +164,7 @@
       "user_key": "andrusevich_roman",
       "rating": 7,
       "is_anonymous": false,
-      "days_ago": 5,
+      "days_ago": 45,
       "department_id": 1,
       "position_level": "JUNIOR"
     },
@@ -172,7 +172,7 @@
       "user_key": null,
       "rating": 8,
       "is_anonymous": true,
-      "days_ago": 2,
+      "days_ago": 18,
       "department_id": 1,
       "position_level": "MIDDLE"
     },
@@ -180,7 +180,7 @@
       "user_key": null,
       "rating": 9,
       "is_anonymous": true,
-      "days_ago": 6,
+      "days_ago": 54,
       "department_id": 2,
       "position_level": "SENIOR"
     },
@@ -188,7 +188,7 @@
       "user_key": null,
       "rating": 6,
       "is_anonymous": true,
-      "days_ago": 3,
+      "days_ago": 27,
       "department_id": 3,
       "position_level": "JUNIOR"
     }
@@ -340,30 +340,30 @@
       "user_key": "newbie_1",
       "comment": "Чеклист адаптации очень помог и провёл меня через все этапы.",
       "is_anonymous": false,
-      "days_ago": 10,
+      "days_ago": 30,
       "department_id": 1,
       "allow_contact": false,
       "reply": "Спасибо за обратную связь! Рад, что чеклист был полезен.",
       "replied_by": "hr_director",
-      "replied_days_ago": 8
+      "replied_days_ago": 24
     },
     {
       "user_key": "newbie_2",
       "comment": "Хотелось бы больше практических заданий в первую неделю.",
       "is_anonymous": false,
-      "days_ago": 15,
+      "days_ago": 45,
       "department_id": 1,
       "allow_contact": true,
       "contact_email": "newbie2@company.com",
       "reply": "Хорошее предложение, учтём в следующей версии программы.",
       "replied_by": "hr_specialist",
-      "replied_days_ago": 12
+      "replied_days_ago": 36
     },
     {
       "user_key": "newbie_3",
       "comment": "Мой ментор очень поддерживает и отвечает на все вопросы.",
       "is_anonymous": false,
-      "days_ago": 5,
+      "days_ago": 15,
       "department_id": 2,
       "allow_contact": false
     },
@@ -371,18 +371,18 @@
       "user_key": "newbie_4",
       "comment": "Документация по настройке окружения может быть подробнее.",
       "is_anonymous": false,
-      "days_ago": 20,
+      "days_ago": 60,
       "department_id": 3,
       "allow_contact": false,
       "reply": "Обновим документацию в ближайшее время.",
       "replied_by": "mentor_1",
-      "replied_days_ago": 18
+      "replied_days_ago": 54
     },
     {
       "user_key": "newbie_5",
       "comment": "Отличная культура компании и очень дружелюбные коллеги!",
       "is_anonymous": false,
-      "days_ago": 8,
+      "days_ago": 24,
       "department_id": 4,
       "allow_contact": false
     },
@@ -390,7 +390,7 @@
       "user_key": "newbie_6",
       "comment": "Было бы полезно иметь наставника в дополнение к ментору.",
       "is_anonymous": false,
-      "days_ago": 12,
+      "days_ago": 36,
       "department_id": 5,
       "allow_contact": true,
       "contact_email": "newbie6@company.com"
@@ -399,7 +399,7 @@
       "user_key": "newbie_7",
       "comment": "Сессия HR дала всю нужную информацию о бенефитах.",
       "is_anonymous": false,
-      "days_ago": 25,
+      "days_ago": 75,
       "department_id": 1,
       "allow_contact": false
     },
@@ -407,18 +407,18 @@
       "user_key": "newbie_8",
       "comment": "Обучение по безопасности было полезным, но немного затянутым.",
       "is_anonymous": false,
-      "days_ago": 18,
+      "days_ago": 54,
       "department_id": 1,
       "allow_contact": false,
       "reply": "Сократим обучение безопасности в следующий раз.",
       "replied_by": "hr_specialist",
-      "replied_days_ago": 15
+      "replied_days_ago": 45
     },
     {
       "user_key": "newbie_9",
       "comment": "Оценил возможность работать удалённо с первого дня.",
       "is_anonymous": false,
-      "days_ago": 7,
+      "days_ago": 21,
       "department_id": 2,
       "allow_contact": false
     },
@@ -426,7 +426,7 @@
       "user_key": "newbie_10",
       "comment": "Очень позитивный опыт адаптации. Спасибо!",
       "is_anonymous": false,
-      "days_ago": 14,
+      "days_ago": 42,
       "department_id": 3,
       "allow_contact": false
     },
@@ -434,7 +434,7 @@
       "user_key": "newbie_11",
       "comment": "Нужно больше времени на знакомство с кодовой базой.",
       "is_anonymous": false,
-      "days_ago": 22,
+      "days_ago": 66,
       "department_id": 4,
       "allow_contact": true,
       "contact_email": "newbie11@company.com"
@@ -443,7 +443,7 @@
       "user_key": "newbie_12",
       "comment": "Команда очень помогла с первым код-ревью.",
       "is_anonymous": false,
-      "days_ago": 9,
+      "days_ago": 27,
       "department_id": 5,
       "allow_contact": false
     },
@@ -451,7 +451,7 @@
       "user_key": "employee_1",
       "comment": "Хорошо структурированная программа для новичков.",
       "is_anonymous": false,
-      "days_ago": 35,
+      "days_ago": 105,
       "department_id": 1,
       "allow_contact": false
     },
@@ -459,7 +459,7 @@
       "user_key": "employee_2",
       "comment": "Еженедельные 1:1 с ментором очень полезны.",
       "is_anonymous": false,
-      "days_ago": 40,
+      "days_ago": 120,
       "department_id": 1,
       "allow_contact": false
     },
@@ -467,7 +467,7 @@
       "user_key": "employee_3",
       "comment": "База знаний содержит много полезной информации.",
       "is_anonymous": false,
-      "days_ago": 28,
+      "days_ago": 84,
       "department_id": 2,
       "allow_contact": false
     },
@@ -475,7 +475,7 @@
       "user_key": "andrusevich_roman",
       "comment": "Работаю над изучением архитектуры проекта, всё интересно!",
       "is_anonymous": false,
-      "days_ago": 2,
+      "days_ago": 6,
       "department_id": 1,
       "allow_contact": false
     },
@@ -483,19 +483,19 @@
       "user_key": "andrusevich_roman",
       "comment": "Нужна помощь с настройкой локального окружения Docker.",
       "is_anonymous": false,
-      "days_ago": 5,
+      "days_ago": 15,
       "department_id": 1,
       "allow_contact": true,
       "contact_email": "roman.andrusevich@company.com",
       "reply": "Помогу с настройкой Docker на следующей встрече.",
       "replied_by": "mentor_1",
-      "replied_days_ago": 3
+      "replied_days_ago": 9
     },
     {
       "user_key": "andrusevich_roman",
       "comment": "Провожу продуктивные встречи с командой, узнаю много нового.",
       "is_anonymous": false,
-      "days_ago": 1,
+      "days_ago": 3,
       "department_id": 1,
       "allow_contact": false
     },
@@ -503,7 +503,7 @@
       "user_key": null,
       "comment": "Отличный процесс онбординга, всё понятно и структурировано.",
       "is_anonymous": true,
-      "days_ago": 15,
+      "days_ago": 45,
       "department_id": 1,
       "allow_contact": false
     },
@@ -511,19 +511,19 @@
       "user_key": null,
       "comment": "Хотелось бы больше интерактивных материалов в обучении.",
       "is_anonymous": true,
-      "days_ago": 20,
+      "days_ago": 60,
       "department_id": 2,
       "allow_contact": true,
       "contact_email": "anonymous@company.com",
       "reply": "Добавим больше интерактивных материалов в следующем квартале.",
       "replied_by": "hr_director",
-      "replied_days_ago": 18
+      "replied_days_ago": 54
     },
     {
       "user_key": null,
       "comment": "Менторская программа работает отлично, спасибо команде!",
       "is_anonymous": true,
-      "days_ago": 8,
+      "days_ago": 24,
       "department_id": 3,
       "allow_contact": false
     }

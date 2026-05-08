@@ -108,7 +108,7 @@ def get_anonymity_choice_keyboard(*, locale: str = "en", survey_type: str = "pul
             callback_data="feedback_menu",
         )
     )
-    builder.adjust(2, 1)
+    builder.adjust(1)
     return builder.as_markup()
 
 

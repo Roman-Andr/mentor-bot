@@ -106,28 +106,20 @@ def get_inline_main_menu(user: dict | None = None, locale: str = "en") -> Inline
             style=ButtonStyle.PRIMARY,
         ),
     )
-    # Row 2: Search Answer | Documents
+    # Row 2: Documents | My Mentor
     builder.add(
-        create_inline_button(
-            f"\U0001f50d {t('buttons.search_answer', locale=locale)}",
-            callback_data="search_kb",
-            style=ButtonStyle.PRIMARY,
-        ),
         create_inline_button(
             f"\U0001f4c1 {t('buttons.documents', locale=locale)}",
             callback_data="documents_menu",
             style=ButtonStyle.PRIMARY,
         ),
-    )
-    # Row 3: My Mentor
-    builder.add(
         create_inline_button(
             f"\U0001f468\u200d\U0001f3eb {t('buttons.my_mentor', locale=locale)}",
             callback_data="my_mentor",
             style=ButtonStyle.PRIMARY,
         ),
     )
-    # Row 4: Calendar | Meetings
+    # Row 3: Calendar | Meetings
     builder.add(
         create_inline_button(
             f"\U0001f4c5 {t('buttons.calendar', locale=locale)}",
@@ -140,39 +132,38 @@ def get_inline_main_menu(user: dict | None = None, locale: str = "en") -> Inline
             style=ButtonStyle.PRIMARY,
         ),
     )
-    # Row 5: Escalate (red/danger style, separate row for visibility)
+    # Row 4: Escalate | Feedback
     builder.add(
         create_inline_button(
             f"🚨 {t('buttons.escalate', locale=locale)}",
             callback_data="escalate_menu",
             style=ButtonStyle.DANGER,
         ),
-    )
-    # Row 6: Feedback | Progress
-    builder.add(
         create_inline_button(
             f"\U0001f4ca {t('buttons.feedback', locale=locale)}",
             callback_data="feedback_menu",
             style=ButtonStyle.PRIMARY,
         ),
+    )
+    # Row 5: Progress | Settings
+    builder.add(
         create_inline_button(
             f"\U0001f4ca {t('buttons.progress', locale=locale)}",
             callback_data="progress",
             style=ButtonStyle.PRIMARY,
         ),
-    )
-
-    # Row 7: Settings | Help
-    builder.add(
         create_inline_button(
             f"\u2699\ufe0f {t('buttons.settings', locale=locale)}",
             callback_data="settings_menu",
             style=ButtonStyle.PRIMARY,
         ),
+    )
+    # Row 6: Help
+    builder.add(
         create_inline_button(f"\u2139\ufe0f {t('buttons.help', locale=locale)}", callback_data="help"),
     )
 
-    # Row 8: Admin (if applicable)
+    # Row 7: Admin (if applicable)
     if _is_admin(user):
         builder.add(
             create_inline_button(
@@ -181,8 +172,8 @@ def get_inline_main_menu(user: dict | None = None, locale: str = "en") -> Inline
                 style=ButtonStyle.DANGER,
             ),
         )
-        builder.adjust(2, 2, 2, 2, 1, 2, 2, 1)
+        builder.adjust(2, 2, 2, 2, 2, 1, 1)
     else:
-        builder.adjust(2, 2, 2, 2, 1, 2, 2)
+        builder.adjust(2, 2, 2, 2, 2, 1)
 
     return builder.as_markup()

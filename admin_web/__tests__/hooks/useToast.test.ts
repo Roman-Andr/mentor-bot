@@ -13,7 +13,7 @@ vi.mock('react', async () => {
   const mockToast = vi.fn(() => Promise.resolve(true))
   return {
     ...actual,
-    useContext: () => mockToast,
+    useContext: () => ({ toast: mockToast }),
   }
 })
 
@@ -24,29 +24,25 @@ describe('useToast', () => {
 
   it('returns toast function from context', () => {
     const { result } = renderHook(() => useToast())
-    expect(typeof result.current).toBe('function')
+    expect(typeof result.current.toast).toBe('function')
   })
 
   it('returns a promise from toast call', () => {
     const { result } = renderHook(() => useToast())
-    const resultPromise = result.current('Test message')
+    const resultPromise = result.current.toast('Test message')
     expect(resultPromise).toBeInstanceOf(Promise)
   })
 
   it('accepts options object', () => {
     const { result } = renderHook(() => useToast())
-    const resultPromise = result.current({
-      title: 'Success',
-      description: 'Operation completed',
-      variant: 'success'
-    })
+    const resultPromise = result.current.toast('Test message', 'success')
     expect(resultPromise).toBeInstanceOf(Promise)
   })
 
   it('memoizes toast function across renders', () => {
     const { result, rerender } = renderHook(() => useToast())
-    const firstToast = result.current
+    const firstToast = result.current.toast
     rerender()
-    expect(result.current).toBe(firstToast)
+    expect(result.current.toast).toBe(firstToast)
   })
 })

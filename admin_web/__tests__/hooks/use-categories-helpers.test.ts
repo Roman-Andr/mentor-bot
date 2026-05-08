@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { mapCategory, toCreatePayload, toUpdatePayload, toForm } from '@/shared/hooks/use-categories'
-import type { Category } from '@/types'
+import type { Category } from '@/shared/types/knowledge'
 
 describe('use-categories helper functions', () => {
   const mockCategory: Category = {

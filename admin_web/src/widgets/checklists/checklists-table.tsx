@@ -17,6 +17,7 @@ import {
 } from "@/shared/ui/table";
 import { CardHeader, CardTitle } from "@/shared/ui/card";
 import { TableActions, buildEditAction, buildDeleteAction, buildCompleteAction } from "@/shared/components";
+import { UserAvatar } from "@/shared/ui/user-avatar";
 import { AlertTriangle, Clock, Filter } from "lucide-react";
 import { getChecklistStatusOptions } from "@/shared/lib/constants";
 import { formatDate } from "@/shared/lib/utils";
@@ -202,12 +203,15 @@ export function ChecklistsTable({
               onClick={() => onEdit(checklist)}
             >
               <TableCell>
-                <div>
-                  <p className="font-medium leading-none">{checklist.userName}</p>
-                  <p className="text-muted-foreground mt-0.5 text-xs">{checklist.employeeId}</p>
-                  {checklist.notes && (
-                    <p className="text-muted-foreground mt-0.5 line-clamp-1 max-w-44 text-xs">{checklist.notes}</p>
-                  )}
+                <div className="flex items-center gap-2">
+                  <UserAvatar name={checklist.userName} id={checklist.id} />
+                  <div>
+                    <p className="font-medium leading-none">{checklist.userName}</p>
+                    <p className="text-muted-foreground mt-0.5 text-xs">{checklist.employeeId}</p>
+                    {checklist.notes && (
+                      <p className="text-muted-foreground mt-0.5 line-clamp-1 max-w-44 text-xs">{checklist.notes}</p>
+                    )}
+                  </div>
                 </div>
               </TableCell>
               <TableCell>

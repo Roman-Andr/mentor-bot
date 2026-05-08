@@ -1,3 +1,4 @@
+import { FolderOpen } from "lucide-react";
 import type { CategoryRow } from "@/shared/hooks/use-categories";
 
 interface Column {
@@ -18,19 +19,24 @@ export function useCategoriesColumns(
       title: tCommon("common.name") ?? "Name",
       sortable: true,
       render: (item: CategoryRow) => (
-        <div>
-          <div className="flex items-center gap-2">
-            {item.color && (
-              <span
-                className="inline-block size-3 rounded-full"
-                style={{ backgroundColor: item.color }}
-              />
-            )}
-            <span className="font-medium">{item.name}</span>
+        <div className="flex items-start gap-3">
+          <div className="bg-muted flex size-8 shrink-0 items-center justify-center rounded-lg">
+            <FolderOpen className="text-muted-foreground size-4" />
           </div>
-          {item.description && (
-            <p className="text-muted-foreground text-sm">{item.description}</p>
-          )}
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              {item.color && (
+                <span
+                  className="inline-block size-3 rounded-full"
+                  style={{ backgroundColor: item.color }}
+                />
+              )}
+              <span className="font-medium">{item.name}</span>
+            </div>
+            {item.description && (
+              <p className="text-muted-foreground text-sm">{item.description}</p>
+            )}
+          </div>
         </div>
       ),
     },

@@ -316,7 +316,7 @@ describe('useEntity', () => {
     )
 
     act(() => {
-      result.current.setExtendedState((prev) => ({ ...prev, attachments: ['file.pdf'] }))
+      result.current.setExtendedState((prev: any) => ({ ...prev, attachments: ['file.pdf'] }))
     })
 
     expect(result.current.extendedState.attachments).toEqual(['file.pdf'])

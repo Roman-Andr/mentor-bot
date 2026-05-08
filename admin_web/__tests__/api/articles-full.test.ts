@@ -33,7 +33,7 @@ describe('categoriesApi', () => {
   })
 
   it('create calls fetchApi', () => {
-    categoriesApi.create({ name: 'Test' })
+    categoriesApi.create({ name: 'Test', slug: 'test' })
     expect(mockFetchApi).toHaveBeenCalled()
   })
 

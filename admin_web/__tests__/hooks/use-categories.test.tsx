@@ -56,6 +56,7 @@ describe('useCategories', () => {
         parent_name: null,
         order: 0,
         department_id: null,
+        department: null,
         position: null,
         level: null,
         icon: null,
@@ -63,6 +64,8 @@ describe('useCategories', () => {
         children_count: 0,
         articles_count: 0,
         created_at: '2024-01-01T00:00:00Z',
+        updated_at: null,
+        article_count: 0,
       }
 
       const departmentsMap: Record<number, string> = {}
@@ -85,13 +88,16 @@ describe('useCategories', () => {
         parent_name: null,
         order: 0,
         department_id: null,
+        department: null,
         position: null,
         level: null,
         icon: null,
         color: null,
         children_count: 0,
         articles_count: 0,
-        created_at: null,
+        created_at: '2024-01-01T00:00:00Z',
+        updated_at: null,
+        article_count: 0,
       }
 
       const departmentsMap: Record<number, string> = {}
@@ -116,13 +122,16 @@ describe('useCategories', () => {
         parent_name: null,
         order: 0,
         department_id: 5,
+        department: null,
         position: null,
         level: null,
         icon: null,
         color: null,
         children_count: 0,
         articles_count: 0,
-        created_at: null,
+        created_at: '2024-01-01T00:00:00Z',
+        updated_at: null,
+        article_count: 0,
       }
 
       const departmentsMap: Record<number, string> = { 5: 'Engineering' }
@@ -309,7 +318,8 @@ describe('useCategories', () => {
             children_count: 0,
             articles_count: 0,
             created_at: '2024-01-01T00:00:00Z',
-          },
+            updated_at: null,
+          }
         ],
         total: 1,
       })

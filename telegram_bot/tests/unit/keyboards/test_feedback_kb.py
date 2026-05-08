@@ -131,10 +131,11 @@ class TestFeedbackKeyboards:
         assert hasattr(result, "inline_keyboard")
         keyboard = result.inline_keyboard
 
-        # Should have 2 rows: 2 anonymity buttons, 1 back button
-        assert len(keyboard) == 2
-        assert len(keyboard[0]) == 2  # Anonymous and Attributed buttons
-        assert len(keyboard[1]) == 1  # Back button
+        # Should have 3 rows: Anonymous, Attributed, Back (adjust(1) puts each on its own row)
+        assert len(keyboard) == 3
+        assert len(keyboard[0]) == 1  # Anonymous button
+        assert len(keyboard[1]) == 1  # Attributed button
+        assert len(keyboard[2]) == 1  # Back button
 
     def test_get_anonymity_choice_keyboard_experience(self):
         """Test anonymity choice keyboard for experience rating."""
@@ -178,10 +179,12 @@ class TestFeedbackKeyboards:
         result = get_anonymity_choice_keyboard(locale="en", survey_type="pulse")
         keyboard = result.inline_keyboard
 
-        # First row: 2 buttons (Anonymous, Attributed)
-        assert len(keyboard[0]) == 2
-        # Second row: 1 button (Back)
+        # First row: 1 button (Anonymous)
+        assert len(keyboard[0]) == 1
+        # Second row: 1 button (Attributed)
         assert len(keyboard[1]) == 1
+        # Third row: 1 button (Back)
+        assert len(keyboard[2]) == 1
         # Check back button has correct callback data
-        back_button = keyboard[1][0]
+        back_button = keyboard[2][0]
         assert back_button.callback_data == "feedback_menu"

@@ -8,13 +8,15 @@ from fastapi.testclient import TestClient
 from meeting_service.api import deps
 from meeting_service.api.endpoints.calendar import router as calendar_router
 from meeting_service.config import settings
+from meeting_service.utils.cache import cache
 
 
 class TestConnectCalendar:
     """Tests for GET /api/v1/calendar/connect endpoint."""
 
-    def test_connect_calendar_success(self):
-        """Test initiating OAuth flow successfully."""
+    @patch("meeting_service.api.endpoints.calendar.cache")
+    def test_connect_calendar_success(self, mock_cache):
+        """Test initiating OAuth flow successfully with PKCE."""
         # Arrange
         app = FastAPI()
         app.include_router(calendar_router, prefix="/api/v1/calendar")
@@ -40,12 +42,16 @@ class TestConnectCalendar:
 
         client = TestClient(app)
 
+        mock_cache.is_connected = True
+        mock_cache.set = AsyncMock()
+        mock_flow = MagicMock()
+        mock_flow.code_verifier = "test_verifier_12345"
+        mock_flow.authorization_url.return_value = (
+            "https://accounts.google.com/o/oauth2/auth?redirect_uri=test",
+            "test_state",
+        )
+
         with patch("meeting_service.api.endpoints.calendar.Flow") as mock_flow_class:
-            mock_flow = MagicMock()
-            mock_flow.authorization_url.return_value = (
-                "https://accounts.google.com/o/oauth2/auth?redirect_uri=test",
-                "test_state",
-            )
             mock_flow_class.from_client_config.return_value = mock_flow
 
             # Act
@@ -60,6 +66,48 @@ class TestConnectCalendar:
         # Assert
         assert response.status_code == status.HTTP_307_TEMPORARY_REDIRECT
         assert "accounts.google.com" in response.headers["location"]
+        # Verify code_verifier was saved to Redis
+        mock_cache.set.assert_called_once_with("oauth_verifier:100:csrf_token", "test_verifier_12345", ttl=600)
+
+    @patch("meeting_service.api.endpoints.calendar.cache")
+    def test_connect_calendar_redis_not_connected(self, mock_cache):
+        """Test when Redis cache is not connected."""
+        # Arrange
+        app = FastAPI()
+        app.include_router(calendar_router, prefix="/api/v1/calendar")
+
+        mock_user = MagicMock()
+        mock_user.id = 100
+        mock_user.role = "EMPLOYEE"
+        mock_user.is_active = True
+
+        async def override_db() -> MagicMock:
+            return MagicMock()
+
+        original_db = deps.get_db
+        deps.get_db = override_db
+
+        # Mock settings
+        original_client_id = settings.GOOGLE_CLIENT_ID
+        original_redirect_uri = settings.GOOGLE_REDIRECT_URI
+        settings.GOOGLE_CLIENT_ID = "test-client-id"
+        settings.GOOGLE_REDIRECT_URI = "http://localhost:8000/callback"
+
+        client = TestClient(app)
+
+        mock_cache.is_connected = False
+
+        # Act
+        response = client.get("/api/v1/calendar/connect?state=100:csrf_token", follow_redirects=False)
+
+        # Restore
+        deps.get_db = original_db
+        settings.GOOGLE_CLIENT_ID = original_client_id
+        settings.GOOGLE_REDIRECT_URI = original_redirect_uri
+
+        # Assert
+        assert response.status_code == status.HTTP_503_SERVICE_UNAVAILABLE
+        assert "Redis cache not available" in response.json()["detail"]
 
     def test_connect_calendar_invalid_state_format(self):
         """Test with invalid state parameter format."""
@@ -145,11 +193,12 @@ class TestConnectCalendar:
 class TestOAuthCallback:
     """Tests for GET /api/v1/calendar/callback endpoint."""
 
+    @patch("meeting_service.api.endpoints.calendar.cache")
     @patch("meeting_service.api.endpoints.calendar.Flow")
     @patch("meeting_service.api.endpoints.calendar.SqlAlchemyUnitOfWork")
     @patch("meeting_service.api.endpoints.calendar.GoogleCalendarService")
-    async def test_oauth_callback_success(self, mock_gc_service_class, mock_uow_class, mock_flow_class):
-        """Test successful OAuth callback."""
+    async def test_oauth_callback_success(self, mock_gc_service_class, mock_uow_class, mock_flow_class, mock_cache):
+        """Test successful OAuth callback with PKCE."""
         # Arrange
         app = FastAPI()
         app.include_router(calendar_router, prefix="/api/v1/calendar")
@@ -161,6 +210,11 @@ class TestOAuthCallback:
 
         original_db = deps.get_db
         deps.get_db = override_db
+
+        # Mock cache
+        mock_cache.is_connected = True
+        mock_cache.get = AsyncMock(return_value="test_verifier_12345")
+        mock_cache.delete = AsyncMock()
 
         # Mock Flow
         mock_flow = MagicMock()
@@ -195,7 +249,13 @@ class TestOAuthCallback:
         data = response.json()
         assert data["status"] == "success"
         assert data["user_id"] == "100"
+        # Verify code_verifier was retrieved from Redis
+        mock_cache.get.assert_called_once_with("oauth_verifier:100:csrf_token")
+        # Verify code_verifier was set on flow
+        assert mock_flow.code_verifier == "test_verifier_12345"
         mock_flow.fetch_token.assert_called_once_with(code="auth_code")
+        # Verify verifier was deleted after successful use
+        mock_cache.delete.assert_called_once_with("oauth_verifier:100:csrf_token")
 
     def test_oauth_callback_invalid_state(self):
         """Test callback with invalid state parameter."""
@@ -221,8 +281,66 @@ class TestOAuthCallback:
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert "Failed to connect" in response.json()["detail"]
 
+    @patch("meeting_service.api.endpoints.calendar.cache")
+    def test_oauth_callback_missing_verifier(self, mock_cache):
+        """Test callback when code_verifier is missing from Redis (expired session)."""
+        # Arrange
+        app = FastAPI()
+        app.include_router(calendar_router, prefix="/api/v1/calendar")
+
+        async def override_db() -> MagicMock:
+            return MagicMock()
+
+        original_db = deps.get_db
+        deps.get_db = override_db
+
+        # Mock cache
+        mock_cache.is_connected = True
+        mock_cache.get = AsyncMock(return_value=None)
+
+        client = TestClient(app)
+
+        # Act
+        response = client.get("/api/v1/calendar/callback?code=auth_code&state=100:csrf_token")
+
+        # Restore
+        deps.get_db = original_db
+
+        # Assert
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "OAuth session expired or invalid" in response.json()["detail"]
+
+    @patch("meeting_service.api.endpoints.calendar.cache")
+    def test_oauth_callback_redis_not_connected(self, mock_cache):
+        """Test callback when Redis cache is not connected."""
+        # Arrange
+        app = FastAPI()
+        app.include_router(calendar_router, prefix="/api/v1/calendar")
+
+        async def override_db() -> MagicMock:
+            return MagicMock()
+
+        original_db = deps.get_db
+        deps.get_db = override_db
+
+        # Mock cache
+        mock_cache.is_connected = False
+
+        client = TestClient(app)
+
+        # Act
+        response = client.get("/api/v1/calendar/callback?code=auth_code&state=100:csrf_token")
+
+        # Restore
+        deps.get_db = original_db
+
+        # Assert
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "Redis cache not available" in response.json()["detail"]
+
+    @patch("meeting_service.api.endpoints.calendar.cache")
     @patch("meeting_service.api.endpoints.calendar.Flow")
-    async def test_oauth_callback_fetch_token_error(self, mock_flow_class):
+    async def test_oauth_callback_fetch_token_error(self, mock_flow_class, mock_cache):
         """Test handling error during token fetch."""
         # Arrange
         app = FastAPI()
@@ -233,6 +351,11 @@ class TestOAuthCallback:
 
         original_db = deps.get_db
         deps.get_db = override_db
+
+        # Mock cache
+        mock_cache.is_connected = True
+        mock_cache.get = AsyncMock(return_value="test_verifier")
+        mock_cache.delete = AsyncMock()
 
         # Mock Flow to raise exception
         mock_flow = MagicMock()

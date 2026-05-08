@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { mapDialogue, toPayload, toForm } from '@/shared/hooks/use-dialogues'
-import type { DialogueScenario } from '@/types'
+import type { DialogueScenario } from '@/shared/types/dialogue'
 
 describe('use-dialogues helper functions', () => {
   const mockScenario: DialogueScenario = {

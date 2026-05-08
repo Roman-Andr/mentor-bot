@@ -3,6 +3,7 @@
 import logging
 import secrets
 
+import httpx
 from aiogram import F, Router
 from aiogram.filters import Command
 from aiogram.types import CallbackQuery, Message
@@ -109,6 +110,15 @@ async def connect_calendar(callback: CallbackQuery, user: dict, *, locale: str =
             )
         await callback.answer()
 
+    except ValueError as e:
+        logger.error("Failed to get authorization URL from Meeting Service: %s", e)
+        await callback.answer(t("common.service_unavailable", locale=locale), show_alert=True)
+    except httpx.HTTPStatusError as e:
+        logger.error("Meeting Service returned HTTP error: %s", e.response.status_code)
+        await callback.answer(t("common.service_unavailable", locale=locale), show_alert=True)
+    except httpx.RequestError as e:
+        logger.error("Failed to connect to Meeting Service: %s", e)
+        await callback.answer(t("common.service_unavailable", locale=locale), show_alert=True)
     except Exception:
         logger.exception("Failed to initiate calendar connection")
         await callback.answer(t("common.failed", locale=locale), show_alert=True)

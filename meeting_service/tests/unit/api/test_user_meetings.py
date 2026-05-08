@@ -323,6 +323,25 @@ class TestAssignMeeting:
         # Assert
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
+    async def test_assign_meeting_forbidden_non_hr_to_other_user(self, mock_uow, mock_user_employee):
+        """Test non-HR user cannot assign meeting to another user."""
+        # Arrange
+        user = mock_user_employee(100)
+        app = create_test_app(mock_uow, user)
+        client = TestClient(app)
+
+        assignment_data = {
+            "user_id": 200,  # Different user
+            "meeting_id": 1,
+        }
+
+        # Act
+        response = client.post("/api/v1/user-meetings/assign", json=assignment_data)
+
+        # Assert
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert "only assign meetings to yourself" in response.json()["detail"]
+
 
 class TestGetAssignment:
     """Tests for GET /api/v1/user-meetings/{assignment_id} endpoint."""

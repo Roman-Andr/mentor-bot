@@ -26,6 +26,7 @@ export function DashboardWidget() {
       icon: Users,
       color: "bg-blue-500",
       description: t("dashboard.registeredInSystem"),
+      href: "/users",
     },
     {
       title: t("dashboard.activeUsers"),
@@ -35,6 +36,7 @@ export function DashboardWidget() {
       icon: Clock,
       color: "bg-yellow-500",
       description: t("dashboard.currentlyOnboarding"),
+      href: "/checklists",
     },
     {
       title: t("dashboard.completedOnboarding"),
@@ -44,6 +46,7 @@ export function DashboardWidget() {
       icon: CheckCircle,
       color: "bg-green-500",
       description: t("dashboard.successfullyCompleted"),
+      href: "/checklists",
     },
     {
       title: t("dashboard.escalations"),
@@ -53,6 +56,7 @@ export function DashboardWidget() {
       icon: AlertTriangle,
       color: "bg-red-500",
       description: t("dashboard.openEscalations"),
+      href: "/escalations",
     },
   ];
 

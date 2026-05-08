@@ -35,9 +35,8 @@ def get_settings_keyboard(
     # Back to menu button
     builder.add(
         create_inline_button(
-            f"\u2190 {t('settings.btn_back', locale=locale)}",
+            f"\u2190 {t('common.menu_button', locale=locale)}",
             callback_data="main_menu",
-            style=ButtonStyle.PRIMARY,
         )
     )
 
@@ -74,9 +73,8 @@ def get_notifications_keyboard(
     # Back to settings button
     builder.add(
         create_inline_button(
-            f"\u2190 {t('settings.btn_back_to_settings', locale=locale)}",
+            f"\u2190 {t('common.back_button', locale=locale)}",
             callback_data="settings_menu",
-            style=ButtonStyle.PRIMARY,
         )
     )
 
