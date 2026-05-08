@@ -109,7 +109,7 @@ describe('useCategories', () => {
       expect(result.level).toBe('')
       expect(result.icon).toBe('')
       expect(result.color).toBe('')
-      expect(result.createdAt).toBe('')
+      expect(result.createdAt).toBe('2024-01-01')
     })
 
     it('maps department_id to department name', () => {

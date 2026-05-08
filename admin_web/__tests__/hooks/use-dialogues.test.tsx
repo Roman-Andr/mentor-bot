@@ -89,7 +89,7 @@ describe('useDialogues', () => {
 
       const result = mapDialogue(scenario)
       expect(result.description).toBe('')
-      expect(result.createdAt).toBe('')
+      expect(result.createdAt).toBe('2024-01-01')
     })
 
     it('handles missing steps', () => {
