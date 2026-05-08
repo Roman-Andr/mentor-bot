@@ -23,6 +23,7 @@ from telegram_bot.utils.file_rate_limiter import (
     connect_rate_limiter,
     disconnect_rate_limiter,
 )
+from telegram_bot.utils.redis_subscriber import subscriber
 from telegram_bot.utils.logging import configure_logging
 
 configure_logging(service_name="telegram_bot", log_level=settings.LOG_LEVEL)
@@ -54,6 +55,13 @@ async def lifespan(bot: Bot) -> AsyncGenerator[None]:
     if settings.ENABLE_NOTIFICATIONS:
         await scheduler.start(bot)
 
+    # Start Redis notification subscriber
+    try:
+        await subscriber.start(bot)
+    except Exception:
+        logger.exception("Failed to start Redis notification subscriber")
+        # Continue without subscriber - notifications will be degraded but bot will work
+
     logger.info("Telegram Bot started successfully")
 
     yield
@@ -68,6 +76,9 @@ async def lifespan(bot: Bot) -> AsyncGenerator[None]:
         await throttling_service.disconnect()
     if settings.ENABLE_NOTIFICATIONS:
         await scheduler.shutdown()
+    
+    # Stop Redis notification subscriber
+    await subscriber.stop()
 
 
 async def setup_bot_commands(bot: Bot) -> None:

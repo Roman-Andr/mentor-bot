@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useTranslations } from "@/shared/hooks/use-translations";
 import { Download, BarChart3, BookOpen, Search, Clock } from "lucide-react";
 import { Button } from "@/shared/ui/button";
@@ -33,11 +33,12 @@ import { SearchTimeseriesChart } from "@/widgets/analytics/search/search-timeser
 import { SearchFilters } from "@/widgets/analytics/search/search-filters";
 import { HistoryTab } from "@/widgets/analytics/history/history-tab";
 import type { TabItem } from "@/shared/ui/tab-switcher";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 
 export function AnalyticsWidget() {
   const t = useTranslations();
   const searchParams = useSearchParams();
+  const router = useRouter();
   const activeTab = searchParams.get("tab") || "onboarding";
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<ChecklistStats | null>(null);
@@ -46,8 +47,12 @@ export function AnalyticsWidget() {
   const [completionTimeData, setCompletionTimeData] = useState<Array<{ range: string; count: number }>>([]);
   const [departmentMap, setDepartmentMap] = useState<Record<string, string>>({});
 
-  const [dateRange, setDateRange] = useState<{ from_date?: string; to_date?: string }>({});
-  const [granularity, setGranularity] = useState<"day" | "week">("day");
+  // Initialize knowledge filters from URL
+  const [dateRange, setDateRange] = useState<{ from_date?: string; to_date?: string }>(() => ({
+    from_date: searchParams.get("k_from_date") ?? undefined,
+    to_date: searchParams.get("k_to_date") ?? undefined,
+  }));
+  const [granularity, setGranularity] = useState<"day" | "week">(() => (searchParams.get("k_granularity") as "day" | "week") ?? "day");
 
   const tabs: TabItem[] = [
     { id: "onboarding", label: t("analytics.onboardingTab"), icon: BarChart3 },
@@ -56,13 +61,64 @@ export function AnalyticsWidget() {
     { id: "history", label: t("analytics.historyTab"), icon: Clock },
   ];
 
+  // Initialize search filters from URL
   const [searchSummary, setSearchSummary] = useState<SearchSummary | null>(null);
   const [searchTopQueries, setSearchTopQueries] = useState<TopQueryStats[]>([]);
   const [searchZeroResults, setSearchZeroResults] = useState<ZeroResultQuery[]>([]);
   const [searchByDepartment, setSearchByDepartment] = useState<DepartmentSearchStats[]>([]);
   const [searchTimeseries, setSearchTimeseries] = useState<SearchTimeseriesPoint[]>([]);
-  const [searchFilters, setSearchFilters] = useState<{ from_date?: string; to_date?: string; department_id?: number }>({});
+  const [searchFilters, setSearchFilters] = useState<{ from_date?: string; to_date?: string; department_id?: number }>(() => ({
+    from_date: searchParams.get("s_from_date") ?? undefined,
+    to_date: searchParams.get("s_to_date") ?? undefined,
+    department_id: searchParams.get("s_department_id") ? parseInt(searchParams.get("s_department_id")!, 10) : undefined,
+  }));
   const [searchLoading, setSearchLoading] = useState(false);
+
+  // URL-aware setters for knowledge filters
+  const setDateRangeWithUrl = useCallback((newDateRange: { from_date?: string; to_date?: string }) => {
+    setDateRange(newDateRange);
+    const params = new URLSearchParams(searchParams.toString());
+    if (newDateRange.from_date) {
+      params.set("k_from_date", newDateRange.from_date);
+    } else {
+      params.delete("k_from_date");
+    }
+    if (newDateRange.to_date) {
+      params.set("k_to_date", newDateRange.to_date);
+    } else {
+      params.delete("k_to_date");
+    }
+    router.push(`?${params.toString()}`, { scroll: false });
+  }, [searchParams, router]);
+
+  const setGranularityWithUrl = useCallback((newGranularity: "day" | "week") => {
+    setGranularity(newGranularity);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("k_granularity", newGranularity);
+    router.push(`?${params.toString()}`, { scroll: false });
+  }, [searchParams, router]);
+
+  // URL-aware setter for search filters
+  const setSearchFiltersWithUrl = useCallback((newFilters: { from_date?: string; to_date?: string; department_id?: number }) => {
+    setSearchFilters(newFilters);
+    const params = new URLSearchParams(searchParams.toString());
+    if (newFilters.from_date) {
+      params.set("s_from_date", newFilters.from_date);
+    } else {
+      params.delete("s_from_date");
+    }
+    if (newFilters.to_date) {
+      params.set("s_to_date", newFilters.to_date);
+    } else {
+      params.delete("s_to_date");
+    }
+    if (newFilters.department_id) {
+      params.set("s_department_id", newFilters.department_id.toString());
+    } else {
+      params.delete("s_department_id");
+    }
+    router.push(`?${params.toString()}`, { scroll: false });
+  }, [searchParams, router]);
 
   useEffect(() => {
     async function loadOnboardingData() {
@@ -251,7 +307,7 @@ export function AnalyticsWidget() {
 
         {activeTab === "knowledge" && (
           <>
-            <KnowledgeDateRangePicker onChange={setDateRange} />
+            <KnowledgeDateRangePicker onChange={setDateRangeWithUrl} />
             {knowledgeLoading ? (
               <AnalyticsPageSkeleton />
             ) : (
@@ -274,7 +330,7 @@ export function AnalyticsWidget() {
                       ))}
                     </TableBody>
                   </Table>
-                  <KnowledgeViewsTimeseries data={timeseriesData || []} onGranularityChange={setGranularity} currentGranularity={granularity} />
+                  <KnowledgeViewsTimeseries data={timeseriesData || []} onGranularityChange={setGranularityWithUrl} currentGranularity={granularity} />
                 </div>
                 <div className="grid gap-6 lg:grid-cols-2">
                   <KnowledgeViewsByCategory data={categoryData || []} />
@@ -287,7 +343,7 @@ export function AnalyticsWidget() {
 
         {activeTab === "search" && (
           <>
-            <SearchFilters onFiltersChange={setSearchFilters} />
+            <SearchFilters onFiltersChange={setSearchFiltersWithUrl} />
             {searchLoading ? (
               <AnalyticsPageSkeleton />
             ) : (

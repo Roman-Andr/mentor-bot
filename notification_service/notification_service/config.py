@@ -35,8 +35,7 @@ class Settings(BaseSettings):
     AUTH_SERVICE_TIMEOUT: int = Field(default=10, ge=1)
 
     # Telegram
-    TELEGRAM_BOT_TOKEN: str = Field(..., description="Telegram Bot Token")
-    TELEGRAM_API_URL: str = "https://api.telegram.org/bot"
+    TELEGRAM_BOT_TOKEN: str = Field(..., description="Telegram Bot Token (used for verification, actual sending via Redis pub/sub)")
 
     # Email SMTP
     SMTP_HOST: str = Field(...)
@@ -52,6 +51,9 @@ class Settings(BaseSettings):
 
     # Scheduler
     SCHEDULER_POLL_INTERVAL_SECONDS: int = Field(default=60, ge=1)  # Check every minute
+
+    # Redis
+    REDIS_URL: str = Field(...)
 
     # Inter-service communication
     SERVICE_API_KEY: str = Field(...)

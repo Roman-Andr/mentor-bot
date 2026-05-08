@@ -157,6 +157,7 @@ class TestSendNotification:
             with patch("notification_service.api.endpoints.notifications.NotificationService") as mock_service_cls:
                 mock_service = MagicMock()
                 mock_service.send_immediate = AsyncMock(return_value=mock_response)
+                mock_service.cleanup = AsyncMock()
                 mock_service_cls.return_value = mock_service
 
                 with patch.object(NotificationResponse, "model_validate", return_value=mock_response):
@@ -186,6 +187,7 @@ class TestSendNotification:
             with patch("notification_service.api.endpoints.notifications.NotificationService") as mock_service_cls:
                 mock_service = MagicMock()
                 mock_service.send_immediate = AsyncMock(return_value=mock_response)
+                mock_service.cleanup = AsyncMock()
                 mock_service_cls.return_value = mock_service
 
                 with patch.object(NotificationResponse, "model_validate", return_value=mock_response):
@@ -214,6 +216,7 @@ class TestSendNotification:
             with patch("notification_service.api.endpoints.notifications.NotificationService") as mock_service_cls:
                 mock_service = MagicMock()
                 mock_service.send_immediate = AsyncMock(return_value=mock_response)
+                mock_service.cleanup = AsyncMock()
                 mock_service_cls.return_value = mock_service
 
                 with patch.object(NotificationResponse, "model_validate", return_value=mock_response):
@@ -259,6 +262,7 @@ class TestScheduleNotification:
             with patch("notification_service.api.endpoints.notifications.NotificationService") as mock_service_cls:
                 mock_service = MagicMock()
                 mock_service.schedule = AsyncMock(return_value=mock_response)
+                mock_service.cleanup = AsyncMock()
                 mock_service_cls.return_value = mock_service
 
                 with patch.object(ScheduledNotificationResponse, "model_validate", return_value=mock_response):
@@ -287,6 +291,7 @@ class TestScheduleNotification:
             with patch("notification_service.api.endpoints.notifications.NotificationService") as mock_service_cls:
                 mock_service = MagicMock()
                 mock_service.schedule = AsyncMock(return_value=mock_response)
+                mock_service.cleanup = AsyncMock()
                 mock_service_cls.return_value = mock_service
 
                 with patch.object(ScheduledNotificationResponse, "model_validate", return_value=mock_response):
@@ -342,6 +347,7 @@ class TestGetNotificationHistory:
             with patch("notification_service.api.endpoints.notifications.NotificationService") as mock_service_cls:
                 mock_service = MagicMock()
                 mock_service.find_notifications = AsyncMock(return_value=(mock_notifications, len(mock_notifications)))
+                mock_service.cleanup = AsyncMock()
                 mock_service_cls.return_value = mock_service
 
                 with patch.object(NotificationResponse, "model_validate", side_effect=lambda x: x):
@@ -367,6 +373,7 @@ class TestGetNotificationHistory:
             with patch("notification_service.api.endpoints.notifications.NotificationService") as mock_service_cls:
                 mock_service = MagicMock()
                 mock_service.find_notifications = AsyncMock(return_value=([], 0))
+                mock_service.cleanup = AsyncMock()
                 mock_service_cls.return_value = mock_service
 
                 with patch.object(NotificationResponse, "model_validate", side_effect=lambda x: x):
@@ -404,6 +411,7 @@ class TestGetUserNotificationHistory:
             with patch("notification_service.api.endpoints.notifications.NotificationService") as mock_service_cls:
                 mock_service = MagicMock()
                 mock_service.find_notifications = AsyncMock(return_value=(mock_notifications, len(mock_notifications)))
+                mock_service.cleanup = AsyncMock()
                 mock_service_cls.return_value = mock_service
 
                 # HR user is passed as _current_user (dependency injected)
@@ -433,6 +441,7 @@ class TestGetUserNotificationHistory:
             with patch("notification_service.api.endpoints.notifications.NotificationService") as mock_service_cls:
                 mock_service = MagicMock()
                 mock_service.find_notifications = AsyncMock(return_value=([], 0))
+                mock_service.cleanup = AsyncMock()
                 mock_service_cls.return_value = mock_service
 
                 with patch.object(NotificationResponse, "model_validate", side_effect=lambda x: x):
@@ -468,6 +477,7 @@ class TestListNotifications:
             with patch("notification_service.api.endpoints.notifications.NotificationService") as mock_service_cls:
                 mock_service = MagicMock()
                 mock_service.find_notifications = AsyncMock(return_value=(mock_notifications, 2))
+                mock_service.cleanup = AsyncMock()
                 mock_service_cls.return_value = mock_service
 
                 with patch.object(NotificationResponse, "model_validate", side_effect=lambda x: x):
@@ -512,6 +522,7 @@ class TestListNotifications:
             with patch("notification_service.api.endpoints.notifications.NotificationService") as mock_service_cls:
                 mock_service = MagicMock()
                 mock_service.find_notifications = AsyncMock(return_value=([], 0))
+                mock_service.cleanup = AsyncMock()
                 mock_service_cls.return_value = mock_service
 
                 result = await list_notifications(mock_db, admin_user, skip=10, limit=25)
@@ -545,6 +556,7 @@ class TestSendTemplateNotification:
             with patch("notification_service.api.endpoints.notifications.NotificationService") as mock_service_cls:
                 mock_service = MagicMock()
                 mock_service.send_template = AsyncMock(return_value=mock_notification)
+                mock_service.cleanup = AsyncMock()
                 mock_service_cls.return_value = mock_service
 
                 with patch.object(NotificationResponse, "model_validate", return_value=mock_notification):
@@ -591,6 +603,7 @@ class TestSendTemplateNotification:
             with patch("notification_service.api.endpoints.notifications.NotificationService") as mock_service_cls:
                 mock_service = MagicMock()
                 mock_service.send_template = AsyncMock(side_effect=TemplateNotFoundError("missing", "email", "en"))
+                mock_service.cleanup = AsyncMock()
                 mock_service_cls.return_value = mock_service
 
                 with pytest.raises(HTTPException) as exc_info:
@@ -623,6 +636,7 @@ class TestSendTemplateNotification:
             with patch("notification_service.api.endpoints.notifications.NotificationService") as mock_service_cls:
                 mock_service = MagicMock()
                 mock_service.send_template = AsyncMock(side_effect=MissingTemplateVariablesError({"user_name"}))
+                mock_service.cleanup = AsyncMock()
                 mock_service_cls.return_value = mock_service
 
                 with pytest.raises(HTTPException) as exc_info:
@@ -662,6 +676,7 @@ class TestScheduleTemplateNotification:
             with patch("notification_service.api.endpoints.notifications.NotificationService") as mock_service_cls:
                 mock_service = MagicMock()
                 mock_service.schedule_template = AsyncMock(return_value=mock_scheduled)
+                mock_service.cleanup = AsyncMock()
                 mock_service_cls.return_value = mock_service
 
                 with patch.object(ScheduledNotificationResponse, "model_validate", return_value=mock_scheduled):
@@ -715,6 +730,7 @@ class TestScheduleTemplateNotification:
                 mock_service.schedule_template = AsyncMock(
                     side_effect=TemplateNotFoundError("missing", "telegram", "en")
                 )
+                mock_service.cleanup = AsyncMock()
                 mock_service_cls.return_value = mock_service
 
                 with pytest.raises(HTTPException) as exc_info:
@@ -750,6 +766,7 @@ class TestScheduleTemplateNotification:
             with patch("notification_service.api.endpoints.notifications.NotificationService") as mock_service_cls:
                 mock_service = MagicMock()
                 mock_service.schedule_template = AsyncMock(side_effect=MissingTemplateVariablesError({"due_date"}))
+                mock_service.cleanup = AsyncMock()
                 mock_service_cls.return_value = mock_service
 
                 with pytest.raises(HTTPException) as exc_info:

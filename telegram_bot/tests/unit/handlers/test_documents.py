@@ -520,8 +520,8 @@ class TestDocumentsHandlers:
         ):
             await download_attachment(mock_callback, mock_bot, mock_user, mock_auth_token, locale="en")
 
-        # Answer is called twice: once for loading, once for error
-        assert mock_callback.answer.call_count == 2
+        # Answer is called once for error
+        assert mock_callback.answer.call_count == 1
         assert "show_alert" in mock_callback.answer.call_args.kwargs
 
     async def test_download_attachment_no_content(self, mock_callback, mock_user, mock_auth_token, mock_bot):
@@ -543,8 +543,8 @@ class TestDocumentsHandlers:
             ):
                 await download_attachment(mock_callback, mock_bot, mock_user, mock_auth_token, locale="en")
 
-        # Answer is called twice: once for loading, once for error
-        assert mock_callback.answer.call_count == 2
+        # Answer is called once for error
+        assert mock_callback.answer.call_count == 1
         assert "show_alert" in mock_callback.answer.call_args.kwargs
 
     async def test_download_attachment_send_fails(self, mock_callback, mock_user, mock_auth_token, mock_bot):
@@ -571,8 +571,8 @@ class TestDocumentsHandlers:
                 with patch("telegram_bot.handlers.documents.logger"):
                     await download_attachment(mock_callback, mock_bot, mock_user, mock_auth_token, locale="en")
 
-        # Answer is called twice: once for loading, once for error
-        assert mock_callback.answer.call_count == 2
+        # Answer is called once for error
+        assert mock_callback.answer.call_count == 1
         assert "show_alert" in mock_callback.answer.call_args.kwargs
 
     async def test_download_attachment_no_user(self, mock_callback, mock_bot, mock_auth_token):
@@ -680,7 +680,7 @@ class TestDocumentsHandlers:
             await download_department_document(mock_callback, mock_bot, mock_user, mock_auth_token, locale="en")
 
         mock_bot.send_message.assert_called_once()
-        mock_callback.answer.assert_called()
+        # answer() is not called on success, only on errors
 
     async def test_download_department_document_send_exception(
         self, mock_callback, mock_bot, mock_user, mock_auth_token
@@ -716,8 +716,8 @@ class TestDocumentsHandlers:
         ):
             await download_department_document(mock_callback, mock_bot, mock_user, mock_auth_token, locale="en")
 
-        # Called twice: once for loading, once for error
-        assert mock_callback.answer.call_count == 2
+        # Called once for error
+        assert mock_callback.answer.call_count == 1
 
     async def test_download_department_document_no_user(self, mock_callback, mock_bot, mock_auth_token):
         """Test download department document with no user."""

@@ -125,7 +125,51 @@ class TestHealthEndpoint:
                 # timestamp is a datetime object (not string), compare correctly
                 assert result.timestamp == mock_now
                 assert result.dependencies["database"] == "connected"
-                assert result.dependencies["redis"] == "not_configured"
+                assert result.dependencies["redis"] == "connected"
+
+    @pytest.mark.asyncio
+    async def test_health_check_redis_connection_failure(self):
+        """Test health check handles redis connection failure."""
+        from notification_service.main import health_check
+        from notification_service.schemas import HealthCheck
+
+        # Mock the engine.connect() for database check
+        with patch("notification_service.main.engine") as mock_engine:
+            mock_conn = AsyncMock()
+            mock_conn.execute = AsyncMock()
+
+            class AsyncContextMock:
+                async def __aenter__(self):
+                    return mock_conn
+
+                async def __aexit__(self, *args):
+                    return False
+
+            mock_engine.connect = MagicMock(return_value=AsyncContextMock())
+
+            # Mock Redis to raise exception during import or connection
+            import builtins
+            original_import = builtins.__import__
+
+            def mock_import(name, *args, **kwargs):
+                if name == "redis.asyncio":
+                    raise Exception("Redis connection failed")
+                return original_import(name, *args, **kwargs)
+
+            with patch("builtins.__import__", side_effect=mock_import):
+                with patch("notification_service.main.datetime") as mock_datetime:
+                    mock_now = datetime(2024, 1, 1, 12, 0, 0, tzinfo=UTC)
+                    mock_datetime.now.return_value = mock_now
+                    mock_datetime.UTC = UTC
+
+                    result = await health_check()
+
+                    assert isinstance(result, HealthCheck)
+                    assert result.status == "unhealthy"
+                    assert result.service == "notification"
+                    assert result.timestamp == mock_now
+                    assert result.dependencies["database"] == "connected"
+                    assert result.dependencies["redis"] == "disconnected"
 
 
 class TestIntegration:

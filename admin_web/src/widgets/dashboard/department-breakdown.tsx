@@ -1,6 +1,9 @@
 import { useTranslations } from "@/shared/hooks/use-translations";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { DEPARTMENT_COLORS } from "@/shared/lib/constants";
+import { ExternalLink } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/shared/ui/button";
 
 const FALLBACK_COLORS = [
   "bg-blue-500 dark:bg-blue-600",
@@ -14,17 +17,26 @@ const FALLBACK_COLORS = [
 
 interface DepartmentBreakdownProps {
   departments: Record<string, number>;
+  href?: string;
 }
 
-export function DepartmentBreakdown({ departments }: DepartmentBreakdownProps) {
+export function DepartmentBreakdown({ departments, href }: DepartmentBreakdownProps) {
   const t = useTranslations();
   const departmentEntries = Object.entries(departments);
   const totalDeptCount = departmentEntries.reduce((sum, [, count]) => sum + count, 0);
 
-  return (
-    <Card>
-      <CardHeader>
+  const card = (
+    <Card className="transition-shadow hover:shadow-md">
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle>{t("dashboard.byDepartment")}</CardTitle>
+        {href && (
+          <Link href={href}>
+            <Button variant="ghost" size="sm" className="gap-1 text-xs">
+              <ExternalLink className="size-3" />
+              {t("common.viewAll")}
+            </Button>
+          </Link>
+        )}
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
@@ -49,4 +61,6 @@ export function DepartmentBreakdown({ departments }: DepartmentBreakdownProps) {
       </CardContent>
     </Card>
   );
+
+  return card;
 }

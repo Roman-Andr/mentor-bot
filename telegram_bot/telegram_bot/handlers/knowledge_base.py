@@ -234,7 +234,6 @@ async def handle_search_pagination(
         await callback.answer(t("common.error_generic", locale=locale))
         return
 
-    await callback.answer(t("common.loading", locale=locale))
 
     # Re-run search with new page
     search_results = await knowledge_client.search_articles(
@@ -321,7 +320,6 @@ async def back_to_search_results(
     except ValueError:
         page = 1
 
-    await callback.answer(t("common.loading", locale=locale))
 
     # Get search context from cache
     user_id = callback.from_user.id if callback.from_user else 0
@@ -502,7 +500,6 @@ async def download_kb_attachment(
         await callback.answer(t("common.error_generic", locale=locale))
         return
 
-    await callback.answer(t("common.loading", locale=locale))
 
     attachments = await knowledge_client.get_article_attachments(article_id, auth_token)
     attachment = next((a for a in attachments if a.get("id") == attachment_id), None)
@@ -549,7 +546,6 @@ async def kb_categories(
         await callback.answer(t("common.auth_required_short", locale=locale))
         return
 
-    await callback.answer(t("common.loading", locale=locale))
 
     # Fetch categories from API
     categories_data = await knowledge_client.get_categories(auth_token, skip=0, limit=50)
@@ -606,7 +602,6 @@ async def kb_category_articles(
         await callback.answer(t("common.error_generic", locale=locale))
         return
 
-    await callback.answer(t("common.loading", locale=locale))
 
     # Fetch articles for this category
     skip = (page - 1) * 10
@@ -662,7 +657,6 @@ async def kb_category_pagination(
         await callback.answer(t("common.error_generic", locale=locale))
         return
 
-    await callback.answer(t("common.loading", locale=locale))
 
     skip = (page - 1) * 10
     articles_data = await knowledge_client.get_articles_by_category(category_id, auth_token, skip=skip, limit=10)
@@ -777,7 +771,6 @@ async def show_faq(callback: CallbackQuery, state: FSMContext, *, locale: str = 
     if callback.message is None:
         return
 
-    await callback.answer(t("common.loading", locale=locale))
 
     # Fetch active scenarios from API
     scenarios_data = await knowledge_client.get_active_scenarios(skip=0, limit=50)
@@ -832,7 +825,6 @@ async def view_faq_scenario(
         await callback.answer(t("common.error_generic", locale=locale))
         return
 
-    await callback.answer(t("common.loading", locale=locale))
 
     # Fetch scenario details
     scenario = await knowledge_client.get_scenario(scenario_id)
@@ -1119,7 +1111,6 @@ async def save_article(
     files: list[dict] = data.get("files", [])
     department: str | None = user.get("department") if user else None
 
-    await callback.answer(t("common.loading", locale=locale))
 
     article = await knowledge_client.create_article(
         title=title,
@@ -1296,7 +1287,6 @@ async def save_uploaded_files(
         await callback.answer("No files to upload", show_alert=True)
         return
 
-    await callback.answer(t("common.loading", locale=locale))
 
     uploaded = 0
     for f in files:

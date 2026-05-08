@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "@/shared/hooks/use-translations";
 import { api } from "@/shared/lib/api";
@@ -13,6 +13,7 @@ import { Pagination } from "@/shared/ui/pagination";
 import { Select } from "@/shared/ui/select";
 import type { HistoryFilters as HistoryFiltersType, NormalizedAuditEvent } from "@/shared/types/audit";
 import { subDays } from "date-fns";
+import { useSearchParams, useRouter } from "next/navigation";
 
 // Set default date range to last 7 days
 const getDefaultDateRange = () => {
@@ -31,9 +32,29 @@ interface HistoryTabProps {
 
 export function HistoryTab({ onExportCSV, onExportPDF }: HistoryTabProps) {
   const t = useTranslations();
-  const [filters, setFilters] = useState<HistoryFiltersType>(getDefaultDateRange());
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(50);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  // Initialize filters from URL params
+  const [filters, setFilters] = useState<HistoryFiltersType>(() => {
+    const fromParam = searchParams.get("from_date");
+    const toParam = searchParams.get("to_date");
+    return {
+      from_date: fromParam ?? getDefaultDateRange().from_date,
+      to_date: toParam ?? getDefaultDateRange().to_date,
+    };
+  });
+
+  const [page, setPage] = useState(() => {
+    const pageParam = searchParams.get("page");
+    return pageParam ? parseInt(pageParam, 10) : 1;
+  });
+
+  const [pageSize, setPageSize] = useState(() => {
+    const pageSizeParam = searchParams.get("page_size");
+    return pageSizeParam ? parseInt(pageSizeParam, 10) : 50;
+  });
+
   const [selectedEvent, setSelectedEvent] = useState<NormalizedAuditEvent | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -43,10 +64,41 @@ export function HistoryTab({ onExportCSV, onExportPDF }: HistoryTabProps) {
     staleTime: 30_000,
   });
 
-  const handleFiltersChange = (newFilters: HistoryFiltersType) => {
+  const handleFiltersChange = useCallback((newFilters: HistoryFiltersType) => {
     setFilters(newFilters);
     setPage(1); // Reset to first page when filters change
-  };
+
+    // Update URL
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("from_date", newFilters.from_date);
+    params.set("to_date", newFilters.to_date);
+    params.delete("page");
+    router.push(`?${params.toString()}`, { scroll: false });
+  }, [searchParams, router]);
+
+  const handlePageChange = useCallback((newPage: number) => {
+    setPage(newPage);
+
+    // Update URL
+    const params = new URLSearchParams(searchParams.toString());
+    if (newPage === 1) {
+      params.delete("page");
+    } else {
+      params.set("page", newPage.toString());
+    }
+    router.push(`?${params.toString()}`, { scroll: false });
+  }, [searchParams, router]);
+
+  const handlePageSizeChange = useCallback((newPageSize: number) => {
+    setPageSize(newPageSize);
+    setPage(1);
+
+    // Update URL
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page_size", newPageSize.toString());
+    params.delete("page");
+    router.push(`?${params.toString()}`, { scroll: false });
+  }, [searchParams, router]);
 
   const handleRowClick = (event: NormalizedAuditEvent) => {
     setSelectedEvent(event);
@@ -94,8 +146,7 @@ export function HistoryTab({ onExportCSV, onExportPDF }: HistoryTabProps) {
               <Select
                 value={String(pageSize)}
                 onChange={(value) => {
-                  setPageSize(parseInt(value, 10));
-                  setPage(1);
+                  handlePageSizeChange(parseInt(value, 10));
                 }}
                 options={[
                   { value: "25", label: "25" },
@@ -107,7 +158,7 @@ export function HistoryTab({ onExportCSV, onExportPDF }: HistoryTabProps) {
               <Pagination
                 currentPage={page}
                 totalPages={totalPages}
-                onPageChange={setPage}
+                onPageChange={handlePageChange}
               />
             </div>
           </div>

@@ -1,8 +1,9 @@
-"""Telegram integration service."""
+"""Telegram integration service via Redis pub/sub."""
 
+import json
 import logging
 
-import httpx
+from redis.asyncio import Redis
 
 from notification_service.config import settings
 
@@ -10,29 +11,41 @@ logger = logging.getLogger(__name__)
 
 
 class TelegramService:
-    """Service for sending messages via Telegram Bot API."""
+    """Service for sending messages via Telegram Bot using Redis pub/sub."""
 
     def __init__(self) -> None:
-        """Initialize Telegram service with bot token."""
-        self.token = settings.TELEGRAM_BOT_TOKEN
-        self.api_url = f"{settings.TELEGRAM_API_URL}{self.token}"
+        """Initialize Telegram service with Redis client."""
+        self.redis: Redis | None = None
+        self.channel = "telegram_notifications"
+
+    async def _get_redis(self) -> Redis:
+        """Get or create Redis connection."""
+        if self.redis is None:
+            self.redis = Redis.from_url(settings.REDIS_URL, decode_responses=True)
+        return self.redis
 
     async def send_message(self, chat_id: int, text: str) -> bool:
-        """Send a plain text message to a Telegram chat."""
-        url = f"{self.api_url}/sendMessage"
-        payload = {
-            "chat_id": chat_id,
-            "text": text,
-            "parse_mode": "HTML",  # Allow basic formatting
-        }
-        async with httpx.AsyncClient() as client:
-            try:
-                response = await client.post(url, json=payload, timeout=10.0)
-                response.raise_for_status()
-                result = response.json()
-                if result.get("ok"):
-                    return True
-                logger.error("Telegram API error: %s", result)
-            except Exception:
-                logger.exception("Failed to send Telegram message")
+        """Send a plain text message to a Telegram chat via Redis pub/sub."""
+        try:
+            redis = await self._get_redis()
+            message = {
+                "chat_id": chat_id,
+                "text": text,
+                "parse_mode": "HTML",
+            }
+            await redis.publish(self.channel, json.dumps(message))
+            logger.info("Telegram notification published to Redis (chat_id=%s)", chat_id)
+            return True
+        except Exception:
+            logger.exception("Failed to publish Telegram notification to Redis")
             return False
+
+    async def close(self) -> None:
+        """Close Redis connection."""
+        if self.redis:
+            try:
+                await self.redis.close()
+            except Exception:
+                logger.exception("Failed to close Redis connection")
+            finally:
+                self.redis = None

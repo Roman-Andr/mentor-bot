@@ -21,5 +21,5 @@ def get_language_keyboard(*, locale: str = "en") -> InlineKeyboardMarkup:
             callback_data="settings_menu",
         )
     )
-    builder.adjust(2, 1)
+    builder.adjust(1)
     return builder.as_markup()

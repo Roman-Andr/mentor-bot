@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useTranslations } from "@/shared/hooks/use-translations";
 import { useToast } from "@/shared/hooks/use-toast";
 import { Button } from "@/shared/ui/button";
@@ -8,13 +8,17 @@ import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 import { Select } from "@/shared/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
+import { AsyncSearchableSelect, type SelectOption } from "@/shared/ui/searchable-select";
 import { notificationsApi } from "@/shared/lib/api/notifications";
+import { api } from "@/shared/lib/api";
 import { Send, Clock } from "lucide-react";
 
 const NOTIFICATION_TYPES = [
-  { value: "SYSTEM", label: "System" },
-  { value: "REMINDER", label: "Reminder" },
-  { value: "INFO", label: "Info" },
+  { value: "GENERAL", label: "General" },
+  { value: "TASK_REMINDER", label: "Task Reminder" },
+  { value: "MEETING_REMINDER", label: "Meeting Reminder" },
+  { value: "ONBOARDING_EVENT", label: "Onboarding Event" },
+  { value: "ESCALATION", label: "Escalation" },
 ];
 
 const NOTIFICATION_CHANNELS = [
@@ -32,9 +36,27 @@ export function SendNotificationDialog({ open, onOpenChange }: SendNotificationD
   const t = useTranslations();
   const { toast } = useToast();
   const [form, setForm] = useState({
-    userId: "", type: "SYSTEM", channel: "TELEGRAM", subject: "", body: "", scheduledAt: "",
+    userId: "", type: "GENERAL", channel: "TELEGRAM", subject: "", body: "", scheduledAt: "",
   });
+  const [selectedUserLabel, setSelectedUserLabel] = useState("");
+  const [selectedUserOption, setSelectedUserOption] = useState<SelectOption | undefined>(undefined);
+  const [selectedUserTelegramId, setSelectedUserTelegramId] = useState<number | null>(null);
+  const [selectedUserEmail, setSelectedUserEmail] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
+
+  // Search for users
+  const searchUsers = useCallback(async (query: string): Promise<SelectOption[]> => {
+    const resp = await api.users.list({ search: query, limit: 20 });
+    if (!resp.success || !resp.data) return [];
+    return resp.data.users.map((u) => ({
+      value: String(u.id),
+      label: `${u.first_name} ${u.last_name || ""}`.trim(),
+      description: u.email,
+      id: u.id,
+      telegram_id: u.telegram_id,
+      email: u.email,
+    }));
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,6 +71,8 @@ export function SendNotificationDialog({ open, onOpenChange }: SendNotificationD
           body: form.body,
           subject: form.subject || null,
           scheduled_time: new Date(form.scheduledAt).toISOString(),
+          recipient_telegram_id: selectedUserTelegramId,
+          recipient_email: selectedUserEmail,
         });
         toast(t("settings.notificationScheduled") || "Notification scheduled", "success");
       } else {
@@ -58,10 +82,16 @@ export function SendNotificationDialog({ open, onOpenChange }: SendNotificationD
           channel: form.channel,
           body: form.body,
           subject: form.subject || null,
+          recipient_telegram_id: selectedUserTelegramId,
+          recipient_email: selectedUserEmail,
         });
         toast(t("settings.notificationSent") || "Notification sent", "success");
       }
       setForm((f) => ({ ...f, userId: "", body: "", subject: "", scheduledAt: "" }));
+      setSelectedUserLabel("");
+      setSelectedUserOption(undefined);
+      setSelectedUserTelegramId(null);
+      setSelectedUserEmail(null);
       onOpenChange(false);
     } catch {
       toast(t("common.error") || "Error", "error");
@@ -82,13 +112,22 @@ export function SendNotificationDialog({ open, onOpenChange }: SendNotificationD
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
-              <Label>{t("settings.recipientUserId") || "Recipient User ID"}</Label>
-              <Input
-                type="number"
+              <Label>{t("settings.recipientUserId") || "Recipient User"}</Label>
+              <AsyncSearchableSelect
                 value={form.userId}
-                onChange={(ev) => setForm((f) => ({ ...f, userId: ev.target.value }))}
-                placeholder="User ID"
-                required
+                onChange={(v) => setForm((f) => ({ ...f, userId: v }))}
+                onSearch={searchUsers}
+                selectedLabel={selectedUserLabel}
+                selectedOption={selectedUserOption}
+                placeholder={t("settings.selectUser") || "Select user"}
+                searchPlaceholder={t("settings.searchUser") || "Search user..."}
+                minSearchLength={2}
+                onOptionSelect={(opt) => {
+                  setSelectedUserLabel(opt.label);
+                  setSelectedUserOption(opt);
+                  setSelectedUserTelegramId(opt.telegram_id || null);
+                  setSelectedUserEmail(opt.email || null);
+                }}
                 autoFocus
               />
             </div>

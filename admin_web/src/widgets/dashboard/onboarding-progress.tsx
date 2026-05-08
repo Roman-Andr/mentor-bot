@@ -1,18 +1,30 @@
 import { useTranslations } from "@/shared/hooks/use-translations";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
+import { ExternalLink } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/shared/ui/button";
 import type { OnboardingProgress as OnboardingProgressType } from "@/shared/types";
 
 interface OnboardingProgressProps {
   progress: OnboardingProgressType[];
+  href?: string;
 }
 
-export function OnboardingProgress({ progress }: OnboardingProgressProps) {
+export function OnboardingProgress({ progress, href }: OnboardingProgressProps) {
   const t = useTranslations();
 
-  return (
-    <Card className="col-span-4">
-      <CardHeader>
+  const card = (
+    <Card className="col-span-4 transition-shadow hover:shadow-md">
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle>{t("dashboard.onboardingProgress")}</CardTitle>
+        {href && (
+          <Link href={href}>
+            <Button variant="ghost" size="sm" className="gap-1 text-xs">
+              <ExternalLink className="size-3" />
+              {t("common.viewAll")}
+            </Button>
+          </Link>
+        )}
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
@@ -53,4 +65,6 @@ export function OnboardingProgress({ progress }: OnboardingProgressProps) {
       </CardContent>
     </Card>
   );
+
+  return card;
 }

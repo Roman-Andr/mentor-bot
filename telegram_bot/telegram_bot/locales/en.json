@@ -74,6 +74,7 @@
     "help_reviews": "Code reviews and best practices",
     "help_career": "Career guidance and growth",
     "help_daily": "Daily work challenges and blockers",
+    "message_prompt": "Type your message below and it will be sent to your mentor.",
     "btn_message": "Message Mentor",
     "btn_schedule": "Schedule Meeting",
     "btn_tasks": "Shared Tasks"

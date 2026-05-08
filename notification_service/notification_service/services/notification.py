@@ -32,6 +32,10 @@ class NotificationService:
         self._template_service = TemplateService(uow)
         self._auth_client = AuthClient()
 
+    async def cleanup(self) -> None:
+        """Cleanup resources."""
+        await self._telegram.close()
+
     async def get_user_notifications(self, user_id: int, skip: int = 0, limit: int = 100) -> Sequence[Notification]:
         """Retrieve notifications for a specific user."""
         logger.debug("Fetching user notifications (user_id={}, skip={}, limit={})", user_id, skip, limit)

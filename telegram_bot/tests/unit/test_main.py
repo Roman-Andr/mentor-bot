@@ -122,6 +122,27 @@ class TestLifespan:
         self.mock_scheduler.start.assert_not_called()
         self.mock_scheduler.shutdown.assert_not_called()
 
+    async def test_lifespan_subscriber_start_failure(self, setup_mocks):
+        """Test lifespan when subscriber.start() fails gracefully."""
+        from telegram_bot.main import lifespan
+
+        mock_bot = MagicMock()
+        mock_bot.session = MagicMock()
+        mock_bot.session.close = AsyncMock()
+
+        # Mock subscriber to raise exception on start
+        with patch("telegram_bot.main.subscriber") as mock_subscriber:
+            mock_subscriber.start = AsyncMock(side_effect=Exception("Redis connection failed"))
+            mock_subscriber.stop = AsyncMock()
+
+            async with lifespan(mock_bot):
+                # Verify startup still completed despite subscriber failure
+                self.mock_init_db.assert_called_once()
+                self.mock_user_cache.connect.assert_called_once()
+                self.mock_redis_cache.connect.assert_called_once()
+                self.mock_setup_bot_commands.assert_called_once_with(mock_bot)
+                self.mock_scheduler.start.assert_called_once_with(mock_bot)
+
 
 class TestSetupBotCommands:
     """Test cases for setup_bot_commands function."""

@@ -182,7 +182,6 @@ async def download_department_document(
         await callback.answer(t("common.error_generic", locale=locale))
         return
 
-    await callback.answer(t("common.loading", locale=locale))
 
     download_url = await document_client.get_department_document_download_url(document_id, auth_token)
 
@@ -341,7 +340,6 @@ async def download_attachment(
         await callback.answer(t("common.error_generic", locale=locale))
         return
 
-    await callback.answer(t("common.loading", locale=locale))
 
     attachments = await knowledge_client.get_article_attachments(article_id, auth_token)
     attachment = next((a for a in attachments if a.get("id") == attachment_id), None)

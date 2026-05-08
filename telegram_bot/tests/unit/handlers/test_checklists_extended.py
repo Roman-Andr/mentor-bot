@@ -1017,8 +1017,7 @@ class TestDownloadTaskFile:
 
                 await download_task_file(self.mock_callback, self.auth_token, locale="en")
 
-                # Handler calls answer() for loading, then message.answer() for error
-                self.mock_callback.answer.assert_called_once()
+                # Handler calls message.answer() for error, not callback.answer()
                 self.mock_callback.message.answer.assert_called_once()
 
     async def test_download_task_file_send_error(self):
@@ -1037,14 +1036,8 @@ class TestDownloadTaskFile:
 
                 await download_task_file(self.mock_callback, self.auth_token, locale="en")
 
-                # Handler calls answer() for loading, then message.answer() for error on exception
-                self.mock_callback.answer.assert_called_once()
+                # Handler calls message.answer() for error on exception, not callback.answer()
                 self.mock_callback.message.answer.assert_called_once()
-                loading_call_found = any(
-                    call.args and "common.loading" in str(call.args[0])
-                    for call in self.mock_callback.answer.call_args_list
-                )
-                assert loading_call_found
 
     async def test_download_task_file_no_message(self):
         """Test download file when callback.message is None."""
@@ -1062,8 +1055,8 @@ class TestDownloadTaskFile:
 
                 await download_task_file(self.mock_callback, self.auth_token, locale="en")
 
-                # Handler calls answer() for loading, then returns early when message is None
-                self.mock_callback.answer.assert_called_once()
+                # Handler returns early when message is None without calling answer()
+                self.mock_callback.answer.assert_not_called()
 
 
 class TestReceivePhotoName:

@@ -1228,3 +1228,17 @@ class TestNotificationServiceScheduleTemplate:
                     channel=NotificationChannel.TELEGRAM,
                     scheduled_time=datetime.now(UTC),
                 )
+
+
+class TestNotificationServiceCleanup:
+    """Tests for cleanup method."""
+
+    async def test_cleanup_calls_telegram_close(self, mock_uow: MagicMock) -> None:
+        """Cleanup calls telegram.close()."""
+        service = NotificationService(mock_uow)
+
+        service._telegram.close = AsyncMock()
+
+        await service.cleanup()
+
+        service._telegram.close.assert_awaited_once()

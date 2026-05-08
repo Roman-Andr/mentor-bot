@@ -66,18 +66,19 @@ async def process_escalation_type(callback: CallbackQuery, state: FSMContext, *,
     escalation_type = callback.data.split("_")[1]
 
     type_map = {
-        "question": t("escalation.type_question", locale=locale),
-        "mentor": t("escalation.type_mentor", locale=locale),
-        "hr": t("escalation.type_hr", locale=locale),
-        "technical": t("escalation.type_technical", locale=locale),
+        "question": "general",
+        "mentor": "mentor",
+        "hr": "hr",
+        "technical": "technical",
     }
 
-    category = type_map.get(escalation_type, "General")
+    category = type_map.get(escalation_type, "general")
+    display_category = t(f"escalation.type_{escalation_type}", locale=locale)
 
     await state.update_data(category=category)
     if callback.message:
         await callback.message.edit_text(
-            t("escalation.describe_issue", locale=locale, category=category),
+            t("escalation.describe_issue", locale=locale, category=display_category),
             parse_mode="Markdown",
         )
     await state.set_state(EscalationStates.waiting_for_description)

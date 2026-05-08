@@ -1,5 +1,6 @@
 """Google Calendar integration endpoints."""
 
+import json
 import logging
 from datetime import UTC, datetime, timedelta
 from typing import Annotated
@@ -141,6 +142,18 @@ async def oauth_callback(
                 refresh_token=credentials.refresh_token,
                 expiry=expiry,
             )
+
+        # Publish calendar connection event to Redis for telegram_bot
+        if cache.is_connected and cache.redis_client:
+            try:
+                event = {
+                    "type": "calendar_connected",
+                    "user_id": user_id,
+                }
+                await cache.redis_client.publish("telegram_events", json.dumps(event))
+                logger.info("Calendar connection event published (user_id=%s)", user_id)
+            except Exception:
+                logger.exception("Failed to publish calendar connection event")
 
         return {
             "status": "success",

@@ -2,6 +2,11 @@ import { describe, it, expect, vi } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import { useEntityPagination } from '@/shared/hooks/entity/use-entity-pagination'
 
+vi.mock('next/navigation', () => ({
+  useSearchParams: () => new URLSearchParams(),
+  useRouter: () => ({ push: vi.fn() }),
+}))
+
 vi.mock('@/shared/providers/pagination-provider', () => ({
   usePaginationSettings: () => ({
     pageSize: 10,

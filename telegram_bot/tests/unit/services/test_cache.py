@@ -408,6 +408,85 @@ class TestUserCache:
         assert len(result) == 1
         assert 456 in result
 
+    async def test_find_telegram_id_by_user_id_not_connected(self, cache):
+        """Test find_telegram_id_by_user_id when not connected (lines 164-165)."""
+        cache._is_connected = False
+
+        result = await cache.find_telegram_id_by_user_id(123)
+
+        assert result is None
+
+    async def test_find_telegram_id_by_user_id_success(self, cache, mock_redis):
+        """Test find_telegram_id_by_user_id success (lines 162-180)."""
+        cache._is_connected = True
+
+        # Mock scan_iter to return user keys
+        keys = [b"user:456", b"user:789"]
+        mock_redis.scan_iter.return_value = self._async_iterator(keys)
+
+        # Mock get to return user data
+        async def mock_get(key):
+            if key == b"user:456":
+                return pickle.dumps({"id": 123, "name": "John"})
+            if key == b"user:789":
+                return pickle.dumps({"id": 456, "name": "Jane"})
+            return None
+
+        mock_redis.get = mock_get
+
+        result = await cache.find_telegram_id_by_user_id(123)
+
+        assert result == 456
+
+    async def test_find_telegram_id_by_user_id_not_found(self, cache, mock_redis):
+        """Test find_telegram_id_by_user_id when user not found (lines 162-180)."""
+        cache._is_connected = True
+
+        keys = [b"user:456"]
+        mock_redis.scan_iter.return_value = self._async_iterator(keys)
+
+        mock_redis.get.return_value = pickle.dumps({"id": 456, "name": "Jane"})
+
+        result = await cache.find_telegram_id_by_user_id(123)
+
+        assert result is None
+
+    async def test_find_telegram_id_by_user_id_redis_error(self, cache, mock_redis):
+        """Test find_telegram_id_by_user_id with Redis error (lines 178-179)."""
+        cache._is_connected = True
+
+        mock_redis.scan_iter.side_effect = RedisError("Connection failed")
+
+        result = await cache.find_telegram_id_by_user_id(123)
+
+        assert result is None
+
+    async def test_find_telegram_id_by_user_id_pickle_error(self, cache, mock_redis):
+        """Test find_telegram_id_by_user_id with pickle error (lines 176-177)."""
+        cache._is_connected = True
+
+        keys = [b"user:456"]
+        mock_redis.scan_iter.return_value = self._async_iterator(keys)
+
+        mock_redis.get.return_value = b"invalid pickle data"
+
+        result = await cache.find_telegram_id_by_user_id(123)
+
+        assert result is None
+
+    async def test_find_telegram_id_by_user_id_value_error(self, cache, mock_redis):
+        """Test find_telegram_id_by_user_id with invalid key format (lines 176-177)."""
+        cache._is_connected = True
+
+        keys = [b"user:invalid"]
+        mock_redis.scan_iter.return_value = self._async_iterator(keys)
+
+        mock_redis.get.return_value = pickle.dumps({"id": 123, "name": "John"})
+
+        result = await cache.find_telegram_id_by_user_id(123)
+
+        assert result is None
+
 
 class TestUserCacheSingleton:
     """Test the user_cache singleton instance."""

@@ -159,6 +159,26 @@ class UserCache:
         else:
             return users
 
+    async def find_telegram_id_by_user_id(self, user_id: int) -> int | None:
+        """Find telegram_id by user_id from cache."""
+        if not self._is_connected:
+            return None
+
+        try:
+            async for key in self.redis.scan_iter(match="user:*"):
+                try:
+                    data = await self.redis.get(key)
+                    if data:
+                        user_data = pickle.loads(data)
+                        if user_data.get("id") == user_id:
+                            # Extract telegram_id from key
+                            return int(key.decode().split(":")[1])
+                except (pickle.UnpicklingError, RedisError, ValueError):
+                    continue
+        except RedisError:
+            return None
+        return None
+
     async def cleanup_expired(self) -> int:
         """Cleanup expired sessions (Redis handles TTL automatically)."""
         return 0  # Redis auto-expires keys with TTL

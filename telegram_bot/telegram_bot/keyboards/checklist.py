@@ -80,7 +80,7 @@ def get_tasks_keyboard(
 
     builder.add(
         create_inline_button(
-            f"← {t('checklists.btn_back_checklists', locale=locale)}",
+            f"\u2190 {t('checklists.btn_back', locale=locale)}",
             callback_data="my_tasks",
         ),
     )

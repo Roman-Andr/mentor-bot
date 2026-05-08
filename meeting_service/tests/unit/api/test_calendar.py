@@ -215,6 +215,8 @@ class TestOAuthCallback:
         mock_cache.is_connected = True
         mock_cache.get = AsyncMock(return_value="test_verifier_12345")
         mock_cache.delete = AsyncMock()
+        mock_cache.redis_client = MagicMock()
+        mock_cache.redis_client.publish = AsyncMock()
 
         # Mock Flow
         mock_flow = MagicMock()
@@ -373,6 +375,65 @@ class TestOAuthCallback:
         # Assert
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert "Failed to connect" in response.json()["detail"]
+
+    @patch("meeting_service.api.endpoints.calendar.cache")
+    @patch("meeting_service.api.endpoints.calendar.Flow")
+    @patch("meeting_service.api.endpoints.calendar.SqlAlchemyUnitOfWork")
+    @patch("meeting_service.api.endpoints.calendar.GoogleCalendarService")
+    async def test_oauth_callback_redis_publish_error(self, mock_gc_service_class, mock_uow_class, mock_flow_class, mock_cache):
+        """Test handling Redis publish error during OAuth callback."""
+        # Arrange
+        app = FastAPI()
+        app.include_router(calendar_router, prefix="/api/v1/calendar")
+
+        mock_db = MagicMock()
+
+        async def override_db() -> MagicMock:
+            return mock_db
+
+        original_db = deps.get_db
+        deps.get_db = override_db
+
+        # Mock cache
+        mock_cache.is_connected = True
+        mock_cache.get = AsyncMock(return_value="test_verifier_12345")
+        mock_cache.delete = AsyncMock()
+        mock_cache.redis_client = MagicMock()
+        mock_cache.redis_client.publish = AsyncMock(side_effect=Exception("Redis error"))
+
+        # Mock Flow
+        mock_flow = MagicMock()
+        mock_credentials = MagicMock()
+        mock_credentials.token = "test_access_token"
+        mock_credentials.refresh_token = "test_refresh_token"
+        mock_credentials.expiry = datetime.now(UTC) + timedelta(hours=1)
+        mock_flow.credentials = mock_credentials
+        mock_flow_class.from_client_config.return_value = mock_flow
+
+        # Mock UOW
+        mock_uow = MagicMock()
+        mock_uow.__aenter__ = AsyncMock(return_value=mock_uow)
+        mock_uow.__aexit__ = AsyncMock(return_value=None)
+        mock_uow_class.return_value = mock_uow
+
+        # Mock GoogleCalendarService
+        mock_gc_service = MagicMock()
+        mock_gc_service.save_credentials = AsyncMock()
+        mock_gc_service_class.return_value = mock_gc_service
+
+        client = TestClient(app)
+
+        # Act
+        response = client.get("/api/v1/calendar/callback?code=auth_code&state=100:csrf_token")
+
+        # Restore
+        deps.get_db = original_db
+
+        # Assert
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["status"] == "success"
+        assert data["user_id"] == "100"
 
 
 class TestGetCalendarStatus:

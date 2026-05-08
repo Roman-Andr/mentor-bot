@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/shared/ui/card";
 import type { LucideIcon } from "lucide-react";
-import { TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, ExternalLink } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import Link from "next/link";
 
@@ -36,7 +36,7 @@ export function StatsCards({ statsData }: StatsCardsProps) {
         const card = (
           <Card
             className={cn(
-              "relative overflow-hidden border bg-gradient-to-br transition-shadow hover:shadow-md",
+              "relative overflow-hidden border bg-gradient-to-br transition-shadow hover:shadow-md group",
               stat.href && "cursor-pointer",
               colorClass,
             )}

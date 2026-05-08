@@ -106,12 +106,22 @@ async def health_check() -> HealthCheck:
     except Exception:
         db_status = "disconnected"
 
+    # Check Redis connectivity
+    try:
+        from redis.asyncio import Redis
+        redis = Redis.from_url(settings.REDIS_URL)
+        await redis.ping()
+        await redis.close()
+        redis_status = "connected"
+    except Exception:
+        redis_status = "disconnected"
+
     return HealthCheck(
-        status="healthy" if db_status == "connected" else "unhealthy",
+        status="healthy" if db_status == "connected" and redis_status == "connected" else "unhealthy",
         service="notification",
         timestamp=datetime.now(UTC).isoformat(),
         dependencies={
             "database": db_status,
-            "redis": "not_configured",  # Not used yet, could be added later
+            "redis": redis_status,
         },
     )

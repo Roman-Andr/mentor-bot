@@ -2,6 +2,11 @@ import { describe, it, expect, vi } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import { useEntityFilters } from '@/shared/hooks/entity/use-entity-filters'
 
+vi.mock('next/navigation', () => ({
+  useSearchParams: () => new URLSearchParams(),
+  useRouter: () => ({ push: vi.fn() }),
+}))
+
 describe('useEntityFilters', () => {
   it('initializes with default filter values', () => {
     const filters: Array<{ name: string; defaultValue: string }> = [

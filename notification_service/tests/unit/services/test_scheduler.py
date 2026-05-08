@@ -59,6 +59,7 @@ class TestSchedulerPollCycle:
         with patch("notification_service.services.scheduler.NotificationService") as mock_service_cls:
             mock_service = MagicMock()
             mock_service.process_scheduled = AsyncMock(return_value=processed_notifications)
+            mock_service.cleanup = AsyncMock()
             mock_service_cls.return_value = mock_service
 
             scheduler = Scheduler(poll_interval=1)
@@ -90,6 +91,7 @@ class TestSchedulerPollCycle:
         with patch("notification_service.services.scheduler.NotificationService") as mock_service_cls:
             mock_service = MagicMock()
             mock_service.process_scheduled = AsyncMock(return_value=[])
+            mock_service.cleanup = AsyncMock()
             mock_service_cls.return_value = mock_service
 
             scheduler = Scheduler(poll_interval=1)
@@ -136,6 +138,7 @@ class TestSchedulerPollCycle:
         with patch("notification_service.services.scheduler.NotificationService") as mock_service_cls:
             mock_service = MagicMock()
             mock_service.process_scheduled = AsyncMock(return_value=[processed_notification])
+            mock_service.cleanup = AsyncMock()
             mock_service_cls.return_value = mock_service
 
             scheduler = Scheduler(poll_interval=1)
@@ -167,6 +170,7 @@ class TestSchedulerPollCycle:
         with patch("notification_service.services.scheduler.NotificationService") as mock_service_cls:
             mock_service = MagicMock()
             mock_service.process_scheduled = AsyncMock(return_value=processed)
+            mock_service.cleanup = AsyncMock()
             mock_service_cls.return_value = mock_service
 
             scheduler = Scheduler(poll_interval=1)
@@ -181,6 +185,7 @@ class TestSchedulerPollCycle:
         with patch("notification_service.services.scheduler.NotificationService") as mock_service_cls:
             mock_service = MagicMock()
             mock_service.process_scheduled = AsyncMock(return_value=[])
+            mock_service.cleanup = AsyncMock()
             mock_service_cls.return_value = mock_service
 
             scheduler = Scheduler(poll_interval=1)
@@ -293,6 +298,7 @@ class TestSchedulerUoWIntegration:
             with patch("notification_service.services.scheduler.NotificationService") as mock_service_cls:
                 mock_service = MagicMock()
                 mock_service.process_scheduled = AsyncMock(return_value=[])
+                mock_service.cleanup = AsyncMock()
                 mock_service_cls.return_value = mock_service
 
                 scheduler = Scheduler(poll_interval=1)

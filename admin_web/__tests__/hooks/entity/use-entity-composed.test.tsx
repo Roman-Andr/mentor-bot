@@ -3,6 +3,11 @@ import { renderHook, act } from '@testing-library/react'
 import { useEntity } from '@/shared/hooks/entity/use-entity-composed'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
+vi.mock('next/navigation', () => ({
+  useSearchParams: () => new URLSearchParams(),
+  useRouter: () => ({ push: vi.fn() }),
+}))
+
 vi.mock('@/shared/lib/query-keys', () => ({
   queryKeys: {
     users: {

@@ -2,236 +2,162 @@
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import httpx
 from _pytest.logging import LogCaptureFixture
-from notification_service.config import settings
 from notification_service.services.telegram import TelegramService
 
 
 class TestTelegramServiceInit:
     """Tests for TelegramService initialization."""
 
-    def test_init_sets_token_from_settings(self) -> None:
-        """TelegramService initializes with token from settings."""
+    def test_init_sets_channel(self) -> None:
+        """TelegramService initializes with correct channel name."""
         service = TelegramService()
-        assert service.token == settings.TELEGRAM_BOT_TOKEN
+        assert service.channel == "telegram_notifications"
+        assert service.redis is None
 
-    def test_init_builds_api_url_correctly(self) -> None:
-        """API URL is built with token from settings."""
+    async def test_get_redis_creates_connection_when_none(self) -> None:
+        """_get_redis creates new Redis connection when redis is None."""
+        from notification_service.config import settings
+        from redis.asyncio import Redis
+
         service = TelegramService()
-        expected_url = f"{settings.TELEGRAM_API_URL}{settings.TELEGRAM_BOT_TOKEN}"
-        assert service.api_url == expected_url
+        assert service.redis is None
+
+        with patch("notification_service.services.telegram.Redis") as mock_redis_cls:
+            mock_redis_instance = MagicMock()
+            mock_redis_cls.from_url.return_value = mock_redis_instance
+
+            result = await service._get_redis()
+
+            mock_redis_cls.from_url.assert_called_once_with(settings.REDIS_URL, decode_responses=True)
+            assert result == mock_redis_instance
+            assert service.redis == mock_redis_instance
 
 
 class TestTelegramSendMessage:
     """Tests for TelegramService.send_message method."""
 
-    async def test_send_message_makes_post_request_to_sendmessage(self) -> None:
-        """SendMessage endpoint is called with correct parameters."""
+    async def test_send_message_publishes_to_redis(self) -> None:
+        """SendMessage publishes message to Redis channel."""
         service = TelegramService()
 
-        mock_response = MagicMock()
-        mock_response.raise_for_status = MagicMock()
-        mock_response.json.return_value = {"ok": True}
+        mock_redis = MagicMock()
+        mock_redis.publish = AsyncMock(return_value=1)
 
-        mock_client = MagicMock()
-        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
-        mock_client.__aexit__ = AsyncMock(return_value=None)
-        mock_client.post = AsyncMock(return_value=mock_response)
-
-        with patch("httpx.AsyncClient", return_value=mock_client):
+        with patch.object(service, "_get_redis", new=AsyncMock(return_value=mock_redis)):
             result = await service.send_message(chat_id=123456789, text="Hello World")
 
         assert result is True
-        mock_client.post.assert_awaited_once()
-        call_args = mock_client.post.call_args
-        assert call_args.kwargs["json"]["chat_id"] == 123456789
-        assert call_args.kwargs["json"]["text"] == "Hello World"
-        assert call_args.kwargs["json"]["parse_mode"] == "HTML"
+        mock_redis.publish.assert_awaited_once()
+        call_args = mock_redis.publish.call_args
+        assert call_args.args[0] == "telegram_notifications"
+        import json
+        payload = json.loads(call_args.args[1])
+        assert payload["chat_id"] == 123456789
+        assert payload["text"] == "Hello World"
+        assert payload["parse_mode"] == "HTML"
 
     async def test_send_message_returns_true_on_success(self) -> None:
-        """Returns True when Telegram API responds with ok: True."""
+        """Returns True when Redis publish succeeds."""
         service = TelegramService()
 
-        mock_response = MagicMock()
-        mock_response.raise_for_status = MagicMock()
-        mock_response.json.return_value = {"ok": True, "result": {"message_id": 123}}
+        mock_redis = MagicMock()
+        mock_redis.publish = AsyncMock(return_value=1)
 
-        mock_client = MagicMock()
-        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
-        mock_client.__aexit__ = AsyncMock(return_value=None)
-        mock_client.post = AsyncMock(return_value=mock_response)
-
-        with patch("httpx.AsyncClient", return_value=mock_client):
+        with patch.object(service, "_get_redis", new=AsyncMock(return_value=mock_redis)):
             result = await service.send_message(chat_id=123456789, text="Test message")
 
         assert result is True
 
-    async def test_send_message_returns_false_on_api_error(self) -> None:
-        """Returns False when Telegram API responds with ok: False."""
+    async def test_send_message_returns_false_on_redis_error(self) -> None:
+        """Returns False when Redis publish fails."""
         service = TelegramService()
 
-        mock_response = MagicMock()
-        mock_response.raise_for_status = MagicMock()
-        mock_response.json.return_value = {"ok": False, "error_code": 400, "description": "Bad Request"}
+        mock_redis = MagicMock()
+        mock_redis.publish = AsyncMock(side_effect=Exception("Redis error"))
 
-        mock_client = MagicMock()
-        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
-        mock_client.__aexit__ = AsyncMock(return_value=None)
-        mock_client.post = AsyncMock(return_value=mock_response)
-
-        with patch("httpx.AsyncClient", return_value=mock_client):
+        with patch.object(service, "_get_redis", new=AsyncMock(return_value=mock_redis)):
             result = await service.send_message(chat_id=123456789, text="Test")
 
         assert result is False
-
-    async def test_send_message_returns_false_on_http_error(self) -> None:
-        """Returns False when HTTP request raises an exception."""
-        service = TelegramService()
-
-        mock_response = MagicMock()
-        mock_response.raise_for_status = MagicMock(side_effect=httpx.HTTPError("Connection failed"))
-
-        mock_client = MagicMock()
-        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
-        mock_client.__aexit__ = AsyncMock(return_value=None)
-        mock_client.post = AsyncMock(return_value=mock_response)
-
-        with patch("httpx.AsyncClient", return_value=mock_client):
-            result = await service.send_message(chat_id=123456789, text="Test")
-
-        assert result is False
-
-    async def test_send_message_returns_false_on_network_error(self) -> None:
-        """Returns False when network request fails."""
-        service = TelegramService()
-
-        mock_client = MagicMock()
-        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
-        mock_client.__aexit__ = AsyncMock(return_value=None)
-        mock_client.post = AsyncMock(side_effect=httpx.ConnectError("Network unreachable"))
-
-        with patch("httpx.AsyncClient", return_value=mock_client):
-            result = await service.send_message(chat_id=123456789, text="Test")
-
-        assert result is False
-
-    async def test_send_message_logs_api_error(self, caplog: LogCaptureFixture) -> None:
-        """Logs error when Telegram API returns ok: False."""
-        caplog.set_level("ERROR")
-        service = TelegramService()
-
-        mock_response = MagicMock()
-        mock_response.raise_for_status = MagicMock()
-        mock_response.json.return_value = {"ok": False, "error_code": 403, "description": "Forbidden"}
-
-        mock_client = MagicMock()
-        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
-        mock_client.__aexit__ = AsyncMock(return_value=None)
-        mock_client.post = AsyncMock(return_value=mock_response)
-
-        with patch("httpx.AsyncClient", return_value=mock_client):
-            await service.send_message(chat_id=123456789, text="Test")
-
-        assert "Telegram API error" in caplog.text
 
     async def test_send_message_logs_exception_on_failure(self, caplog: LogCaptureFixture) -> None:
-        """Logs exception when message sending fails."""
+        """Logs exception when Redis publish fails."""
         caplog.set_level("ERROR")
         service = TelegramService()
 
-        mock_client = MagicMock()
-        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
-        mock_client.__aexit__ = AsyncMock(return_value=None)
-        mock_client.post = AsyncMock(side_effect=httpx.TimeoutException("Request timed out"))
+        mock_redis = MagicMock()
+        mock_redis.publish = AsyncMock(side_effect=Exception("Connection failed"))
 
-        with patch("httpx.AsyncClient", return_value=mock_client):
+        with patch.object(service, "_get_redis", new=AsyncMock(return_value=mock_redis)):
             await service.send_message(chat_id=123456789, text="Test")
 
-        assert "Failed to send Telegram message" in caplog.text
+        assert "Failed to publish Telegram notification to Redis" in caplog.text
 
     async def test_send_message_with_html_formatting(self) -> None:
         """Messages can include HTML formatting."""
         service = TelegramService()
 
-        mock_response = MagicMock()
-        mock_response.raise_for_status = MagicMock()
-        mock_response.json.return_value = {"ok": True}
-
-        mock_client = MagicMock()
-        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
-        mock_client.__aexit__ = AsyncMock(return_value=None)
-        mock_client.post = AsyncMock(return_value=mock_response)
+        mock_redis = MagicMock()
+        mock_redis.publish = AsyncMock(return_value=1)
 
         html_message = "<b>Bold</b> and <i>italic</i> text"
 
-        with patch("httpx.AsyncClient", return_value=mock_client):
+        with patch.object(service, "_get_redis", new=AsyncMock(return_value=mock_redis)):
             await service.send_message(chat_id=123456789, text=html_message)
 
-        call_kwargs = mock_client.post.call_args.kwargs
-        assert call_kwargs["json"]["text"] == html_message
-        assert call_kwargs["json"]["parse_mode"] == "HTML"
+        import json
+        call_args = mock_redis.publish.call_args
+        payload = json.loads(call_args.args[1])
+        assert payload["text"] == html_message
+        assert payload["parse_mode"] == "HTML"
 
     async def test_send_message_with_special_characters(self) -> None:
         """Messages can include special characters."""
         service = TelegramService()
 
-        mock_response = MagicMock()
-        mock_response.raise_for_status = MagicMock()
-        mock_response.json.return_value = {"ok": True}
-
-        mock_client = MagicMock()
-        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
-        mock_client.__aexit__ = AsyncMock(return_value=None)
-        mock_client.post = AsyncMock(return_value=mock_response)
+        mock_redis = MagicMock()
+        mock_redis.publish = AsyncMock(return_value=1)
 
         message_with_special = "Hello! Special chars: @#$%^&*()_+-=[]{}|;':\",./<>?"
 
-        with patch("httpx.AsyncClient", return_value=mock_client):
+        with patch.object(service, "_get_redis", new=AsyncMock(return_value=mock_redis)):
             result = await service.send_message(chat_id=123456789, text=message_with_special)
 
         assert result is True
-        call_kwargs = mock_client.post.call_args.kwargs
-        assert call_kwargs["json"]["text"] == message_with_special
+        import json
+        call_args = mock_redis.publish.call_args
+        payload = json.loads(call_args.args[1])
+        assert payload["text"] == message_with_special
 
     async def test_send_message_with_unicode(self) -> None:
         """Messages can include unicode characters and emojis."""
         service = TelegramService()
 
-        mock_response = MagicMock()
-        mock_response.raise_for_status = MagicMock()
-        mock_response.json.return_value = {"ok": True}
-
-        mock_client = MagicMock()
-        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
-        mock_client.__aexit__ = AsyncMock(return_value=None)
-        mock_client.post = AsyncMock(return_value=mock_response)
+        mock_redis = MagicMock()
+        mock_redis.publish = AsyncMock(return_value=1)
 
         unicode_message = "Hello World! 🎉 Привет мир! 你好世界!"
 
-        with patch("httpx.AsyncClient", return_value=mock_client):
+        with patch.object(service, "_get_redis", new=AsyncMock(return_value=mock_redis)):
             result = await service.send_message(chat_id=123456789, text=unicode_message)
 
         assert result is True
-        call_kwargs = mock_client.post.call_args.kwargs
-        assert call_kwargs["json"]["text"] == unicode_message
+        import json
+        call_args = mock_redis.publish.call_args
+        payload = json.loads(call_args.args[1])
+        assert payload["text"] == unicode_message
 
     async def test_send_message_with_long_text(self) -> None:
         """Long messages are handled correctly."""
         service = TelegramService()
 
-        mock_response = MagicMock()
-        mock_response.raise_for_status = MagicMock()
-        mock_response.json.return_value = {"ok": True}
+        mock_redis = MagicMock()
+        mock_redis.publish = AsyncMock(return_value=1)
 
-        mock_client = MagicMock()
-        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
-        mock_client.__aexit__ = AsyncMock(return_value=None)
-        mock_client.post = AsyncMock(return_value=mock_response)
+        long_message = "A" * 4000
 
-        long_message = "A" * 4000  # Telegram allows up to 4096 chars
-
-        with patch("httpx.AsyncClient", return_value=mock_client):
+        with patch.object(service, "_get_redis", new=AsyncMock(return_value=mock_redis)):
             result = await service.send_message(chat_id=123456789, text=long_message)
 
         assert result is True
@@ -240,82 +166,55 @@ class TestTelegramSendMessage:
         """Group chat IDs (negative numbers) are handled correctly."""
         service = TelegramService()
 
-        mock_response = MagicMock()
-        mock_response.raise_for_status = MagicMock()
-        mock_response.json.return_value = {"ok": True}
+        mock_redis = MagicMock()
+        mock_redis.publish = AsyncMock(return_value=1)
 
-        mock_client = MagicMock()
-        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
-        mock_client.__aexit__ = AsyncMock(return_value=None)
-        mock_client.post = AsyncMock(return_value=mock_response)
+        group_chat_id = -1001234567890
 
-        group_chat_id = -1001234567890  # Typical group chat ID format
-
-        with patch("httpx.AsyncClient", return_value=mock_client):
+        with patch.object(service, "_get_redis", new=AsyncMock(return_value=mock_redis)):
             result = await service.send_message(chat_id=group_chat_id, text="Group message")
 
         assert result is True
-        call_kwargs = mock_client.post.call_args.kwargs
-        assert call_kwargs["json"]["chat_id"] == group_chat_id
+        import json
+        call_args = mock_redis.publish.call_args
+        payload = json.loads(call_args.args[1])
+        assert payload["chat_id"] == group_chat_id
 
-    async def test_send_message_uses_correct_timeout(self) -> None:
-        """Request uses correct timeout value."""
+
+class TestTelegramServiceCleanup:
+    """Tests for TelegramService cleanup."""
+
+    async def test_close_closes_redis_connection(self) -> None:
+        """Close method closes Redis connection."""
         service = TelegramService()
+        mock_redis = MagicMock()
+        mock_redis.close = AsyncMock()
+        service.redis = mock_redis
 
-        mock_response = MagicMock()
-        mock_response.raise_for_status = MagicMock()
-        mock_response.json.return_value = {"ok": True}
+        await service.close()
 
-        mock_client = MagicMock()
-        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
-        mock_client.__aexit__ = AsyncMock(return_value=None)
-        mock_client.post = AsyncMock(return_value=mock_response)
+        mock_redis.close.assert_awaited_once()
+        assert service.redis is None
 
-        with patch("httpx.AsyncClient", return_value=mock_client):
-            await service.send_message(chat_id=123456789, text="Test")
+    async def test_close_handles_none_redis(self) -> None:
+        """Close method handles None redis gracefully."""
+        service = TelegramService()
+        service.redis = None
 
-        call_kwargs = mock_client.post.call_args.kwargs
-        assert call_kwargs["timeout"] == 10.0
+        await service.close()
 
+        # Should not raise any exception
+        assert service.redis is None
 
-class TestTelegramServiceErrorHandling:
-    """Tests for TelegramService error handling scenarios."""
-
-    async def test_handles_invalid_token_response(self, caplog: LogCaptureFixture) -> None:
-        """Handles response indicating invalid bot token."""
+    async def test_close_logs_error_on_failure(self, caplog: LogCaptureFixture) -> None:
+        """Close method logs error when closing fails."""
         caplog.set_level("ERROR")
         service = TelegramService()
+        mock_redis = MagicMock()
+        mock_redis.close = AsyncMock(side_effect=Exception("Close failed"))
+        service.redis = mock_redis
 
-        mock_response = MagicMock()
-        mock_response.raise_for_status = MagicMock()
-        mock_response.json.return_value = {"ok": False, "error_code": 401, "description": "Unauthorized"}
+        await service.close()
 
-        mock_client = MagicMock()
-        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
-        mock_client.__aexit__ = AsyncMock(return_value=None)
-        mock_client.post = AsyncMock(return_value=mock_response)
-
-        with patch("httpx.AsyncClient", return_value=mock_client):
-            result = await service.send_message(chat_id=123456789, text="Test")
-
-        assert result is False
-        assert "Telegram API error" in caplog.text
-
-    async def test_handles_chat_not_found_error(self, caplog: LogCaptureFixture) -> None:
-        """Handles response indicating chat not found."""
-        caplog.set_level("ERROR")
-        service = TelegramService()
-
-        mock_response = MagicMock()
-        mock_response.raise_for_status = MagicMock()
-        mock_response.json.return_value = {"ok": False, "error_code": 400, "description": "Bad Request: chat not found"}
-
-        mock_client = MagicMock()
-        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
-        mock_client.__aexit__ = AsyncMock(return_value=None)
-        mock_client.post = AsyncMock(return_value=mock_response)
-
-        with patch("httpx.AsyncClient", return_value=mock_client):
-            result = await service.send_message(chat_id=123456789, text="Test")
-
-        assert result is False
+        assert "Failed to close Redis connection" in caplog.text
+        assert service.redis is None

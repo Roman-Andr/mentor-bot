@@ -192,7 +192,7 @@ async def message_mentor(callback: CallbackQuery, state: FSMContext, *, locale: 
 
     await callback.message.edit_text(
         f"\U0001f4ac *{t('mentor.btn_message', locale=locale)}*\n\n"
-        f"Type your message below and it will be sent to your mentor.",
+        f"{t('mentor.message_prompt', locale=locale)}",
         parse_mode="Markdown",
     )
     await state.set_state(EscalationStates.waiting_for_description)

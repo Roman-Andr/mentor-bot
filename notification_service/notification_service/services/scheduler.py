@@ -42,9 +42,12 @@ class Scheduler:
         """Process due scheduled notifications."""
         async with SqlAlchemyUnitOfWork(AsyncSessionLocal) as uow:
             service = NotificationService(uow)
-            sent = await service.process_scheduled()
-            if sent:
-                logger.info("Processed %s scheduled notifications", len(sent))
+            try:
+                sent = await service.process_scheduled()
+                if sent:
+                    logger.info("Processed %s scheduled notifications", len(sent))
+            finally:
+                await service.cleanup()
 
 
 # Global scheduler instance

@@ -6,11 +6,15 @@ import { useTranslations } from "@/shared/hooks/use-translations";
 import { Search, ChevronDown, X } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { useDebounce } from "@/shared/hooks/use-debounce";
+import { UserAvatar } from "@/shared/ui/user-avatar";
 
 export interface SelectOption {
   value: string;
   label: string;
   description?: string;
+  id?: number; // For avatar generation
+  telegram_id?: number | null;
+  email?: string | null;
 }
 
 interface SearchableSelectProps {
@@ -29,6 +33,7 @@ interface AsyncSearchableSelectProps {
   onSearch: (query: string) => Promise<SelectOption[]>;
   onOptionSelect?: (option: SelectOption) => void;
   selectedLabel?: string;
+  selectedOption?: SelectOption;
   placeholder?: string;
   searchPlaceholder?: string;
   disabled?: boolean;
@@ -166,6 +171,7 @@ export function AsyncSearchableSelect({
   onSearch,
   onOptionSelect,
   selectedLabel,
+  selectedOption,
   placeholder,
   searchPlaceholder,
   disabled = false,
@@ -245,7 +251,10 @@ export function AsyncSearchableSelect({
           !value && "text-muted-foreground",
         )}
       >
-        <span className="truncate">{value ? displayLabel : placeholderText}</span>
+        <div className="flex items-center gap-2 overflow-hidden">
+          {selectedOption?.id && <UserAvatar name={selectedOption.label} id={selectedOption.id} size="sm" />}
+          <span className="truncate">{value ? displayLabel : placeholderText}</span>
+        </div>
         <div className="flex items-center gap-1">
           {value && !disabled && (
             <X
@@ -289,7 +298,7 @@ export function AsyncSearchableSelect({
                   key={option.value}
                   type="button"
                   className={cn(
-                    "flex w-full cursor-pointer flex-col items-start rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground",
+                    "flex w-full cursor-pointer items-start gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground",
                     option.value === value && "bg-accent text-accent-foreground",
                   )}
                   onClick={() => {
@@ -299,12 +308,15 @@ export function AsyncSearchableSelect({
                     setSearch("");
                   }}
                 >
-                  <span className="w-full truncate text-left">{option.label}</span>
-                  {option.description && (
-                    <span className="text-muted-foreground w-full truncate text-left text-xs">
-                      {option.description}
-                    </span>
-                  )}
+                  {option.id && <UserAvatar name={option.label} id={option.id} size="sm" />}
+                  <div className="flex flex-col items-start overflow-hidden">
+                    <span className="truncate text-left">{option.label}</span>
+                    {option.description && (
+                      <span className="text-muted-foreground truncate text-left text-xs">
+                        {option.description}
+                      </span>
+                    )}
+                  </div>
                 </button>
               ))
             )}

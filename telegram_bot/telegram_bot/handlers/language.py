@@ -7,6 +7,7 @@ from aiogram.types import CallbackQuery, Message
 from telegram_bot.i18n import t
 from telegram_bot.keyboards.language_kb import get_language_keyboard
 from telegram_bot.services.auth_client import auth_client
+from telegram_bot.services.cache import user_cache
 
 router = Router()
 
@@ -51,6 +52,10 @@ async def set_language(callback: CallbackQuery, auth_token: str, user: dict) -> 
                 {"language": lang},
                 auth_token,
             )
+
+    # Update local cache to reflect the change immediately
+    if callback.from_user:
+        await user_cache.update_user_field(callback.from_user.id, "language", lang)
 
     await callback.answer(t("settings.language_set", locale=lang))
     if callback.message:

@@ -1,5 +1,8 @@
 import { useTranslations } from "@/shared/hooks/use-translations";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
+import { ExternalLink } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/shared/ui/button";
 
 interface Activity {
   user: string;
@@ -10,15 +13,24 @@ interface Activity {
 
 interface ActivityFeedProps {
   activity: Activity[];
+  href?: string;
 }
 
-export function ActivityFeed({ activity }: ActivityFeedProps) {
+export function ActivityFeed({ activity, href }: ActivityFeedProps) {
   const t = useTranslations();
 
-  return (
-    <Card className="col-span-3">
-      <CardHeader>
+  const card = (
+    <Card className="col-span-3 transition-shadow hover:shadow-md">
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle>{t("dashboard.recentActivity")}</CardTitle>
+        {href && (
+          <Link href={href}>
+            <Button variant="ghost" size="sm" className="gap-1 text-xs">
+              <ExternalLink className="size-3" />
+              {t("common.viewAll")}
+            </Button>
+          </Link>
+        )}
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
@@ -39,4 +51,6 @@ export function ActivityFeed({ activity }: ActivityFeedProps) {
       </CardContent>
     </Card>
   );
+
+  return card;
 }

@@ -5,6 +5,7 @@ import { useToast } from "../use-toast";
 import { useConfirm } from "../use-confirm";
 import { useTranslations } from "../use-translations";
 import { usePaginationSettings } from "@/shared/providers/pagination-provider";
+import { useSearchParams, useRouter } from "next/navigation";
 import type { ListParams } from "../use-queries";
 import type {
   UseEntityOptions,
@@ -80,6 +81,8 @@ export function useEntity<TItem, TForm, TCreatePayload = unknown, TUpdatePayload
   const confirm = useConfirm();
   const queryClient = useQueryClient();
   const { pageSize: globalPageSize, setPageSize: setGlobalPageSize } = usePaginationSettings();
+  const searchParams = useSearchParams();
+  const router = useRouter();
 
   // Extended state for custom fields (attachments, tasks, etc.)
   const [extendedState, setExtendedStateState] = useState<TExtendedState>(
@@ -93,9 +96,22 @@ export function useEntity<TItem, TForm, TCreatePayload = unknown, TUpdatePayload
     [],
   );
 
-  // Search state
-  const [searchQuery, setSearchQuery] = useState("");
+  // Search state - initialize from URL
+  const [searchQuery, setSearchQuery] = useState(() => searchParams.get(searchParamName) ?? "");
   const debouncedSearch = useDebounce(searchQuery);
+
+  const setSearchQueryWithUrl = useCallback((query: string) => {
+    setSearchQuery(query);
+
+    // Update URL
+    const params = new URLSearchParams(searchParams.toString());
+    if (query === "") {
+      params.delete(searchParamName);
+    } else {
+      params.set(searchParamName, query);
+    }
+    router.push(`?${params.toString()}`, { scroll: false });
+  }, [searchParamName, searchParams, router]);
 
   // Pagination state
   const { currentPage, setCurrentPage, pageSize, setPageSize } = useEntityPagination(initialPageSize);
@@ -257,7 +273,7 @@ export function useEntity<TItem, TForm, TCreatePayload = unknown, TUpdatePayload
 
     // Search
     searchQuery,
-    setSearchQuery,
+    setSearchQuery: setSearchQueryWithUrl,
     debouncedSearch,
 
     // Filters

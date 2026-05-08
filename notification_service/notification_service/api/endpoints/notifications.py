@@ -53,9 +53,12 @@ async def send_notification(
 
     async with SqlAlchemyUnitOfWork(lambda: db) as uow:
         service = NotificationService(uow)
-        notification = await service.send_immediate(notification_data)
-        logger.info("Notification sent via API (notification_id={})", notification.id)
-        return NotificationResponse.model_validate(notification)
+        try:
+            notification = await service.send_immediate(notification_data)
+            logger.info("Notification sent via API (notification_id={})", notification.id)
+            return NotificationResponse.model_validate(notification)
+        finally:
+            await service.cleanup()
 
 
 @router.post("/schedule")
@@ -83,9 +86,12 @@ async def schedule_notification(
 
     async with SqlAlchemyUnitOfWork(lambda: db) as uow:
         service = NotificationService(uow)
-        scheduled = await service.schedule(schedule_data)
-        logger.info("Notification scheduled via API (scheduled_id={})", scheduled.id)
-        return ScheduledNotificationResponse.model_validate(scheduled)
+        try:
+            scheduled = await service.schedule(schedule_data)
+            logger.info("Notification scheduled via API (scheduled_id={})", scheduled.id)
+            return ScheduledNotificationResponse.model_validate(scheduled)
+        finally:
+            await service.cleanup()
 
 
 @router.get("/history")
@@ -101,13 +107,16 @@ async def get_notification_history(
     logger.debug("GET /notifications/history request (user_id={}, skip={}, limit={})", current_user.id, skip, limit)
     async with SqlAlchemyUnitOfWork(lambda: db) as uow:
         service = NotificationService(uow)
-        notifications, _ = await service.find_notifications(
-            skip=skip,
-            limit=limit,
-            user_id=current_user.id,
-            sort_by=sort_by,
-            sort_order=sort_order,
-        )
+        try:
+            notifications, _ = await service.find_notifications(
+                skip=skip,
+                limit=limit,
+                user_id=current_user.id,
+                sort_by=sort_by,
+                sort_order=sort_order,
+            )
+        finally:
+            await service.cleanup()
         return [NotificationResponse.model_validate(n) for n in notifications]
 
 
@@ -125,14 +134,17 @@ async def get_user_notification_history(
     logger.debug("GET /notifications/history/{} request", user_id)
     async with SqlAlchemyUnitOfWork(lambda: db) as uow:
         service = NotificationService(uow)
-        notifications, _ = await service.find_notifications(
-            skip=skip,
-            limit=limit,
-            user_id=user_id,
-            sort_by=sort_by,
-            sort_order=sort_order,
-        )
-        return [NotificationResponse.model_validate(n) for n in notifications]
+        try:
+            notifications, _ = await service.find_notifications(
+                skip=skip,
+                limit=limit,
+                user_id=user_id,
+                sort_by=sort_by,
+                sort_order=sort_order,
+            )
+            return [NotificationResponse.model_validate(n) for n in notifications]
+        finally:
+            await service.cleanup()
 
 
 @router.get("/admin/list")
@@ -151,24 +163,26 @@ async def list_notifications(
     logger.debug("GET /notifications/admin/list request (skip={}, limit={})", skip, limit)
     async with SqlAlchemyUnitOfWork(lambda: db) as uow:
         service = NotificationService(uow)
-        notifications, total = await service.find_notifications(
-            skip=skip,
-            limit=limit,
-            user_id=user_id,
-            notification_type=notification_type,
-            status=status,
-            sort_by=sort_by,
-            sort_order=sort_order,
-        )
-
-    pages = (total + limit - 1) // limit if limit > 0 else 0
-    return NotificationListResponse(
-        total=total,
-        notifications=[NotificationResponse.model_validate(n) for n in notifications],
-        page=skip // limit + 1 if limit > 0 else 1,
-        size=limit,
-        pages=pages,
-    )
+        try:
+            notifications, total = await service.find_notifications(
+                skip=skip,
+                limit=limit,
+                user_id=user_id,
+                notification_type=notification_type,
+                status=status,
+                sort_by=sort_by,
+                sort_order=sort_order,
+            )
+            pages = (total + limit - 1) // limit if limit > 0 else 0
+            return NotificationListResponse(
+                total=total,
+                notifications=[NotificationResponse.model_validate(n) for n in notifications],
+                page=skip // limit + 1 if limit > 0 else 1,
+                size=limit,
+                pages=pages,
+            )
+        finally:
+            await service.cleanup()
 
 
 @router.post("/send-template")
@@ -188,7 +202,6 @@ async def send_template_notification(
     logger.info("POST /notifications/send-template request (template_name={}, user_id={})", template_name, user_id)
     async with SqlAlchemyUnitOfWork(lambda: db) as uow:
         service = NotificationService(uow)
-
         try:
             notification = await service.send_template(
                 template_name=template_name,
@@ -212,6 +225,8 @@ async def send_template_notification(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=str(e),
             ) from e
+        finally:
+            await service.cleanup()
 
     logger.info("Template notification sent via API (notification_id={})", notification.id)
     return NotificationResponse.model_validate(notification)
@@ -235,7 +250,6 @@ async def schedule_template_notification(
     logger.info("POST /notifications/schedule-template request (template_name={}, user_id={})", template_name, user_id)
     async with SqlAlchemyUnitOfWork(lambda: db) as uow:
         service = NotificationService(uow)
-
         try:
             scheduled = await service.schedule_template(
                 template_name=template_name,
@@ -260,6 +274,8 @@ async def schedule_template_notification(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=str(e),
             ) from e
+        finally:
+            await service.cleanup()
 
     logger.info("Template notification scheduled via API (scheduled_id={})", scheduled.id)
     return ScheduledNotificationResponse.model_validate(scheduled)

@@ -717,6 +717,8 @@
     "notifications": "Notifications",
     "notificationsDescription": "Notification channel preferences",
     "recipientUserId": "Recipient User ID",
+    "selectUser": "Select user",
+    "searchUser": "Search user...",
     "save": "Save",
     "saved": "Settings saved",
     "scheduleNotification": "Schedule Notification",
