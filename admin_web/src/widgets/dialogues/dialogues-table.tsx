@@ -14,7 +14,7 @@ import {
   TableRow,
 } from "@/shared/ui/table";
 import { DataTable } from "@/shared/ui/data-table";
-import { CardHeader, CardTitle } from "@/shared/ui/card";
+import { CardHeader, CardTitle, Card, CardContent } from "@/shared/ui/card";
 import { useConfirm } from "@/shared/hooks/use-confirm";
 import { cn } from "@/shared/lib/utils";
 import { TableActions, buildEditAction, buildDeleteAction, buildToggleAction } from "@/shared/components";
@@ -119,6 +119,108 @@ export function DialoguesTable({
 
   const activeCount = dialogues.filter((d) => d.isActive).length;
 
+  function DialogueCard({
+    dialogue,
+    onEdit,
+    onToggleActive,
+    onDelete,
+    t,
+  }: {
+    dialogue: DialogueRow;
+    onEdit: (d: DialogueRow) => void;
+    onToggleActive: (id: number, isActive: boolean) => void;
+    onDelete: (id: number, title: string) => void;
+    t: (key: string) => string;
+  }) {
+    return (
+      <Card
+        className="cursor-pointer transition-colors hover:bg-muted/50"
+        onClick={() => onEdit(dialogue)}
+      >
+        <CardContent className="p-4">
+          {/* Header: Title + Status */}
+          <div className="mb-3 flex items-start gap-3">
+            <div className="bg-muted flex size-8 shrink-0 items-center justify-center rounded-lg">
+              <MessageSquare className="text-muted-foreground size-4" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="font-semibold truncate">{dialogue.title}</h3>
+                {dialogue.isActive ? (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">
+                    <CheckCircle2 className="size-3" />
+                    {t("dialogues.activeStatus")}
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                    <XCircle className="size-3" />
+                    {t("dialogues.inactiveStatus")}
+                  </span>
+                )}
+              </div>
+              {dialogue.description && (
+                <p className="text-muted-foreground mt-1 line-clamp-2 text-xs">{dialogue.description}</p>
+              )}
+            </div>
+          </div>
+
+          {/* Metadata */}
+          <div className="mb-3 grid grid-cols-2 gap-2 text-xs">
+            <div>
+              <span className={cn(
+                "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium",
+                CATEGORY_COLORS[dialogue.category] ?? "bg-muted text-muted-foreground",
+              )}>
+                {getCategoryLabel(dialogue.category)}
+              </span>
+            </div>
+            <div className="flex items-center gap-1">
+              <ListOrdered className="text-muted-foreground size-3" />
+              <span className="text-muted-foreground">{t("dialogues.stepsCount")}: </span>
+              <span>{dialogue.stepsCount}</span>
+            </div>
+          </div>
+
+          {/* Footer: Actions */}
+          <div
+            className="flex items-center gap-2 border-t pt-3 flex-col sm:flex-row"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Button size="sm" variant="outline" className="flex-1" onClick={() => onEdit(dialogue)}>
+              {t("common.edit")}
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className={cn("flex-1", dialogue.isActive ? "text-amber-500 hover:text-amber-600" : "text-emerald-500 hover:text-emerald-600")}
+              onClick={() => onToggleActive(dialogue.id, !dialogue.isActive)}
+            >
+              {dialogue.isActive ? t("common.deactivate") : t("common.activate")}
+            </Button>
+            <Button size="sm" variant="destructive" onClick={() => onDelete(dialogue.id, dialogue.title)}>
+              {t("common.delete")}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const mobileView = (
+    <div className="space-y-3 p-4">
+      {dialogues.map((d) => (
+        <DialogueCard
+          key={d.id}
+          dialogue={d}
+          onEdit={handleEdit}
+          onToggleActive={onToggleActive}
+          onDelete={handleDelete}
+          t={t}
+        />
+      ))}
+    </div>
+  );
+
   return (
     <DataTable
       loading={loading}
@@ -130,6 +232,7 @@ export function DialoguesTable({
       onPageChange={onPageChange}
       onPageSizeChange={onPageSizeChange}
       showPageSizeSelector={!!onPageSizeChange}
+      mobileView={mobileView}
       header={
         <CardHeader>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -147,16 +250,18 @@ export function DialoguesTable({
                 </span>
               </div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-col gap-2 w-full sm:flex-row sm:items-center sm:flex-wrap">
               <SearchInput
                 placeholder={t("dialogues.searchDialogues")}
                 value={searchQuery}
                 onChange={onSearchChange}
+                className="w-full sm:w-auto"
               />
               <Select
                 value={categoryFilter}
                 onChange={onCategoryFilterChange}
                 options={categoryOptions}
+                className="w-full sm:w-auto"
               />
             </div>
           </div>

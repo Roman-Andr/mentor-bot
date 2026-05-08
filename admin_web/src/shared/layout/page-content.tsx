@@ -10,7 +10,7 @@ interface PageContentProps {
 
 export function PageContent({ title, subtitle, actions, children }: PageContentProps) {
   return (
-    <div className="space-y-6 p-6">
+    <div className="min-w-0 space-y-4 p-4 sm:space-y-6 sm:p-6">
       <PageHeader title={title} subtitle={subtitle} actions={actions} />
       {children}
     </div>

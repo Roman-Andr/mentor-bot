@@ -33,7 +33,7 @@ export function DepartmentBreakdown({ departments, href }: DepartmentBreakdownPr
           <Link href={href}>
             <Button variant="ghost" size="sm" className="gap-1 text-xs">
               <ExternalLink className="size-3" />
-              {t("common.viewAll")}
+              <span className="hidden sm:inline">{t("common.viewAll")}</span>
             </Button>
           </Link>
         )}

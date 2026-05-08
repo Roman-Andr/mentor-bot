@@ -225,3 +225,21 @@ class InvitationRepository(SqlAlchemyBaseRepository[Invitation, int], IInvitatio
         result = await self._session.execute(stmt)
         count = cast("int", result.scalar_one())
         return count > 0
+
+    async def nullify_user_id(self, user_id: int) -> int:
+        """Set user_id to NULL for all invitations linked to a user."""
+        from sqlalchemy import update
+
+        stmt = update(Invitation).where(Invitation.user_id == user_id).values(user_id=None)
+        result = await self._session.execute(stmt)
+        await self._session.flush()
+        return result.rowcount
+
+    async def nullify_mentor_id(self, mentor_id: int) -> int:
+        """Set mentor_id to NULL for all invitations linked to a mentor."""
+        from sqlalchemy import update
+
+        stmt = update(Invitation).where(Invitation.mentor_id == mentor_id).values(mentor_id=None)
+        result = await self._session.execute(stmt)
+        await self._session.flush()
+        return result.rowcount

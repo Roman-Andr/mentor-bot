@@ -18,7 +18,7 @@ import {
 } from "@/shared/ui/table";
 import { DataTable } from "@/shared/ui/data-table";
 import { DataTableSkeleton } from "@/shared/ui/table-skeleton";
-import { CardHeader, CardTitle } from "@/shared/ui/card";
+import { CardHeader, CardTitle, Card, CardContent } from "@/shared/ui/card";
 import { TableActions, buildEditAction, buildDeleteAction, buildPublishAction } from "@/shared/components";
 import { BookOpen, Eye, Pin, Star } from "lucide-react";
 import type { Category } from "@/shared/types";
@@ -99,6 +99,109 @@ export function ArticlesTable({
 
   const statusOptions = getArticleStatusOptions(t, true);
 
+  function ArticleCard({
+    article,
+    onEdit,
+    onPublish,
+    onDelete,
+    t,
+  }: {
+    article: ArticleRow;
+    onEdit: (article: ArticleRow) => void;
+    onPublish: (id: number) => void;
+    onDelete: (id: number) => void;
+    t: (key: string) => string;
+  }) {
+    return (
+      <Card
+        className="cursor-pointer transition-colors hover:bg-muted/50"
+        onClick={() => onEdit(article)}
+      >
+        <CardContent className="p-4">
+          {/* Header: Title + Status + Badges */}
+          <div className="mb-3 flex items-start gap-3">
+            <div className="bg-muted flex size-8 shrink-0 items-center justify-center rounded-lg">
+              <BookOpen className="text-muted-foreground size-4" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="font-semibold truncate">{article.title}</h3>
+                {article.isPinned && <Pin className="size-3 text-purple-500 shrink-0" />}
+                {article.isFeatured && <Star className="size-3 text-yellow-500 shrink-0" />}
+                <StatusBadge status={article.status} />
+              </div>
+              <p className="text-muted-foreground mt-1 line-clamp-2 text-xs">{article.excerpt}</p>
+            </div>
+          </div>
+
+          {/* Metadata */}
+          <div className="mb-3 grid grid-cols-2 gap-2 text-xs">
+            <div className="flex items-center gap-1">
+              <Badge
+                variant="secondary"
+                style={{
+                  backgroundColor: article.category_color || undefined,
+                  color: article.category_color ? '#fff' : undefined,
+                }}
+              >
+                {article.category}
+              </Badge>
+            </div>
+            <div>
+              <span className="text-muted-foreground">{t("knowledge.author")}: </span>
+              <span>{article.author}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Eye className="text-muted-foreground size-3" />
+              <span>{article.viewCount}</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground">{t("common.createdAt")}: </span>
+              <span>{new Date(article.createdAt).toLocaleDateString()}</span>
+            </div>
+          </div>
+
+          {/* Footer: Actions */}
+          <div
+            className="flex items-center gap-2 border-t pt-3 flex-col sm:flex-row"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Button size="sm" variant="outline" className="flex-1" onClick={() => onEdit(article)}>
+              {t("common.edit")}
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="flex-1"
+              onClick={() => onPublish(article.id)}
+              disabled={article.status !== "DRAFT"}
+            >
+              {t("knowledge.publish")}
+            </Button>
+            <Button size="sm" variant="destructive" onClick={() => onDelete(article.id)}>
+              {t("common.delete")}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const mobileView = (
+    <div className="space-y-3 p-4">
+      {articles.map((article) => (
+        <ArticleCard
+          key={article.id}
+          article={article}
+          onEdit={onEdit}
+          onPublish={onPublish}
+          onDelete={onDelete}
+          t={t}
+        />
+      ))}
+    </div>
+  );
+
   return (
     <DataTable
       loading={loading}
@@ -110,21 +213,24 @@ export function ArticlesTable({
       onPageChange={onPageChange}
       onPageSizeChange={onPageSizeChange}
       showPageSizeSelector={!!onPageSizeChange}
+      mobileView={mobileView}
       header={
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <CardTitle>{t("knowledge.articles")}</CardTitle>
-            <div className="flex gap-2">
-              <SearchInput placeholder={t("common.searchPlaceholder")} value={searchQuery} onChange={onSearchChange} />
+            <div className="flex flex-col gap-2 w-full sm:flex-row sm:items-center sm:flex-wrap">
+              <SearchInput placeholder={t("common.searchPlaceholder")} value={searchQuery} onChange={onSearchChange} className="w-full sm:w-auto" />
               <Select
                 value={categoryFilter}
                 onChange={onCategoryFilterChange}
                 options={categoryOptions}
+                className="w-full sm:w-auto"
               />
               <Select
                 value={statusFilter}
                 onChange={onStatusFilterChange}
                 options={statusOptions}
+                className="w-full sm:w-auto"
               />
               <div className="flex items-center gap-2 px-3">
                 <Checkbox
@@ -136,7 +242,7 @@ export function ArticlesTable({
                   {t("knowledge.pinnedOnly")}
                 </label>
               </div>
-              <Button variant="outline" onClick={onReset}>
+              <Button variant="outline" onClick={onReset} className="w-full sm:w-auto">
                 {t("common.reset")}
               </Button>
             </div>

@@ -25,11 +25,9 @@ class MeetingStatus(StrEnum):
 class MaterialType(StrEnum):
     """Type of meeting material."""
 
-    PDF = "PDF"
-    LINK = "LINK"
-    DOC = "DOC"
-    IMAGE = "IMAGE"
-    VIDEO = "VIDEO"
+    FILE = "FILE"
+    NOTE = "NOTE"
+    URL = "URL"
 
 
 class EmployeeLevel(StrEnum):

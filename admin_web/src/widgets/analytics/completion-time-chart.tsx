@@ -22,11 +22,11 @@ export function CompletionTimeChart({ data }: CompletionTimeChartProps) {
         <CardTitle>{t("analytics.completionTimeChart")}</CardTitle>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={300}>
+        <ResponsiveContainer width="100%" height={250} minHeight={200}>
           <BarChart data={data} layout="vertical">
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis type="number" />
-            <YAxis dataKey="range" type="category" width={100} />
+            <XAxis type="number" tick={{ fontSize: 12 }} />
+            <YAxis dataKey="range" type="category" width={80} tick={{ fontSize: 12 }} />
             <Tooltip />
             <Bar dataKey="count" name={t("analytics.users") || "Count"} fill="#8B5CF6" radius={[0, 4, 4, 0]} />
           </BarChart>

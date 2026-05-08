@@ -36,7 +36,7 @@ export function useEntityPagination(initialPageSize?: number) {
   return {
     currentPage,
     setCurrentPage: setCurrentPageWithUrl,
-    pageSize: initialPageSize || pageSizeState,
+    pageSize: pageSizeState,
     setPageSize,
   };
 }

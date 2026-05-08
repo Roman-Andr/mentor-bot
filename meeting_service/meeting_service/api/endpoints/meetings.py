@@ -12,6 +12,7 @@ from meeting_service.core.enums import EmployeeLevel, MeetingStatus, MeetingType
 from meeting_service.schemas import (
     MaterialCreate,
     MaterialResponse,
+    MaterialUpdate,
     MeetingCreate,
     MeetingListResponse,
     MeetingResponse,
@@ -276,6 +277,50 @@ async def delete_meeting_material(
         logger.info("Material deleted via API (material_id={})", material_id)
     except NotFoundException as e:
         logger.warning("Delete material failed via API: not found (material_id={})", material_id)
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e.detail),
+        ) from e
+
+
+@router.put("/materials/{material_id}")
+async def update_meeting_material(
+    material_id: int,
+    material_data: MaterialUpdate,
+    uow: UOWDep,
+    _current_user: CurrentUser,
+) -> MaterialResponse:
+    """Update a material (HR/Admin only)."""
+    logger.debug("PUT /materials/{} request", material_id)
+    service = MeetingService(uow)
+    try:
+        material = await service.update_material(material_id, material_data)
+        logger.info("Material updated via API (material_id={})", material_id)
+        return MaterialResponse.model_validate(material)
+    except NotFoundException as e:
+        logger.warning("Update material failed via API: not found (material_id={})", material_id)
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e.detail),
+        ) from e
+
+
+@router.post("/materials/reorder")
+async def reorder_meeting_materials(
+    meeting_id: int,
+    material_orders: list[dict],
+    uow: UOWDep,
+    _current_user: CurrentUser,
+) -> list[MaterialResponse]:
+    """Reorder materials for a meeting (HR/Admin only)."""
+    logger.debug("POST /materials/reorder request (meeting_id={})", meeting_id)
+    service = MeetingService(uow)
+    try:
+        materials = await service.reorder_materials(meeting_id, material_orders)
+        logger.info("Materials reordered via API (meeting_id={})", meeting_id)
+        return [MaterialResponse.model_validate(m) for m in materials]
+    except NotFoundException as e:
+        logger.warning("Reorder materials failed via API: not found (meeting_id={})", meeting_id)
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e.detail),

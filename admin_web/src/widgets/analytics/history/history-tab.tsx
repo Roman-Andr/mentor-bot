@@ -70,8 +70,8 @@ export function HistoryTab({ onExportCSV, onExportPDF }: HistoryTabProps) {
 
     // Update URL
     const params = new URLSearchParams(searchParams.toString());
-    params.set("from_date", newFilters.from_date);
-    params.set("to_date", newFilters.to_date);
+    params.set("from_date", newFilters.from_date || "");
+    params.set("to_date", newFilters.to_date || "");
     params.delete("page");
     router.push(`?${params.toString()}`, { scroll: false });
   }, [searchParams, router]);

@@ -16,6 +16,7 @@ import {
   DialogTitle,
 } from "@/shared/ui/dialog";
 import { SearchableSelect, type SelectOption } from "@/shared/ui/searchable-select";
+import { DatePicker } from "@/shared/ui/date-picker";
 import { api } from "@/shared/lib/api";
 import type { User, Template, Task } from "@/shared/types";
 import type { ChecklistFormData } from "@/shared/hooks/use-checklists";
@@ -195,29 +196,28 @@ export function ChecklistFormDialog({
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
               <label className="text-sm font-medium">{t("checklists.startDate")} *</label>
-              <Input
-                type="date"
+              <DatePicker
                 value={formData.start_date}
-                onChange={(e) =>
+                onChange={(value) =>
                   onFormDataChange({
                     ...formData,
-                    start_date: e.target.value,
+                    start_date: value,
                   })
                 }
-                disabled={!isCreate}
+                placeholder={t("checklists.startDate")}
               />
             </div>
             <div className="grid gap-2">
               <label className="text-sm font-medium">{t("checklists.dueDate")}</label>
-              <Input
-                type="date"
+              <DatePicker
                 value={formData.due_date}
-                onChange={(e) =>
+                onChange={(value) =>
                   onFormDataChange({
                     ...formData,
-                    due_date: e.target.value,
+                    due_date: value,
                   })
                 }
+                placeholder={t("checklists.dueDate")}
               />
             </div>
           </div>

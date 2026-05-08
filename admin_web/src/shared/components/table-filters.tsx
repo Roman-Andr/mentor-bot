@@ -24,7 +24,7 @@ interface TableFiltersProps {
 
 export function TableFilters({ filters }: TableFiltersProps) {
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
       {filters.map((filter, index) => {
         if (filter.type === "search") {
           return (
@@ -33,10 +33,11 @@ export function TableFilters({ filters }: TableFiltersProps) {
               placeholder={filter.placeholder}
               value={filter.value || ""}
               onChange={filter.onChange || (() => {})}
+              className="w-full sm:w-auto"
             />
           );
         }
-        
+
         if (filter.type === "select" && filter.options) {
           return (
             <Select
@@ -44,22 +45,24 @@ export function TableFilters({ filters }: TableFiltersProps) {
               value={filter.value || ""}
               onChange={filter.onChange || (() => {})}
               options={filter.options}
+              className="w-full sm:w-auto"
             />
           );
         }
-        
+
         if (filter.type === "reset") {
           return (
             <Button
               key={index}
               variant="outline"
               onClick={filter.onReset}
+              className="w-full sm:w-auto"
             >
               {filter.label || "Reset"}
             </Button>
           );
         }
-        
+
         return null;
       })}
     </div>

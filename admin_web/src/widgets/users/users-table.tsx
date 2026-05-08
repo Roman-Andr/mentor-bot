@@ -14,7 +14,7 @@ import {
   TableRow,
 } from "@/shared/ui/table";
 import { DataTable } from "@/shared/ui/data-table";
-import { CardHeader, CardTitle } from "@/shared/ui/card";
+import { CardHeader, CardTitle, Card, CardContent } from "@/shared/ui/card";
 import { TableActions, buildEditAction, buildDeleteAction, buildAssignMentorAction } from "@/shared/components";
 import { Building, Shield, ShieldOff, UserCog } from "lucide-react";
 import { getRoleOptions } from "@/shared/lib/constants";
@@ -76,6 +76,98 @@ function UserAvatar({ name, id }: { name: string; id: number }) {
   );
 }
 
+function UserCard({
+  user,
+  onEdit,
+  onDelete,
+  onAssignMentor,
+  onDeactivate,
+  t,
+}: {
+  user: UserItem;
+  onEdit: (user: UserItem) => void;
+  onDelete: (id: number) => void;
+  onAssignMentor?: (user: UserItem) => void;
+  onDeactivate?: (user: UserItem) => void;
+  t: (key: string) => string;
+}) {
+  const handleCardClick = () => onEdit(user);
+
+  return (
+    <Card
+      className={cn("cursor-pointer transition-colors hover:bg-muted/50", !user.isActive && "opacity-60")}
+      onClick={handleCardClick}
+    >
+      <CardContent className="p-4">
+        {/* Header: Avatar + Name + Status */}
+        <div className="mb-3 flex items-start gap-3">
+          <UserAvatar name={user.name} id={user.id} />
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <h3 className="font-semibold truncate">{user.name}</h3>
+              <div className="flex size-2 shrink-0 rounded-full bg-emerald-500" />
+            </div>
+            <p className="text-muted-foreground text-xs truncate">{user.email}</p>
+            {user.telegram_id && (
+              <p className="text-blue-500 mt-0.5 text-xs">@tg:{user.telegram_id}</p>
+            )}
+          </div>
+        </div>
+
+        {/* Metadata */}
+        <div className="mb-3 grid grid-cols-2 gap-2 text-xs">
+          <div>
+            <span className="text-muted-foreground">{t("common.role")}: </span>
+            <span className={cn("inline-flex items-center rounded-full border px-2 py-0.5 font-semibold", ROLE_STYLES[user.role] ?? "bg-muted text-muted-foreground")}>
+              {t(`statuses.${user.role}`) || user.role}
+            </span>
+          </div>
+          <div>
+            <span className="text-muted-foreground">{t("common.department")}: </span>
+            <span>{user.department || "—"}</span>
+          </div>
+          <div>
+            <span className="text-muted-foreground">{t("common.position")}: </span>
+            <span>{user.position || "—"}</span>
+          </div>
+          <div>
+            <span className="text-muted-foreground">{t("users.employeeId")}: </span>
+            <span className="font-mono">{user.employee_id || "—"}</span>
+          </div>
+        </div>
+
+        {/* Footer: Actions */}
+        <div
+          className="flex items-center gap-2 border-t pt-3 flex-col sm:flex-row"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Button size="sm" variant="outline" className="flex-1" onClick={() => onEdit(user)}>
+            {t("common.edit")}
+          </Button>
+          {onAssignMentor && user.role === "NEWBIE" && (
+            <Button size="sm" variant="outline" className="flex-1" onClick={() => onAssignMentor(user)}>
+              {t("users.assignMentor")}
+            </Button>
+          )}
+          {onDeactivate && (
+            <Button
+              size="sm"
+              variant={user.isActive ? "outline" : "default"}
+              className={user.isActive ? "flex-1 text-amber-500 hover:text-amber-600" : "flex-1"}
+              onClick={() => onDeactivate(user)}
+            >
+              {user.isActive ? t("users.deactivate") : t("users.activate")}
+            </Button>
+          )}
+          <Button size="sm" variant="destructive" onClick={() => onDelete(user.id)}>
+            {t("common.delete")}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 export function UsersTable({
   users,
   loading,
@@ -109,6 +201,22 @@ export function UsersTable({
     ...departments.map((d) => ({ value: String(d.id), label: d.name })),
   ];
 
+  const mobileView = (
+    <div className="space-y-3 p-4">
+      {users.map((user) => (
+        <UserCard
+          key={user.id}
+          user={user}
+          onEdit={onEdit}
+          onDelete={onDelete}
+          onAssignMentor={onAssignMentor}
+          onDeactivate={onDeactivate}
+          t={t}
+        />
+      ))}
+    </div>
+  );
+
   return (
     <DataTable
       loading={loading}
@@ -120,6 +228,7 @@ export function UsersTable({
       onPageChange={onPageChange}
       onPageSizeChange={onPageSizeChange}
       showPageSizeSelector={!!onPageSizeChange}
+      mobileView={mobileView}
       header={
         <CardHeader>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -129,19 +238,21 @@ export function UsersTable({
                 ({totalCount ?? users.length})
               </span>
             </CardTitle>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-col gap-2 w-full sm:flex-row sm:items-center sm:flex-wrap">
               <SearchInput
                 placeholder={t("users.searchByNameOrEmail")}
                 value={searchQuery}
                 onChange={onSearchChange}
+                className="w-full sm:w-auto"
               />
-              <Select value={roleFilter} onChange={onRoleFilterChange} options={roleOptions} />
+              <Select value={roleFilter} onChange={onRoleFilterChange} options={roleOptions} className="w-full sm:w-auto" />
               <Select
                 value={departmentFilter}
                 onChange={onDepartmentFilterChange}
                 options={departmentOptions}
+                className="w-full sm:w-auto"
               />
-              <Button variant="outline" onClick={onReset}>
+              <Button variant="outline" onClick={onReset} className="w-full sm:w-auto">
                 {t("users.reset")}
               </Button>
             </div>

@@ -7,8 +7,9 @@ export interface MeetingMaterial {
   meeting_id: number;
   title: string;
   description?: string | null;
-  url: string;
-  type: "PDF" | "LINK" | "DOC" | "IMAGE" | "VIDEO";
+  url?: string | null;
+  content?: string | null;
+  type: "FILE" | "NOTE" | "URL";
   order: number;
   created_at: string;
 }
@@ -54,7 +55,7 @@ export const meetingsApi = {
     fetchApi<MeetingMaterial[]>(`/api/v1/meetings/${meetingId}/materials`),
   addMaterial: (
     meetingId: number,
-    data: { title: string; description?: string | null; url: string; type: string; order?: number },
+    data: { title: string; description?: string | null; url?: string | null; content?: string | null; type: string; order?: number },
   ) =>
     fetchApi<MeetingMaterial>(`/api/v1/meetings/${meetingId}/materials`, {
       method: "POST",
@@ -62,4 +63,17 @@ export const meetingsApi = {
     }),
   deleteMaterial: (materialId: number) =>
     fetchApi<void>(`/api/v1/meetings/materials/${materialId}`, { method: "DELETE" }),
+  updateMaterial: (
+    materialId: number,
+    data: { title?: string; description?: string | null; url?: string | null; content?: string | null; type?: string; order?: number },
+  ) =>
+    fetchApi<MeetingMaterial>(`/api/v1/meetings/materials/${materialId}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
+  reorderMaterials: (meetingId: number, materialOrders: Array<{ id: number; order: number }>) =>
+    fetchApi<MeetingMaterial[]>(`/api/v1/meetings/materials/reorder?meeting_id=${meetingId}`, {
+      method: "POST",
+      body: JSON.stringify(materialOrders),
+    }),
 };

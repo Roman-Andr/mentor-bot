@@ -17,6 +17,7 @@ interface EscalationCounts {
   hr: number;
   mentor: number;
   inProgress: number;
+  items: any[];
 }
 
 interface DashboardStats {
@@ -57,6 +58,7 @@ export function useDashboardData(): UseDashboardDataResult {
     hr: 0,
     mentor: 0,
     inProgress: 0,
+    items: [],
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -103,12 +105,14 @@ export function useDashboardData(): UseDashboardDataResult {
       // Process escalation data
       if (escalationResult.success && escalationResult.data?.requests) {
         const items = escalationResult.data.requests;
+        const openEscalations = items.filter((e) => e.status !== "RESOLVED" && e.status !== "CLOSED");
         const counts: EscalationCounts = {
-          hr: items.filter((e) => e.type === "HR").length,
-          mentor: items.filter((e) => e.type === "MENTOR").length,
-          inProgress: items.filter((e) => e.status === "IN_PROGRESS").length,
+          hr: openEscalations.filter((e) => e.type === "HR").length,
+          mentor: openEscalations.filter((e) => e.type === "MENTOR").length,
+          inProgress: openEscalations.filter((e) => e.status === "IN_PROGRESS").length,
+          items: openEscalations,
         };
-        setEscalations(counts);
+        setEscalations({ ...counts, items: openEscalations });
       }
 
       const onboardingResult = await api.analytics.onboardingProgress();

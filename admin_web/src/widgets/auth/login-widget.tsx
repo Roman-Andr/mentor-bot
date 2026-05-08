@@ -33,24 +33,24 @@ export function LoginWidget() {
   };
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 px-4 py-8">
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute left-1/4 top-1/4 h-72 w-72 rounded-full bg-blue-600/10 blur-3xl" />
         <div className="absolute bottom-1/4 right-1/4 h-96 w-96 rounded-full bg-indigo-600/10 blur-3xl" />
       </div>
 
-      <div className="relative z-10 w-full max-w-md px-6">
+      <div className="relative z-10 w-full max-w-md">
         <div className="mb-8 flex flex-col items-center gap-3">
           <div className="flex size-14 items-center justify-center rounded-2xl bg-blue-600 shadow-lg shadow-blue-600/30">
             <Bot className="size-7 text-white" />
           </div>
           <div className="text-center">
-            <h1 className="text-2xl font-bold tracking-tight text-white">{t("auth.loginTitle")}</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">{t("auth.loginTitle")}</h1>
             <p className="mt-1 text-sm text-slate-400">{t("auth.loginDescription")}</p>
           </div>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur-xl">
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-6 shadow-2xl backdrop-blur-xl sm:p-8">
           <form onSubmit={handleSubmit} className="space-y-5">
             {error && (
               <div className="flex items-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
@@ -60,7 +60,7 @@ export function LoginWidget() {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-slate-300">{t("auth.email")}</Label>
+              <Label htmlFor="email" className="text-slate-300 text-sm sm:text-base">{t("auth.email")}</Label>
               <Input
                 id="email"
                 type="email"
@@ -69,12 +69,12 @@ export function LoginWidget() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 autoComplete="username"
-                className="border-white/10 bg-white/5 text-white placeholder:text-slate-500 focus-visible:border-blue-500 focus-visible:ring-blue-500/20"
+                className="h-12 border-white/10 bg-white/5 text-white placeholder:text-slate-500 focus-visible:border-blue-500 focus-visible:ring-blue-500/20"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-slate-300">{t("auth.password")}</Label>
+              <Label htmlFor="password" className="text-slate-300 text-sm sm:text-base">{t("auth.password")}</Label>
               <div className="relative">
                 <Input
                   id="password"
@@ -84,25 +84,26 @@ export function LoginWidget() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   autoComplete="current-password"
-                  className="border-white/10 bg-white/5 pr-10 text-white placeholder:text-slate-500 focus-visible:border-blue-500 focus-visible:ring-blue-500/20"
+                  className="h-12 border-white/10 bg-white/5 pr-12 text-white placeholder:text-slate-500 focus-visible:border-blue-500 focus-visible:ring-blue-500/20"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition-colors hover:text-slate-200"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                 >
-                  {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                  {showPassword ? <EyeOff className="size-5" /> : <Eye className="size-5" />}
                 </button>
               </div>
             </div>
 
             <Button
               type="submit"
-              className="w-full gap-2 bg-blue-600 font-medium shadow-lg shadow-blue-600/25 hover:bg-blue-500"
+              className="h-12 w-full gap-2 bg-blue-600 font-medium shadow-lg shadow-blue-600/25 hover:bg-blue-500 text-base"
               disabled={isLoading}
             >
               {isLoading ? (
-                <><Loader2 className="size-4 animate-spin" />{t("auth.loggingIn")}</>
+                <><Loader2 className="size-5 animate-spin" />{t("auth.loggingIn")}</>
               ) : (
                 t("auth.loginButton")
               )}

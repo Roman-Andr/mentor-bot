@@ -145,12 +145,41 @@ class UserService:
         await self._uow.commit()
 
     async def delete_user(self, user_id: int) -> None:
-        """Permanently delete user account."""
+        """Permanently delete user account with cascade delete of related records."""
         logger.info("Deleting user (user_id={})", user_id)
         # Verify user exists before deleting
-        await self.get_user_by_id(user_id)
+        user = await self.get_user_by_id(user_id)
+
+        # Nullify changed_by fields in history tables (nullable fields)
+        await self._uow.mentor_assignment_history.nullify_changed_by(user_id)
+        await self._uow.role_change_history.nullify_changed_by(user_id)
+        await self._uow.password_change_history.nullify_changed_by(user_id)
+        await self._uow.invitation_status_history.nullify_changed_by(user_id)
+
+        # Delete related records in correct order to respect foreign key constraints
+        # Delete history records first
+        await self._uow.login_history.delete_by_user_id(user_id)
+        await self._uow.logout_history.delete_by_user_id(user_id)
+        await self._uow.password_change_history.delete_by_user_id(user_id)
+        await self._uow.role_change_history.delete_by_user_id(user_id)
+        await self._uow.mentor_assignment_history.delete_by_user_id(user_id)
+        await self._uow.mentor_assignment_history.delete_by_mentor_id(user_id)
+
+        # Delete password reset tokens
+        await self._uow.password_reset.delete_by_user_id(user_id)
+
+        # Nullify user_id and mentor_id in invitations (nullable fields)
+        await self._uow.invitations.nullify_user_id(user_id)
+        await self._uow.invitations.nullify_mentor_id(user_id)
+
+        # Delete user-mentor relations
+        await self._uow.user_mentors.delete_by_user_id(user_id)
+        await self._uow.user_mentors.delete_by_mentor_id(user_id)
+
+        # Delete the user
         await self._uow.users.delete(user_id)
         await self._uow.commit()
+        logger.info("User deleted successfully (user_id={})", user_id)
 
     async def get_users(
         self,

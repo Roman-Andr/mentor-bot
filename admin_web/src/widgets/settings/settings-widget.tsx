@@ -120,10 +120,10 @@ export function SettingsWidget() {
 
   return (
     <PageContent title={t("settings.title")} subtitle={t("settings.subtitle")}>
-      <div className="grid gap-6 md:grid-cols-4 md:items-start">
+      <div className="grid gap-6 grid-cols-1 md:grid-cols-4 md:items-start">
         <Card className="md:col-span-1">
           <CardContent className="p-3">
-            <nav className="space-y-1">
+            <nav className="flex flex-row gap-2 overflow-x-auto md:flex-col md:space-y-1 md:overflow-visible">
               <NavItem icon={Palette} label={t("settings.appearance")} active={activeSection === "appearance"} onClick={() => handleSectionChange("appearance")} />
               <NavItem icon={Globe} label={t("settings.language")} active={activeSection === "language"} onClick={() => handleSectionChange("language")} />
               <NavItem icon={Bell} label={t("settings.notifications")} active={activeSection === "notifications"} onClick={() => handleSectionChange("notifications")} />
@@ -147,8 +147,8 @@ export function SettingsWidget() {
                         key={th.value}
                         onClick={() => setSelectedTheme(th.value)}
                         className={cn(
-                          "relative flex flex-col items-center gap-2 rounded-xl border-2 p-4 text-sm transition-all",
-                          selectedTheme === th.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/50",
+                          "relative flex flex-col items-center gap-2 rounded-xl border-2 p-4 text-sm transition-all cursor-pointer",
+                          selectedTheme === th.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/50 hover:bg-muted/50",
                         )}
                       >
                         {selectedTheme === th.value && <CheckCircle2 className="text-primary absolute top-2 right-2 size-4" />}
@@ -175,8 +175,8 @@ export function SettingsWidget() {
                       key={lang.value}
                       onClick={() => setSelectedLanguage(lang.value)}
                       className={cn(
-                        "relative flex items-center gap-3 rounded-xl border-2 p-4 text-sm transition-all",
-                        selectedLanguage === lang.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/50",
+                        "relative flex items-center gap-3 rounded-xl border-2 p-4 text-sm transition-all cursor-pointer",
+                        selectedLanguage === lang.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/50 hover:bg-muted/50",
                       )}
                     >
                       {selectedLanguage === lang.value && <CheckCircle2 className="text-primary absolute top-2 right-2 size-4" />}

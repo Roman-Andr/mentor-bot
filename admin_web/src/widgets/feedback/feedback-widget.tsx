@@ -14,6 +14,17 @@ export function FeedbackWidget() {
   const t = useTranslations();
   const f = useFeedback();
 
+  const feedbackTable = FeedbackTable({
+    items: f.feedbackItems,
+    getUserName: (userId) => f.getUserName(userId),
+    onViewDetails: (item) => f.viewDetails(item),
+    onReply: (id) => f.handleReply(id),
+    sortField: f.sortField,
+    sortDirection: f.sortDirection,
+    onSort: f.toggleSort,
+    t: t,
+  });
+
   return (
     <PageContent title={t("feedback.title")} subtitle={t("feedback.subtitle")}>
       <div className="space-y-6">
@@ -30,6 +41,7 @@ export function FeedbackWidget() {
           onPageChange={f.setCurrentPage}
           onPageSizeChange={f.setPageSize}
           showPageSizeSelector={true}
+          mobileView={feedbackTable.mobileView}
           header={
             <CardHeader>
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -48,16 +60,7 @@ export function FeedbackWidget() {
             </CardHeader>
           }
         >
-          <FeedbackTable
-            items={f.feedbackItems}
-            getUserName={(userId) => f.getUserName(userId)}
-            onViewDetails={(item) => f.viewDetails(item)}
-            onReply={(id) => f.handleReply(id)}
-            sortField={f.sortField}
-            sortDirection={f.sortDirection}
-            onSort={f.toggleSort}
-            t={t}
-          />
+          {feedbackTable.table}
         </DataTable>
       </div>
       <FeedbackDetailsDialog

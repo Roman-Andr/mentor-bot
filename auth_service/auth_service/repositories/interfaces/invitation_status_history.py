@@ -35,3 +35,7 @@ class IInvitationStatusHistoryRepository(BaseRepository["InvitationStatusHistory
         offset: int = 0,
     ) -> tuple[Sequence[InvitationStatusHistory], int]:
         """Get all invitation status history with filtering and pagination."""
+
+    @abstractmethod
+    async def nullify_changed_by(self, user_id: int) -> int:
+        """Set changed_by to NULL for all records where a user is the changer. Returns number of updated records."""

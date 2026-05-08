@@ -24,6 +24,8 @@ interface DataTableProps {
   skeleton?: ReactNode;
   children: ReactNode;
   showLoadingSkeleton?: boolean;
+  mobileView?: ReactNode;
+  mobileBreakpoint?: "sm" | "md" | "lg";
 }
 
 export function DataTable({
@@ -43,6 +45,8 @@ export function DataTable({
   skeleton,
   children,
   showLoadingSkeleton = true,
+  mobileView,
+  mobileBreakpoint = "md",
 }: DataTableProps) {
   const t = useTranslations();
 
@@ -51,6 +55,18 @@ export function DataTable({
     totalPages !== undefined &&
     totalCount !== undefined &&
     onPageChange !== undefined;
+
+  const breakpointClasses = {
+    sm: "hidden sm:block",
+    md: "hidden md:block",
+    lg: "hidden lg:block",
+  };
+
+  const mobileBreakpointClasses = {
+    sm: "block sm:hidden",
+    md: "block md:hidden",
+    lg: "block lg:hidden",
+  };
 
   return (
     <Card>
@@ -63,7 +79,12 @@ export function DataTable({
             {emptyMessage ?? t("common.noData")}
           </div>
         ) : (
-          children
+          <>
+            {/* Desktop/Table View */}
+            <div className={breakpointClasses[mobileBreakpoint]}>{children}</div>
+            {/* Mobile Card View */}
+            {mobileView && <div className={mobileBreakpointClasses[mobileBreakpoint]}>{mobileView}</div>}
+          </>
         )}
         {!loading && hasPagination && (
           <Pagination

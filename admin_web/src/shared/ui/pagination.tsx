@@ -98,10 +98,10 @@ export function Pagination({
           size="sm"
           disabled={currentPage <= 1}
           onClick={() => onPageChange(currentPage - 1)}
-          className="gap-1"
+          className="flex-1 gap-1 sm:flex-none"
         >
           <ChevronLeft className="size-4" />
-          {t("back")}
+          <span className="hidden sm:inline">{t("back")}</span>
         </Button>
 
         {/* Page Info / Input */}
@@ -111,7 +111,7 @@ export function Pagination({
           </span>
 
           {showPageInput && totalPages > 1 && (
-            <div className="flex items-center gap-1">
+            <div className="hidden sm:flex items-center gap-1">
               <Input
                 type="number"
                 min={1}
@@ -133,9 +133,9 @@ export function Pagination({
           size="sm"
           disabled={currentPage >= totalPages}
           onClick={() => onPageChange(currentPage + 1)}
-          className="gap-1"
+          className="flex-1 gap-1 sm:flex-none"
         >
-          {t("next")}
+          <span className="hidden sm:inline">{t("next")}</span>
           <ChevronRight className="size-4" />
         </Button>
       </div>

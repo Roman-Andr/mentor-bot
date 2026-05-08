@@ -48,6 +48,8 @@ export function EntityPage<TItem, TForm>(props: EntityPageProps<TItem, TForm>) {
     sortField,
     sortDirection,
     onSort,
+    renderMobileCard,
+    mobileBreakpoint = "md",
   } = props;
 
   const mode = isEditOpen ? "edit" : "create";
@@ -65,8 +67,8 @@ export function EntityPage<TItem, TForm>(props: EntityPageProps<TItem, TForm>) {
           description={description}
           showSearch={showSearch}
           searchPlaceholder={searchPlaceholder}
-          searchQuery={searchQuery}
-          onSearchChange={onSearchChange}
+          searchQuery={searchQuery ?? ""}
+          onSearchChange={onSearchChange ?? (() => {})}
           filters={filters}
           additionalActions={additionalActions}
           createButtonLabel={createButtonLabel ?? defaultCreateLabel}
@@ -118,8 +120,8 @@ export function EntityPage<TItem, TForm>(props: EntityPageProps<TItem, TForm>) {
         description={description}
         showSearch={showSearch}
         searchPlaceholder={searchPlaceholder}
-        searchQuery={searchQuery}
-        onSearchChange={onSearchChange}
+        searchQuery={searchQuery ?? ""}
+        onSearchChange={onSearchChange ?? (() => {})}
         filters={filters}
         additionalActions={additionalActions}
         createButtonLabel={createButtonLabel ?? defaultCreateLabel}
@@ -153,6 +155,8 @@ export function EntityPage<TItem, TForm>(props: EntityPageProps<TItem, TForm>) {
         onSort={onSort}
         emptyStateMessage={emptyStateMessage ?? defaultEmptyMessage}
         t={t}
+        renderMobileCard={renderMobileCard}
+        mobileBreakpoint={mobileBreakpoint}
       />
       <Dialog open={isCreateOpen || isEditOpen} onOpenChange={onCloseDialog}>
         <DialogContent className={dialogMaxWidth}>

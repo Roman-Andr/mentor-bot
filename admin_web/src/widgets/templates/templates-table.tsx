@@ -16,7 +16,7 @@ import {
   TableRow,
 } from "@/shared/ui/table";
 import { DataTable } from "@/shared/ui/data-table";
-import { CardHeader, CardTitle } from "@/shared/ui/card";
+import { CardHeader, CardTitle, Card, CardContent } from "@/shared/ui/card";
 import { TableActions, buildEditAction, buildDeleteAction, buildPublishAction } from "@/shared/components";
 import type { ActionDefinition } from "@/shared/components/table-actions";
 import { Calendar, Copy, ListTodo, Building2 } from "lucide-react";
@@ -73,6 +73,112 @@ export function TemplatesTable({
   const t = useTranslations();
   const statusOptions = getTemplateStatusOptions(t, true);
 
+  function TemplateCard({
+    template,
+    onEdit,
+    onPublish,
+    onDelete,
+    onClone,
+    t,
+  }: {
+    template: TemplateItem;
+    onEdit: (template: TemplateItem) => void;
+    onPublish: (id: number) => void;
+    onDelete: (id: number) => void;
+    onClone?: (id: number) => void;
+    t: (key: string) => string;
+  }) {
+    return (
+      <Card
+        className="cursor-pointer transition-colors hover:bg-muted/50"
+        onClick={() => onEdit(template)}
+      >
+        <CardContent className="p-4">
+          {/* Header: Name + Default Badge + Status */}
+          <div className="mb-3">
+            <div className="flex items-center gap-2">
+              <h3 className="font-semibold truncate">{template.name}</h3>
+              {template.isDefault && (
+                <Badge variant="secondary" className="text-xs shrink-0">
+                  {t("templates.default")}
+                </Badge>
+              )}
+              <StatusBadge status={template.status} />
+            </div>
+            {template.description && (
+              <p className="text-muted-foreground mt-1 line-clamp-2 text-xs">{template.description}</p>
+            )}
+          </div>
+
+          {/* Metadata */}
+          <div className="mb-3 grid grid-cols-2 gap-2 text-xs">
+            <div className="flex items-center gap-1.5">
+              <Building2 className="text-muted-foreground size-3.5 shrink-0" />
+              <span className="text-muted-foreground">{t("common.department")}: </span>
+              <span className="truncate">{template.department || "—"}</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground">{t("common.position")}: </span>
+              <span>{template.position || "—"}</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Calendar className="text-muted-foreground size-3.5 shrink-0" />
+              <span className="text-muted-foreground">{t("common.days")}: </span>
+              <span>{template.durationDays}</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <ListTodo className="text-muted-foreground size-3.5 shrink-0" />
+              <span className="text-muted-foreground">{t("common.tasks")}: </span>
+              <span className={cn(template.taskCount === 0 && "text-muted-foreground")}>{template.taskCount}</span>
+            </div>
+          </div>
+
+          {/* Footer: Actions */}
+          <div
+            className="flex items-center gap-2 border-t pt-3 flex-col sm:flex-row"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Button size="sm" variant="outline" className="flex-1" onClick={() => onEdit(template)}>
+              {t("common.edit")}
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="flex-1"
+              onClick={() => onPublish(template.id)}
+            >
+              {template.status === "DRAFT" ? t("templates.publish") : t("templates.unpublish")}
+            </Button>
+            {onClone && (
+              <Button size="sm" variant="outline" className="flex-1" onClick={() => onClone(template.id)}>
+                <Copy className="size-3.5" />
+              </Button>
+            )}
+            <Button size="sm" variant="destructive" onClick={() => onDelete(template.id)}>
+              {t("common.delete")}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const mobileView = (
+    <div className="space-y-3 p-4">
+      {templates.map((template) => (
+        <TemplateCard
+          key={template.id}
+          template={template}
+          onEdit={onEdit}
+          onPublish={onPublish}
+          onDelete={onDelete}
+          onClone={onClone}
+          t={t}
+        />
+      ))}
+    </div>
+  );
+
   return (
     <DataTable
       loading={loading}
@@ -84,6 +190,7 @@ export function TemplatesTable({
       onPageChange={onPageChange}
       onPageSizeChange={onPageSizeChange}
       showPageSizeSelector={!!onPageSizeChange}
+      mobileView={mobileView}
       header={
         <CardHeader>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -93,10 +200,10 @@ export function TemplatesTable({
                 ({totalCount ?? templates.length})
               </span>
             </CardTitle>
-            <div className="flex flex-wrap gap-2">
-              <SearchInput value={searchQuery} onChange={onSearchChange} />
-              <Select value={statusFilter} onChange={onStatusFilterChange} options={statusOptions} />
-              <Button variant="outline" onClick={onReset}>
+            <div className="flex flex-col gap-2 w-full sm:flex-row sm:items-center sm:flex-wrap">
+              <SearchInput value={searchQuery} onChange={onSearchChange} className="w-full sm:w-auto" />
+              <Select value={statusFilter} onChange={onStatusFilterChange} options={statusOptions} className="w-full sm:w-auto" />
+              <Button variant="outline" onClick={onReset} className="w-full sm:w-auto">
                 {t("common.reset")}
               </Button>
             </div>

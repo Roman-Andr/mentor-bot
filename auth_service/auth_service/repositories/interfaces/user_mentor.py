@@ -25,3 +25,11 @@ class IUserMentorRepository(BaseRepository["UserMentor", int]):
     @abstractmethod
     async def get_by_user_and_mentor(self, user_id: int, mentor_id: int) -> UserMentor | None:
         """Get relation by user and mentor IDs."""
+
+    @abstractmethod
+    async def delete_by_user_id(self, user_id: int) -> int:
+        """Delete all mentor relations for a user. Returns number of deleted records."""
+
+    @abstractmethod
+    async def delete_by_mentor_id(self, mentor_id: int) -> int:
+        """Delete all mentee relations for a mentor. Returns number of deleted records."""

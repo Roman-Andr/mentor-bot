@@ -53,14 +53,14 @@ export function DepartmentChart({ data }: DepartmentChartProps) {
         <CardTitle>{t("analytics.byDepartments")}</CardTitle>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={350}>
+        <ResponsiveContainer width="100%" height={300} minHeight={250}>
           <PieChart>
             <Pie
               data={dataWithColors}
               cx="50%"
               cy="45%"
-              innerRadius={60}
-              outerRadius={100}
+              innerRadius={50}
+              outerRadius={90}
               paddingAngle={2}
               dataKey="value"
               label={false}

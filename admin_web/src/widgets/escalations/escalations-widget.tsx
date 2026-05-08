@@ -8,7 +8,7 @@ import { SearchInput } from "@/shared/ui/search-input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 import { DataTable } from "@/shared/ui/data-table";
 import { PageContent } from "@/shared/layout/page-content";
-import { CardHeader, CardTitle } from "@/shared/ui/card";
+import { CardHeader, CardTitle, Card, CardContent } from "@/shared/ui/card";
 import { TableActions, buildCompleteAction, buildDeleteAction, buildAssignAction } from "@/shared/components";
 import { getEscalationStatusOptions, getEscalationTypeOptions } from "@/shared/lib/constants";
 import { formatDateTime } from "@/shared/lib/utils";
@@ -21,7 +21,7 @@ import { UserAvatar } from "@/shared/ui/user-avatar";
 import { cn } from "@/shared/lib/utils";
 import { FormDialog } from "@/shared/ui/form-dialog";
 import { Label } from "@/shared/ui/label";
-import { Input } from "@/shared/ui/input";
+import { AsyncSearchableSelect, type SelectOption } from "@/shared/ui/searchable-select";
 
 const STATUS_CONFIG: Record<string, { label: string; icon: React.ReactNode; cls: string }> = {
   OPEN: { label: "Open", icon: <AlertTriangle className="size-3" />, cls: "bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300" },
@@ -40,18 +40,30 @@ interface AssignDialogProps {
 function AssignDialog({ open, onOpenChange, escalationId, onAssigned }: AssignDialogProps) {
   const t = useTranslations();
   const { toast } = useToast();
-  const [assigneeId, setAssigneeId] = useState("");
+  const [selectedAssigneeId, setSelectedAssigneeId] = useState("");
+  const [selectedAssigneeLabel, setSelectedAssigneeLabel] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const searchUsers = async (query: string): Promise<SelectOption[]> => {
+    const resp = await api.users.list({ search: query, role: "ADMIN,HR", limit: 20 });
+    if (!resp.success || !resp.data) return [];
+    return resp.data.users.map((u) => ({
+      value: String(u.id),
+      label: `${u.first_name} ${u.last_name || ""}`.trim(),
+      description: u.email,
+    }));
+  };
+
   const handleSubmit = async () => {
-    if (!escalationId || !assigneeId) return;
+    if (!escalationId || !selectedAssigneeId) return;
     setLoading(true);
     try {
-      await api.escalations.assign(escalationId, Number(assigneeId));
+      await api.escalations.assign(escalationId, Number(selectedAssigneeId));
       toast(t("escalations.assigned") || "Escalation assigned", "success");
       onAssigned();
       onOpenChange(false);
-      setAssigneeId("");
+      setSelectedAssigneeId("");
+      setSelectedAssigneeLabel("");
     } catch {
       toast(t("common.error") || "Error", "error");
     } finally {
@@ -59,20 +71,40 @@ function AssignDialog({ open, onOpenChange, escalationId, onAssigned }: AssignDi
     }
   };
 
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      setSelectedAssigneeId("");
+      setSelectedAssigneeLabel("");
+    }
+    onOpenChange(open);
+  };
+
   return (
     <FormDialog
       open={open}
-      onOpenChange={onOpenChange}
+      onOpenChange={handleOpenChange}
       title={t("escalations.assignTo") || "Assign escalation"}
       isSubmitting={loading}
       onSubmit={handleSubmit}
-      onCancel={() => { onOpenChange(false); setAssigneeId(""); }}
+      onCancel={() => { handleOpenChange(false); }}
     >
       <div className="space-y-3">
         <div className="space-y-1.5">
-          <Label>{t("escalations.assigneeId") || "Assignee User ID"}</Label>
-          <Input type="number" value={assigneeId} onChange={(ev) => setAssigneeId(ev.target.value)} placeholder="User ID" required autoFocus />
-          <p className="text-muted-foreground text-xs">{t("escalations.assigneeHint") || "Enter the ID of the HR or admin user to assign"}</p>
+          <Label>{t("escalations.assignee") || "Assignee"}</Label>
+          <AsyncSearchableSelect
+            value={selectedAssigneeId}
+            onChange={(v) => {
+              setSelectedAssigneeId(v);
+              setSelectedAssigneeLabel("");
+            }}
+            onSearch={searchUsers}
+            selectedLabel={selectedAssigneeLabel}
+            placeholder={t("escalations.searchAssigneePlaceholder") || "Search for user..."}
+            searchPlaceholder={t("escalations.searchAssignee") || "Search user by name or email"}
+            minSearchLength={2}
+            onOptionSelect={(opt) => setSelectedAssigneeLabel(opt.label)}
+          />
+          <p className="text-muted-foreground text-xs">{t("escalations.assigneeHint") || "Search for HR or admin user to assign this escalation"}</p>
         </div>
       </div>
     </FormDialog>
@@ -89,6 +121,100 @@ function StatusChip({ status }: { status: string }) {
   );
 }
 
+function EscalationCard({
+  escalation,
+  getUserName,
+  onAssign,
+  onResolve,
+  onDelete,
+  t,
+}: {
+  escalation: any;
+  getUserName: (id: number) => string;
+  onAssign: (id: number) => void;
+  onResolve: (id: number) => void;
+  onDelete: (id: number) => void;
+  t: (key: string) => string;
+}) {
+  return (
+    <Card
+      className={cn(
+        "transition-colors",
+        escalation.status === "OPEN" && "border-l-4 border-l-amber-500",
+        escalation.status === "IN_PROGRESS" && "border-l-4 border-l-blue-500",
+      )}
+    >
+      <CardContent className="p-4">
+        {/* Header: User + Status */}
+        <div className="mb-3 flex items-start gap-3">
+          <UserAvatar name={getUserName(escalation.userId)} id={escalation.userId} />
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="font-semibold truncate">{getUserName(escalation.userId)}</h3>
+              <StatusChip status={escalation.status} />
+            </div>
+            <span className="text-muted-foreground text-xs">#{escalation.id}</span>
+          </div>
+        </div>
+
+        {/* Metadata */}
+        <div className="mb-3 grid grid-cols-2 gap-2 text-xs">
+          <div>
+            <span className="text-muted-foreground">{t("escalations.subject")}: </span>
+            <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium">{escalation.type}</span>
+          </div>
+          <div>
+            <span className="text-muted-foreground">{t("escalations.description")}: </span>
+            <span className="text-muted-foreground line-clamp-1">{escalation.source}</span>
+          </div>
+          <div>
+            <span className="text-muted-foreground">{t("escalations.assignedTo")}: </span>
+            {escalation.assignedTo ? (
+              <div className="flex items-center gap-1">
+                <UserCheck className="text-emerald-500 size-3" />
+                <span>{getUserName(escalation.assignedTo)}</span>
+              </div>
+            ) : (
+              <span>—</span>
+            )}
+          </div>
+          <div>
+            <span className="text-muted-foreground">{t("escalations.priority")}: </span>
+            <span className="text-muted-foreground line-clamp-1">{escalation.reason || "—"}</span>
+          </div>
+          <div>
+            <span className="text-muted-foreground">{t("escalations.createdAt")}: </span>
+            <span>{formatDateTime(escalation.createdAt)}</span>
+          </div>
+          <div>
+            <span className="text-muted-foreground">{t("escalations.resolvedAt")}: </span>
+            <span>{escalation.resolvedAt ? formatDateTime(escalation.resolvedAt) : "—"}</span>
+          </div>
+        </div>
+
+        {/* Footer: Actions */}
+        <div className="flex items-center gap-2 border-t pt-3 flex-col sm:flex-row">
+          <Button size="sm" variant="outline" className="flex-1" onClick={() => onAssign(escalation.id)}>
+            {t("escalations.assign") || "Assign"}
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="flex-1"
+            onClick={() => onResolve(escalation.id)}
+            disabled={escalation.status === "RESOLVED" || escalation.status === "CLOSED"}
+          >
+            {t("common.confirm")}
+          </Button>
+          <Button size="sm" variant="destructive" onClick={() => onDelete(escalation.id)}>
+            {t("common.delete")}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 export function EscalationsWidget() {
   const t = useTranslations();
   const e = useEscalations();
@@ -100,6 +226,22 @@ export function EscalationsWidget() {
 
   const openCount = e.escalations.filter((esc) => esc.status === "OPEN").length;
   const inProgressCount = e.escalations.filter((esc) => esc.status === "IN_PROGRESS").length;
+
+  const mobileView = (
+    <div className="space-y-3 p-4">
+      {e.escalations.map((esc) => (
+        <EscalationCard
+          key={esc.id}
+          escalation={esc}
+          getUserName={(id) => e.getUserName(id)}
+          onAssign={setAssigningId}
+          onResolve={e.handleResolve}
+          onDelete={e.handleDelete}
+          t={t}
+        />
+      ))}
+    </div>
+  );
 
   return (
     <PageContent title={t("escalations.title")} subtitle={t("escalations.title")}>
@@ -121,6 +263,7 @@ export function EscalationsWidget() {
         onPageChange={e.setCurrentPage}
         onPageSizeChange={e.setPageSize}
         showPageSizeSelector={true}
+        mobileView={mobileView}
         header={
           <CardHeader>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -142,11 +285,11 @@ export function EscalationsWidget() {
                   </span>
                 )}
               </div>
-              <div className="flex flex-wrap gap-2">
-                <SearchInput value={e.searchQuery} onChange={e.setSearchQuery} />
-                <Select value={e.statusFilter} onChange={e.setStatusFilter} options={statusOptions} />
-                <Select value={e.typeFilter} onChange={e.setTypeFilter} options={typeOptions} />
-                <Button variant="outline" onClick={e.resetFilters}>{t("common.clear")}</Button>
+              <div className="flex flex-col gap-2 w-full sm:flex-row sm:items-center sm:flex-wrap">
+                <SearchInput value={e.searchQuery} onChange={e.setSearchQuery} className="w-full sm:w-auto" />
+                <Select value={e.statusFilter} onChange={e.setStatusFilter} options={statusOptions} className="w-full sm:w-auto" />
+                <Select value={e.typeFilter} onChange={e.setTypeFilter} options={typeOptions} className="w-full sm:w-auto" />
+                <Button variant="outline" onClick={e.resetFilters} className="w-full sm:w-auto">{t("common.clear")}</Button>
               </div>
             </div>
           </CardHeader>

@@ -12,13 +12,25 @@ class MaterialBase(BaseModel):
 
     title: str = Field(..., min_length=1, max_length=200)
     description: str | None = Field(None, max_length=500)
-    url: HttpUrl = Field(..., max_length=500)
+    url: str | None = Field(None, max_length=500)
+    content: str | None = Field(None, max_length=5000)
     type: MaterialType
     order: int = 0
 
 
 class MaterialCreate(MaterialBase):
     """Material creation schema."""
+
+
+class MaterialUpdate(BaseModel):
+    """Material update schema."""
+
+    title: str | None = Field(None, min_length=1, max_length=200)
+    description: str | None = Field(None, max_length=500)
+    url: str | None = Field(None, max_length=500)
+    content: str | None = Field(None, max_length=5000)
+    type: MaterialType | None = None
+    order: int | None = None
 
 
 class MaterialResponse(MaterialBase):

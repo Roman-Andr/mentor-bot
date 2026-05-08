@@ -9,80 +9,8 @@ import { useAuth } from "@/shared/hooks/use-auth";
 import { LanguageSwitcher } from "./language-switcher";
 import { ThemeSwitcher } from "./theme-switcher";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/shared/ui/tooltip";
-import {
-  LayoutDashboard,
-  Users,
-  FileText,
-  ClipboardCheck,
-  BookOpen,
-  Mail,
-  BarChart3,
-  Settings,
-  LogOut,
-  ChevronLeft,
-  ChevronRight,
-  AlertTriangle,
-  CalendarCheck,
-  MessageSquare,
-  MessageCircle,
-  Bot,
-} from "lucide-react";
-
-const ICON_MAP = {
-  LayoutDashboard,
-  Users,
-  FileText,
-  ClipboardCheck,
-  BookOpen,
-  Mail,
-  BarChart3,
-  Settings,
-  AlertTriangle,
-  CalendarCheck,
-  MessageSquare,
-  MessageCircle,
-  Bot,
-};
-
-const NAV_GROUPS = [
-  {
-    labelKey: "nav.groupPeople",
-    items: [
-      { key: "dashboard", href: "/", icon: "LayoutDashboard" },
-      { key: "users", href: "/users", icon: "Users" },
-      { key: "invitations", href: "/invitations", icon: "Mail" },
-    ],
-  },
-  {
-    labelKey: "nav.groupOnboarding",
-    items: [
-      { key: "templates", href: "/templates", icon: "FileText" },
-      { key: "checklists", href: "/checklists", icon: "ClipboardCheck" },
-      { key: "meetings", href: "/meetings", icon: "CalendarCheck" },
-      { key: "dialogues", href: "/dialogues", icon: "MessageSquare" },
-    ],
-  },
-  {
-    labelKey: "nav.groupKnowledge",
-    items: [
-      { key: "knowledgeBase", href: "/knowledge", icon: "BookOpen" },
-    ],
-  },
-  {
-    labelKey: "nav.groupInsights",
-    items: [
-      { key: "feedback", href: "/feedback", icon: "MessageCircle" },
-      { key: "escalations", href: "/escalations", icon: "AlertTriangle" },
-      { key: "analytics", href: "/analytics", icon: "BarChart3" },
-    ],
-  },
-  {
-    labelKey: "nav.groupSystem",
-    items: [
-      { key: "settings", href: "/settings", icon: "Settings" },
-    ],
-  },
-];
+import { Bot, ChevronLeft, ChevronRight, LogOut } from "lucide-react";
+import { ICON_MAP, NAV_GROUPS } from "./navigation-config";
 
 export function Sidebar() {
   const t = useTranslations();
@@ -102,7 +30,7 @@ export function Sidebar() {
   return (
     <div
       className={cn(
-        "flex h-screen flex-col border-r bg-card text-card-foreground transition-all duration-300",
+        "flex h-full flex-col border-r bg-card text-card-foreground transition-all duration-300 h-dvh z-10 relative",
         collapsed ? "w-16" : "w-64",
       )}
     >

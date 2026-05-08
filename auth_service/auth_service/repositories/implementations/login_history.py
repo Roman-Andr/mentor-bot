@@ -70,3 +70,12 @@ class LoginHistoryRepository(SqlAlchemyBaseRepository[LoginHistory, int], ILogin
         stmt = stmt.order_by(LoginHistory.login_at.desc()).offset(offset).limit(limit)
         result = await self._session.execute(stmt)
         return result.scalars().all(), total
+
+    async def delete_by_user_id(self, user_id: int) -> int:
+        """Delete all login history records for a user."""
+        from sqlalchemy import delete
+
+        stmt = delete(LoginHistory).where(LoginHistory.user_id == user_id)
+        result = await self._session.execute(stmt)
+        await self._session.flush()
+        return result.rowcount

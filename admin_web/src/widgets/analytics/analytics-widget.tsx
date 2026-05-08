@@ -288,17 +288,17 @@ export function AnalyticsWidget() {
         </div>
       }
     >
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         <TabSwitcher tabs={tabs} />
 
         {activeTab === "onboarding" && (
           <>
             <AnalyticsStats stats={stats} userCount={userCount} />
-            <div className="grid gap-6 lg:grid-cols-2">
+            <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
               <MonthlyChart data={monthlyData} />
               <DepartmentChart data={departmentData} />
             </div>
-            <div className="grid gap-6 lg:grid-cols-2">
+            <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
               <CompletionTimeChart data={completionTimeData} />
               <ChecklistStatus stats={stats} />
             </div>
@@ -313,7 +313,7 @@ export function AnalyticsWidget() {
             ) : (
               <>
                 <KnowledgeSummaryCards summary={knowledgeSummary || null} />
-                <div className="grid gap-6 lg:grid-cols-2">
+                <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -332,7 +332,7 @@ export function AnalyticsWidget() {
                   </Table>
                   <KnowledgeViewsTimeseries data={timeseriesData || []} onGranularityChange={setGranularityWithUrl} currentGranularity={granularity} />
                 </div>
-                <div className="grid gap-6 lg:grid-cols-2">
+                <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
                   <KnowledgeViewsByCategory data={categoryData || []} />
                   <KnowledgeViewsByTag data={tagData || []} />
                 </div>
@@ -349,11 +349,11 @@ export function AnalyticsWidget() {
             ) : (
               <>
                 <SearchSummaryCards summary={searchSummary} />
-                <div className="grid gap-6 lg:grid-cols-2">
+                <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
                   <SearchTopQueriesTable data={searchTopQueries} />
                   <SearchZeroResultsTable data={searchZeroResults} />
                 </div>
-                <div className="grid gap-6 lg:grid-cols-2">
+                <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
                   <SearchTimeseriesChart data={searchTimeseries} />
                   <SearchByDepartmentChart data={searchByDepartment} />
                 </div>

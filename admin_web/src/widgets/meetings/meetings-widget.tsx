@@ -17,8 +17,8 @@ import type { MeetingItem } from "@/shared/hooks/use-meetings";
 import { Select } from "@/shared/ui/select";
 import { Button } from "@/shared/ui/button";
 import { SearchInput } from "@/shared/ui/search-input";
-import { CardHeader, CardTitle } from "@/shared/ui/card";
-import { Plus, Pencil, Trash2, ChevronDown, ChevronRight, Shield, Send } from "lucide-react";
+import { CardHeader, CardTitle, Card, CardContent } from "@/shared/ui/card";
+import { Plus, Pencil, Trash2, ChevronDown, ChevronRight, Shield, Send, Calendar, Clock, FileText } from "lucide-react";
 import { SendNotificationDialog } from "@/widgets/meetings/send-notification-dialog";
 import { getMeetingTypeOptions } from "@/shared/lib/constants";
 import { useMeetingsColumns } from "@/widgets/meetings/meetings-columns";
@@ -123,6 +123,81 @@ export function MeetingsWidget() {
 
   const toggleExpand = (id: number) => setExpandedId((prev) => (prev === id ? null : id));
 
+  function MeetingCard({ meeting, onEdit, onDelete }: { meeting: MeetingItem; onEdit: (meeting: MeetingItem) => void; onDelete: (meeting: MeetingItem) => void }) {
+    return (
+      <Card className="cursor-pointer transition-colors hover:bg-muted/50" onClick={() => onEdit(meeting)}>
+        <CardContent className="p-4">
+          {/* Header: Title + Mandatory Badge */}
+          <div className="mb-3 flex items-start gap-3">
+            <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+              <Calendar className="text-primary size-4" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="font-semibold truncate">{meeting.title}</h3>
+                {meeting.isMandatory && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">
+                    <Shield className="size-3" />
+                    {t("meetings.isMandatory")}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Metadata */}
+          <div className="mb-3 grid grid-cols-2 gap-2 text-xs">
+            <div>
+              <span className="text-muted-foreground">{t("meetings.type")}: </span>
+              <span>{meeting.type}</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground">{t("meetings.department")}: </span>
+              <span>{meeting.department || "—"}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Clock className="text-muted-foreground size-3" />
+              <span className="text-muted-foreground">{t("meetings.durationMinutes")}: </span>
+              <span>{meeting.durationMinutes} min</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground">{t("meetings.deadlineDays")}: </span>
+              <span>{meeting.deadlineDays}</span>
+            </div>
+          </div>
+
+          {/* Footer: Actions */}
+          <div
+            className="flex items-center gap-2 border-t pt-3 flex-col sm:flex-row"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Button size="sm" variant="outline" className="flex-1" onClick={() => onEdit(meeting)}>
+              <Pencil className="size-3.5" />
+              {t("common.edit")}
+            </Button>
+            <Button size="sm" variant="destructive" onClick={() => onDelete(meeting)}>
+              <Trash2 className="size-3.5" />
+              {t("common.delete")}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const mobileView = (
+    <div className="space-y-3 p-4">
+      {m.meetings.map((meeting) => (
+        <MeetingCard
+          key={meeting.id}
+          meeting={meeting}
+          onEdit={() => m.openEditDialog(meeting)}
+          onDelete={() => handleDelete(meeting)}
+        />
+      ))}
+    </div>
+  );
+
   return (
     <PageContent title={t("meetings.title")} subtitle={t("meetings.title")}>
       <SendNotificationDialog open={isSendNotifOpen} onOpenChange={setIsSendNotifOpen} />
@@ -178,6 +253,7 @@ export function MeetingsWidget() {
         onPageSizeChange={m.setPageSize}
         showPageSizeSelector={true}
         skeleton={<DataTableSkeleton columns={9} rows={5} showHeader={false} />}
+        mobileView={mobileView}
         header={
           <CardHeader>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -193,14 +269,14 @@ export function MeetingsWidget() {
                   </span>
                 )}
               </div>
-              <div className="flex items-center gap-2">
-                <SearchInput placeholder={t("common.searchPlaceholder")} value={m.searchQuery} onChange={m.setSearchQuery} />
-                <Select value={m.typeFilter} onChange={m.setTypeFilter} options={typeOptions} className="w-[180px]" />
-                <Button variant="outline" onClick={() => setIsSendNotifOpen(true)} className="gap-2">
+              <div className="flex flex-col gap-2 w-full sm:flex-row sm:items-center sm:flex-wrap">
+                <SearchInput placeholder={t("common.searchPlaceholder")} value={m.searchQuery} onChange={m.setSearchQuery} className="w-full sm:w-auto" />
+                <Select value={m.typeFilter} onChange={m.setTypeFilter} options={typeOptions} className="w-full sm:w-[180px]" />
+                <Button variant="outline" onClick={() => setIsSendNotifOpen(true)} className="gap-2 w-full sm:w-auto">
                   <Send className="size-4" />
                   {t("settings.sendNotification") || "Send Notification"}
                 </Button>
-                <Button onClick={() => { m.resetForm(); m.setIsCreateDialogOpen(true); }} className="gap-2">
+                <Button onClick={() => { m.resetForm(); m.setIsCreateDialogOpen(true); }} className="gap-2 w-full sm:w-auto">
                   <Plus className="size-4" />
                   {t("meetings.scheduleMeeting")}
                 </Button>

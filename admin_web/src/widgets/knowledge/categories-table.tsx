@@ -12,7 +12,7 @@ import {
   TableRow,
 } from "@/shared/ui/table";
 import { DataTable } from "@/shared/ui/data-table";
-import { CardHeader, CardTitle } from "@/shared/ui/card";
+import { CardHeader, CardTitle, Card, CardContent } from "@/shared/ui/card";
 import { TableActions, buildEditAction, buildDeleteAction } from "@/shared/components";
 import { cn } from "@/shared/lib/utils";
 import { useTranslations } from "@/shared/hooks/use-translations";
@@ -64,6 +64,79 @@ export function CategoriesTable({
 
   const columns = useCategoriesColumns(tCommon, tKnowledge);
 
+  function CategoryCard({
+    category,
+    onEdit,
+    onDelete,
+    tCommon,
+  }: {
+    category: CategoryRow;
+    onEdit: (category: CategoryRow) => void;
+    onDelete: (id: number) => void;
+    tCommon: (key: string) => string;
+  }) {
+    return (
+      <Card
+        className={cn("cursor-pointer transition-colors hover:bg-muted/50", category.parent_id && "bg-muted/50")}
+        onClick={() => onEdit(category)}
+      >
+        <CardContent className="p-4">
+          {/* Header: Name */}
+          <div className="mb-3">
+            <div className="flex items-center gap-2">
+              <h3 className="font-semibold truncate">{category.name}</h3>
+              {category.parent_id && (
+                <span className="text-muted-foreground text-xs">({tKnowledge("parent")}: {category.parent_name})</span>
+              )}
+            </div>
+            {category.description && (
+              <p className="text-muted-foreground mt-1 line-clamp-2 text-xs">{category.description}</p>
+            )}
+          </div>
+
+          {/* Metadata */}
+          <div className="mb-3 grid grid-cols-2 gap-2 text-xs">
+            <div>
+              <span className="text-muted-foreground">{tKnowledge("articles")}: </span>
+              <span>{category.articles_count}</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground">{tKnowledge("subcategories")}: </span>
+              <span>{category.children_count}</span>
+            </div>
+          </div>
+
+          {/* Footer: Actions */}
+          <div
+            className="flex items-center gap-2 border-t pt-3 flex-col sm:flex-row"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Button size="sm" variant="outline" className="flex-1" onClick={() => onEdit(category)}>
+              {tCommon("common.edit")}
+            </Button>
+            <Button size="sm" variant="destructive" onClick={() => onDelete(category.id)}>
+              {tCommon("common.delete")}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const mobileView = (
+    <div className="space-y-3 p-4">
+      {categories.map((category) => (
+        <CategoryCard
+          key={category.id}
+          category={category}
+          onEdit={onEdit}
+          onDelete={onDelete}
+          tCommon={tCommon}
+        />
+      ))}
+    </div>
+  );
+
   return (
     <DataTable
       loading={loading}
@@ -75,18 +148,19 @@ export function CategoriesTable({
       onPageChange={onPageChange}
       onPageSizeChange={onPageSizeChange}
       showPageSizeSelector={!!onPageSizeChange}
+      mobileView={mobileView}
       header={
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <CardTitle>
               {totalCountLabel ?? tKnowledge("categories")}{" "}
               <span className="text-muted-foreground text-sm font-normal">
                 ({totalCount ?? categories.length})
               </span>
             </CardTitle>
-            <div className="flex gap-2">
-              <SearchInput value={searchQuery} onChange={onSearchChange} />
-              <Button variant="outline" onClick={onResetFilters}>
+            <div className="flex flex-col gap-2 w-full sm:flex-row sm:items-center sm:flex-wrap">
+              <SearchInput value={searchQuery} onChange={onSearchChange} className="w-full sm:w-auto" />
+              <Button variant="outline" onClick={onResetFilters} className="w-full sm:w-auto">
                 {tCommon("common.reset")}
               </Button>
             </div>

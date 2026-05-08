@@ -208,19 +208,19 @@ export function TemplateFormDialog({
                 </div>
               ))}
             </div>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid gap-2 grid-cols-2 sm:grid-cols-4">
               <Input
                 placeholder={t("templates.taskName")}
                 value={newTask.name}
                 onChange={(e) => setNewTask({ ...newTask, name: e.target.value })}
-                className="col-span-2"
+                className="col-span-2 sm:col-span-1"
               />
               <Select
                 value={newTask.category}
                 onChange={(val) => setNewTask({ ...newTask, category: val })}
                 options={categoryOptions}
               />
-              <div className="flex gap-1">
+              <div className="flex gap-1 col-span-2 sm:col-span-1">
                 <Input
                   type="number"
                   min={1}
@@ -232,7 +232,7 @@ export function TemplateFormDialog({
                       deadline_days: parseInt(e.target.value) || 1,
                     })
                   }
-                  className="w-16"
+                  className="flex-1"
                 />
                 <Button size="sm" onClick={addTask}>
                   +

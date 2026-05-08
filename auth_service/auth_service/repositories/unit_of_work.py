@@ -14,6 +14,7 @@ from auth_service.repositories.implementations.login_history import LoginHistory
 from auth_service.repositories.implementations.logout_history import LogoutHistoryRepository
 from auth_service.repositories.implementations.mentor_assignment_history import MentorAssignmentHistoryRepository
 from auth_service.repositories.implementations.password_change_history import PasswordChangeHistoryRepository
+from auth_service.repositories.implementations.password_reset import PasswordResetRepository
 from auth_service.repositories.implementations.role_change_history import RoleChangeHistoryRepository
 from auth_service.repositories.implementations.user import UserRepository
 from auth_service.repositories.implementations.user_mentor import UserMentorRepository
@@ -24,6 +25,7 @@ from auth_service.repositories.interfaces.login_history import ILoginHistoryRepo
 from auth_service.repositories.interfaces.logout_history import ILogoutHistoryRepository
 from auth_service.repositories.interfaces.mentor_assignment_history import IMentorAssignmentHistoryRepository
 from auth_service.repositories.interfaces.password_change_history import IPasswordChangeHistoryRepository
+from auth_service.repositories.interfaces.password_reset import IPasswordResetRepository
 from auth_service.repositories.interfaces.role_change_history import IRoleChangeHistoryRepository
 from auth_service.repositories.interfaces.user import IUserRepository
 from auth_service.repositories.interfaces.user_mentor import IUserMentorRepository
@@ -40,6 +42,7 @@ class IUnitOfWork(Protocol):
     login_history: ILoginHistoryRepository
     logout_history: ILogoutHistoryRepository
     password_change_history: IPasswordChangeHistoryRepository
+    password_reset: IPasswordResetRepository
     role_change_history: IRoleChangeHistoryRepository
     invitation_status_history: IInvitationStatusHistoryRepository
     mentor_assignment_history: IMentorAssignmentHistoryRepository
@@ -81,6 +84,7 @@ class SqlAlchemyUnitOfWork(IUnitOfWork):
         self.login_history = LoginHistoryRepository(self._session)
         self.logout_history = LogoutHistoryRepository(self._session)
         self.password_change_history = PasswordChangeHistoryRepository(self._session)
+        self.password_reset = PasswordResetRepository(self._session)
         self.role_change_history = RoleChangeHistoryRepository(self._session)
         self.invitation_status_history = InvitationStatusHistoryRepository(self._session)
         self.mentor_assignment_history = MentorAssignmentHistoryRepository(self._session)

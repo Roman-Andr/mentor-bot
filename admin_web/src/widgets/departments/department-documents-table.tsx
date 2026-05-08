@@ -13,12 +13,14 @@ import {
   TableRow,
 } from "@/shared/ui/table";
 import { DataTable } from "@/shared/ui/data-table";
-import { CardHeader, CardTitle } from "@/shared/ui/card";
+import { CardHeader, CardTitle, Card, CardContent } from "@/shared/ui/card";
 import { TableActions, buildEditAction, buildDeleteAction } from "@/shared/components";
 import { DepartmentDocumentDownloadButton } from "./department-document-download-button";
 import { getDocumentCategoryOptions } from "@/shared/lib/constants";
 import type { DepartmentDocument } from "@/shared/types/department-document";
 import { useDepartments } from "@/shared/hooks/use-departments";
+import { FileText, Calendar, Eye, Lock, Download } from "lucide-react";
+import { formatDateTime } from "@/shared/lib/utils";
 
 interface DepartmentDocumentsTableProps {
   documents: DepartmentDocument[];
@@ -79,27 +81,98 @@ export function DepartmentDocumentsTable({
     return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
   };
 
+  function DocumentCard({ document, onEdit, onDelete }: { document: DepartmentDocument; onEdit: (doc: DepartmentDocument) => void; onDelete: (id: number) => void }) {
+    return (
+      <Card className="cursor-pointer transition-colors hover:bg-muted/50" onClick={() => onEdit(document)}>
+        <CardContent className="p-4">
+          {/* Header: Title */}
+          <div className="mb-3 flex items-start gap-3">
+            <div className="bg-primary/10 flex size-8 shrink-0 items-center justify-center rounded-lg">
+              <FileText className="text-primary size-4" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <h3 className="font-semibold truncate">{document.title}</h3>
+              {document.description && (
+                <p className="text-muted-foreground mt-1 line-clamp-2 text-xs">{document.description}</p>
+              )}
+            </div>
+          </div>
+
+          {/* Metadata */}
+          <div className="mb-3 grid grid-cols-2 gap-2 text-xs">
+            <div>
+              <span className="text-muted-foreground">{t("departmentDocuments.category")}: </span>
+              <span>{getCategoryLabel(document.category)}</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground">{t("departmentDocuments.department")}: </span>
+              <span>{getDepartmentName(document.department_id)}</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground">{t("departmentDocuments.file")}: </span>
+              <span className="truncate">{document.file_name}</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground">{t("departmentDocuments.upload")}: </span>
+              <span>{formatDateTime(document.created_at)}</span>
+            </div>
+          </div>
+
+          {/* Footer: Actions */}
+          <div className="flex items-center gap-2 border-t pt-3 flex-col sm:flex-row" onClick={(e) => e.stopPropagation()}>
+            <DepartmentDocumentDownloadButton
+              documentId={document.id}
+              fileName={document.file_name}
+            />
+            <Button size="sm" variant="outline" className="flex-1" onClick={() => onEdit(document)}>
+              {t("common.edit")}
+            </Button>
+            <Button size="sm" variant="destructive" onClick={() => onDelete(document.id)}>
+              {t("common.delete")}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const mobileView = (
+    <div className="space-y-3 p-4">
+      {documents.map((document) => (
+        <DocumentCard
+          key={document.id}
+          document={document}
+          onEdit={onEdit}
+          onDelete={onDelete}
+        />
+      ))}
+    </div>
+  );
+
   return (
-    <DataTable loading={loading} empty={documents.length === 0} header={
+    <DataTable loading={loading} empty={documents.length === 0} mobileView={mobileView} header={
       <CardHeader>
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <CardTitle>Документы департаментов</CardTitle>
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2 w-full sm:flex-row sm:items-center sm:flex-wrap">
             <Select
               options={departmentOptions}
               value={departmentFilter?.toString() || "all"}
               onChange={(value) => onDepartmentFilterChange(value === "all" ? undefined : parseInt(value, 10))}
+              className="w-full sm:w-auto"
             />
             <Select
               options={categoryOptionsWithAll}
               value={categoryFilter || "all"}
               onChange={(value) => onCategoryFilterChange(value === "all" ? undefined : value)}
+              className="w-full sm:w-auto"
             />
-            <SearchInput placeholder="Поиск по названию" value={searchQuery} onChange={onSearchChange} />
+            <SearchInput placeholder="Поиск по названию" value={searchQuery} onChange={onSearchChange} className="w-full sm:w-auto" />
           </div>
         </div>
       </CardHeader>
-    }>
+    }
+    >
       <Table>
         <TableHeader>
           <TableRow>

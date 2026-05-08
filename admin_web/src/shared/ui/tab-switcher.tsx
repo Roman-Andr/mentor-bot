@@ -34,29 +34,31 @@ export function TabSwitcher({ tabs, paramName = "tab", activeTab: controlledActi
   };
 
   return (
-    <div className="flex rounded-md border">
-      {tabs.map((tab, i) => {
-        const isFirst = i === 0;
-        const isLast = i === tabs.length - 1;
-        const Icon = tab.icon;
-        return (
-          <button
-            key={tab.id}
-            className={cn(
-              "flex cursor-pointer items-center gap-1.5 px-3 py-1.5 text-sm font-medium transition-colors",
-              isFirst && "rounded-l-md",
-              isLast && "rounded-r-md",
-              activeTab === tab.id
-                ? "bg-primary text-primary-foreground"
-                : "bg-background text-muted-foreground hover:bg-muted",
-            )}
-            onClick={() => handleTabChange(tab.id)}
-          >
-            {Icon && <Icon className="size-4" />}
-            {tab.label}
-          </button>
-        );
-      })}
+    <div className="overflow-x-auto">
+      <div className="inline-flex min-w-max rounded-md border">
+        {tabs.map((tab, i) => {
+          const isFirst = i === 0;
+          const isLast = i === tabs.length - 1;
+          const Icon = tab.icon;
+          return (
+            <button
+              key={tab.id}
+              className={cn(
+                "flex shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap px-3 py-1.5 text-sm font-medium transition-colors",
+                isFirst && "rounded-l-md",
+                isLast && "rounded-r-md",
+                activeTab === tab.id
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-background text-muted-foreground hover:bg-muted",
+              )}
+              onClick={() => handleTabChange(tab.id)}
+            >
+              {Icon && <Icon className="size-4 shrink-0" />}
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

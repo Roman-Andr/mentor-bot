@@ -71,3 +71,21 @@ class PasswordChangeHistoryRepository(
         stmt = stmt.order_by(PasswordChangeHistory.changed_at.desc()).offset(offset).limit(limit)
         result = await self._session.execute(stmt)
         return result.scalars().all(), total
+
+    async def delete_by_user_id(self, user_id: int) -> int:
+        """Delete all password change history records for a user."""
+        from sqlalchemy import delete
+
+        stmt = delete(PasswordChangeHistory).where(PasswordChangeHistory.user_id == user_id)
+        result = await self._session.execute(stmt)
+        await self._session.flush()
+        return result.rowcount
+
+    async def nullify_changed_by(self, user_id: int) -> int:
+        """Set changed_by to NULL for all records where a user is the changer."""
+        from sqlalchemy import update
+
+        stmt = update(PasswordChangeHistory).where(PasswordChangeHistory.changed_by == user_id).values(changed_by=None)
+        result = await self._session.execute(stmt)
+        await self._session.flush()
+        return result.rowcount

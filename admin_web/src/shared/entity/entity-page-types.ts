@@ -65,7 +65,7 @@ export interface EntityPageProps<TItem, TForm> {
   /** Callback to delete an item by ID (confirmation handled externally) */
   onDelete: (id: number) => void;
   /** Callback to close any dialog */
-  onCloseDialog: () => void;
+  onCloseDialog?: () => void;
 
   // Form handling
   /** Current form data */
@@ -73,19 +73,19 @@ export interface EntityPageProps<TItem, TForm> {
   /** Callback when form data changes */
   onFormChange: (data: TForm) => void;
   /** Callback when form is submitted */
-  onSubmit: () => void;
+  onSubmit: () => void | Promise<void>;
   /** Whether form is submitting */
-  isSubmitting: boolean;
+  isSubmitting?: boolean;
   /** Form submission error message */
-  submitError: string | null;
+  submitError?: string | null;
 
   // Search & pagination
   /** Current search query */
-  searchQuery: string;
+  searchQuery?: string;
   /** Callback when search query changes */
-  onSearchChange: (value: string) => void;
+  onSearchChange?: (query: string) => void;
   /** Callback when page changes */
-  onPageChange: (page: number) => void;
+  onPageChange?: (page: number) => void;
   /** Optional callback when page size changes */
   onPageSizeChange?: (size: number) => void;
 
@@ -96,8 +96,8 @@ export interface EntityPageProps<TItem, TForm> {
   renderForm: (props: {
     formData: TForm;
     onChange: (data: TForm) => void;
-    mode: "create" | "edit";
-  }) => ReactNode;
+    mode?: "create" | "edit";
+  }) => React.ReactNode;
 
   // Optional
   /** Label for create button (default: uses translation) */
@@ -113,9 +113,9 @@ export interface EntityPageProps<TItem, TForm> {
   /** Callback when tab changes */
   onTabChange?: (tabId: string) => void;
   /** Additional filter UI */
-  filters?: ReactNode;
+  filters?: React.ReactNode;
   /** Additional actions in the header */
-  additionalActions?: ReactNode;
+  additionalActions?: React.ReactNode;
   /** Custom className for the table container */
   className?: string;
   /** Unique key accessor for table rows */
@@ -138,4 +138,6 @@ export interface EntityPageProps<TItem, TForm> {
   onSort?: (field: string) => void;
   /** Translation function for i18n */
   t: (key: string) => string;
+  /** Mobile card renderer function for mobile view */
+  renderMobileCard?: (item: TItem) => ReactNode;
 }

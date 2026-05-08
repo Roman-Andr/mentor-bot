@@ -15,6 +15,7 @@ from meeting_service.models import Meeting, MeetingMaterial, UserMeeting
 from meeting_service.repositories.unit_of_work import IUnitOfWork
 from meeting_service.schemas import (
     MaterialCreate,
+    MaterialUpdate,
     MeetingCreate,
     MeetingUpdate,
     UserMeetingComplete,
@@ -145,6 +146,41 @@ class MeetingService:
         await self._uow.materials.delete(material.id)
         await self._uow.commit()
         logger.info("Material deleted (material_id={})", material_id)
+
+    async def update_material(self, material_id: int, material_data: MaterialUpdate) -> MeetingMaterial:
+        """Update a material."""
+        logger.debug("Updating material (material_id={})", material_id)
+        material = await self._uow.materials.get_by_id(material_id)
+        if not material:
+            logger.warning("Material not found (material_id={})", material_id)
+            msg = "Material"
+            raise NotFoundException(msg)
+        update_dict = material_data.model_dump(exclude_unset=True)
+        for field, value in update_dict.items():
+            setattr(material, field, value)
+        updated = await self._uow.materials.update(material)
+        await self._uow.commit()
+        logger.info("Material updated (material_id={})", updated.id)
+        return updated
+
+    async def reorder_materials(self, meeting_id: int, material_orders: list[dict]) -> list[MeetingMaterial]:
+        """Reorder materials for a meeting."""
+        logger.debug("Reordering materials (meeting_id={})", meeting_id)
+        await self.get_meeting(meeting_id)  # ensure meeting exists
+        materials = await self._uow.materials.get_by_meeting(meeting_id)
+        material_map = {m.id: m for m in materials}
+        
+        for order_data in material_orders:
+            material_id = order_data.get("id")
+            new_order = order_data.get("order")
+            if material_id in material_map:
+                material_map[material_id].order = new_order
+                await self._uow.materials.update(material_map[material_id])
+        
+        await self._uow.commit()
+        updated_materials = await self._uow.materials.get_by_meeting(meeting_id)
+        logger.info("Materials reordered (meeting_id={})", meeting_id)
+        return list(updated_materials)
 
     # --- User assignments ---
     async def assign_meeting(self, assignment_data: UserMeetingCreate) -> UserMeeting:

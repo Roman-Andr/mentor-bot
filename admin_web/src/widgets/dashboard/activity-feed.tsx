@@ -20,14 +20,14 @@ export function ActivityFeed({ activity, href }: ActivityFeedProps) {
   const t = useTranslations();
 
   const card = (
-    <Card className="col-span-3 transition-shadow hover:shadow-md">
+    <Card className="col-span-1 md:col-span-2 lg:col-span-3 transition-shadow hover:shadow-md">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle>{t("dashboard.recentActivity")}</CardTitle>
         {href && (
           <Link href={href}>
             <Button variant="ghost" size="sm" className="gap-1 text-xs">
               <ExternalLink className="size-3" />
-              {t("common.viewAll")}
+              <span className="hidden sm:inline">{t("common.viewAll")}</span>
             </Button>
           </Link>
         )}

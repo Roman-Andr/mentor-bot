@@ -46,3 +46,21 @@ class UserMentorRepository(SqlAlchemyBaseRepository[UserMentor, int], IUserMento
         )
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none()
+
+    async def delete_by_user_id(self, user_id: int) -> int:
+        """Delete all mentor relations for a user."""
+        from sqlalchemy import delete
+
+        stmt = delete(UserMentor).where(UserMentor.user_id == user_id)
+        result = await self._session.execute(stmt)
+        await self._session.flush()
+        return result.rowcount
+
+    async def delete_by_mentor_id(self, mentor_id: int) -> int:
+        """Delete all mentee relations for a mentor."""
+        from sqlalchemy import delete
+
+        stmt = delete(UserMentor).where(UserMentor.mentor_id == mentor_id)
+        result = await self._session.execute(stmt)
+        await self._session.flush()
+        return result.rowcount

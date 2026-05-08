@@ -30,7 +30,7 @@ const TabsTrigger = React.forwardRef<
   <TabsPrimitive.Trigger
     ref={ref}
     className={cn(
-      "inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+      "inline-flex shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
       "data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm",
       "cursor-pointer hover:text-foreground",
       className
@@ -94,12 +94,12 @@ export function TabbedPage({
   };
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="min-w-0 space-y-4 p-4 sm:space-y-6 sm:p-6">
       <PageHeader
         title={title}
         subtitle={description ?? ""}
         actions={
-          <div className="flex items-center gap-3">
+          <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
             {searchComponent}
             {actions}
           </div>
@@ -107,22 +107,24 @@ export function TabbedPage({
       />
 
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-        <div className="flex items-center justify-between">
-          <TabsList className="bg-background border p-1">
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              return (
-                <TabsTrigger
-                  key={tab.id}
-                  value={tab.id}
-                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex items-center gap-1.5"
-                >
-                  {Icon && <Icon className="size-4" />}
-                  {tab.label}
-                </TabsTrigger>
-              );
-            })}
-          </TabsList>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="overflow-x-auto">
+            <TabsList className="bg-background border p-1">
+              {tabs.map((tab) => {
+                const Icon = tab.icon;
+                return (
+                  <TabsTrigger
+                    key={tab.id}
+                    value={tab.id}
+                    className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex items-center gap-1.5"
+                  >
+                    {Icon && <Icon className="size-4" />}
+                    {tab.label}
+                  </TabsTrigger>
+                );
+              })}
+            </TabsList>
+          </div>
         </div>
 
         {tabs.map((tab) => (

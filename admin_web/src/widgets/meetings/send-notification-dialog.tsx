@@ -9,6 +9,7 @@ import { Label } from "@/shared/ui/label";
 import { Select } from "@/shared/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
 import { AsyncSearchableSelect, type SelectOption } from "@/shared/ui/searchable-select";
+import { DateTimePicker } from "@/shared/ui/date-time-picker";
 import { notificationsApi } from "@/shared/lib/api/notifications";
 import { api } from "@/shared/lib/api";
 import { Send, Clock } from "lucide-react";
@@ -82,8 +83,6 @@ export function SendNotificationDialog({ open, onOpenChange }: SendNotificationD
           channel: form.channel,
           body: form.body,
           subject: form.subject || null,
-          recipient_telegram_id: selectedUserTelegramId,
-          recipient_email: selectedUserEmail,
         });
         toast(t("settings.notificationSent") || "Notification sent", "success");
       }
@@ -128,7 +127,6 @@ export function SendNotificationDialog({ open, onOpenChange }: SendNotificationD
                   setSelectedUserTelegramId(opt.telegram_id || null);
                   setSelectedUserEmail(opt.email || null);
                 }}
-                autoFocus
               />
             </div>
             <div className="space-y-1.5">
@@ -164,10 +162,10 @@ export function SendNotificationDialog({ open, onOpenChange }: SendNotificationD
               <Clock className="size-3.5" />
               {t("settings.scheduledAt") || "Schedule for (optional)"}
             </Label>
-            <Input
-              type="datetime-local"
+            <DateTimePicker
               value={form.scheduledAt}
-              onChange={(ev) => setForm((f) => ({ ...f, scheduledAt: ev.target.value }))}
+              onChange={(value) => setForm((f) => ({ ...f, scheduledAt: value }))}
+              placeholder={t("settings.selectDateTime") || "Select date and time"}
             />
             <p className="text-muted-foreground text-xs">{t("settings.leaveBlankToSendNow") || "Leave blank to send immediately"}</p>
           </div>

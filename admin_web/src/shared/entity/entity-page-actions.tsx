@@ -13,7 +13,7 @@ export function EntityPageActions<TItem>({ item, onEdit, onDelete, t }: EntityPa
   const id = (item as Record<string, unknown>).id as number;
   return (
     <TooltipProvider>
-      <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+      <div className="flex gap-1 flex-wrap sm:flex-nowrap" onClick={(e) => e.stopPropagation()}>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button

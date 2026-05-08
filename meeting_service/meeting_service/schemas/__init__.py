@@ -1,9 +1,9 @@
 """Pydantic schemas for request/response validation."""
 
 from meeting_service.schemas.material import (
-    MaterialBase,
     MaterialCreate,
     MaterialResponse,
+    MaterialUpdate,
 )
 from meeting_service.schemas.meeting import (
     MeetingBase,
@@ -31,6 +31,7 @@ __all__ = [
     "MaterialBase",
     "MaterialCreate",
     "MaterialResponse",
+    "MaterialUpdate",
     "MeetingBase",
     "MeetingCreate",
     "MeetingListResponse",

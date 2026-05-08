@@ -55,3 +55,11 @@ class IInvitationRepository(BaseRepository["Invitation", int]):
     @abstractmethod
     async def exists_pending_for_email(self, email: str) -> bool:
         """Check if pending invitation exists for email."""
+
+    @abstractmethod
+    async def nullify_user_id(self, user_id: int) -> int:
+        """Set user_id to NULL for all invitations linked to a user. Returns number of updated records."""
+
+    @abstractmethod
+    async def nullify_mentor_id(self, mentor_id: int) -> int:
+        """Set mentor_id to NULL for all invitations linked to a mentor. Returns number of updated records."""

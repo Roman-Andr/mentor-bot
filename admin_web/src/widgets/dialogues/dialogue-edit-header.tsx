@@ -12,12 +12,12 @@ export function DialogueEditHeader({ title, onBack }: DialogueEditHeaderProps) {
 
   return (
     <div className="flex items-center gap-3">
-      <Button variant="ghost" size="icon" onClick={onBack}>
+      <Button variant="ghost" size="icon" onClick={onBack} className="h-10 w-10">
         <ArrowLeft className="size-5" />
       </Button>
-      <div>
-        <h1 className="text-2xl font-bold">{t("dialogues.editDialogueTitle")}</h1>
-        <p className="text-muted-foreground text-sm">{title}</p>
+      <div className="min-w-0 flex-1">
+        <h1 className="text-xl font-bold truncate sm:text-2xl">{t("dialogues.editDialogueTitle")}</h1>
+        <p className="text-muted-foreground text-sm truncate">{title}</p>
       </div>
     </div>
   );

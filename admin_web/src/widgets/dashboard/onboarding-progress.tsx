@@ -14,14 +14,14 @@ export function OnboardingProgress({ progress, href }: OnboardingProgressProps) 
   const t = useTranslations();
 
   const card = (
-    <Card className="col-span-4 transition-shadow hover:shadow-md">
+    <Card className="col-span-1 md:col-span-2 lg:col-span-4 transition-shadow hover:shadow-md">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle>{t("dashboard.onboardingProgress")}</CardTitle>
         {href && (
           <Link href={href}>
             <Button variant="ghost" size="sm" className="gap-1 text-xs">
               <ExternalLink className="size-3" />
-              {t("common.viewAll")}
+              <span className="hidden sm:inline">{t("common.viewAll")}</span>
             </Button>
           </Link>
         )}
@@ -49,7 +49,7 @@ export function OnboardingProgress({ progress, href }: OnboardingProgressProps) 
                     />
                   </div>
                 </div>
-                 <span className="text-muted-foreground inline-block w-[90px] truncate text-xs">
+                 <span className="text-muted-foreground shrink-0 text-xs">
                    {item.status === "COMPLETED"
                      ? t("common.completed")
                      : item.days_remaining > 0

@@ -21,5 +21,6 @@ export * from "./form-dialog";
 export * from "./user-avatar";
 export * from "./stat-card";
 export * from "./date-picker";
+export * from "./date-time-picker";
 export * from "./tooltip";
 export * from "./skeleton";

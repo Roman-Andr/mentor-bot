@@ -36,3 +36,7 @@ class ILoginHistoryRepository(BaseRepository["LoginHistory", int]):
         offset: int = 0,
     ) -> tuple[Sequence[LoginHistory], int]:
         """Get all login history with filtering and pagination."""
+
+    @abstractmethod
+    async def delete_by_user_id(self, user_id: int) -> int:
+        """Delete all login history records for a user. Returns number of deleted records."""

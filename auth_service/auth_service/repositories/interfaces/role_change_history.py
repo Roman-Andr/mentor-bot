@@ -35,3 +35,11 @@ class IRoleChangeHistoryRepository(BaseRepository["RoleChangeHistory", int]):
         offset: int = 0,
     ) -> tuple[Sequence[RoleChangeHistory], int]:
         """Get all role change history with filtering and pagination."""
+
+    @abstractmethod
+    async def delete_by_user_id(self, user_id: int) -> int:
+        """Delete all role change history records for a user. Returns number of deleted records."""
+
+    @abstractmethod
+    async def nullify_changed_by(self, user_id: int) -> int:
+        """Set changed_by to NULL for all records where a user is the changer. Returns number of updated records."""

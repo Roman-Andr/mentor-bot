@@ -15,7 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/shared/ui/table";
-import { CardHeader, CardTitle } from "@/shared/ui/card";
+import { CardHeader, CardTitle, Card, CardContent } from "@/shared/ui/card";
 import { TableActions, buildEditAction, buildDeleteAction, buildCompleteAction } from "@/shared/components";
 import { UserAvatar } from "@/shared/ui/user-avatar";
 import { AlertTriangle, Clock, Filter } from "lucide-react";
@@ -86,6 +86,109 @@ function ChecklistStatusBadge({ status, isOverdue }: { status: string; isOverdue
   return <StatusBadge status={status} />;
 }
 
+function ChecklistCard({
+  checklist,
+  onEdit,
+  onComplete,
+  onDelete,
+  t,
+}: {
+  checklist: ChecklistItem;
+  onEdit: (checklist: ChecklistItem) => void;
+  onComplete: (id: number) => void;
+  onDelete: (id: number) => void;
+  t: (key: string) => string;
+}) {
+  return (
+    <Card
+      className={cn(
+        "cursor-pointer transition-colors hover:bg-muted/50",
+        checklist.isOverdue && "border-l-4 border-l-red-500"
+      )}
+      onClick={() => onEdit(checklist)}
+    >
+      <CardContent className="p-4">
+        {/* Header: User + Status */}
+        <div className="mb-3 flex items-start gap-3">
+          <UserAvatar name={checklist.userName} id={checklist.id} />
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <h3 className="font-semibold truncate">{checklist.userName}</h3>
+              <ChecklistStatusBadge status={checklist.status} isOverdue={checklist.isOverdue} />
+            </div>
+            <p className="text-muted-foreground text-xs">{checklist.employeeId}</p>
+            {checklist.notes && (
+              <p className="text-muted-foreground mt-0.5 line-clamp-1 text-xs">{checklist.notes}</p>
+            )}
+          </div>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="mb-3">
+          <ProgressBar
+            value={checklist.progressPercentage}
+            isOverdue={checklist.isOverdue}
+            completed={checklist.status === "COMPLETED"}
+          />
+        </div>
+
+        {/* Metadata */}
+        <div className="mb-3 grid grid-cols-2 gap-2 text-xs">
+          <div>
+            <span className="text-muted-foreground">{t("checklists.tasks")}: </span>
+            <span>{checklist.completedTasks}/{checklist.totalTasks}</span>
+          </div>
+          <div>
+            <span className="text-muted-foreground">{t("checklists.startDate")}: </span>
+            <span>{formatDate(checklist.startDate)}</span>
+          </div>
+          <div className="col-span-2">
+            <span className="text-muted-foreground">{t("checklists.dueDate")}: </span>
+            <div className="flex items-center gap-1">
+              {checklist.isOverdue && <AlertTriangle className="size-3 text-red-500" />}
+              <span className={cn(checklist.isOverdue && "text-red-600 dark:text-red-400")}>
+                {formatDate(checklist.dueDate)}
+              </span>
+              {checklist.daysRemaining !== null && checklist.status !== "COMPLETED" && (
+                <span className={cn(checklist.daysRemaining < 0 ? "text-red-500" : "text-muted-foreground")}>
+                  ({checklist.daysRemaining > 0
+                    ? `${checklist.daysRemaining} ${t("checklists.daysLeft")}`
+                    : `${Math.abs(checklist.daysRemaining)} ${t("checklists.daysOverdue")}`})
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Footer: Actions */}
+        <div
+          className="flex items-center gap-2 border-t pt-3 flex-col sm:flex-row"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Button size="sm" variant="outline" className="flex-1" onClick={() => onEdit(checklist)}>
+            {t("common.edit")}
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="flex-1"
+            onClick={() => onComplete(checklist.id)}
+            disabled={checklist.status === "COMPLETED"}
+          >
+            {t("checklists.markComplete")}
+          </Button>
+          {checklist.status === "COMPLETED" && checklist.certUid && (
+            <CertificateButton certUid={checklist.certUid} />
+          )}
+          <Button size="sm" variant="destructive" onClick={() => onDelete(checklist.id)}>
+            {t("common.delete")}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 export function ChecklistsTable({
   checklists,
   loading,
@@ -121,6 +224,21 @@ export function ChecklistsTable({
 
   const displayed = overdueOnly ? checklists.filter((c) => c.isOverdue) : checklists;
 
+  const mobileView = (
+    <div className="space-y-3 p-4">
+      {displayed.map((checklist) => (
+        <ChecklistCard
+          key={checklist.id}
+          checklist={checklist}
+          onEdit={onEdit}
+          onComplete={onComplete}
+          onDelete={onDelete}
+          t={t}
+        />
+      ))}
+    </div>
+  );
+
   return (
     <DataTable
       loading={loading}
@@ -132,6 +250,7 @@ export function ChecklistsTable({
       onPageChange={onPageChange}
       onPageSizeChange={onPageSizeChange}
       showPageSizeSelector={!!onPageSizeChange}
+      mobileView={mobileView}
       header={
         <CardHeader>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -147,20 +266,20 @@ export function ChecklistsTable({
                 </span>
               )}
             </div>
-            <div className="flex flex-wrap gap-2">
-              <SearchInput value={searchQuery} onChange={onSearchChange} />
-              <Select value={statusFilter} onChange={onStatusFilterChange} options={statusOptions} />
-              <Select value={departmentFilter} onChange={onDepartmentFilterChange} options={departmentOptions} />
+            <div className="flex flex-col gap-2 w-full sm:flex-row sm:items-center sm:flex-wrap">
+              <SearchInput value={searchQuery} onChange={onSearchChange} className="w-full sm:w-auto" />
+              <Select value={statusFilter} onChange={onStatusFilterChange} options={statusOptions} className="w-full sm:w-auto" />
+              <Select value={departmentFilter} onChange={onDepartmentFilterChange} options={departmentOptions} className="w-full sm:w-auto" />
               <Button
                 variant={overdueOnly ? "destructive" : "outline"}
                 size="sm"
                 onClick={() => setOverdueOnly(!overdueOnly)}
-                className="gap-1.5"
+                className="gap-1.5 w-full sm:w-auto"
               >
                 <Filter className="size-3.5" />
                 {t("checklists.overdueFilter") || t("checklists.overdue")}
               </Button>
-              <Button variant="outline" onClick={onReset}>
+              <Button variant="outline" onClick={onReset} className="w-full sm:w-auto">
                 {t("common.reset")}
               </Button>
             </div>

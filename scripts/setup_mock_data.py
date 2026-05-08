@@ -1042,11 +1042,10 @@ async def create_article_views_async(
     """
     Create article views to simulate users reading knowledge base articles.
 
-    Views are recorded by making GET requests to articles (the knowledge service
-    automatically tracks views when articles are fetched).
+    Views are recorded by directly inserting into the article_views table with
+    custom timestamps to simulate historical data over ~1 month period.
     """
-    log_step("Creating article views (async)")
-    headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+    log_step("Creating article views with time distribution (async)")
 
     try:
         article_views = load_json("user_article_views.json")
@@ -1055,40 +1054,102 @@ async def create_article_views_async(
         return
 
     total_views = 0
-    success_count = 0
+    knowledge_db = "knowledge_db"
 
-    # Process sequentially with delay to avoid rate limiting
-    async with httpx.AsyncClient(follow_redirects=True) as client:
-        for view_data in article_views:
-            user_key = view_data.get("user_key")
-            article_indices = view_data.get("article_indices", [])
-            view_counts = view_data.get("view_counts", [])
+    # Collect all SQL INSERT statements
+    insert_statements = []
 
-            if user_key not in user_ids:
+    for view_data in article_views:
+        user_key = view_data.get("user_key")
+        article_indices = view_data.get("article_indices", [])
+        view_counts = view_data.get("view_counts", [])
+        days_ago = view_data.get("days_ago", 0)
+
+        if user_key not in user_ids:
+            continue
+
+        user_id = user_ids[user_key]
+
+        for i, article_idx in enumerate(article_indices):
+            if article_idx >= len(article_ids):
                 continue
 
-            for i, article_idx in enumerate(article_indices):
-                if article_idx >= len(article_ids):
-                    continue
+            article_id = article_ids[article_idx]
+            view_count = view_counts[i] if i < len(view_counts) else 1
 
-                article_id = article_ids[article_idx]
-                view_count = view_counts[i] if i < len(view_counts) else 1
+            # Create multiple views with slight time variation
+            for view_num in range(view_count):
+                # Add slight variation in time for multiple views of same article
+                hours_offset = view_num * 2  # 2 hours between views of same article
+                view_time = (datetime.now() - timedelta(days=days_ago, hours=hours_offset)).isoformat()
+                
+                insert_statements.append(
+                    f"INSERT INTO article_views (article_id, user_id, viewed_at) "
+                    f"VALUES ({article_id}, {user_id}, '{view_time}');"
+                )
+                total_views += 1
+                log_success("")
 
-                # Record multiple views by fetching the article multiple times
-                for _ in range(view_count):
-                    try:
-                        response = await client.get(
-                            f"{ADMIN_WEB_URL}/api/v1/articles/{article_id}",
-                            headers=headers,
-                        )
-                        if response.status_code in (200, 201):
-                            success_count += 1
-                            log_success("")
-                        total_views += 1
-                        # Small delay between requests (removed rate limit delay since DEBUG mode disables rate limiting)
-                        await asyncio.sleep(0.01)
-                    except Exception:
-                        total_views += 1
+    # Execute all inserts in a single transaction
+    if insert_statements:
+        try:
+            sql_command = "\\set ON_ERROR_STOP 1\nBEGIN;\n" + "\n".join(insert_statements) + "\nCOMMIT;"
+            result = subprocess.run(
+                [
+                    "docker",
+                    "compose",
+                    "exec",
+                    "-T",
+                    "postgres",
+                    "psql",
+                    "-U",
+                    POSTGRES_USER,
+                    "-d",
+                    knowledge_db,
+                    "-c",
+                    sql_command,
+                ],
+                capture_output=True,
+                text=True,
+                timeout=60,
+            )
+            if result.returncode == 0:
+                log_info(f"  Successfully inserted {total_views} article views with time distribution")
+            else:
+                log_warning(f"  Failed to insert article views: {result.stderr.strip()}")
+        except FileNotFoundError:
+            log_warning("  docker compose not found, trying direct psql")
+            try:
+                sql_command = "\\set ON_ERROR_STOP 1\nBEGIN;\n" + "\n".join(insert_statements) + "\nCOMMIT;"
+                result = subprocess.run(
+                    [
+                        "psql",
+                        "-U",
+                        POSTGRES_USER,
+                        "-d",
+                        knowledge_db,
+                        "-h",
+                        "localhost",
+                        "-p",
+                        "5432",
+                        "-c",
+                        sql_command,
+                    ],
+                    capture_output=True,
+                    text=True,
+                    timeout=60,
+                    env={**os.environ, "PGPASSWORD": POSTGRES_PASSWORD},
+                )
+                if result.returncode == 0:
+                    log_info(f"  Successfully inserted {total_views} article views with time distribution")
+                else:
+                    log_warning(f"  Failed to insert article views: {result.stderr.strip()}")
+            except Exception as e:
+                log_warning(f"  Error inserting article views: {e}")
+        except Exception as e:
+            log_warning(f"  Error inserting article views: {e}")
+    else:
+        log_warning("  No article views to insert")
 
     log_success_newline()
 
