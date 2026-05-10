@@ -40,6 +40,7 @@ def integration_uow():
     uow.templates = AsyncMock()
     uow.task_templates = AsyncMock()
     uow.checklists = AsyncMock()
+    uow.template_change_history = AsyncMock()
     uow.commit = AsyncMock()
     return uow
 
@@ -90,13 +91,19 @@ async def test_update_template_executes_real_code(integration_uow: MagicMock, mo
     integration_uow.templates.update = AsyncMock(return_value=mock_template)
     integration_uow.templates.clear_other_defaults = AsyncMock()
 
-    update_data = TemplateUpdate(name="Updated Name", is_default=True)
+    update_data = TemplateUpdate(name="Updated Name", status=TemplateStatus.ACTIVE, is_default=True)
 
     service = TemplateService(integration_uow)
     result = await service.update_template(1, update_data)
 
     assert result.name == "Updated Name"
     integration_uow.templates.clear_other_defaults.assert_called_once()
+    integration_uow.template_change_history.create.assert_called_once()
+    history_entry = integration_uow.template_change_history.create.call_args.args[0]
+    assert history_entry.template_id == 1
+    assert history_entry.action == "UPDATED"
+    assert "name: Test Template -> Updated Name" in history_entry.change_summary
+    assert "status: DRAFT -> ACTIVE" in history_entry.change_summary
 
 
 @pytest.mark.asyncio
@@ -213,6 +220,7 @@ async def test_update_template_without_default_change(integration_uow: MagicMock
 
     assert result.name == "Updated Name"
     integration_uow.templates.clear_other_defaults.assert_not_called()
+    integration_uow.template_change_history.create.assert_called_once()
 
 
 @pytest.mark.asyncio

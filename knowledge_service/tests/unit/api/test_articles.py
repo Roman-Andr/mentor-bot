@@ -347,6 +347,25 @@ class TestRecordArticleView:
 
         mock_article_service.record_view.assert_not_called()
 
+    async def test_record_view_article_not_found(
+        self,
+        mock_article_service: AsyncMock,
+        mock_user: UserInfo,
+    ) -> None:
+        """Test recording a view for a missing article returns 404."""
+        mock_article_service.get_article_by_id.side_effect = NotFoundException("Article not found")
+
+        with pytest.raises(HTTPException) as exc_info:
+            await record_article_view(
+                article_id=999,
+                view_data=ArticleViewCreate(),
+                article_service=mock_article_service,
+                current_user=mock_user,
+            )
+
+        assert exc_info.value.status_code == status.HTTP_404_NOT_FOUND
+        mock_article_service.record_view.assert_not_called()
+
 
 class TestUpdateArticle:
     """Test PUT /articles/{article_id} endpoint."""
