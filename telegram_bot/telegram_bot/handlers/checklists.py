@@ -626,7 +626,6 @@ async def download_task_file(callback: CallbackQuery, auth_token: str, *, locale
         await callback.answer(t("tasks.attachment_error", locale=locale), show_alert=True)
         return
 
-
     if not callback.message:
         return
 

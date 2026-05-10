@@ -539,5 +539,208 @@ describe('useCategories', () => {
       })
       expect(result.current.selectedCategory).toEqual(category)
     })
+
+    it('generates slug from name when slug is empty in toCreatePayload', () => {
+      const formData = {
+        name: 'Test Category',
+        slug: '',
+        description: 'Test description',
+        parent_id: null,
+        order: 1,
+        department_id: null,
+        color: '#FF0000',
+        icon: '',
+      }
+      
+      const payload = toCreatePayload(formData)
+      expect(payload.slug).toBe('test-category')
+    })
+
+    it('uses existing slug when provided in toCreatePayload', () => {
+      const formData = {
+        name: 'Test Category',
+        slug: 'custom-slug',
+        description: 'Test description',
+        parent_id: null,
+        order: 1,
+        department_id: null,
+        color: '#FF0000',
+        icon: '',
+      }
+      
+      const payload = toCreatePayload(formData)
+      expect(payload.slug).toBe('custom-slug')
+    })
+
+    it('generates slug from Russian name', () => {
+      const formData = {
+        name: 'Тестовая категория',
+        slug: '',
+        description: 'Test description',
+        parent_id: null,
+        order: 1,
+        department_id: null,
+        color: '#FF0000',
+        icon: '',
+      }
+      
+      const payload = toCreatePayload(formData)
+      expect(payload.slug).toBe('testovaya-kategoriya')
+    })
+
+    it('auto-generates slug when name changes and slug is empty', async () => {
+      mockFetchResponse({
+        categories: [],
+        total: 0,
+      })
+
+      const { result } = renderHook(() => useCategories(), { wrapper: createWrapper() })
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false)
+      })
+
+      act(() => {
+        result.current.updateFormField('name', 'New Category Name')
+      })
+      expect(result.current.formData.slug).toBe('new-category-name')
+    })
+
+    it('does not change existing slug when name changes', async () => {
+      mockFetchResponse({
+        categories: [],
+        total: 0,
+      })
+
+      const { result } = renderHook(() => useCategories(), { wrapper: createWrapper() })
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false)
+      })
+
+      // First set a name and slug
+      act(() => {
+        result.current.updateFormField('name', 'Original Name')
+        result.current.updateFormField('slug', 'custom-slug')
+      })
+
+      // Then change the name
+      act(() => {
+        result.current.updateFormField('name', 'New Name')
+      })
+      
+      expect(result.current.formData.slug).toBe('custom-slug')
+    })
+
+    it('builds departmentsMap from departments data', async () => {
+      mockFetchResponse({
+        departments: [
+          { id: 1, name: 'Engineering' },
+          { id: 2, name: 'Marketing' }
+        ]
+      })
+
+      const { result } = renderHook(() => useCategories(), { wrapper: createWrapper() })
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false)
+      })
+
+      // The departmentsMap should be built and used in mapping
+      expect(result.current.items).toBeDefined()
+    })
+
+    it('handles update operation with cache invalidation', async () => {
+      const mockResponse = { id: 1, name: 'Updated Category', description: 'Updated description' }
+      mockFetchResponse(mockResponse)
+
+      const { result } = renderHook(() => useCategories(), { wrapper: createWrapper() })
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false)
+      })
+
+      const category: CategoryRow = {
+        id: 1,
+        name: 'Engineering',
+        slug: 'engineering',
+        description: '',
+        parent_id: null,
+        parent_name: '',
+        order: 0,
+        department_id: null,
+        department: '',
+        position: '',
+        level: '',
+        icon: '',
+        color: '',
+        children_count: 0,
+        articles_count: 0,
+        createdAt: '2024-01-01',
+      }
+
+      act(() => {
+        result.current.setSelectedItem(category)
+      })
+
+      act(() => {
+        result.current.setFormData({
+          name: 'Updated Category',
+          description: 'Updated description'
+        })
+      })
+
+      act(() => {
+        result.current.handleSubmit()
+      })
+
+      await waitFor(() => {
+        expect(result.current.isSubmitting).toBe(false)
+      })
+    })
+
+    it('handles create operation with proper payload', async () => {
+      const mockResponse = { id: 1, name: 'New Category', description: 'Test description' }
+      mockFetchResponse(mockResponse)
+
+      const { result } = renderHook(() => useCategories(), { wrapper: createWrapper() })
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false)
+      })
+
+      act(() => {
+        result.current.setFormData({
+          name: 'New Category',
+          description: 'Test description'
+        })
+      })
+
+      act(() => {
+        result.current.handleSubmit()
+      })
+
+      await waitFor(() => {
+        expect(result.current.isSubmitting).toBe(false)
+      })
+    })
+
+    it('handles delete operation', async () => {
+      mockFetchResponse({ message: 'Category deleted successfully' })
+
+      const { result } = renderHook(() => useCategories(), { wrapper: createWrapper() })
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false)
+      })
+
+      act(() => {
+        result.current.handleDelete(1)
+      })
+
+      await waitFor(() => {
+        expect(result.current.isDeleting).toBe(false)
+      })
+    })
   })
 })

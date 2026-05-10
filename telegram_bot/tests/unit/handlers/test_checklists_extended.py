@@ -1139,4 +1139,3 @@ class TestSkipPhotoName:
         self.mock_state.update_data.assert_called_once()
         self.mock_state.set_state.assert_called_once_with(TaskAttachmentStates.waiting_for_description)
         self.mock_callback.answer.assert_called_once()
-

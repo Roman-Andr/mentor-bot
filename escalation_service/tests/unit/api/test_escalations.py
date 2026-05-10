@@ -385,6 +385,7 @@ class TestCreateEscalation:
         app.dependency_overrides[get_escalation_service] = lambda: EscalationService(mock_uow)
 
         from datetime import UTC, datetime
+
         created_at = datetime.now(tz=UTC)
         create_data = {
             "user_id": regular_user.id,

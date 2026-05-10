@@ -5,7 +5,6 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from fastapi import HTTPException
-
 from feedback_service.api.endpoints.audit import (
     AuditResponse,
     FeedbackStatusChangeEntry,

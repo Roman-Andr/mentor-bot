@@ -162,4 +162,28 @@ describe("certificatesApi", () => {
       expect(result).toEqual({ success: true, data: mockResponse });
     });
   });
+
+  describe("downloadCertificate error handling", () => {
+    it("should handle HTTP errors when downloading certificate", async () => {
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+        ok: false,
+        status: 404,
+      }));
+
+      await expect(certificatesApi.downloadCertificate("cert-123")).rejects.toThrow(
+        "HTTP 404"
+      );
+    });
+
+    it("should handle server errors when downloading certificate", async () => {
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+        ok: false,
+        status: 500,
+      }));
+
+      await expect(certificatesApi.downloadCertificate("cert-456")).rejects.toThrow(
+        "HTTP 500"
+      );
+    });
+  });
 });

@@ -33,14 +33,15 @@ class TestAutoCreateChecklists:
     """Tests for auto_create_checklists method."""
 
     @pytest.fixture
-    def client(self):
+    def client(self, monkeypatch: pytest.MonkeyPatch):
         """Create a ChecklistsServiceClient with mocked httpx client."""
-        with patch("auth_service.utils.integrations.settings") as mock_settings:
-            mock_settings.CHECKLISTS_SERVICE_URL = "http://checklists:8002"
-            mock_settings.SERVICE_API_KEY = "test-api-key"
-            client = ChecklistsServiceClient()
-            client.client = MagicMock(spec=httpx.AsyncClient)
-            return client
+        from auth_service import utils
+
+        monkeypatch.setattr(utils.integrations.settings, "CHECKLISTS_SERVICE_URL", "http://checklists:8002")
+        monkeypatch.setattr(utils.integrations.settings, "SERVICE_API_KEY", "test-api-key")
+        client = ChecklistsServiceClient()
+        client.client = MagicMock(spec=httpx.AsyncClient)
+        return client
 
     async def test_auto_create_success_200(self, client):
         """Test successful auto-create with 200 response."""
@@ -67,7 +68,7 @@ class TestAutoCreateChecklists:
                 "position": "Developer",
                 "mentor_id": 3,
             },
-            headers={"X-Service-Api-Key": "test-service-api-key"},
+            headers={"X-Service-Api-Key": "test-api-key"},
         )
 
     async def test_auto_create_success_201(self, client):

@@ -11,7 +11,7 @@ export function useEntityPagination(initialPageSize?: number) {
     const pageParam = searchParams.get("page");
     return pageParam ? parseInt(pageParam, 10) : 1;
   });
-  const [pageSizeState, setPageSizeLocal] = useState(globalPageSize);
+  const [pageSizeState, setPageSizeLocal] = useState(initialPageSize ?? globalPageSize);
 
   const setCurrentPageWithUrl = useCallback((page: number | ((prev: number) => number)) => {
     const newPage = typeof page === "function" ? page(currentPage) : page;

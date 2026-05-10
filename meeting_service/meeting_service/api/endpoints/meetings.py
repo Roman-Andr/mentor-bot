@@ -157,68 +157,6 @@ async def cancel_meeting(
         ) from e
 
 
-@router.get("/{meeting_id}")
-async def get_meeting(
-    meeting_id: int,
-    uow: UOWDep,
-    _current_user: CurrentUser,
-) -> MeetingResponse:
-    """Get meeting template by ID (HR/Admin only)."""
-    logger.debug("GET /meetings/{} request", meeting_id)
-    service = MeetingService(uow)
-    try:
-        meeting = await service.get_meeting(meeting_id)
-        return MeetingResponse.model_validate(meeting)
-    except NotFoundException as e:
-        logger.warning("Get meeting failed via API: not found (meeting_id={})", meeting_id)
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e.detail),
-        ) from e
-
-
-@router.put("/{meeting_id}")
-async def update_meeting(
-    meeting_id: int,
-    meeting_data: MeetingUpdate,
-    uow: UOWDep,
-    _current_user: CurrentUser,
-) -> MeetingResponse:
-    """Update meeting template (HR/Admin only)."""
-    logger.debug("PUT /meetings/{} request", meeting_id)
-    service = MeetingService(uow)
-    try:
-        meeting = await service.update_meeting(meeting_id, meeting_data)
-        logger.info("Meeting updated via API (meeting_id={})", meeting_id)
-        return MeetingResponse.model_validate(meeting)
-    except NotFoundException as e:
-        logger.warning("Update meeting failed via API: not found (meeting_id={})", meeting_id)
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e.detail),
-        ) from e
-
-
-@router.delete("/{meeting_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_meeting(
-    meeting_id: int,
-    uow: UOWDep,
-    _current_user: CurrentUser,
-) -> None:
-    """Delete meeting template (HR/Admin only)."""
-    logger.debug("DELETE /meetings/{} request", meeting_id)
-    service = MeetingService(uow)
-    try:
-        await service.delete_meeting(meeting_id)
-        logger.info("Meeting deleted via API (meeting_id={})", meeting_id)
-    except NotFoundException as e:
-        logger.warning("Delete meeting failed via API: not found (meeting_id={})", meeting_id)
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e.detail),
-        ) from e
-
-
 # Materials sub-resource
 @router.get("/{meeting_id}/materials")
 async def get_meeting_materials(
@@ -321,6 +259,68 @@ async def reorder_meeting_materials(
         return [MaterialResponse.model_validate(m) for m in materials]
     except NotFoundException as e:
         logger.warning("Reorder materials failed via API: not found (meeting_id={})", meeting_id)
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e.detail),
+        ) from e
+
+
+@router.get("/{meeting_id}")
+async def get_meeting(
+    meeting_id: int,
+    uow: UOWDep,
+    _current_user: CurrentUser,
+) -> MeetingResponse:
+    """Get meeting template by ID (HR/Admin only)."""
+    logger.debug("GET /meetings/{} request", meeting_id)
+    service = MeetingService(uow)
+    try:
+        meeting = await service.get_meeting(meeting_id)
+        return MeetingResponse.model_validate(meeting)
+    except NotFoundException as e:
+        logger.warning("Get meeting failed via API: not found (meeting_id={})", meeting_id)
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e.detail),
+        ) from e
+
+
+@router.put("/{meeting_id}")
+async def update_meeting(
+    meeting_id: int,
+    meeting_data: MeetingUpdate,
+    uow: UOWDep,
+    _current_user: CurrentUser,
+) -> MeetingResponse:
+    """Update meeting template (HR/Admin only)."""
+    logger.debug("PUT /meetings/{} request", meeting_id)
+    service = MeetingService(uow)
+    try:
+        meeting = await service.update_meeting(meeting_id, meeting_data)
+        logger.info("Meeting updated via API (meeting_id={})", meeting_id)
+        return MeetingResponse.model_validate(meeting)
+    except NotFoundException as e:
+        logger.warning("Update meeting failed via API: not found (meeting_id={})", meeting_id)
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e.detail),
+        ) from e
+
+
+@router.delete("/{meeting_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_meeting(
+    meeting_id: int,
+    uow: UOWDep,
+    _current_user: CurrentUser,
+) -> None:
+    """Delete meeting template (HR/Admin only)."""
+    logger.debug("DELETE /meetings/{} request", meeting_id)
+    service = MeetingService(uow)
+    try:
+        await service.delete_meeting(meeting_id)
+        logger.info("Meeting deleted via API (meeting_id={})", meeting_id)
+    except NotFoundException as e:
+        logger.warning("Delete meeting failed via API: not found (meeting_id={})", meeting_id)
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e.detail),

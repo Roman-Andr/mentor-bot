@@ -115,3 +115,15 @@ describe('isAppError', () => {
     expect(isAppError('error')).toBe(false)
   })
 })
+
+describe('handleError - Generic Error', () => {
+  it('handles generic Error instance', () => {
+    const error = new Error('Generic error message')
+    const result = handleError(error, { action: 'test' })
+    
+    expect(result).toBeInstanceOf(AppError)
+    expect(result.message).toBe('Generic error message')
+    expect(result.code).toBe('API_ERROR')  // Error instances match the object condition first
+    expect(result.context).toEqual({ action: 'test' })
+  })
+})

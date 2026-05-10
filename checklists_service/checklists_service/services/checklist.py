@@ -29,6 +29,7 @@ class ChecklistService:
             raise ValidationException(msg)
 
         from checklists_service.utils import auth_service_client
+
         user_data = await auth_service_client.get_user(user_id, self.auth_token)
         if not user_data:
             logger.warning("User not found in auth service (user_id={})", user_id)
@@ -83,6 +84,7 @@ class ChecklistService:
 
         if checklist_data.mentor_id:
             from checklists_service.utils import auth_service_client
+
             mentor_data = await auth_service_client.get_user(checklist_data.mentor_id, auth_token)
             if not mentor_data:
                 logger.warning(
@@ -102,6 +104,7 @@ class ChecklistService:
 
         if checklist_data.hr_id:
             from checklists_service.utils import auth_service_client
+
             hr_data = await auth_service_client.get_user(checklist_data.hr_id, auth_token)
             if not hr_data:
                 logger.warning("Create checklist: HR not found (hr_id={})", checklist_data.hr_id)
@@ -322,6 +325,7 @@ class ChecklistService:
             try:
                 # Fetch employee data for notification
                 from checklists_service.utils import auth_service_client
+
                 employee_data = await auth_service_client.get_user(updated.user_id, self.auth_token)
                 if employee_data:
                     employee_name = (
@@ -332,6 +336,7 @@ class ChecklistService:
                     template_name = template.name if template else "Onboarding"
 
                     from checklists_service.utils import notification_service_client
+
                     await notification_service_client.send_notification(
                         user_id=updated.user_id,
                         notification_type="certificate_issued",

@@ -101,7 +101,10 @@ async def process_meeting_title(message: Message, state: FSMContext, *, locale: 
     title = (message.text or "").strip()
 
     if len(title) < MIN_TITLE_LENGTH:
-        await message.answer(t("meetings.title_too_short", locale=locale, min=MIN_TITLE_LENGTH), reply_markup=get_title_keyboard(locale=locale))
+        await message.answer(
+            t("meetings.title_too_short", locale=locale, min=MIN_TITLE_LENGTH),
+            reply_markup=get_title_keyboard(locale=locale),
+        )
         return
 
     await state.update_data(title=title)
@@ -113,7 +116,9 @@ async def process_meeting_title(message: Message, state: FSMContext, *, locale: 
 
 
 @router.callback_query(F.data == "meetings_menu", MeetingStates.waiting_for_title)
-async def back_to_meetings_menu(callback: CallbackQuery, state: FSMContext, user: dict, auth_token: str, *, locale: str = "en") -> None:
+async def back_to_meetings_menu(
+    callback: CallbackQuery, state: FSMContext, user: dict, auth_token: str, *, locale: str = "en"
+) -> None:
     """Go back to meetings menu from title entry."""
     if not user or not auth_token:
         await callback.answer(t("common.auth_required_short", locale=locale))
@@ -162,7 +167,9 @@ async def process_meeting_datetime(message: Message, state: FSMContext, *, local
     try:
         dt = datetime.strptime(datetime_str, "%Y-%m-%d %H:%M").replace(tzinfo=UTC)
         if dt <= datetime.now(UTC):
-            await message.answer(t("meetings.past_datetime", locale=locale), reply_markup=get_datetime_keyboard(locale=locale))
+            await message.answer(
+                t("meetings.past_datetime", locale=locale), reply_markup=get_datetime_keyboard(locale=locale)
+            )
             return
         await state.update_data(scheduled_at=dt.isoformat(), datetime_str=datetime_str)
         await message.answer(
@@ -171,7 +178,9 @@ async def process_meeting_datetime(message: Message, state: FSMContext, *, local
         )
         await state.set_state(MeetingStates.waiting_for_duration)
     except ValueError:
-        await message.answer(t("meetings.invalid_datetime", locale=locale), reply_markup=get_datetime_keyboard(locale=locale))
+        await message.answer(
+            t("meetings.invalid_datetime", locale=locale), reply_markup=get_datetime_keyboard(locale=locale)
+        )
 
 
 @router.callback_query(F.data == "meeting_back_to_datetime", MeetingStates.waiting_for_duration)

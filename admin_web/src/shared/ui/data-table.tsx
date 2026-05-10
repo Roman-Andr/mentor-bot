@@ -25,7 +25,7 @@ interface DataTableProps {
   children: ReactNode;
   showLoadingSkeleton?: boolean;
   mobileView?: ReactNode;
-  mobileBreakpoint?: "sm" | "md" | "lg";
+  mobileBreakpoint?: "sm" | "md" | "lg" | "xl";
 }
 
 export function DataTable({
@@ -60,12 +60,14 @@ export function DataTable({
     sm: "hidden sm:block",
     md: "hidden md:block",
     lg: "hidden lg:block",
+    xl: "hidden xl:block",
   };
 
   const mobileBreakpointClasses = {
     sm: "block sm:hidden",
     md: "block md:hidden",
     lg: "block lg:hidden",
+    xl: "block xl:hidden",
   };
 
   return (

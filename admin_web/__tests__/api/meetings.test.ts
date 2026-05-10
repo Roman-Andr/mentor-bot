@@ -52,4 +52,44 @@ describe('meetingsApi', () => {
     meetingsApi.delete(123)
     expect(mockFetchApi).toHaveBeenCalled()
   })
+
+  it('getMaterials calls fetchApi', () => {
+    meetingsApi.getMaterials(123)
+    expect(mockFetchApi).toHaveBeenCalled()
+  })
+
+  it('addMaterial calls fetchApi with POST', () => {
+    meetingsApi.addMaterial(123, {
+      title: 'Test Material',
+      description: 'Test description',
+      url: 'https://example.com',
+      content: 'Test content',
+      type: 'document',
+      order: 1
+    })
+    expect(mockFetchApi).toHaveBeenCalled()
+  })
+
+  it('deleteMaterial calls fetchApi with DELETE', () => {
+    meetingsApi.deleteMaterial(456)
+    expect(mockFetchApi).toHaveBeenCalled()
+  })
+
+  it('updateMaterial calls fetchApi with PUT', () => {
+    meetingsApi.updateMaterial(456, {
+      title: 'Updated Material',
+      description: 'Updated description',
+      url: 'https://updated-example.com',
+      type: 'pdf'
+    })
+    expect(mockFetchApi).toHaveBeenCalled()
+  })
+
+  it('reorderMaterials calls fetchApi with POST', () => {
+    meetingsApi.reorderMaterials(123, [
+      { id: 1, order: 2 },
+      { id: 2, order: 1 }
+    ])
+    expect(mockFetchApi).toHaveBeenCalled()
+  })
 })

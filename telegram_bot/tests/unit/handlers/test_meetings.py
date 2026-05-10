@@ -607,8 +607,10 @@ class TestMeetingsHandlers:
             "telegram_bot.handlers.meetings._finish_meeting_creation",
             new_callable=AsyncMock,
         ) as mock_finish:
+
             async def call_send_fn(send_fn, *args, **kwargs):
                 await send_fn("test text")
+
             mock_finish.side_effect = call_send_fn
             await process_duration_button(mock_callback, MagicMock(), mock_user, mock_auth_token, locale="en")
 

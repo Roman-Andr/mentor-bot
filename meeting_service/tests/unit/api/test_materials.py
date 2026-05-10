@@ -64,7 +64,7 @@ class TestGetMeetingMaterials:
                 title="PDF Guide",
                 description="Onboarding guide",
                 url="https://example.com/guide.pdf",
-                type=MaterialType.PDF,
+                type=MaterialType.FILE,
                 order=0,
                 created_at=datetime.now(UTC),
             ),
@@ -74,7 +74,7 @@ class TestGetMeetingMaterials:
                 title="Video Tutorial",
                 description="Setup video",
                 url="https://example.com/video.mp4",
-                type=MaterialType.VIDEO,
+                type=MaterialType.URL,
                 order=1,
                 created_at=datetime.now(UTC),
             ),
@@ -93,9 +93,9 @@ class TestGetMeetingMaterials:
         data = response.json()
         assert len(data) == 2
         assert data[0]["title"] == "PDF Guide"
-        assert data[0]["type"] == "PDF"
+        assert data[0]["type"] == "FILE"
         assert data[1]["title"] == "Video Tutorial"
-        assert data[1]["type"] == "VIDEO"
+        assert data[1]["type"] == "URL"
 
     async def test_get_materials_meeting_not_found(self, mock_uow, mock_user_hr):
         """Test getting materials for non-existent meeting returns 404."""
@@ -143,7 +143,7 @@ class TestAddMeetingMaterial:
             title="New Document",
             description="A helpful document",
             url="https://example.com/doc.pdf",
-            type=MaterialType.PDF,
+            type=MaterialType.FILE,
             order=0,
             created_at=datetime.now(UTC),
         )
@@ -157,7 +157,7 @@ class TestAddMeetingMaterial:
             "title": "New Document",
             "description": "A helpful document",
             "url": "https://example.com/doc.pdf",
-            "type": "PDF",
+            "type": "FILE",
         }
 
         # Act
@@ -168,7 +168,7 @@ class TestAddMeetingMaterial:
         data = response.json()
         assert data["title"] == "New Document"
         assert data["meeting_id"] == 1
-        assert data["type"] == "PDF"
+        assert data["type"] == "FILE"
 
     async def test_add_material_meeting_not_found(self, mock_uow, mock_user_hr):
         """Test adding material to non-existent meeting returns 404."""
@@ -181,7 +181,7 @@ class TestAddMeetingMaterial:
         material_data = {
             "title": "New Document",
             "url": "https://example.com/doc.pdf",
-            "type": "PDF",
+            "type": "FILE",
         }
 
         # Act
@@ -221,7 +221,7 @@ class TestAddMeetingMaterial:
         app = create_test_app(mock_uow, mock_user_hr)
         client = TestClient(app)
 
-        material_types = ["PDF", "LINK", "DOC", "IMAGE", "VIDEO"]
+        material_types = ["FILE", "NOTE", "URL"]
 
         for i, mat_type in enumerate(material_types):
             material = MeetingMaterial(
@@ -261,7 +261,7 @@ class TestDeleteMeetingMaterial:
             meeting_id=1,
             title="Old Document",
             url="https://example.com/old.pdf",
-            type=MaterialType.PDF,
+            type=MaterialType.FILE,
             order=0,
             created_at=datetime.now(UTC),
         )
@@ -300,7 +300,7 @@ class TestDeleteMeetingMaterial:
             meeting_id=1,
             title="No Desc Material",
             url="https://example.com/nodesc.pdf",
-            type=MaterialType.PDF,
+            type=MaterialType.FILE,
             order=0,
             created_at=datetime.now(UTC),
         )
@@ -314,3 +314,160 @@ class TestDeleteMeetingMaterial:
 
         # Assert
         assert response.status_code == status.HTTP_204_NO_CONTENT
+
+
+class TestUpdateMeetingMaterial:
+    """Tests for PUT /api/v1/meetings/materials/{material_id} endpoint."""
+
+    async def test_update_material_success(self, mock_uow, mock_user_hr):
+        """Test updating a material successfully."""
+        # Arrange
+        material = MeetingMaterial(
+            id=1,
+            meeting_id=1,
+            title="Old Title",
+            url="https://example.com/old.pdf",
+            type=MaterialType.FILE,
+            order=0,
+            created_at=datetime.now(UTC),
+        )
+        updated_material = MeetingMaterial(
+            id=1,
+            meeting_id=1,
+            title="New Title",
+            url="https://example.com/old.pdf",
+            type=MaterialType.FILE,
+            order=0,
+            created_at=datetime.now(UTC),
+        )
+        mock_uow.materials.get_by_id.return_value = material
+
+        async def mock_update(mat):
+            return mat
+        mock_uow.materials.update = mock_update
+
+        app = create_test_app(mock_uow, mock_user_hr)
+        client = TestClient(app)
+
+        material_data = {
+            "title": "New Title",
+        }
+
+        # Act
+        response = client.put("/api/v1/meetings/materials/1", json=material_data)
+
+        # Assert
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["title"] == "New Title"
+
+    async def test_update_material_not_found(self, mock_uow, mock_user_hr):
+        """Test updating non-existent material returns 404."""
+        # Arrange
+        mock_uow.materials.get_by_id.return_value = None
+
+        app = create_test_app(mock_uow, mock_user_hr)
+        client = TestClient(app)
+
+        material_data = {
+            "title": "New Title",
+        }
+
+        # Act
+        response = client.put("/api/v1/meetings/materials/999", json=material_data)
+
+        # Assert
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert "Material" in response.json()["detail"]
+
+
+class TestReorderMeetingMaterials:
+    """Tests for POST /api/v1/meetings/materials/reorder endpoint."""
+
+    async def test_reorder_materials_success(self, mock_uow, mock_user_hr):
+        """Test reordering materials for a meeting."""
+        # Arrange
+        meeting = Meeting(id=1, title="Test Meeting", type=MeetingType.HR, duration_minutes=60)
+        materials = [
+            MeetingMaterial(
+                id=1,
+                meeting_id=1,
+                title="First Material",
+                url="https://example.com/first.pdf",
+                type=MaterialType.FILE,
+                order=0,
+                created_at=datetime.now(UTC),
+            ),
+            MeetingMaterial(
+                id=2,
+                meeting_id=1,
+                title="Second Material",
+                url="https://example.com/second.pdf",
+                type=MaterialType.FILE,
+                order=1,
+                created_at=datetime.now(UTC),
+            ),
+        ]
+        mock_uow.meetings.get_by_id.return_value = meeting
+        mock_uow.materials.get_by_meeting.return_value = materials
+
+        async def mock_update(mat):
+            return mat
+        mock_uow.materials.update = mock_update
+
+        app = create_test_app(mock_uow, mock_user_hr)
+        client = TestClient(app)
+
+        material_orders = [
+            {"id": 2, "order": 0},
+            {"id": 1, "order": 1},
+        ]
+
+        # Act
+        response = client.post("/api/v1/meetings/materials/reorder?meeting_id=1", json=material_orders)
+
+        # Assert
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert len(data) == 2
+        assert data[0]["title"] == "First Material"
+        assert data[1]["title"] == "Second Material"
+
+    async def test_reorder_materials_meeting_not_found(self, mock_uow, mock_user_hr):
+        """Test reordering materials for non-existent meeting returns 404."""
+        # Arrange
+        mock_uow.meetings.get_by_id.return_value = None
+
+        app = create_test_app(mock_uow, mock_user_hr)
+        client = TestClient(app)
+
+        material_orders = [
+            {"id": 1, "order": 0},
+        ]
+
+        # Act
+        response = client.post("/api/v1/meetings/materials/reorder?meeting_id=999", json=material_orders)
+
+        # Assert
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert "Meeting" in response.json()["detail"]
+
+    async def test_reorder_materials_empty_list(self, mock_uow, mock_user_hr):
+        """Test reordering materials with empty list."""
+        # Arrange
+        meeting = Meeting(id=1, title="Test Meeting", type=MeetingType.HR, duration_minutes=60)
+        mock_uow.meetings.get_by_id.return_value = meeting
+        mock_uow.materials.get_by_meeting.return_value = []
+
+        app = create_test_app(mock_uow, mock_user_hr)
+        client = TestClient(app)
+
+        material_orders = []
+
+        # Act
+        response = client.post("/api/v1/meetings/materials/reorder?meeting_id=1", json=material_orders)
+
+        # Assert
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data == []

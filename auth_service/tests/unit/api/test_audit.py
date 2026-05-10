@@ -4,7 +4,6 @@ from datetime import UTC, datetime
 from unittest.mock import AsyncMock
 
 import pytest
-
 from auth_service.api.endpoints.audit import (
     AuditResponse,
     InvitationHistoryEntry,
@@ -547,9 +546,7 @@ class TestGetLogoutHistory:
         assert isinstance(result, AuditResponse)
         assert len(result.items) == 1
         assert result.total == 1
-        mock_uow.logout_history.get_all.assert_called_once_with(
-            from_date=None, to_date=None, limit=50, offset=0
-        )
+        mock_uow.logout_history.get_all.assert_called_once_with(from_date=None, to_date=None, limit=50, offset=0)
 
     async def test_get_logout_history_by_user_id(self, admin_user, mock_uow):
         """Test get_logout_history returns records for specific user (covers lines 232-244)."""

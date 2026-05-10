@@ -192,7 +192,9 @@ class TestCalendarHandlers:
         ) as mock_get_url:
             mock_response = MagicMock()
             mock_response.status_code = 500
-            mock_get_url.side_effect = httpx.HTTPStatusError("Server error", request=MagicMock(), response=mock_response)
+            mock_get_url.side_effect = httpx.HTTPStatusError(
+                "Server error", request=MagicMock(), response=mock_response
+            )
 
             await connect_calendar(mock_callback, mock_user, locale="en")
 

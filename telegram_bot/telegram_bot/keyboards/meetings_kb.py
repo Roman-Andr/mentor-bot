@@ -67,7 +67,9 @@ def get_datetime_keyboard(*, locale: str = "en") -> InlineKeyboardMarkup:
     """Build keyboard with back button for datetime step."""
     builder = InlineKeyboardBuilder()
     builder.add(
-        create_inline_button(f"← {t('common.back_button', locale=locale)}", callback_data="meeting_back_to_description"),
+        create_inline_button(
+            f"← {t('common.back_button', locale=locale)}", callback_data="meeting_back_to_description"
+        ),
     )
     return builder.as_markup()
 

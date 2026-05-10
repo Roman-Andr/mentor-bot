@@ -6,7 +6,6 @@ from aiogram import F, Router
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
-from loguru import logger
 
 from telegram_bot.config import settings
 from telegram_bot.i18n import t
@@ -191,8 +190,7 @@ async def message_mentor(callback: CallbackQuery, state: FSMContext, *, locale: 
         return
 
     await callback.message.edit_text(
-        f"\U0001f4ac *{t('mentor.btn_message', locale=locale)}*\n\n"
-        f"{t('mentor.message_prompt', locale=locale)}",
+        f"\U0001f4ac *{t('mentor.btn_message', locale=locale)}*\n\n{t('mentor.message_prompt', locale=locale)}",
         parse_mode="Markdown",
     )
     await state.set_state(EscalationStates.waiting_for_description)
@@ -282,12 +280,12 @@ async def progress(update: Message | CallbackQuery, user: dict, auth_token: str,
     # Calculate overall progress across all checklists
     total_tasks = 0
     completed_tasks = 0
-    
+
     for checklist in checklists:
         total_tasks += checklist.get("total_tasks", 0)
         completed_tasks += checklist.get("completed_tasks", 0)
-    
-    overall_progress = int((completed_tasks / total_tasks * 100)) if total_tasks > 0 else 0
+
+    overall_progress = int(completed_tasks / total_tasks * 100) if total_tasks > 0 else 0
 
     # Use specific checklist_id if provided, otherwise use first checklist
     if specific_checklist_id is not None:
@@ -388,7 +386,3 @@ async def progress(update: Message | CallbackQuery, user: dict, auth_token: str,
             reply_markup=get_progress_keyboard(locale=locale).as_markup(),
             parse_mode="Markdown",
         )
-
-
-    
-    

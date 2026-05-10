@@ -453,4 +453,116 @@ describe('useEntityMutations', () => {
 
     expect(updateFn).toHaveBeenCalledWith(1, { name: 'Updated' })
   })
+
+  it('handles update mutation error with handleError', async () => {
+    const updateFn = vi.fn().mockResolvedValue({ success: false, error: { message: 'Update failed' } })
+    const toast = vi.fn()
+    const invalidate = vi.fn()
+    const setExtendedState = vi.fn()
+    const setSelectedItem = vi.fn()
+    const setIsCreateDialogOpen = vi.fn()
+    const setIsEditDialogOpen = vi.fn()
+    const resetFormInternal = vi.fn()
+
+    const { result } = renderHook(
+      () =>
+        useEntityMutations(
+          {
+            createFn: undefined,
+            updateFn,
+            deleteFn: undefined,
+            queryKeyPrefix: 'users',
+            toCreatePayload: (data: any) => data,
+          },
+          {
+            toast,
+            invalidate,
+            extendedState: {},
+            setExtendedState,
+            selectedItem: null,
+            formData: { name: 'Updated' },
+          },
+          {
+            created: 'Created',
+            updated: 'Updated',
+            deleted: 'Deleted',
+            createError: 'Create error',
+            updateError: 'Update error',
+            deleteError: 'Delete error',
+          },
+          resetFormInternal,
+          setIsCreateDialogOpen,
+          setIsEditDialogOpen,
+          setSelectedItem,
+          (form: any) => form,
+        ),
+      { wrapper: createWrapper() },
+    )
+
+    await act(async () => {
+      try {
+        result.current.updateMutation.mutate({ id: 1, data: { name: 'Updated' } })
+      } catch (e) {
+        // Expected to throw due to handleError
+      }
+    })
+
+    expect(toast).toHaveBeenCalledWith('Update error', 'error')
+  })
+
+  it('handles delete mutation error with handleError', async () => {
+    const deleteFn = vi.fn().mockResolvedValue({ success: false, error: { message: 'Delete failed' } })
+    const toast = vi.fn()
+    const invalidate = vi.fn()
+    const setExtendedState = vi.fn()
+    const setSelectedItem = vi.fn()
+    const setIsCreateDialogOpen = vi.fn()
+    const setIsEditDialogOpen = vi.fn()
+    const resetFormInternal = vi.fn()
+
+    const { result } = renderHook(
+      () =>
+        useEntityMutations(
+          {
+            createFn: undefined,
+            updateFn: undefined,
+            deleteFn,
+            queryKeyPrefix: 'users',
+            toCreatePayload: (data: any) => data,
+          },
+          {
+            toast,
+            invalidate,
+            extendedState: {},
+            setExtendedState,
+            selectedItem: null,
+            formData: {},
+          },
+          {
+            created: 'Created',
+            updated: 'Updated',
+            deleted: 'Deleted',
+            createError: 'Create error',
+            updateError: 'Update error',
+            deleteError: 'Delete error',
+          },
+          resetFormInternal,
+          setIsCreateDialogOpen,
+          setIsEditDialogOpen,
+          setSelectedItem,
+          (form: any) => form,
+        ),
+      { wrapper: createWrapper() },
+    )
+
+    await act(async () => {
+      try {
+        result.current.deleteMutation.mutate(1)
+      } catch (e) {
+        // Expected to throw due to handleError
+      }
+    })
+
+    expect(toast).toHaveBeenCalledWith('Delete error', 'error')
+  })
 })

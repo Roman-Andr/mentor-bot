@@ -22,10 +22,10 @@ import logging
 import os
 import subprocess
 import sys
+from collections.abc import Callable
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
-from collections.abc import Callable
 
 import httpx
 
@@ -501,7 +501,9 @@ async def fetch_existing_users(
                         hr_ids.append(user_id)
                     log_success("")
                 else:
-                    log_warning(f"  User '{user['email']}' not found (status {response.status_code}): {response.text[:100]}")
+                    log_warning(
+                        f"  User '{user['email']}' not found (status {response.status_code}): {response.text[:100]}"
+                    )
             except Exception as e:
                 log_warning(f"  Error fetching user '{user['email']}': {e}")
         log_success_newline()
@@ -1082,7 +1084,7 @@ async def create_article_views_async(
                 # Add slight variation in time for multiple views of same article
                 hours_offset = view_num * 2  # 2 hours between views of same article
                 view_time = (datetime.now() - timedelta(days=days_ago, hours=hours_offset)).isoformat()
-                
+
                 insert_statements.append(
                     f"INSERT INTO article_views (article_id, user_id, viewed_at) "
                     f"VALUES ({article_id}, {user_id}, '{view_time}');"
@@ -1533,7 +1535,9 @@ async def create_meeting_templates(
                     meet_id = meet_data["id"]
                     log_success("")
                     return meet_id
-                log_warning(f"  Failed to create meeting '{meeting['title']}': {response.status_code} - {response.text}")
+                log_warning(
+                    f"  Failed to create meeting '{meeting['title']}': {response.status_code} - {response.text}"
+                )
             except Exception as e:
                 log_warning(f"  Error creating meeting '{meeting['title']}': {e}")
             return None
@@ -2230,7 +2234,9 @@ async def create_requests_resolved_closed_async(
                                     if update_resp.status_code in (200, 201):
                                         log_success("")
                                     else:
-                                        log_warning(f"  Failed to resolve escalation: {update_resp.status_code} - {update_resp.text[:100]}")
+                                        log_warning(
+                                            f"  Failed to resolve escalation: {update_resp.status_code} - {update_resp.text[:100]}"
+                                        )
                                 else:
                                     log_warning(f"  Failed to set IN_PROGRESS: {progress_resp.status_code}")
                             else:
@@ -2243,14 +2249,17 @@ async def create_requests_resolved_closed_async(
                     log_warning(f"  Failed to create escalation: {response.status_code}")
             except Exception as e:
                 import traceback
+
                 log_warning(f"  Error creating escalation: {e}")
                 log_warning(f"  Traceback: {traceback.format_exc()[:500]}")
 
         # Limit concurrency to avoid connection pool exhaustion
         semaphore = asyncio.Semaphore(5)
+
         async def create_with_semaphore(req):
             async with semaphore:
                 return await create_request(req)
+
         await asyncio.gather(*[create_with_semaphore(req) for req in requests_data])
     log_success_newline()
 
@@ -2301,7 +2310,9 @@ async def create_notification_templates_async(token: str) -> int:
                     # Template already exists - skip silently
                     skipped_count += 1
                 else:
-                    log_warning(f"  Failed to create template '{template['name']}': {response.status_code} - {response.text}")
+                    log_warning(
+                        f"  Failed to create template '{template['name']}': {response.status_code} - {response.text}"
+                    )
             except Exception as e:
                 log_warning(f"  Error creating template '{template['name']}': {e}")
 
@@ -2692,7 +2703,11 @@ async def main(
             log_info(f"  Feedback entries:  {pulse_count} pulse, {exp_count} experience, {comment_count} comments")
         except FileNotFoundError:
             pass
-    if should_run("notification_templates") and "notification" not in skip_services and supplementary_counts.get('notification_templates', 0) > 0:
+    if (
+        should_run("notification_templates")
+        and "notification" not in skip_services
+        and supplementary_counts.get("notification_templates", 0) > 0
+    ):
         log_info(f"  Notification templates: {supplementary_counts['notification_templates']}")
     if should_run("invitations") and "checklists" not in skip_services:
         try:

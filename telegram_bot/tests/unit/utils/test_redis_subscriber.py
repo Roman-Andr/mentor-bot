@@ -1,6 +1,7 @@
 """Unit tests for telegram_bot/utils/redis_subscriber.py."""
 
 import asyncio
+import contextlib
 import json
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -8,7 +9,7 @@ import pytest
 from aiogram import Bot
 from redis.asyncio import Redis
 
-from telegram_bot.utils.redis_subscriber import RedisNotificationSubscriber, subscriber
+from telegram_bot.utils.redis_subscriber import RedisNotificationSubscriber
 
 
 class TestRedisNotificationSubscriber:
@@ -69,9 +70,14 @@ class TestRedisNotificationSubscriber:
         async def mock_task():
             pass
 
-        sub._task = asyncio.create_task(mock_task())
+        task = asyncio.create_task(mock_task())
+        sub._task = task
 
         await sub.stop()
+
+        # Ensure the task is cleaned up
+        with contextlib.suppress(asyncio.CancelledError):
+            await task
 
         assert sub._running is False
         mock_redis.aclose.assert_called_once()
@@ -108,91 +114,115 @@ class TestRedisNotificationSubscriber:
         # Should return early without error
         assert True
 
-    async def test_subscribe_handles_notification(self, mock_bot, mock_redis):
-        """Test subscribe handles notification message (lines 63-72)."""
+    async def test_subscribe_loop_notification(self, mock_bot, mock_redis):
+        """Test _subscribe loop processes notification messages (lines 57-80)."""
         sub = RedisNotificationSubscriber()
         sub.bot = mock_bot
         sub.redis = mock_redis
-        sub._running = True
 
-        # Mock pubsub
+        call_count = 0
+
+        async def fake_get_message(timeout=1.0):
+            nonlocal call_count
+            call_count += 1
+            if call_count == 1:
+                return {"type": "message", "channel": "telegram_notifications", "data": '{"chat_id": 1, "text": "hi"}'}
+            sub._running = False
+            return None
+
         mock_pubsub = MagicMock()
         mock_pubsub.subscribe = AsyncMock()
         mock_pubsub.unsubscribe = AsyncMock()
         mock_pubsub.close = AsyncMock()
-        mock_pubsub.get_message = AsyncMock(
-            return_value={"type": "message", "channel": "telegram_notifications", "data": '{"chat_id": 123, "text": "test"}'}
-        )
+        mock_pubsub.get_message = AsyncMock(side_effect=fake_get_message)
         mock_redis.pubsub = MagicMock(return_value=mock_pubsub)
 
-        # Make _handle_notification do nothing
+        sub._running = True
         sub._handle_notification = AsyncMock()
 
-        # Run briefly
-        async def brief_subscribe():
-            await sub._subscribe()
+        await sub._subscribe()
 
-        with patch("asyncio.sleep", AsyncMock(side_effect=asyncio.CancelledError)):
-            try:
-                await brief_subscribe()
-            except asyncio.CancelledError:
-                pass
+        sub._handle_notification.assert_called_once_with('{"chat_id": 1, "text": "hi"}')
+        mock_pubsub.unsubscribe.assert_called_once()
+        mock_pubsub.close.assert_called_once()
 
-    async def test_subscribe_handles_event(self, mock_bot, mock_redis):
-        """Test subscribe handles event message (lines 73-76)."""
+    async def test_subscribe_loop_event(self, mock_bot, mock_redis):
+        """Test _subscribe loop processes event messages (lines 57-80)."""
         sub = RedisNotificationSubscriber()
         sub.bot = mock_bot
         sub.redis = mock_redis
-        sub._running = True
 
-        # Mock pubsub
+        call_count = 0
+
+        async def fake_get_message(timeout=1.0):
+            nonlocal call_count
+            call_count += 1
+            if call_count == 1:
+                return {"type": "message", "channel": "telegram_events", "data": '{"type": "x"}'}
+            sub._running = False
+            return None
+
         mock_pubsub = MagicMock()
         mock_pubsub.subscribe = AsyncMock()
         mock_pubsub.unsubscribe = AsyncMock()
         mock_pubsub.close = AsyncMock()
-        mock_pubsub.get_message = AsyncMock(
-            return_value={"type": "message", "channel": "telegram_events", "data": '{"type": "calendar_connected"}'}
-        )
+        mock_pubsub.get_message = AsyncMock(side_effect=fake_get_message)
         mock_redis.pubsub = MagicMock(return_value=mock_pubsub)
 
-        # Make _handle_event do nothing
+        sub._running = True
         sub._handle_event = AsyncMock()
 
-        # Run briefly
-        async def brief_subscribe():
-            await sub._subscribe()
+        await sub._subscribe()
 
-        with patch("asyncio.sleep", AsyncMock(side_effect=asyncio.CancelledError)):
-            try:
-                await brief_subscribe()
-            except asyncio.CancelledError:
-                pass
+        sub._handle_event.assert_called_once_with('{"type": "x"}')
 
-    async def test_subscribe_exception_handling(self, mock_bot, mock_redis):
-        """Test subscribe handles exceptions in loop (lines 76-77)."""
+    async def test_subscribe_loop_exception(self, mock_bot, mock_redis):
+        """Test _subscribe loop handles exceptions (lines 57-80)."""
         sub = RedisNotificationSubscriber()
         sub.bot = mock_bot
         sub.redis = mock_redis
-        sub._running = True
 
-        # Mock pubsub
+        call_count = 0
+
+        async def fake_get_message(timeout=1.0):
+            nonlocal call_count
+            call_count += 1
+            if call_count == 1:
+                raise RuntimeError("Redis error")
+            sub._running = False
+            return None
+
         mock_pubsub = MagicMock()
         mock_pubsub.subscribe = AsyncMock()
         mock_pubsub.unsubscribe = AsyncMock()
         mock_pubsub.close = AsyncMock()
-        mock_pubsub.get_message = AsyncMock(side_effect=Exception("Redis error"))
+        mock_pubsub.get_message = AsyncMock(side_effect=fake_get_message)
         mock_redis.pubsub = MagicMock(return_value=mock_pubsub)
 
-        # Run briefly
-        async def brief_subscribe():
+        sub._running = True
+
+        with patch("telegram_bot.utils.redis_subscriber.asyncio.sleep", new_callable=AsyncMock):
             await sub._subscribe()
 
-        with patch("asyncio.sleep", AsyncMock(side_effect=asyncio.CancelledError)):
-            try:
-                await brief_subscribe()
-            except asyncio.CancelledError:
-                pass
+    async def test_subscribe_loop_cancelled(self, mock_bot, mock_redis):
+        """Test _subscribe loop handles CancelledError (lines 57-80)."""
+        sub = RedisNotificationSubscriber()
+        sub.bot = mock_bot
+        sub.redis = mock_redis
 
+        mock_pubsub = MagicMock()
+        mock_pubsub.subscribe = AsyncMock()
+        mock_pubsub.unsubscribe = AsyncMock()
+        mock_pubsub.close = AsyncMock()
+        mock_pubsub.get_message = AsyncMock(side_effect=asyncio.CancelledError)
+        mock_redis.pubsub = MagicMock(return_value=mock_pubsub)
+
+        sub._running = True
+
+        await sub._subscribe()
+
+        mock_pubsub.unsubscribe.assert_called_once()
+        mock_pubsub.close.assert_called_once()
 
     async def test_handle_notification_success(self, mock_bot):
         """Test handling notification message successfully (lines 84-105)."""
@@ -307,14 +337,16 @@ class TestRedisNotificationSubscriber:
         mock_bot.send_message.assert_not_called()
 
     async def test_handle_calendar_connected_no_bot(self):
-        """Test calendar_connected event when bot not initialized."""
+        """Test calendar_connected event when bot not initialized (lines 135-136)."""
         sub = RedisNotificationSubscriber()
         sub.bot = None
 
         payload = {"type": "calendar_connected", "user_id": 123}
 
-        with patch("telegram_bot.utils.redis_subscriber.logger"):
-            await sub._handle_calendar_connected(payload)
+        with patch("telegram_bot.utils.redis_subscriber.user_cache") as mock_cache:
+            mock_cache.find_telegram_id_by_user_id = AsyncMock(return_value=456)
+            with patch("telegram_bot.utils.redis_subscriber.logger"):
+                await sub._handle_calendar_connected(payload)
 
     async def test_handle_calendar_connected_exception(self, mock_bot):
         """Test calendar_connected event with exception (line 162)."""
@@ -366,5 +398,7 @@ class TestRedisSubscriberSingleton:
 
     def test_singleton_exists(self):
         """Test that subscriber singleton exists."""
+        from telegram_bot.utils.redis_subscriber import subscriber
+
         assert subscriber is not None
         assert isinstance(subscriber, RedisNotificationSubscriber)

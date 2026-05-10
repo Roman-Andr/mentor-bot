@@ -57,7 +57,7 @@ export function useEntityFilters(filters: FilterConfig[] = [], setCurrentPage: (
 
   const toggleSort = useCallback((field: string) => {
     const newSortField = field;
-    const newSortDirection = sortField === field && sortDirection === "asc" ? "desc" : "asc";
+    const newSortDirection = sortField === null ? "desc" : (sortField === field ? (sortDirection === "asc" ? "desc" : "asc") : "asc");
     setSortField(newSortField);
     setSortDirection(newSortDirection);
 

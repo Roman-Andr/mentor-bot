@@ -87,8 +87,6 @@ class TestCalendarClient:
     @patch("telegram_bot.services.calendar_client.httpx.AsyncClient.get")
     async def test_get_connect_url_no_location_header(self, mock_get):
         """Test getting connect URL when response has no location header."""
-        import httpx
-
         mock_response = MagicMock()
         mock_response.status_code = 307
         mock_response.headers = {}

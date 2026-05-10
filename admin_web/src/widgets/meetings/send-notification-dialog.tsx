@@ -72,8 +72,6 @@ export function SendNotificationDialog({ open, onOpenChange }: SendNotificationD
           body: form.body,
           subject: form.subject || null,
           scheduled_time: new Date(form.scheduledAt).toISOString(),
-          recipient_telegram_id: selectedUserTelegramId,
-          recipient_email: selectedUserEmail,
         });
         toast(t("settings.notificationScheduled") || "Notification scheduled", "success");
       } else {

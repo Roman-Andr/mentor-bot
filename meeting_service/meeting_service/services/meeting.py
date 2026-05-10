@@ -169,18 +169,21 @@ class MeetingService:
         await self.get_meeting(meeting_id)  # ensure meeting exists
         materials = await self._uow.materials.get_by_meeting(meeting_id)
         material_map = {m.id: m for m in materials}
-        
+
         for order_data in material_orders:
             material_id = order_data.get("id")
             new_order = order_data.get("order")
             if material_id in material_map:
                 material_map[material_id].order = new_order
                 await self._uow.materials.update(material_map[material_id])
-        
+
         await self._uow.commit()
-        updated_materials = await self._uow.materials.get_by_meeting(meeting_id)
+        
+        # Return materials in their original order (with updated order values)
+        result_materials = [material_map[m.id] for m in materials]
+        
         logger.info("Materials reordered (meeting_id={})", meeting_id)
-        return list(updated_materials)
+        return result_materials
 
     # --- User assignments ---
     async def assign_meeting(self, assignment_data: UserMeetingCreate) -> UserMeeting:

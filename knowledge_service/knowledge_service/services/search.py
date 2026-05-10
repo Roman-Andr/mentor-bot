@@ -85,7 +85,9 @@ class SearchService:
         if filters.get("only_published", True):
             where_conditions.append(Article.status == ArticleStatus.PUBLISHED)
 
-        logger.info("User filters: {}, any values: {}", user_filters, any(user_filters.values()) if user_filters else False)
+        logger.info(
+            "User filters: {}, any values: {}", user_filters, any(user_filters.values()) if user_filters else False
+        )
         if user_filters and any(user_filters.values()):
             user_filter_conditions = []
             if user_filters.get("department_id"):

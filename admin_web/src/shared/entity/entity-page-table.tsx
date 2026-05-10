@@ -43,7 +43,7 @@ interface EntityPageTableProps<TItem, TForm> extends Pick<
   | "t"
 > {
   renderMobileCard?: (item: TItem) => React.ReactNode;
-  mobileBreakpoint?: "sm" | "md" | "lg";
+  mobileBreakpoint?: "sm" | "md" | "lg" | "xl";
 }
 
 export function EntityPageTable<TItem, TForm>({

@@ -234,7 +234,6 @@ async def handle_search_pagination(
         await callback.answer(t("common.error_generic", locale=locale))
         return
 
-
     # Re-run search with new page
     search_results = await knowledge_client.search_articles(
         query=query,
@@ -319,7 +318,6 @@ async def back_to_search_results(
         page = int(parts[4]) if len(parts) > 4 else 1
     except ValueError:
         page = 1
-
 
     # Get search context from cache
     user_id = callback.from_user.id if callback.from_user else 0
@@ -500,7 +498,6 @@ async def download_kb_attachment(
         await callback.answer(t("common.error_generic", locale=locale))
         return
 
-
     attachments = await knowledge_client.get_article_attachments(article_id, auth_token)
     attachment = next((a for a in attachments if a.get("id") == attachment_id), None)
 
@@ -545,7 +542,6 @@ async def kb_categories(
     if not auth_token:
         await callback.answer(t("common.auth_required_short", locale=locale))
         return
-
 
     # Fetch categories from API
     categories_data = await knowledge_client.get_categories(auth_token, skip=0, limit=50)
@@ -602,7 +598,6 @@ async def kb_category_articles(
         await callback.answer(t("common.error_generic", locale=locale))
         return
 
-
     # Fetch articles for this category
     skip = (page - 1) * 10
     articles_data = await knowledge_client.get_articles_by_category(category_id, auth_token, skip=skip, limit=10)
@@ -656,7 +651,6 @@ async def kb_category_pagination(
     except (ValueError, IndexError):
         await callback.answer(t("common.error_generic", locale=locale))
         return
-
 
     skip = (page - 1) * 10
     articles_data = await knowledge_client.get_articles_by_category(category_id, auth_token, skip=skip, limit=10)
@@ -771,7 +765,6 @@ async def show_faq(callback: CallbackQuery, state: FSMContext, *, locale: str = 
     if callback.message is None:
         return
 
-
     # Fetch active scenarios from API
     scenarios_data = await knowledge_client.get_active_scenarios(skip=0, limit=50)
     scenarios = scenarios_data.get("scenarios", [])
@@ -824,7 +817,6 @@ async def view_faq_scenario(
     except (ValueError, IndexError):
         await callback.answer(t("common.error_generic", locale=locale))
         return
-
 
     # Fetch scenario details
     scenario = await knowledge_client.get_scenario(scenario_id)
@@ -1111,7 +1103,6 @@ async def save_article(
     files: list[dict] = data.get("files", [])
     department: str | None = user.get("department") if user else None
 
-
     article = await knowledge_client.create_article(
         title=title,
         content=content,
@@ -1286,7 +1277,6 @@ async def save_uploaded_files(
     if not files:
         await callback.answer("No files to upload", show_alert=True)
         return
-
 
     uploaded = 0
     for f in files:

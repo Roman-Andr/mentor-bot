@@ -140,4 +140,6 @@ export interface EntityPageProps<TItem, TForm> {
   t: (key: string) => string;
   /** Mobile card renderer function for mobile view */
   renderMobileCard?: (item: TItem) => ReactNode;
+  /** Mobile breakpoint for responsive layout (default: "md") */
+  mobileBreakpoint?: "sm" | "md" | "lg" | "xl";
 }

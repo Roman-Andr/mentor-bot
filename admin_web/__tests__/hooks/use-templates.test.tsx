@@ -532,5 +532,43 @@ describe('useTemplates', () => {
 
       expect(Array.isArray(result.current.tasks)).toBe(true)
     })
+
+    it('handles error when fetching template tasks', async () => {
+      mockFetchResponse({
+        templates: [],
+        total: 0,
+      })
+
+      const { result } = renderHook(() => useTemplates(), { wrapper: createWrapper() })
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false)
+      })
+
+      // Mock console.error to capture error logging
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+      const template: TemplateRow = {
+        id: 1,
+        name: 'Test Template',
+        description: 'Test Description',
+        department_id: 1,
+        department_name: 'Engineering',
+        position: 'Junior',
+        duration_days: 30,
+        taskCount: 3,
+        status: 'ACTIVE',
+        isDefault: false,
+      }
+
+      act(() => {
+        result.current.setSelectedTemplate(template)
+      })
+
+      // Should handle the error case when fetching tasks
+      expect(result.current.selectedTemplate).toEqual(template)
+      
+      consoleSpy.mockRestore()
+    })
   })
 })

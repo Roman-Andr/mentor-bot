@@ -304,7 +304,9 @@ class TestAuthMiddleware:
                     with patch.object(
                         auth_module.auth_client, "authenticate_with_telegram", AsyncMock(return_value=auth_result)
                     ):
-                        with patch.object(auth_module.auth_client, "get_current_user", AsyncMock(return_value=user_data)):
+                        with patch.object(
+                            auth_module.auth_client, "get_current_user", AsyncMock(return_value=user_data)
+                        ):
                             with patch.object(auth_module.user_cache, "set_user", mock_set_user):
                                 result = await middleware.__call__(mock_handler, event, data)
 

@@ -8,7 +8,6 @@ from fastapi.testclient import TestClient
 from meeting_service.api import deps
 from meeting_service.api.endpoints.calendar import router as calendar_router
 from meeting_service.config import settings
-from meeting_service.utils.cache import cache
 
 
 class TestConnectCalendar:
@@ -380,7 +379,9 @@ class TestOAuthCallback:
     @patch("meeting_service.api.endpoints.calendar.Flow")
     @patch("meeting_service.api.endpoints.calendar.SqlAlchemyUnitOfWork")
     @patch("meeting_service.api.endpoints.calendar.GoogleCalendarService")
-    async def test_oauth_callback_redis_publish_error(self, mock_gc_service_class, mock_uow_class, mock_flow_class, mock_cache):
+    async def test_oauth_callback_redis_publish_error(
+        self, mock_gc_service_class, mock_uow_class, mock_flow_class, mock_cache
+    ):
         """Test handling Redis publish error during OAuth callback."""
         # Arrange
         app = FastAPI()

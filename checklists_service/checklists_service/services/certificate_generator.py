@@ -33,6 +33,7 @@ class CertificateGenerator:
             return None
 
         from checklists_service.utils import auth_service_client
+
         return await auth_service_client.get_user(user_id, self.auth_token)
 
     def _format_date(self, date: datetime | None, locale: str = "en") -> str:

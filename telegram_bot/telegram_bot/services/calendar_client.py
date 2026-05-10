@@ -67,9 +67,11 @@ class CalendarClient:
                 )
 
         except httpx.HTTPStatusError as e:
-            logger.warning("Meeting Service connect request failed (user_id={}, status={})", user_id, e.response.status_code)
+            logger.warning(
+                "Meeting Service connect request failed (user_id={}, status={})", user_id, e.response.status_code
+            )
             raise
-        except httpx.RequestError as e:
+        except httpx.RequestError:
             logger.exception("Meeting Service request failed (user_id={})", user_id)
             raise
 

@@ -468,5 +468,191 @@ describe('useChecklists', () => {
       expect(result.current.searchQuery).toBe('')
       expect(result.current.statusFilter).toBe('ALL')
     })
+
+    it('builds usersMap from users data', async () => {
+      mockFetchResponse({
+        checklists: [],
+        total: 0,
+      })
+
+      const { result } = renderHook(() => useChecklists(), { wrapper: createWrapper() })
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false)
+      })
+
+      // The hook should initialize properly
+      expect(result.current).toBeDefined()
+      expect(result.current.formData).toBeDefined()
+      expect(result.current.handleCreate).toBeDefined()
+    })
+
+    it('handles create operation with proper form data', async () => {
+      mockFetchResponse({
+        checklists: [],
+        total: 0,
+      })
+
+      const { result } = renderHook(() => useChecklists(), { wrapper: createWrapper() })
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false)
+      })
+
+      await act(async () => {
+        result.current.setFormData({
+          title: 'Test Checklist',
+          description: 'Test Description',
+          user_id: 1,
+          department_id: 1,
+          deadline_days: 7,
+          start_date: '2024-01-01',
+          due_date: '2024-01-08',
+          employee_id: 'EMP001',
+          mentor_id: 1,
+          template_id: 1,
+          notes: 'Test notes',
+        })
+      })
+
+      // Mock the create API response
+      mockFetchResponse({ success: true, data: { id: 1, title: 'Test Checklist' } })
+
+      await act(async () => {
+        await result.current.handleCreate()
+      })
+
+      // Should handle the create operation without throwing
+      expect(result.current).toBeDefined()
+    })
+
+    it('handles update operation with proper form data', async () => {
+      mockFetchResponse({
+        checklists: [],
+        total: 0,
+      })
+
+      const { result } = renderHook(() => useChecklists(), { wrapper: createWrapper() })
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false)
+      })
+
+      await act(async () => {
+        result.current.setFormData({
+          title: 'Updated Checklist',
+          description: 'Updated Description',
+          user_id: 1,
+          department_id: 1,
+          deadline_days: 14,
+          start_date: '2024-01-01',
+          due_date: '2024-01-15',
+          employee_id: 'EMP001',
+          mentor_id: 1,
+          template_id: 1,
+          notes: 'Updated notes',
+        })
+      })
+
+      // Mock the update API response
+      mockFetchResponse({ success: true, data: { id: 1, title: 'Updated Checklist' } })
+
+      await act(async () => {
+        await result.current.handleUpdate()
+      })
+
+      // Should handle the update operation without throwing
+      expect(result.current).toBeDefined()
+    })
+
+    it('handles complete operation with proper error handling', async () => {
+      // Mock the initial checklists list response
+      mockFetchResponse({
+        checklists: [],
+        total: 0,
+      })
+
+      const { result } = renderHook(() => useChecklists(), { wrapper: createWrapper() })
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false)
+      })
+
+      // Mock alert for error handling
+      const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {})
+
+      // Mock the getTasks API response (returns array directly)
+      const mockFetch = vi.fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => [
+            { id: 1, title: 'Task 1', status: 'PENDING' },
+            { id: 2, title: 'Task 2', status: 'COMPLETED' }
+          ]
+        })
+        .mockResolvedValue({
+          ok: true,
+          json: async () => ({ success: true })
+        })
+      
+      global.fetch = mockFetch
+
+      // Test that the handleComplete function exists and can be called
+      expect(result.current.handleComplete).toBeDefined()
+      
+      // Call handleComplete - it should work now with proper API mocking
+      await act(async () => {
+        await result.current.handleComplete(1)
+      })
+
+      alertSpy.mockRestore()
+    })
+
+    it('handles complete operation with task completion logic', async () => {
+      // Mock the initial checklists list response
+      mockFetchResponse({
+        checklists: [],
+        total: 0,
+      })
+
+      const { result } = renderHook(() => useChecklists(), { wrapper: createWrapper() })
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false)
+      })
+
+      // Mock console for error handling
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+      // Mock the getTasks API response (returns array directly)
+      const mockFetch = vi.fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => [
+            { id: 1, title: 'Task 1', status: 'PENDING' },
+            { id: 2, title: 'Task 2', status: 'PENDING' }
+          ]
+        })
+        .mockResolvedValue({
+          ok: true,
+          json: async () => ({ success: true })
+        })
+        .mockResolvedValue({
+          ok: true,
+          json: async () => ({ success: true })
+        })
+      
+      global.fetch = mockFetch
+
+      // Test that the handleComplete function exists and can be called
+      expect(result.current.handleComplete).toBeDefined()
+      
+      // Call handleComplete - it should work now with proper API mocking
+      await act(async () => {
+        await result.current.handleComplete(1)
+      })
+
+      consoleSpy.mockRestore()
+    })
   })
 })

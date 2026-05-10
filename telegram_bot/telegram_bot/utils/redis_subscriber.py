@@ -1,15 +1,15 @@
 """Redis pub/sub subscriber for Telegram notifications."""
 
+import asyncio
 import json
 import logging
-import asyncio
 
 from aiogram import Bot
 from redis.asyncio import Redis
 
 from telegram_bot.config import settings
-from telegram_bot.services.cache import user_cache
 from telegram_bot.i18n import t
+from telegram_bot.services.cache import user_cache
 
 logger = logging.getLogger(__name__)
 
@@ -65,7 +65,7 @@ class RedisNotificationSubscriber:
                 if message and message["type"] == "message":
                     channel = message["channel"]
                     data = message["data"]
-                    
+
                     if channel == "telegram_notifications":
                         await self._handle_notification(data)
                     elif channel == "telegram_events":
@@ -109,7 +109,7 @@ class RedisNotificationSubscriber:
         try:
             payload = json.loads(data)
             event_type = payload.get("type")
-            
+
             if event_type == "calendar_connected":
                 await self._handle_calendar_connected(payload)
             else:
@@ -137,14 +137,14 @@ class RedisNotificationSubscriber:
 
             # Send calendar menu update
             from telegram_bot.keyboards.calendar_kb import get_calendar_connected_keyboard
-            
+
             # Get user data to determine locale
             user_data = await user_cache.get_user(telegram_id)
             locale = user_data.get("locale", "en") if user_data else "en"
-            
+
             keyboard = get_calendar_connected_keyboard(locale=locale)
             status_text = f"✅ *{t('calendar.connected', locale=locale)}*"
-            
+
             text = (
                 f"📅 *{t('calendar.title', locale=locale)}*\n\n"
                 f"Status: {status_text}\n\n"

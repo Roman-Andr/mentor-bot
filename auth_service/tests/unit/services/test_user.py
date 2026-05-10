@@ -287,7 +287,7 @@ class TestDeleteUser:
 
         mock_uow.users.get_by_id.return_value = sample_user
         mock_uow.users.delete = AsyncMock(return_value=True)
-        
+
         # Mock all cascade delete methods
         mock_uow.mentor_assignment_history.nullify_changed_by = AsyncMock(return_value=0)
         mock_uow.role_change_history.nullify_changed_by = AsyncMock(return_value=0)
@@ -304,7 +304,7 @@ class TestDeleteUser:
         mock_uow.invitations.nullify_mentor_id = AsyncMock(return_value=0)
         mock_uow.user_mentors.delete_by_user_id = AsyncMock(return_value=0)
         mock_uow.user_mentors.delete_by_mentor_id = AsyncMock(return_value=0)
-        
+
         service = UserService(mock_uow)
 
         await service.delete_user(1)

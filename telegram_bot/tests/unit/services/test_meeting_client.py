@@ -130,9 +130,8 @@ class TestCreateMeeting:
             if post_call_count[0] == 1:
                 # First call: template creation succeeds
                 return Response(status_code=status.HTTP_201_CREATED, json={"id": 1})
-            else:
-                # Second call: assignment fails
-                return Response(status_code=status.HTTP_400_BAD_REQUEST)
+            # Second call: assignment fails
+            return Response(status_code=status.HTTP_400_BAD_REQUEST)
 
         monkeypatch.setattr(meeting_client.client, "post", mock_post)
 

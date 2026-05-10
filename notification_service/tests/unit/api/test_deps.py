@@ -296,10 +296,13 @@ class TestRequireHR:
 class TestServiceApiKeyVerification:
     """Tests for verify_service_api_key function."""
 
-    async def test_returns_true_when_api_key_valid(self) -> None:
+    async def test_returns_true_when_api_key_valid(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Returns True when valid service API key provided."""
         from notification_service.api.deps import verify_service_api_key
 
+        from notification_service import config
+
+        monkeypatch.setattr(config.settings, "SERVICE_API_KEY", "test-api-key")
         result = await verify_service_api_key("test-api-key")
         assert result is True
 

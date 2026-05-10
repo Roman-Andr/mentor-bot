@@ -112,20 +112,29 @@ class TestHealthEndpoint:
 
             mock_engine.connect = MagicMock(return_value=AsyncContextMock())
 
+            # Mock Redis to return True for ping
+            mock_redis = AsyncMock()
+            mock_redis.ping = AsyncMock(return_value=True)
+            mock_redis.close = AsyncMock()
+
             with patch("notification_service.main.datetime") as mock_datetime:
                 mock_now = datetime(2024, 1, 1, 12, 0, 0, tzinfo=UTC)
                 mock_datetime.now.return_value = mock_now
                 mock_datetime.UTC = UTC
 
-                result = await health_check()
+                # Patch the import to return our mock Redis
+                with patch("redis.asyncio.Redis") as mock_redis_class:
+                    mock_redis_class.from_url.return_value = mock_redis
 
-                assert isinstance(result, HealthCheck)
-                assert result.status == "healthy"
-                assert result.service == "notification"
-                # timestamp is a datetime object (not string), compare correctly
-                assert result.timestamp == mock_now
-                assert result.dependencies["database"] == "connected"
-                assert result.dependencies["redis"] == "connected"
+                    result = await health_check()
+
+                    assert isinstance(result, HealthCheck)
+                    assert result.status == "healthy"
+                    assert result.service == "notification"
+                    # timestamp is a datetime object (not string), compare correctly
+                    assert result.timestamp == mock_now
+                    assert result.dependencies["database"] == "connected"
+                    assert result.dependencies["redis"] == "connected"
 
     @pytest.mark.asyncio
     async def test_health_check_redis_connection_failure(self):
@@ -147,20 +156,19 @@ class TestHealthEndpoint:
 
             mock_engine.connect = MagicMock(return_value=AsyncContextMock())
 
-            # Mock Redis to raise exception during import or connection
-            import builtins
-            original_import = builtins.__import__
+            # Mock Redis to raise exception on ping
+            mock_redis = AsyncMock()
+            mock_redis.ping = AsyncMock(side_effect=Exception("Redis connection failed"))
+            mock_redis.close = AsyncMock()
 
-            def mock_import(name, *args, **kwargs):
-                if name == "redis.asyncio":
-                    raise Exception("Redis connection failed")
-                return original_import(name, *args, **kwargs)
+            with patch("notification_service.main.datetime") as mock_datetime:
+                mock_now = datetime(2024, 1, 1, 12, 0, 0, tzinfo=UTC)
+                mock_datetime.now.return_value = mock_now
+                mock_datetime.UTC = UTC
 
-            with patch("builtins.__import__", side_effect=mock_import):
-                with patch("notification_service.main.datetime") as mock_datetime:
-                    mock_now = datetime(2024, 1, 1, 12, 0, 0, tzinfo=UTC)
-                    mock_datetime.now.return_value = mock_now
-                    mock_datetime.UTC = UTC
+                # Patch the import to return our mock Redis
+                with patch("redis.asyncio.Redis") as mock_redis_class:
+                    mock_redis_class.from_url.return_value = mock_redis
 
                     result = await health_check()
 
@@ -203,7 +211,15 @@ class TestIntegration:
 
             mock_engine.connect = MagicMock(return_value=AsyncContextMock())
 
-            response = client.get("/health")
+            # Mock Redis to return True for ping
+            mock_redis = AsyncMock()
+            mock_redis.ping = AsyncMock(return_value=True)
+            mock_redis.close = AsyncMock()
+
+            with patch("redis.asyncio.Redis") as mock_redis_class:
+                mock_redis_class.from_url.return_value = mock_redis
+
+                response = client.get("/health")
 
         assert response.status_code == 200
         data = response.json()

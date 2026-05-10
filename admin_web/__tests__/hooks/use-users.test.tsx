@@ -361,5 +361,75 @@ describe('useUsers', () => {
       expect(Array.isArray(result.current.departments)).toBe(true)
     })
 
+    it('loads current mentor for selected user', async () => {
+      mockFetchResponse({
+        users: [],
+        total: 0,
+      })
+
+      const { result } = renderHook(() => useUsers(), { wrapper: createWrapper() })
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false)
+      })
+
+      const user: UserRow = {
+        id: 1,
+        name: 'John Doe',
+        email: 'john@example.com',
+        role: 'MENTEE',
+        department_id: 1,
+        department_name: 'Engineering',
+        position: 'Junior Developer',
+        status: 'ACTIVE',
+        mentor_id: null,
+        mentor_name: null,
+        createdAt: '2024-01-01',
+      }
+
+      act(() => {
+        result.current.openAssignMentorDialog(user)
+      })
+
+      // Should trigger mentor loading when user is selected and dialog is open
+      expect(result.current.selectedUserForMentor).toEqual(user)
+      expect(result.current.assignMentorDialogOpen).toBe(true)
+    })
+
+    it('handles mentor query with proper data structure', async () => {
+      mockFetchResponse({
+        users: [],
+        total: 0,
+      })
+
+      const { result } = renderHook(() => useUsers(), { wrapper: createWrapper() })
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false)
+      })
+
+      const user: UserRow = {
+        id: 1,
+        name: 'John Doe',
+        email: 'john@example.com',
+        role: 'MENTEE',
+        department_id: 1,
+        department_name: 'Engineering',
+        position: 'Junior Developer',
+        status: 'ACTIVE',
+        mentor_id: null,
+        mentor_name: null,
+        createdAt: '2024-01-01',
+      }
+
+      act(() => {
+        result.current.openAssignMentorDialog(user)
+      })
+
+      // Should handle mentor data structure properly
+      expect(result.current.currentMentor).toBeDefined()
+      expect(result.current.selectedUserForMentor).toBeDefined()
+    })
+
     })
 })

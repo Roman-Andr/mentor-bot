@@ -101,7 +101,9 @@ class AuthMiddleware(BaseMiddleware):
                             }
                             await user_cache.set_user(tg_user.id, user_data)
                             logger.info(
-                                "User re-authenticated and cached (telegram_id={}, user_id={})", tg_user.id, user_data.get("id")
+                                "User re-authenticated and cached (telegram_id={}, user_id={})",
+                                tg_user.id,
+                                user_data.get("id"),
                             )
 
         if user_data:

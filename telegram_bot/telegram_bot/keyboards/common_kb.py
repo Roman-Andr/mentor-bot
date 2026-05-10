@@ -35,21 +35,21 @@ def get_my_mentor_keyboard(*, locale: str = "en") -> InlineKeyboardBuilder:
     builder = InlineKeyboardBuilder()
     builder.add(
         create_inline_button(
-            t('mentor.btn_message', locale=locale),
+            t("mentor.btn_message", locale=locale),
             callback_data="message_mentor",
             style=ButtonStyle.PRIMARY,
         ),
         create_inline_button(
-            t('mentor.btn_schedule', locale=locale),
+            t("mentor.btn_schedule", locale=locale),
             callback_data="schedule_mentor",
             style=ButtonStyle.PRIMARY,
         ),
         create_inline_button(
-            t('mentor.btn_tasks', locale=locale),
+            t("mentor.btn_tasks", locale=locale),
             callback_data="mentor_tasks",
             style=ButtonStyle.PRIMARY,
         ),
-        create_inline_button(t('common.menu_button', locale=locale), callback_data="menu"),
+        create_inline_button(t("common.menu_button", locale=locale), callback_data="menu"),
     )
     builder.adjust(1)
     return builder
@@ -112,7 +112,7 @@ def get_progress_keyboard(checklist_id: int | None = None, *, locale: str = "en"
     # Back to main menu
     builder.add(
         create_inline_button(
-            t('common.back_button', locale=locale),
+            t("common.back_button", locale=locale),
             callback_data="main_menu",
         )
     )

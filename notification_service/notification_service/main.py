@@ -109,9 +109,10 @@ async def health_check() -> HealthCheck:
     # Check Redis connectivity
     try:
         from redis.asyncio import Redis
+
         redis = Redis.from_url(settings.REDIS_URL)
         await redis.ping()
-        await redis.close()
+        await redis.aclose()
         redis_status = "connected"
     except Exception:
         redis_status = "disconnected"

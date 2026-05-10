@@ -26,7 +26,9 @@ class MeetingMaterial(Base):
 
     title: Mapped[str] = mapped_column(String(200), nullable=False)
     description: Mapped[str | None] = mapped_column(String(500), nullable=True)
-    url: Mapped[str | None] = mapped_column(String(500), nullable=True)  # Link to file or external resource (for FILE/URL types)
+    url: Mapped[str | None] = mapped_column(
+        String(500), nullable=True
+    )  # Link to file or external resource (for FILE/URL types)
     content: Mapped[str | None] = mapped_column(String(5000), nullable=True)  # Rich text content (for NOTE type)
     type: Mapped[MaterialType] = mapped_column(Enum(MaterialType, name="materialtype"), nullable=False)
     order: Mapped[int] = mapped_column(default=0, nullable=False)

@@ -196,6 +196,7 @@ class TestGetProgressKeyboard:
         # Last button should be back to main menu
         last_button = markup.inline_keyboard[-1][0]
         assert last_button.callback_data == "main_menu"
+
     def test_without_checklist_id(self):
         """Test keyboard without checklist_id."""
         keyboard = get_progress_keyboard(checklist_id=None, locale="en")

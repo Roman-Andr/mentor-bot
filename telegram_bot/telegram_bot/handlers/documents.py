@@ -8,7 +8,6 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import BufferedInputFile, CallbackQuery, Message
 
 from telegram_bot.i18n import t
-from telegram_bot.utils.formatters import escape_markdown
 from telegram_bot.keyboards.documents_kb import (
     get_article_detail_keyboard,
     get_article_list_keyboard,
@@ -16,6 +15,7 @@ from telegram_bot.keyboards.documents_kb import (
 )
 from telegram_bot.services.document_client import document_client
 from telegram_bot.services.knowledge_client import knowledge_client
+from telegram_bot.utils.formatters import escape_markdown
 
 logger = logging.getLogger(__name__)
 
@@ -182,7 +182,6 @@ async def download_department_document(
         await callback.answer(t("common.error_generic", locale=locale))
         return
 
-
     download_url = await document_client.get_department_document_download_url(document_id, auth_token)
 
     if not download_url:
@@ -339,7 +338,6 @@ async def download_attachment(
     except (ValueError, IndexError):
         await callback.answer(t("common.error_generic", locale=locale))
         return
-
 
     attachments = await knowledge_client.get_article_attachments(article_id, auth_token)
     attachment = next((a for a in attachments if a.get("id") == attachment_id), None)

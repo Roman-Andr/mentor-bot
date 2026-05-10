@@ -40,8 +40,10 @@ _mock_knowledge_client.get_article_details = AsyncMock(return_value=None)
 _mock_auth_client = AsyncMock()
 _mock_auth_client.authenticate_with_telegram = AsyncMock(return_value=None)
 _mock_auth_client.get_current_user = AsyncMock(return_value=None)
-patch("telegram_bot.services.knowledge_client.knowledge_client", _mock_knowledge_client).start()
-patch("telegram_bot.services.auth_client.auth_client", _mock_auth_client).start()
+_knowledge_patch = patch("telegram_bot.services.knowledge_client.knowledge_client", _mock_knowledge_client)
+_auth_patch = patch("telegram_bot.services.auth_client.auth_client", _mock_auth_client)
+_knowledge_patch.start()
+_auth_patch.start()
 
 # Configure i18n for tests with test translations that include key names
 # This allows tests to verify translation keys while testing real i18n code
@@ -102,6 +104,14 @@ _ensure_test_translations()
 def _setup_i18n() -> None:
     """Ensure i18n test translations are always present before each test."""
     _ensure_test_translations()
+
+
+@pytest.fixture(autouse=True, scope="session")
+def cleanup_patches() -> None:
+    """Clean up module-level patches after all tests."""
+    yield
+    _knowledge_patch.stop()
+    _auth_patch.stop()
 
 
 @pytest.fixture

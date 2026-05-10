@@ -283,7 +283,7 @@ class TestTemplateServiceClone:
         sample_template.level = EmployeeLevel.JUNIOR
         sample_template.task_categories = [TaskCategory.DOCUMENTATION, TaskCategory.TRAINING]
         mock_uow.templates.get_by_id.return_value = sample_template
-        
+
         cloned_template = Template(
             id=3,
             name="Onboarding Template (Copy)",

@@ -38,4 +38,27 @@ describe('notificationsApi', () => {
     })
     expect(mockFetchApi).toHaveBeenCalled()
   })
+
+  it('schedule calls fetchApi with POST', () => {
+    notificationsApi.schedule({
+      user_id: 123,
+      type: 'email',
+      channel: 'email',
+      body: 'Scheduled notification',
+      subject: 'Scheduled Subject',
+      scheduled_time: '2024-12-31T23:59:59Z',
+    })
+    expect(mockFetchApi).toHaveBeenCalled()
+  })
+
+  it('schedule calls fetchApi without subject', () => {
+    notificationsApi.schedule({
+      user_id: 123,
+      type: 'telegram',
+      channel: 'telegram',
+      body: 'Scheduled telegram message',
+      scheduled_time: '2024-12-31T23:59:59Z',
+    })
+    expect(mockFetchApi).toHaveBeenCalled()
+  })
 })

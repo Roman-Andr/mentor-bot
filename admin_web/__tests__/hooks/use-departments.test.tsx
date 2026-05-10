@@ -332,5 +332,86 @@ describe('useDepartments', () => {
       })
       expect(result.current.selectedItem).toEqual(department)
     })
+
+    it('handles create operation', async () => {
+      const mockResponse = { id: 1, name: 'New Department', description: 'Test description' }
+      mockFetchResponse(mockResponse)
+
+      const { result } = renderHook(() => useDepartments(), { wrapper: createWrapper() })
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false)
+      })
+
+      act(() => {
+        result.current.setFormData({
+          name: 'New Department',
+          description: 'Test description'
+        })
+      })
+
+      act(() => {
+        result.current.handleSubmit()
+      })
+
+      await waitFor(() => {
+        expect(result.current.isSubmitting).toBe(false)
+      })
+    })
+
+    it('handles update operation', async () => {
+      const mockResponse = { id: 1, name: 'Updated Department', description: 'Updated description' }
+      mockFetchResponse(mockResponse)
+
+      const { result } = renderHook(() => useDepartments(), { wrapper: createWrapper() })
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false)
+      })
+
+      const department: DepartmentRow = {
+        id: 1,
+        name: 'Engineering',
+        description: '',
+        createdAt: '2024-01-01',
+      }
+
+      act(() => {
+        result.current.setSelectedItem(department)
+      })
+
+      act(() => {
+        result.current.setFormData({
+          name: 'Updated Department',
+          description: 'Updated description'
+        })
+      })
+
+      act(() => {
+        result.current.handleSubmit()
+      })
+
+      await waitFor(() => {
+        expect(result.current.isSubmitting).toBe(false)
+      })
+    })
+
+    it('handles delete operation', async () => {
+      mockFetchResponse({ message: 'Department deleted successfully' })
+
+      const { result } = renderHook(() => useDepartments(), { wrapper: createWrapper() })
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false)
+      })
+
+      act(() => {
+        result.current.handleDelete(1)
+      })
+
+      await waitFor(() => {
+        expect(result.current.isDeleting).toBe(false)
+      })
+    })
   })
 })

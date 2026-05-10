@@ -63,11 +63,9 @@ class TestMaterialType:
 
     def test_enum_values_match_contract(self):
         """Enum values must match the persisted contract."""
-        assert MaterialType.PDF == "PDF"
-        assert MaterialType.LINK == "LINK"
-        assert MaterialType.DOC == "DOC"
-        assert MaterialType.IMAGE == "IMAGE"
-        assert MaterialType.VIDEO == "VIDEO"
+        assert MaterialType.FILE == "FILE"
+        assert MaterialType.NOTE == "NOTE"
+        assert MaterialType.URL == "URL"
 
     def test_no_duplicate_values(self):
         """No duplicate values allowed - would break persistence."""
@@ -77,13 +75,13 @@ class TestMaterialType:
     def test_all_members_present(self):
         """All expected members are present."""
         members = set(MaterialType.__members__.keys())
-        expected = {"PDF", "LINK", "DOC", "IMAGE", "VIDEO"}
+        expected = {"FILE", "NOTE", "URL"}
         assert members == expected
 
     def test_is_strenum(self):
         """MaterialType is a string enum."""
-        assert isinstance(MaterialType.PDF, str)
-        assert MaterialType.PDF.value == "PDF"
+        assert isinstance(MaterialType.FILE, str)
+        assert MaterialType.FILE.value == "FILE"
 
 
 class TestEmployeeLevel:

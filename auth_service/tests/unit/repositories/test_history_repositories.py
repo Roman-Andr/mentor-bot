@@ -9,19 +9,25 @@ from unittest.mock import AsyncMock, MagicMock
 
 from auth_service.core.enums import UserRole
 from auth_service.models import (
+    Invitation,
     InvitationStatusHistory,
     LoginHistory,
     LogoutHistory,
     MentorAssignmentHistory,
     PasswordChangeHistory,
+    PasswordResetToken,
     RoleChangeHistory,
+    UserMentor,
 )
+from auth_service.repositories.implementations.invitation import InvitationRepository
 from auth_service.repositories.implementations.invitation_status_history import InvitationStatusHistoryRepository
 from auth_service.repositories.implementations.login_history import LoginHistoryRepository
 from auth_service.repositories.implementations.logout_history import LogoutHistoryRepository
 from auth_service.repositories.implementations.mentor_assignment_history import MentorAssignmentHistoryRepository
 from auth_service.repositories.implementations.password_change_history import PasswordChangeHistoryRepository
+from auth_service.repositories.implementations.password_reset import PasswordResetRepository
 from auth_service.repositories.implementations.role_change_history import RoleChangeHistoryRepository
+from auth_service.repositories.implementations.user_mentor import UserMentorRepository
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
@@ -410,6 +416,20 @@ class TestInvitationStatusHistoryRepository:
         assert result[0] == sample_history
         assert mock_session.execute.call_count == 2
 
+    async def test_nullify_changed_by(self, mock_session):
+        """Test nullify_changed_by method (covers lines 77-84)."""
+        from sqlalchemy import update
+
+        mock_result = MagicMock()
+        mock_result.rowcount = 2
+        mock_session.execute.return_value = mock_result
+
+        repo = InvitationStatusHistoryRepository(mock_session)
+        result = await repo.nullify_changed_by(1)
+
+        assert result == 2
+        mock_session.execute.assert_awaited_once()
+
 
 class TestLogoutHistoryRepository:
     """Tests for LogoutHistoryRepository to cover missing lines."""
@@ -494,3 +514,295 @@ class TestLogoutHistoryRepository:
         assert len(result) == 1
         assert result[0] == sample_logout_history
         assert mock_session.execute.call_count == 2
+
+
+class TestLoginHistoryRepositoryDelete:
+    """Tests for LoginHistoryRepository delete methods."""
+
+    @pytest.fixture
+    def mock_session(self):
+        session = MagicMock(spec=AsyncSession)
+        session.execute = AsyncMock()
+        session.add = MagicMock()
+        session.flush = AsyncMock()
+        return session
+
+    async def test_delete_by_user_id(self, mock_session):
+        """Test delete_by_user_id method (covers lines 76-81)."""
+        from sqlalchemy import delete
+
+        mock_result = MagicMock()
+        mock_result.rowcount = 5
+        mock_session.execute.return_value = mock_result
+
+        repo = LoginHistoryRepository(mock_session)
+        result = await repo.delete_by_user_id(1)
+
+        assert result == 5
+        mock_session.execute.assert_awaited_once()
+
+
+class TestLogoutHistoryRepositoryDelete:
+    """Tests for LogoutHistoryRepository delete methods."""
+
+    @pytest.fixture
+    def mock_session(self):
+        session = MagicMock(spec=AsyncSession)
+        session.execute = AsyncMock()
+        session.add = MagicMock()
+        session.flush = AsyncMock()
+        return session
+
+    async def test_delete_by_user_id(self, mock_session):
+        """Test delete_by_user_id method (covers lines 76-81)."""
+        from sqlalchemy import delete
+
+        mock_result = MagicMock()
+        mock_result.rowcount = 3
+        mock_session.execute.return_value = mock_result
+
+        repo = LogoutHistoryRepository(mock_session)
+        result = await repo.delete_by_user_id(1)
+
+        assert result == 3
+        mock_session.execute.assert_awaited_once()
+
+
+class TestPasswordChangeHistoryRepositoryDelete:
+    """Tests for PasswordChangeHistoryRepository delete methods."""
+
+    @pytest.fixture
+    def mock_session(self):
+        session = MagicMock(spec=AsyncSession)
+        session.execute = AsyncMock()
+        session.add = MagicMock()
+        session.flush = AsyncMock()
+        return session
+
+    async def test_delete_by_user_id(self, mock_session):
+        """Test delete_by_user_id method (covers lines 77-82)."""
+        from sqlalchemy import delete
+
+        mock_result = MagicMock()
+        mock_result.rowcount = 2
+        mock_session.execute.return_value = mock_result
+
+        repo = PasswordChangeHistoryRepository(mock_session)
+        result = await repo.delete_by_user_id(1)
+
+        assert result == 2
+        mock_session.execute.assert_awaited_once()
+
+    async def test_nullify_changed_by(self, mock_session):
+        """Test nullify_changed_by method (covers lines 86-91)."""
+        from sqlalchemy import update
+
+        mock_result = MagicMock()
+        mock_result.rowcount = 2
+        mock_session.execute.return_value = mock_result
+
+        repo = PasswordChangeHistoryRepository(mock_session)
+        result = await repo.nullify_changed_by(1)
+
+        assert result == 2
+        mock_session.execute.assert_awaited_once()
+
+
+class TestRoleChangeHistoryRepositoryDelete:
+    """Tests for RoleChangeHistoryRepository delete methods."""
+
+    @pytest.fixture
+    def mock_session(self):
+        session = MagicMock(spec=AsyncSession)
+        session.execute = AsyncMock()
+        session.add = MagicMock()
+        session.flush = AsyncMock()
+        return session
+
+    async def test_delete_by_user_id(self, mock_session):
+        """Test delete_by_user_id method (covers lines 75-80)."""
+        from sqlalchemy import delete
+
+        mock_result = MagicMock()
+        mock_result.rowcount = 2
+        mock_session.execute.return_value = mock_result
+
+        repo = RoleChangeHistoryRepository(mock_session)
+        result = await repo.delete_by_user_id(1)
+
+        assert result == 2
+        mock_session.execute.assert_awaited_once()
+
+    async def test_nullify_changed_by(self, mock_session):
+        """Test nullify_changed_by method (covers lines 84-89)."""
+        from sqlalchemy import update
+
+        mock_result = MagicMock()
+        mock_result.rowcount = 2
+        mock_session.execute.return_value = mock_result
+
+        repo = RoleChangeHistoryRepository(mock_session)
+        result = await repo.nullify_changed_by(1)
+
+        assert result == 2
+        mock_session.execute.assert_awaited_once()
+
+
+class TestMentorAssignmentHistoryRepositoryDelete:
+    """Tests for MentorAssignmentHistoryRepository delete methods."""
+
+    @pytest.fixture
+    def mock_session(self):
+        session = MagicMock(spec=AsyncSession)
+        session.execute = AsyncMock()
+        session.add = MagicMock()
+        session.flush = AsyncMock()
+        return session
+
+    async def test_delete_by_user_id(self, mock_session):
+        """Test delete_by_user_id method (covers lines 96-101)."""
+        from sqlalchemy import delete
+
+        mock_result = MagicMock()
+        mock_result.rowcount = 3
+        mock_session.execute.return_value = mock_result
+
+        repo = MentorAssignmentHistoryRepository(mock_session)
+        result = await repo.delete_by_user_id(1)
+
+        assert result == 3
+        mock_session.execute.assert_awaited_once()
+
+    async def test_delete_by_mentor_id(self, mock_session):
+        """Test delete_by_mentor_id method (covers lines 105-110)."""
+        from sqlalchemy import delete
+
+        mock_result = MagicMock()
+        mock_result.rowcount = 2
+        mock_session.execute.return_value = mock_result
+
+        repo = MentorAssignmentHistoryRepository(mock_session)
+        result = await repo.delete_by_mentor_id(2)
+
+        assert result == 2
+        mock_session.execute.assert_awaited_once()
+
+    async def test_nullify_changed_by(self, mock_session):
+        """Test nullify_changed_by method (covers lines 114-121)."""
+        from sqlalchemy import update
+
+        mock_result = MagicMock()
+        mock_result.rowcount = 2
+        mock_session.execute.return_value = mock_result
+
+        repo = MentorAssignmentHistoryRepository(mock_session)
+        result = await repo.nullify_changed_by(1)
+
+        assert result == 2
+        mock_session.execute.assert_awaited_once()
+
+
+class TestUserMentorRepositoryDelete:
+    """Tests for UserMentorRepository delete methods."""
+
+    @pytest.fixture
+    def mock_session(self):
+        session = MagicMock(spec=AsyncSession)
+        session.execute = AsyncMock()
+        session.add = MagicMock()
+        session.flush = AsyncMock()
+        return session
+
+    async def test_delete_by_user_id(self, mock_session):
+        """Test delete_by_user_id method (covers lines 52-57)."""
+        from sqlalchemy import delete
+
+        mock_result = MagicMock()
+        mock_result.rowcount = 3
+        mock_session.execute.return_value = mock_result
+
+        repo = UserMentorRepository(mock_session)
+        result = await repo.delete_by_user_id(1)
+
+        assert result == 3
+        mock_session.execute.assert_awaited_once()
+
+    async def test_delete_by_mentor_id(self, mock_session):
+        """Test delete_by_mentor_id method (covers lines 61-66)."""
+        from sqlalchemy import delete
+
+        mock_result = MagicMock()
+        mock_result.rowcount = 2
+        mock_session.execute.return_value = mock_result
+
+        repo = UserMentorRepository(mock_session)
+        result = await repo.delete_by_mentor_id(2)
+
+        assert result == 2
+        mock_session.execute.assert_awaited_once()
+
+
+class TestInvitationRepositoryNullify:
+    """Tests for InvitationRepository nullify methods."""
+
+    @pytest.fixture
+    def mock_session(self):
+        session = MagicMock(spec=AsyncSession)
+        session.execute = AsyncMock()
+        session.add = MagicMock()
+        session.flush = AsyncMock()
+        return session
+
+    async def test_nullify_user_id(self, mock_session):
+        """Test nullify_user_id method (covers lines 231-236)."""
+        from sqlalchemy import update
+
+        mock_result = MagicMock()
+        mock_result.rowcount = 5
+        mock_session.execute.return_value = mock_result
+
+        repo = InvitationRepository(mock_session)
+        result = await repo.nullify_user_id(1)
+
+        assert result == 5
+        mock_session.execute.assert_awaited_once()
+
+    async def test_nullify_mentor_id(self, mock_session):
+        """Test nullify_mentor_id method (covers lines 240-245)."""
+        from sqlalchemy import update
+
+        mock_result = MagicMock()
+        mock_result.rowcount = 3
+        mock_session.execute.return_value = mock_result
+
+        repo = InvitationRepository(mock_session)
+        result = await repo.nullify_mentor_id(2)
+
+        assert result == 3
+        mock_session.execute.assert_awaited_once()
+
+
+class TestPasswordResetRepositoryDelete:
+    """Tests for PasswordResetRepository delete methods."""
+
+    @pytest.fixture
+    def mock_session(self):
+        session = MagicMock(spec=AsyncSession)
+        session.execute = AsyncMock()
+        session.add = MagicMock()
+        session.flush = AsyncMock()
+        return session
+
+    async def test_delete_by_user_id(self, mock_session):
+        """Test delete_by_user_id method (covers lines 20-23)."""
+        from sqlalchemy import delete
+
+        mock_result = MagicMock()
+        mock_result.rowcount = 2
+        mock_session.execute.return_value = mock_result
+
+        repo = PasswordResetRepository(mock_session)
+        result = await repo.delete_by_user_id(1)
+
+        assert result == 2
+        mock_session.execute.assert_awaited_once()

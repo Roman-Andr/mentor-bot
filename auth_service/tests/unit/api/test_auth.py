@@ -502,6 +502,7 @@ class TestLogoutEndpoint:
 
     def test_logout_success(self, mock_auth_service, active_user):
         """Test logout returns success message."""
+
         # Mock the current user dependency
         async def mock_get_current() -> User:
             return active_user

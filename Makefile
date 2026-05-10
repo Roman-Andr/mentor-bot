@@ -1,4 +1,4 @@
-.PHONY: help start stop restart logs clean reset-db create-invitation shell-auth shell-checklist shell-knowledge shell-postgres shell-redis status full-reboot logs-notification logs-escalation logs-meeting shell-notification shell-escalation shell-meeting restart-notification restart-escalation restart-meeting reboot-notification reboot-escalation reboot-meeting logs-admin restart-admin restart-admin-dev reboot-admin shell-admin logs-telegram restart-telegram reboot-telegram shell-telegram dev-admin dev-meeting reset-locks update-deps mock-data prune test coverage coverage-html coverage-clean build-push docker-login prod-pull prod-up prod-down prod-logs prod-deploy up up-svc generate-secrets lint-python format-python lint-python-fix lint-admin format-admin lint-admin-check lint-all format-all
+.PHONY: help start stop restart logs clean reset-db create-invitation shell-auth shell-checklist shell-knowledge shell-postgres shell-redis status full-reboot logs-notification logs-escalation logs-meeting shell-notification shell-escalation shell-meeting restart-notification restart-escalation restart-meeting reboot-notification reboot-escalation reboot-meeting logs-admin restart-admin restart-admin-dev reboot-admin shell-admin logs-telegram restart-telegram reboot-telegram shell-telegram dev-admin dev-meeting reset-locks update-deps mock-data prune test coverage coverage-html coverage-clean cache-clean build-push docker-login prod-pull prod-up prod-down prod-logs prod-deploy up up-svc generate-secrets lint-python format-python lint-python-fix lint-admin format-admin lint-admin-check lint-all format-all
 
 # Docker compose project name
 PROJECT_NAME = mentor-bot
@@ -78,6 +78,7 @@ help:
 	@echo "  make coverage-serve    - Serve existing coverage reports (skip test run)"
 	@echo "  make coverage-html     - Show coverage report URL"
 	@echo "  make coverage-clean    - Remove all coverage reports"
+	@echo "  make cache-clean       - Remove all caches (pytest, ruff, mypy, next)"
 	@echo ""
 	@echo "Linting & formatting:"
 	@echo "  make lint-python       - Run ruff check on all Python services"
@@ -129,6 +130,18 @@ coverage-html:
 coverage-clean:
 	rm -rf .coverage-reports
 	@echo "Coverage reports cleaned"
+
+cache-clean:
+	@echo "Cleaning all caches..."
+	@for svc in $(PYTHON_SERVICES); do \
+		echo "Cleaning $$svc..."; \
+		rm -rf $$svc/.pytest_cache; \
+		rm -rf $$svc/.ruff_cache; \
+		rm -rf $$svc/.mypy_cache; \
+	done
+	rm -rf admin_web/.next
+	rm -rf .pytest_cache .ruff_cache .mypy_cache .next
+	@echo "All caches cleaned (pytest, ruff, mypy, next)"
 
 test-admin:
 	cd admin_web && bunx vitest run

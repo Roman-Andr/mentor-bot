@@ -136,15 +136,15 @@ async def test_generate_certificate_from_checklist_employee_not_found(mock_html)
 @patch("checklists_service.services.certificate_generator.HTML")
 @patch("checklists_service.utils.auth_service_client")
 @pytest.mark.asyncio
-async def test_generate_certificate_from_checklist_with_hr_and_mentor(
-    mock_auth_client, mock_html
-) -> None:
+async def test_generate_certificate_from_checklist_with_hr_and_mentor(mock_auth_client, mock_html) -> None:
     """Test generate_certificate_from_checklist with hr_id and mentor_id (lines 168-178)."""
-    mock_auth_client.get_user = AsyncMock(side_effect=lambda uid, token: {
-        1: {"first_name": "John", "last_name": "Doe", "position": "Developer"},
-        2: {"first_name": "Jane", "last_name": "Smith", "position": "HR Manager"},
-        3: {"first_name": "Bob", "last_name": "Johnson", "position": "Mentor"},
-    }.get(uid))
+    mock_auth_client.get_user = AsyncMock(
+        side_effect=lambda uid, token: {
+            1: {"first_name": "John", "last_name": "Doe", "position": "Developer"},
+            2: {"first_name": "Jane", "last_name": "Smith", "position": "HR Manager"},
+            3: {"first_name": "Bob", "last_name": "Johnson", "position": "Mentor"},
+        }.get(uid)
+    )
 
     generator = CertificateGenerator(auth_token="test-token")
 

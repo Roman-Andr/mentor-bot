@@ -113,7 +113,9 @@ class MentorAssignmentHistoryRepository(
         """Set changed_by to NULL for all records where a user is the changer."""
         from sqlalchemy import update
 
-        stmt = update(MentorAssignmentHistory).where(MentorAssignmentHistory.changed_by == user_id).values(changed_by=None)
+        stmt = (
+            update(MentorAssignmentHistory).where(MentorAssignmentHistory.changed_by == user_id).values(changed_by=None)
+        )
         result = await self._session.execute(stmt)
         await self._session.flush()
         return result.rowcount

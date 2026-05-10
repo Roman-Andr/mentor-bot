@@ -186,14 +186,14 @@ class TestMaterialCRUD:
 
         material_data = MaterialCreate(
             title="Test PDF",
-            type="PDF",
+            type=MaterialType.FILE,
             url="https://example.com/test.pdf",
         )
         expected_material = MeetingMaterial(
             id=1,
             meeting_id=1,
             title="Test PDF",
-            type="PDF",
+            type=MaterialType.FILE,
             url="https://example.com/test.pdf",
         )
         mock_uow.materials.create.return_value = expected_material
@@ -215,7 +215,7 @@ class TestMaterialCRUD:
         service = MeetingService(mock_uow)
         mock_uow.meetings.get_by_id.return_value = None
 
-        material_data = MaterialCreate(title="Test PDF", type="PDF", url="https://example.com/test.pdf")
+        material_data = MaterialCreate(title="Test PDF", type=MaterialType.FILE, url="https://example.com/test.pdf")
 
         # Act & Assert
         with pytest.raises(NotFoundException):
@@ -265,6 +265,86 @@ class TestMaterialCRUD:
         with pytest.raises(NotFoundException) as exc_info:
             await service.delete_material(999)
         assert "Material" in str(exc_info.value.detail)
+
+    @pytest.mark.asyncio
+    async def test_reorder_materials(self, mock_uow):
+        """Test reordering materials for a meeting."""
+        # Arrange
+        service = MeetingService(mock_uow)
+        meeting = Meeting(id=1, title="Test Meeting", type=MeetingType.HR, duration_minutes=60)
+        materials = [
+            MeetingMaterial(
+                id=1,
+                meeting_id=1,
+                title="First Material",
+                url="https://example.com/first.pdf",
+                type=MaterialType.FILE,
+                order=0,
+            ),
+            MeetingMaterial(
+                id=2,
+                meeting_id=1,
+                title="Second Material",
+                url="https://example.com/second.pdf",
+                type=MaterialType.FILE,
+                order=1,
+            ),
+        ]
+        mock_uow.meetings.get_by_id.return_value = meeting
+        mock_uow.materials.get_by_meeting.return_value = materials
+        mock_uow.materials.update.return_value = materials[0]
+
+        material_orders = [
+            {"id": 2, "order": 0},
+            {"id": 1, "order": 1},
+        ]
+
+        # Act
+        result = await service.reorder_materials(1, material_orders)
+
+        # Assert
+        assert len(result) == 2
+        assert result[0].id == 1
+        assert result[1].id == 2
+        mock_uow.meetings.get_by_id.assert_called_once_with(1)
+        mock_uow.materials.get_by_meeting.assert_called_once_with(1)
+        assert mock_uow.materials.update.call_count == 2
+        mock_uow.commit.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_reorder_materials_meeting_not_found(self, mock_uow):
+        """Test reordering materials for non-existent meeting raises NotFoundException."""
+        # Arrange
+        service = MeetingService(mock_uow)
+        mock_uow.meetings.get_by_id.return_value = None
+
+        material_orders = [
+            {"id": 1, "order": 0},
+        ]
+
+        # Act & Assert
+        with pytest.raises(NotFoundException):
+            await service.reorder_materials(999, material_orders)
+
+    @pytest.mark.asyncio
+    async def test_reorder_materials_empty_list(self, mock_uow):
+        """Test reordering materials with empty list."""
+        # Arrange
+        service = MeetingService(mock_uow)
+        meeting = Meeting(id=1, title="Test Meeting", type=MeetingType.HR, duration_minutes=60)
+        mock_uow.meetings.get_by_id.return_value = meeting
+        mock_uow.materials.get_by_meeting.return_value = []
+
+        material_orders = []
+
+        # Act
+        result = await service.reorder_materials(1, material_orders)
+
+        # Assert
+        assert result == []
+        mock_uow.meetings.get_by_id.assert_called_once_with(1)
+        mock_uow.materials.get_by_meeting.assert_called_once_with(1)
+        mock_uow.commit.assert_awaited_once()
 
 
 class TestAssignMeeting:
@@ -1151,7 +1231,7 @@ class TestMeetingServiceEdgeCases:
         # Arrange - this tests the direct service method which doesn't check meeting existence
         service = MeetingService(mock_uow)
         materials = [
-            MeetingMaterial(id=1, meeting_id=1, title="PDF", type=MaterialType.PDF, url="http://x.pdf"),
+            MeetingMaterial(id=1, meeting_id=1, title="PDF", type=MaterialType.FILE, url="http://x.pdf"),
         ]
         mock_uow.materials.get_by_meeting.return_value = materials
 

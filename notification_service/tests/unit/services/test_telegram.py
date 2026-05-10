@@ -18,7 +18,6 @@ class TestTelegramServiceInit:
     async def test_get_redis_creates_connection_when_none(self) -> None:
         """_get_redis creates new Redis connection when redis is None."""
         from notification_service.config import settings
-        from redis.asyncio import Redis
 
         service = TelegramService()
         assert service.redis is None
@@ -52,6 +51,7 @@ class TestTelegramSendMessage:
         call_args = mock_redis.publish.call_args
         assert call_args.args[0] == "telegram_notifications"
         import json
+
         payload = json.loads(call_args.args[1])
         assert payload["chat_id"] == 123456789
         assert payload["text"] == "Hello World"
@@ -107,6 +107,7 @@ class TestTelegramSendMessage:
             await service.send_message(chat_id=123456789, text=html_message)
 
         import json
+
         call_args = mock_redis.publish.call_args
         payload = json.loads(call_args.args[1])
         assert payload["text"] == html_message
@@ -126,6 +127,7 @@ class TestTelegramSendMessage:
 
         assert result is True
         import json
+
         call_args = mock_redis.publish.call_args
         payload = json.loads(call_args.args[1])
         assert payload["text"] == message_with_special
@@ -144,6 +146,7 @@ class TestTelegramSendMessage:
 
         assert result is True
         import json
+
         call_args = mock_redis.publish.call_args
         payload = json.loads(call_args.args[1])
         assert payload["text"] == unicode_message
@@ -176,6 +179,7 @@ class TestTelegramSendMessage:
 
         assert result is True
         import json
+
         call_args = mock_redis.publish.call_args
         payload = json.loads(call_args.args[1])
         assert payload["chat_id"] == group_chat_id

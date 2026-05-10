@@ -620,7 +620,9 @@ class TestSearchHistoryRepository:
         repo = SearchHistoryRepository(mock_session)
 
         with patch("knowledge_service.utils.auth_service_client") as mock_auth:
-            mock_auth.get_departments = AsyncMock(return_value=[{"id": 1, "name": "Engineering"}, {"id": 2, "name": "HR"}])
+            mock_auth.get_departments = AsyncMock(
+                return_value=[{"id": 1, "name": "Engineering"}, {"id": 2, "name": "HR"}]
+            )
 
             result = await repo.get_by_department(token="test-token")
 

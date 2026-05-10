@@ -35,7 +35,9 @@ class Settings(BaseSettings):
     AUTH_SERVICE_TIMEOUT: int = Field(default=10, ge=1)
 
     # Telegram
-    TELEGRAM_BOT_TOKEN: str = Field(..., description="Telegram Bot Token (used for verification, actual sending via Redis pub/sub)")
+    TELEGRAM_BOT_TOKEN: str = Field(
+        ..., description="Telegram Bot Token (used for verification, actual sending via Redis pub/sub)"
+    )
 
     # Email SMTP
     SMTP_HOST: str = Field(...)

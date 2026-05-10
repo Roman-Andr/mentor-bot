@@ -100,6 +100,7 @@ class CategoryRepository(SqlAlchemyBaseRepository[Category, int], ICategoryRepos
         if sort_by == "articlesCount":
             # Sort by articles count using subquery
             from knowledge_service.models import Article
+
             articles_count_subquery = (
                 select(func.count(Article.id))
                 .where(Article.category_id == Category.id)

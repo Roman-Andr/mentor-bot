@@ -8,9 +8,7 @@ from auth_service.repositories.implementations.base import SqlAlchemyBaseReposit
 from auth_service.repositories.interfaces.password_reset import IPasswordResetRepository
 
 
-class PasswordResetRepository(
-    SqlAlchemyBaseRepository[PasswordResetToken, int], IPasswordResetRepository
-):
+class PasswordResetRepository(SqlAlchemyBaseRepository[PasswordResetToken, int], IPasswordResetRepository):
     """SQLAlchemy implementation of Password reset token repository."""
 
     def __init__(self, session: AsyncSession) -> None:

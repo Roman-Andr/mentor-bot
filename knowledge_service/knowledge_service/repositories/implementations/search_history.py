@@ -275,15 +275,16 @@ class SearchHistoryRepository(SqlAlchemyBaseRepository[SearchHistory, int], ISea
             .order_by(func.count(SearchHistory.id).desc())
         )
         result = await self._session.execute(stmt)
-        
+
         # Fetch department names from auth service
         department_map = {}
         if token:
             from knowledge_service.utils import auth_service_client
+
             departments = await auth_service_client.get_departments(token)
             if departments:
                 department_map = {dept["id"]: dept["name"] for dept in departments}
-        
+
         return [
             {
                 "department_id": row[0],

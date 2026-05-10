@@ -46,7 +46,7 @@ def mock_uow() -> MagicMock:
     uow = MagicMock(spec=IUnitOfWork)
     uow.__aenter__ = AsyncMock(return_value=uow)
     uow.__aexit__ = AsyncMock(return_value=None)
-    
+
     uow.notifications = MagicMock()
     uow.notifications.create = AsyncMock(return_value=None)
     uow.notifications.update = AsyncMock(return_value=None)

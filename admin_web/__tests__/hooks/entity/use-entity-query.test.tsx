@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { renderHook } from '@testing-library/react'
+import { renderHook, waitFor } from '@testing-library/react'
 import { useEntityQuery } from '@/shared/hooks/entity/use-entity-query'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
@@ -149,5 +149,38 @@ describe('useEntityQuery', () => {
     )
 
     expect(mapItem).toBeDefined()
+  })
+
+  it('handles array data response directly', async () => {
+    const listFn = vi.fn().mockResolvedValue({
+      success: true,
+      data: [{ id: 1, name: 'Test' }, { id: 2, name: 'Test 2' }],
+    })
+    
+    const mapItem = vi.fn((item: any) => ({ ...item, mapped: true }))
+    
+    const { result } = renderHook(
+      () =>
+        useEntityQuery(
+          {
+            queryKeyPrefix: 'users',
+            listFn,
+            listDataKey: 'items',
+            mapItem,
+          },
+          { skip: 0, limit: 10 },
+        ),
+      { wrapper: createWrapper() },
+    )
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false)
+    })
+
+    expect(result.current).toHaveProperty('items')
+    expect(result.current).toHaveProperty('totalCount')
+    expect(result.current).toHaveProperty('totalPages')
+    expect(result.current.totalCount).toBe(2)
+    expect(result.current.totalPages).toBe(1)
   })
 })

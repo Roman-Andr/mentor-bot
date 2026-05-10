@@ -42,6 +42,7 @@ def mock_uow() -> MagicMock:
     uow.materials.create = AsyncMock()
     uow.materials.get_by_id = AsyncMock()
     uow.materials.get_by_meeting = AsyncMock()
+    uow.materials.update = AsyncMock()
     uow.materials.delete = AsyncMock()
 
     uow.user_meetings = MagicMock()

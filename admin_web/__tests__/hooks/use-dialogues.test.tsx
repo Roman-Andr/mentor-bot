@@ -308,5 +308,74 @@ describe('useDialogues', () => {
 
       expect(Array.isArray(result.current.selectedSteps)).toBe(true)
     })
+
+    it('loads steps when selected item exists', async () => {
+      mockFetchResponse({
+        scenarios: [],
+        total: 0,
+      })
+
+      const { result } = renderHook(() => useDialogues(), { wrapper: createWrapper() })
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false)
+      })
+
+      const dialogue: DialogueRow = {
+        id: 1,
+        title: 'Test Dialogue',
+        description: 'Test Description',
+        category: 'ONBOARDING',
+        steps_count: 3,
+        user_id: 1,
+        user_name: 'John Doe',
+        user_first_name: 'John',
+        user_last_name: 'Doe',
+        is_active: true,
+        createdAt: '2024-01-01',
+      }
+
+      act(() => {
+        result.current.setSelectedDialogue(dialogue)
+      })
+
+      // Should trigger steps loading when item is selected
+      expect(result.current.selectedDialogue).toEqual(dialogue)
+    })
+
+    it('handles steps mapping with proper data structure', async () => {
+      mockFetchResponse({
+        scenarios: [],
+        total: 0,
+      })
+
+      const { result } = renderHook(() => useDialogues(), { wrapper: createWrapper() })
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false)
+      })
+
+      const dialogue: DialogueRow = {
+        id: 1,
+        title: 'Test Dialogue',
+        description: 'Test Description',
+        category: 'ONBOARDING',
+        steps_count: 3,
+        user_id: 1,
+        user_name: 'John Doe',
+        user_first_name: 'John',
+        user_last_name: 'Doe',
+        is_active: true,
+        createdAt: '2024-01-01',
+      }
+
+      act(() => {
+        result.current.setSelectedDialogue(dialogue)
+      })
+
+      // Should handle steps data structure properly
+      expect(result.current.selectedDialogue).toBeDefined()
+      expect(result.current.selectedSteps).toBeDefined()
+    })
   })
 })

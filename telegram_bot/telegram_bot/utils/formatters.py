@@ -15,6 +15,7 @@ def escape_markdown(text: str) -> str:
         text = text.replace(char, f"\\{char}")
     return text
 
+
 MAX_DISPLAYED_TASKS = 10
 MAX_SEARCH_RESULTS_DISPLAY = 5
 DAYS_THRESHOLD_OLD = 7

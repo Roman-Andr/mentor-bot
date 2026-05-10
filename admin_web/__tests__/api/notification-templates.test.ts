@@ -41,6 +41,19 @@ describe('notificationTemplatesApi', () => {
     expect(mockFetchApi).toHaveBeenCalled()
   })
 
+  it('create with HTML content calls fetchApi with POST', () => {
+    notificationTemplatesApi.create({
+      name: 'template-with-html',
+      channel: 'email',
+      language: 'en',
+      subject: 'Test Subject',
+      body_text: 'Plain text body',
+      body_html: '<p>HTML body</p>',
+      variables: [{ name: 'user', type: 'string', description: 'User name' }],
+    })
+    expect(mockFetchApi).toHaveBeenCalled()
+  })
+
   it('update calls fetchApi with PUT', () => {
     notificationTemplatesApi.update(123, { subject: 'Updated', body_html: null, body_text: null, variables: null, is_active: null })
     expect(mockFetchApi).toHaveBeenCalled()

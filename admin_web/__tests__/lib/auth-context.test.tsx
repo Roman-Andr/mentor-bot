@@ -240,6 +240,44 @@ describe('AuthContext', () => {
 
       expect(loginResult).toBe(false)
     })
+
+    it('handles login failure with error data parsing', async () => {
+      ;(global.fetch as any).mockResolvedValueOnce({
+        ok: false,
+        status: 401,
+        json: () => Promise.resolve({ error: 'Invalid credentials', code: 'AUTH_FAILED' }),
+      })
+
+      const { result } = renderAuth()
+      await waitForSessionValidation(result)
+
+      let loginResult = true
+      await act(async () => {
+        loginResult = await result.current.login('test@example.com', 'password')
+      })
+
+      expect(loginResult).toBe(false)
+      expect(result.current.user).toBeNull()
+    })
+
+    it('handles login failure with invalid JSON response', async () => {
+      ;(global.fetch as any).mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        json: () => Promise.reject(new Error('Invalid JSON')),
+      })
+
+      const { result } = renderAuth()
+      await waitForSessionValidation(result)
+
+      let loginResult = true
+      await act(async () => {
+        loginResult = await result.current.login('test@example.com', 'password')
+      })
+
+      expect(loginResult).toBe(false)
+      expect(result.current.user).toBeNull()
+    })
   })
 
   describe('logout function', () => {
