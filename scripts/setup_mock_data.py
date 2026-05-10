@@ -47,6 +47,7 @@ _REQUIRED_ENV_VARS = [
     "SERVICE_API_KEY",
     "ADMIN_WEB_URL",
     "AUTH_SERVICE_URL",
+    "MOCK_DATA_CHECKLIST_CONCURRENCY",
 ]
 
 
@@ -70,6 +71,25 @@ _load_env_file()
 
 # Single entry point: admin_web proxies /api/v1/<service>/... to the right backend.
 ADMIN_WEB_URL = os.getenv("ADMIN_WEB_URL", "http://localhost:3000").rstrip("/")
+
+
+def _get_positive_int_env(name: str, default: int) -> int:
+    """Read a positive integer from the environment."""
+    value = os.getenv(name)
+    if not value:
+        return default
+    try:
+        parsed = int(value)
+    except ValueError:
+        print(f"[WARNING] Invalid {name}={value!r}; using {default}")
+        return default
+    if parsed < 1:
+        print(f"[WARNING] Invalid {name}={value!r}; using {default}")
+        return default
+    return parsed
+
+
+MOCK_DATA_CHECKLIST_CONCURRENCY = _get_positive_int_env("MOCK_DATA_CHECKLIST_CONCURRENCY", 2)
 
 
 POSTGRES_USER = os.getenv("POSTGRES_USER", "postgres")
@@ -661,30 +681,32 @@ async def create_checklist_instances_async(
 
     checklist_instances = load_json("checklist_instances.json")
     created_count = 0
+    semaphore = asyncio.Semaphore(MOCK_DATA_CHECKLIST_CONCURRENCY)
 
     async def create_single_instance(instance: dict) -> None:
         nonlocal created_count
-        newbie_key = instance.get("user_key")
-        status = instance.get("status")
-        days_ago = instance.get("days_ago", 0)
-        completed_tasks = instance.get("completed_tasks", 0)
-        template_index = instance.get("template_index", 0)
+        async with semaphore:
+            newbie_key = instance.get("user_key")
+            status = instance.get("status")
+            days_ago = instance.get("days_ago", 0)
+            completed_tasks = instance.get("completed_tasks", 0)
+            template_index = instance.get("template_index", 0)
 
-        if newbie_key in user_ids:
-            result = await create_checklist_instances(
-                token,
-                template_ids,
-                users_data[newbie_key],
-                user_ids[newbie_key],
-                mentor_id,
-                hr_id,
-                status,
-                days_ago,
-                completed_tasks,
-                template_index,
-            )
-            if result:
-                created_count += 1
+            if newbie_key in user_ids:
+                result = await create_checklist_instances(
+                    token,
+                    template_ids,
+                    users_data[newbie_key],
+                    user_ids[newbie_key],
+                    mentor_id,
+                    hr_id,
+                    status,
+                    days_ago,
+                    completed_tasks,
+                    template_index,
+                )
+                if result:
+                    created_count += 1
 
     await asyncio.gather(*[create_single_instance(inst) for inst in checklist_instances])
     if created_count > 0:
@@ -738,7 +760,7 @@ async def create_checklist_instances(
                     f"  Checklist {checklist_id} created for user {user_id} (status: {status}, template: {template_index})"
                 )
 
-                if completed_task_count > 0:
+                if completed_task_count > 0 and status != "COMPLETED":
                     await update_checklist_tasks(client, headers, checklist_id, completed_task_count, status)
 
                 if status == "COMPLETED":
@@ -2180,26 +2202,29 @@ async def create_overdue_checklists_async(
         log_warning("  overdue_checklists.json not found, skipping")
         return
 
-    async def create_single_instance(instance: dict) -> None:
-        newbie_key = instance.get("user_key")
-        status = instance.get("status")
-        days_ago = instance.get("start_days_ago", 0)
-        completed_tasks = instance.get("completed_tasks", 0)
-        template_index = instance.get("template_index", 0)
+    semaphore = asyncio.Semaphore(MOCK_DATA_CHECKLIST_CONCURRENCY)
 
-        if newbie_key in user_ids:
-            await create_checklist_instances(
-                token,
-                template_ids,
-                users_data[newbie_key],
-                user_ids[newbie_key],
-                mentor_id,
-                hr_id,
-                status,
-                days_ago,
-                completed_tasks,
-                template_index,
-            )
+    async def create_single_instance(instance: dict) -> None:
+        async with semaphore:
+            newbie_key = instance.get("user_key")
+            status = instance.get("status")
+            days_ago = instance.get("start_days_ago", 0)
+            completed_tasks = instance.get("completed_tasks", 0)
+            template_index = instance.get("template_index", 0)
+
+            if newbie_key in user_ids:
+                await create_checklist_instances(
+                    token,
+                    template_ids,
+                    users_data[newbie_key],
+                    user_ids[newbie_key],
+                    mentor_id,
+                    hr_id,
+                    status,
+                    days_ago,
+                    completed_tasks,
+                    template_index,
+                )
 
     await asyncio.gather(*[create_single_instance(inst) for inst in overdue_checklists])
     log_success_newline()
@@ -2906,10 +2931,23 @@ if __name__ == "__main__":
         action="store_true",
         help="Run without actually creating data",
     )
+    parser.add_argument(
+        "--checklist-concurrency",
+        type=int,
+        default=None,
+        help=(
+            "Maximum concurrent checklist create/update flows "
+            "(default: $MOCK_DATA_CHECKLIST_CONCURRENCY or 2)"
+        ),
+    )
 
     args = parser.parse_args()
     if args.admin_web_url:
         ADMIN_WEB_URL = args.admin_web_url.rstrip("/")
+    if args.checklist_concurrency is not None:
+        if args.checklist_concurrency < 1:
+            parser.error("--checklist-concurrency must be a positive integer")
+        MOCK_DATA_CHECKLIST_CONCURRENCY = args.checklist_concurrency
     skip_list = [s.strip() for s in args.skip_services.split(",") if s.strip()]
     only_list = [s.strip() for s in args.only.split(",") if s.strip()]
 
