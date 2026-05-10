@@ -428,7 +428,7 @@ class TestRecordView:
         await service.record_view(1, user_id=1)
 
         mock_uow.articles.increment_view_count.assert_called_once_with(1)
-        mock_uow.article_views.record_view.assert_called_once_with(1, 1)
+        mock_uow.article_views.record_view.assert_called_once_with(1, 1, viewed_at=None)
         mock_uow.commit.assert_called_once()
 
     async def test_record_view_without_user(self, mock_uow):
@@ -440,7 +440,7 @@ class TestRecordView:
         await service.record_view(1, user_id=None)
 
         mock_uow.articles.increment_view_count.assert_called_once_with(1)
-        mock_uow.article_views.record_view.assert_called_once_with(1, None)
+        mock_uow.article_views.record_view.assert_called_once_with(1, None, viewed_at=None)
 
 
 class TestDepartmentArticles:

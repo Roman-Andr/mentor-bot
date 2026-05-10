@@ -57,6 +57,20 @@ class TestArticleViewRepository:
         assert result.article_id == 2
         assert result.user_id is None
 
+    async def test_record_view_with_viewed_at(self, mock_session):
+        """Test recording a view with a custom timestamp."""
+        mock_session.flush = AsyncMock()
+        mock_session.refresh = AsyncMock()
+        viewed_at = datetime.now(UTC)
+
+        repo = ArticleViewRepository(mock_session)
+        result = await repo.record_view(article_id=3, user_id=4, viewed_at=viewed_at)
+
+        assert isinstance(result, ArticleView)
+        assert result.article_id == 3
+        assert result.user_id == 4
+        assert result.viewed_at == viewed_at
+
     async def test_get_top_articles_basic(self, mock_session):
         """Test getting top articles by view count."""
         mock_result = MagicMock()

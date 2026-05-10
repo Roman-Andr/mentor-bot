@@ -230,11 +230,16 @@ class ArticleService:
 
         return await self.get_article_by_id(article_id)
 
-    async def record_view(self, article_id: int, user_id: int | None = None) -> None:
+    async def record_view(
+        self,
+        article_id: int,
+        user_id: int | None = None,
+        viewed_at: datetime | None = None,
+    ) -> None:
         """Record article view and increment counter."""
         logger.debug("Recording article view (article_id={}, user_id={})", article_id, user_id)
         await self._uow.articles.increment_view_count(article_id)
-        await self._uow.article_views.record_view(article_id, user_id)
+        await self._uow.article_views.record_view(article_id, user_id, viewed_at=viewed_at)
         await self._uow.commit()
         logger.info("Article view recorded (article_id={}, user_id={})", article_id, user_id)
 

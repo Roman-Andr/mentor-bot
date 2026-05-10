@@ -54,6 +54,13 @@ class ArticleUpdate(BaseModel):
     tag_ids: list[int] | None = None
 
 
+class ArticleViewCreate(BaseModel):
+    """Article view creation schema for explicit view tracking."""
+
+    user_id: int | None = None
+    viewed_at: datetime | None = None
+
+
 class ArticleResponse(ArticleBase):
     """Article response schema."""
 

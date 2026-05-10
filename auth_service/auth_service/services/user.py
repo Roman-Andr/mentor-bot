@@ -12,7 +12,7 @@ from auth_service.core import (
     hash_password,
     verify_password,
 )
-from auth_service.models import User
+from auth_service.models import RoleChangeHistory, User
 from auth_service.repositories.unit_of_work import IUnitOfWork
 from auth_service.schemas import UserCreate, UserPreferencesUpdate, UserUpdate
 
@@ -206,10 +206,28 @@ class UserService:
         )
         return list(users), total
 
-    async def update_user_role(self, user_id: int, role: UserRole) -> User:
+    async def update_user_role(
+        self,
+        user_id: int,
+        role: UserRole,
+        changed_by: int | None = None,
+        reason: str | None = None,
+    ) -> User:
         """Update user role."""
         logger.info("Updating user role (user_id={}, new_role={})", user_id, role)
+        user = await self.get_user_by_id(user_id)
+        old_role = user.role
         updated = await self._uow.users.update_role(user_id, role)
+        if old_role != role:
+            await self._uow.role_change_history.create(
+                RoleChangeHistory(
+                    user_id=user_id,
+                    old_role=old_role,
+                    new_role=role,
+                    changed_by=changed_by,
+                    reason=reason,
+                )
+            )
         await self._uow.commit()
         return updated
 

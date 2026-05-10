@@ -293,7 +293,12 @@ async def change_user_role(
         role,
     )
     try:
-        user = await user_service.update_user_role(user_id, role)
+        user = await user_service.update_user_role(
+            user_id,
+            role,
+            changed_by=_current_user.id,
+            reason="Role changed by admin",
+        )
         return UserResponse.model_validate(user)
     except (NotFoundException, ValidationException) as e:
         raise HTTPException(

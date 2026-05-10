@@ -111,7 +111,7 @@ async def update_template(
     template_service = TemplateService(uow)
 
     try:
-        template = await template_service.update_template(template_id, template_data)
+        template = await template_service.update_template(template_id, template_data, changed_by=_current_user.id)
         await uow.commit()
         return TemplateResponse.model_validate(template)
     except NotFoundException as e:

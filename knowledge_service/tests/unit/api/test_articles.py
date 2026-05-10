@@ -1,5 +1,6 @@
 """Tests for article API endpoints."""
 
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 from unittest.mock import AsyncMock
 
@@ -14,6 +15,7 @@ from knowledge_service.api.endpoints.articles import (
     get_articles,
     get_department_articles,
     publish_article,
+    record_article_view,
     update_article,
 )
 from knowledge_service.core import ArticleStatus, NotFoundException, PermissionDenied
@@ -23,6 +25,7 @@ from knowledge_service.schemas import (
     ArticleListResponse,
     ArticleResponse,
     ArticleUpdate,
+    ArticleViewCreate,
 )
 
 if TYPE_CHECKING:
@@ -196,6 +199,7 @@ class TestGetArticle:
         mock_article_service.get_article_by_id.assert_called_once_with(1)
         mock_article_service.record_view.assert_called_once()
 
+
     async def test_get_article_by_slug(
         self,
         mock_article_service: AsyncMock,
@@ -286,6 +290,62 @@ class TestGetArticle:
                 article_service=mock_article_service,
                 current_user=mock_user,
             )
+
+
+class TestRecordArticleView:
+    """Test POST /articles/{article_id}/views endpoint."""
+
+    async def test_record_own_view(
+        self,
+        mock_article_service: AsyncMock,
+        mock_user: UserInfo,
+    ) -> None:
+        """Test recording a normal view for the current user."""
+        result = await record_article_view(
+            article_id=1,
+            view_data=ArticleViewCreate(),
+            article_service=mock_article_service,
+            current_user=mock_user,
+        )
+
+        assert result.message == "Article view recorded"
+        mock_article_service.get_article_by_id.assert_called_once_with(1)
+        mock_article_service.record_view.assert_called_once_with(1, user_id=mock_user.id, viewed_at=None)
+
+    async def test_admin_records_historical_view(
+        self,
+        mock_article_service: AsyncMock,
+        mock_admin_user: UserInfo,
+    ) -> None:
+        """Test admin can record a view for a specific user and timestamp."""
+        viewed_at = datetime.now(UTC)
+
+        result = await record_article_view(
+            article_id=2,
+            view_data=ArticleViewCreate(user_id=10, viewed_at=viewed_at),
+            article_service=mock_article_service,
+            current_user=mock_admin_user,
+        )
+
+        assert result.message == "Article view recorded"
+        mock_article_service.get_article_by_id.assert_called_once_with(2)
+        mock_article_service.record_view.assert_called_once_with(2, user_id=10, viewed_at=viewed_at)
+
+    async def test_non_admin_cannot_record_historical_view(
+        self,
+        mock_article_service: AsyncMock,
+        mock_user: UserInfo,
+    ) -> None:
+        """Test regular users cannot spoof user or timestamp."""
+        with pytest.raises(PermissionDenied):
+            await record_article_view(
+                article_id=2,
+                view_data=ArticleViewCreate(user_id=10),
+                article_service=mock_article_service,
+                current_user=mock_user,
+            )
+
+        mock_article_service.record_view.assert_not_called()
 
 
 class TestUpdateArticle:

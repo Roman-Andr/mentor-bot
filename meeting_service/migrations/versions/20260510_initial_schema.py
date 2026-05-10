@@ -63,8 +63,9 @@ def upgrade() -> None:
         sa.Column("meeting_id", sa.Integer(), nullable=False),
         sa.Column("title", sa.String(length=200), nullable=False),
         sa.Column("description", sa.String(length=500), nullable=True),
-        sa.Column("url", sa.String(length=500), nullable=False),
-        sa.Column("type", sa.Enum("PDF", "LINK", "DOC", "IMAGE", "VIDEO", name="materialtype"), nullable=False),
+        sa.Column("url", sa.String(length=500), nullable=True),
+        sa.Column("content", sa.String(length=5000), nullable=True),
+        sa.Column("type", sa.Enum("FILE", "NOTE", "URL", name="materialtype"), nullable=False),
         sa.Column("order", sa.Integer(), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.ForeignKeyConstraint(["meeting_id"], ["meetings.id"], ondelete="CASCADE"),
@@ -134,57 +135,9 @@ def upgrade() -> None:
     op.create_index(op.f("ix_meeting_participant_history_meeting_id"), "meeting_participant_history", ["meeting_id"])
     op.create_index(op.f("ix_meeting_participant_history_user_id"), "meeting_participant_history", ["user_id"])
 
-    # From meeting_service/migrations/versions/20260508_update_material_types.py
-    # Make url nullable
-    op.alter_column(
-        "meeting_materials",
-        "url",
-        existing_type=sa.String(length=500),
-        nullable=True,
-    )
-
-    # Add content column for NOTE type
-    op.add_column(
-        "meeting_materials",
-        sa.Column("content", sa.String(length=5000), nullable=True),
-    )
-
-    # Update enum values from PDF, LINK, DOC, IMAGE, VIDEO to FILE, NOTE, URL
-    # First, update existing data to map old types to new types
-    op.execute("UPDATE meeting_materials SET type = 'FILE' WHERE type IN ('PDF', 'DOC', 'IMAGE', 'VIDEO')")
-    op.execute("UPDATE meeting_materials SET type = 'URL' WHERE type = 'LINK'")
-
-    # Then recreate the enum with new values
-    op.execute("ALTER TYPE materialtype RENAME TO materialtype_old")
-    sa.Enum("FILE", "NOTE", "URL", name="materialtype").create(op.get_bind())
-    op.execute("ALTER TABLE meeting_materials ALTER COLUMN type TYPE materialtype USING type::text::materialtype")
-    op.execute("DROP TYPE materialtype_old")
-
 
 def downgrade() -> None:
     """Downgrade database schema."""
-    # From meeting_service/migrations/versions/20260508_update_material_types.py
-    # Revert enum values
-    op.execute("ALTER TYPE materialtype RENAME TO materialtype_new")
-    sa.Enum("PDF", "LINK", "DOC", "IMAGE", "VIDEO", name="materialtype").create(op.get_bind())
-    op.execute("ALTER TABLE meeting_materials ALTER COLUMN type TYPE materialtype USING type::text::materialtype")
-    op.execute("DROP TYPE materialtype_new")
-
-    # Revert data mapping
-    op.execute("UPDATE meeting_materials SET type = 'LINK' WHERE type = 'URL'")
-    op.execute("UPDATE meeting_materials SET type = 'PDF' WHERE type = 'FILE'")
-
-    # Remove content column
-    op.drop_column("meeting_materials", "content")
-
-    # Make url not nullable again
-    op.alter_column(
-        "meeting_materials",
-        "url",
-        existing_type=sa.String(length=500),
-        nullable=False,
-    )
-
     # From meeting_service/migrations/versions/20260426_add_audit_tables.py
     op.drop_index(op.f("ix_meeting_participant_history_user_id"), table_name="meeting_participant_history")
     op.drop_index(op.f("ix_meeting_participant_history_meeting_id"), table_name="meeting_participant_history")

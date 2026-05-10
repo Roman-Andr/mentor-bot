@@ -65,6 +65,8 @@ def mock_uow() -> MagicMock:
     uow.tasks = AsyncMock()
     uow.templates = AsyncMock()
     uow.task_templates = AsyncMock()
+    uow.template_change_history = AsyncMock()
+    uow.checklist_status_history = AsyncMock()
     uow.certificates = AsyncMock()
 
     # Setup commit/rollback as async mocks

@@ -95,38 +95,56 @@ class Colors:
     BOLD = "\033[1m"
 
 
+_success_dots_open = False
+
+
+def _close_success_dots() -> None:
+    """Finish the current success-dot line if one is active."""
+    global _success_dots_open
+    if _success_dots_open:
+        print()
+        _success_dots_open = False
+
+
 def log_info(msg: str) -> None:
     """Print info message to console."""
+    _close_success_dots()
     print(f"{Colors.CYAN}[INFO]{Colors.NC} {msg}")
 
 
 def log_success(msg: str) -> None:
     """Print success message to console as green dots."""
+    global _success_dots_open
     print(f"{Colors.GREEN}.{Colors.NC}", end="", flush=True)
+    _success_dots_open = True
 
 
 def log_success_newline() -> None:
-    """Print a newline after success dots."""
-    print()
+    """Print a newline after success dots, once."""
+    _close_success_dots()
 
 
 def log_warning(msg: str) -> None:
     """Print warning message to console."""
+    _close_success_dots()
     print(f"{Colors.YELLOW}[WARNING]{Colors.NC} {msg}")
 
 
 def log_error(msg: str) -> None:
     """Print error message to console."""
+    _close_success_dots()
     print(f"{Colors.RED}[ERROR]{Colors.NC} {msg}")
 
 
 def log_step(msg: str) -> None:
     """Print step message to console."""
+    _close_success_dots()
     print(f"{Colors.BLUE}>>>{Colors.NC} {Colors.BOLD}{msg}{Colors.NC}")
 
 
 def log_divider() -> None:
     """Print divider line to console."""
+    _close_success_dots()
     print(f"{Colors.BLUE}{'=' * 60}{Colors.NC}")
 
 
@@ -180,7 +198,10 @@ def create_admin_user() -> bool:
             return True
 
         if result.returncode != 0:
-            log_warning(f"Existence check via docker failed: {result.stderr.strip()}")
+            error = result.stderr.strip()
+            log_warning(f"Existence check via docker failed: {error}")
+            if 'relation "users" does not exist' in error:
+                return False
             return create_admin_user_direct()
 
         result = subprocess.run(
@@ -270,16 +291,47 @@ async def wait_for_admin_web(url: str, max_attempts: int = 30, delay: int = 1) -
     return False
 
 
+async def wait_for_auth_service(max_attempts: int = 60, delay: int = 1) -> bool:
+    """Wait until auth_service is reachable through the admin_web proxy."""
+    log_step("Waiting for auth_service through admin_web")
+    login_url = f"{ADMIN_WEB_URL}/api/v1/auth/login"
+    async with httpx.AsyncClient(timeout=5.0, follow_redirects=False) as client:
+        for attempt in range(1, max_attempts + 1):
+            try:
+                response = await client.post(
+                    login_url,
+                    data={
+                        "username": ADMIN_EMAIL,
+                        "password": ADMIN_PASSWORD,
+                        "grant_type": "password",
+                    },
+                    headers={"Content-Type": "application/x-www-form-urlencoded"},
+                )
+                if response.status_code not in {502, 503, 504}:
+                    return True
+            except Exception as e:
+                logger.debug("Auth service not ready yet: %s", e)
+            log_warning(f"Attempt {attempt}/{max_attempts}: auth_service not ready yet")
+            await asyncio.sleep(delay)
+    log_error(f"auth_service failed to respond after {max_attempts} attempts")
+    return False
+
+
 async def get_admin_token() -> str | None:
     """Get admin authentication token."""
     log_step("Getting admin authentication token")
+    return await login_user(ADMIN_EMAIL, ADMIN_PASSWORD)
+
+
+async def login_user(email: str, password: str) -> str | None:
+    """Log in a user and return an access token."""
     async with httpx.AsyncClient(follow_redirects=True) as client:
         try:
             response = await client.post(
                 f"{ADMIN_WEB_URL}/api/v1/auth/login",
                 data={
-                    "username": ADMIN_EMAIL,
-                    "password": ADMIN_PASSWORD,
+                    "username": email,
+                    "password": password,
                     "grant_type": "password",
                 },
                 headers={"Content-Type": "application/x-www-form-urlencoded"},
@@ -289,9 +341,9 @@ async def get_admin_token() -> str | None:
                 token = data.get("access_token")
                 if token:
                     return token
-            log_error(f"Failed to get admin token: {response.status_code} - {response.text}")
+            log_warning(f"  Failed to log in '{email}': {response.status_code} - {response.text[:200]}")
         except Exception as e:
-            log_error(f"Failed to connect to auth service: {e}")
+            log_warning(f"  Failed to connect to auth service for '{email}': {e}")
     return None
 
 
@@ -1044,8 +1096,8 @@ async def create_article_views_async(
     """
     Create article views to simulate users reading knowledge base articles.
 
-    Views are recorded by directly inserting into the article_views table with
-    custom timestamps to simulate historical data over ~1 month period.
+    Views are recorded through the articles API with custom timestamps to
+    simulate historical data over ~1 month period.
     """
     log_step("Creating article views with time distribution (async)")
 
@@ -1056,10 +1108,7 @@ async def create_article_views_async(
         return
 
     total_views = 0
-    knowledge_db = "knowledge_db"
-
-    # Collect all SQL INSERT statements
-    insert_statements = []
+    view_payloads: list[dict[str, Any]] = []
 
     for view_data in article_views:
         user_key = view_data.get("user_key")
@@ -1085,71 +1134,47 @@ async def create_article_views_async(
                 hours_offset = view_num * 2  # 2 hours between views of same article
                 view_time = (datetime.now() - timedelta(days=days_ago, hours=hours_offset)).isoformat()
 
-                insert_statements.append(
-                    f"INSERT INTO article_views (article_id, user_id, viewed_at) "
-                    f"VALUES ({article_id}, {user_id}, '{view_time}');"
+                view_payloads.append(
+                    {
+                        "article_id": article_id,
+                        "user_id": user_id,
+                        "viewed_at": view_time,
+                    }
                 )
                 total_views += 1
-                log_success("")
 
-    # Execute all inserts in a single transaction
-    if insert_statements:
-        try:
-            sql_command = "\\set ON_ERROR_STOP 1\nBEGIN;\n" + "\n".join(insert_statements) + "\nCOMMIT;"
-            result = subprocess.run(
-                [
-                    "docker",
-                    "compose",
-                    "exec",
-                    "-T",
-                    "postgres",
-                    "psql",
-                    "-U",
-                    POSTGRES_USER,
-                    "-d",
-                    knowledge_db,
-                    "-c",
-                    sql_command,
-                ],
-                capture_output=True,
-                text=True,
-                timeout=60,
-            )
-            if result.returncode == 0:
-                log_info(f"  Successfully inserted {total_views} article views with time distribution")
-            else:
-                log_warning(f"  Failed to insert article views: {result.stderr.strip()}")
-        except FileNotFoundError:
-            log_warning("  docker compose not found, trying direct psql")
-            try:
-                sql_command = "\\set ON_ERROR_STOP 1\nBEGIN;\n" + "\n".join(insert_statements) + "\nCOMMIT;"
-                result = subprocess.run(
-                    [
-                        "psql",
-                        "-U",
-                        POSTGRES_USER,
-                        "-d",
-                        knowledge_db,
-                        "-h",
-                        "localhost",
-                        "-p",
-                        "5432",
-                        "-c",
-                        sql_command,
-                    ],
-                    capture_output=True,
-                    text=True,
-                    timeout=60,
-                    env={**os.environ, "PGPASSWORD": POSTGRES_PASSWORD},
-                )
-                if result.returncode == 0:
-                    log_info(f"  Successfully inserted {total_views} article views with time distribution")
-                else:
-                    log_warning(f"  Failed to insert article views: {result.stderr.strip()}")
-            except Exception as e:
-                log_warning(f"  Error inserting article views: {e}")
-        except Exception as e:
-            log_warning(f"  Error inserting article views: {e}")
+    if view_payloads:
+        headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+        created_count = 0
+        semaphore = asyncio.Semaphore(20)
+
+        async def record_view(client: httpx.AsyncClient, view_payload: dict[str, Any]) -> None:
+            nonlocal created_count
+            async with semaphore:
+                article_id = view_payload.pop("article_id")
+                try:
+                    response = await client.post(
+                        f"{ADMIN_WEB_URL}/api/v1/articles/{article_id}/views",
+                        headers=headers,
+                        json=view_payload,
+                    )
+                    if response.status_code in (200, 201):
+                        created_count += 1
+                        log_success("")
+                    else:
+                        log_warning(
+                            f"  Failed to record article view for article {article_id}: "
+                            f"{response.status_code} - {response.text[:200]}"
+                        )
+                except Exception as e:
+                    log_warning(f"  Error recording article view for article {article_id}: {e}")
+
+        async with httpx.AsyncClient(follow_redirects=True, timeout=15.0) as client:
+            await asyncio.gather(*(record_view(client, view_payload.copy()) for view_payload in view_payloads))
+        if created_count == total_views:
+            log_info(f"  Successfully recorded {created_count} article views with time distribution")
+        else:
+            log_warning(f"  Recorded {created_count}/{total_views} article views")
     else:
         log_warning("  No article views to insert")
 
@@ -2061,9 +2086,10 @@ async def create_search_queries_async(
 async def create_user_sessions_async(
     token: str,
     user_ids: dict[str, int],
+    users_data: dict,
 ) -> None:
-    """Create user session records to simulate login/logout activity."""
-    log_step("Creating user sessions (async)")
+    """Create login/logout history by exercising the normal auth endpoints."""
+    log_step("Creating user login/logout activity (async)")
 
     try:
         user_sessions = load_json("user_sessions.json")
@@ -2071,9 +2097,70 @@ async def create_user_sessions_async(
         log_warning("  user_sessions.json not found, skipping user sessions")
         return
 
-    log_warning("  User sessions cannot be created via API (created automatically during login)")
-    log_warning("  Skipping user sessions creation")
-    return
+    headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+    created_count = 0
+
+    async with httpx.AsyncClient(follow_redirects=True) as client:
+
+        async def create_session(session_data: dict) -> None:
+            nonlocal created_count
+            user_key = session_data.get("user_key")
+            user_data = users_data.get(user_key)
+            if user_key not in user_ids or not user_data:
+                log_warning(f"  Skipping login activity: user '{user_key}' not found")
+                return
+
+            login_token = await login_user(user_data["email"], user_data["password"])
+            if not login_token:
+                return
+
+            created_count += 1
+            log_success("")
+
+            logout_resp = await client.post(
+                f"{ADMIN_WEB_URL}/api/v1/auth/logout",
+                headers={**headers, "Authorization": f"Bearer {login_token}"},
+            )
+            if logout_resp.status_code in (200, 201):
+                log_success("")
+            else:
+                log_warning(f"  Failed to log out '{user_data['email']}': {logout_resp.status_code}")
+
+        semaphore = asyncio.Semaphore(5)
+
+        async def create_with_semaphore(session_data: dict) -> None:
+            async with semaphore:
+                await create_session(session_data)
+
+        await asyncio.gather(*[create_with_semaphore(session_data) for session_data in user_sessions])
+
+    if created_count > 0:
+        log_success_newline()
+
+
+async def fetch_existing_checklist_templates(token: str) -> list[int]:
+    """Fetch existing checklist template IDs for selective audit-data generation."""
+    log_step("Fetching existing checklist templates")
+    headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+
+    async with httpx.AsyncClient(follow_redirects=True) as client:
+        try:
+            response = await client.get(
+                f"{ADMIN_WEB_URL}/api/v1/templates/",
+                headers=headers,
+                params={"limit": 100},
+            )
+            if response.status_code == 200:
+                templates = response.json()
+                template_ids = [template["id"] for template in templates if template.get("id")]
+                if template_ids:
+                    log_success_newline()
+                return template_ids
+            log_warning(f"  Failed to fetch checklist templates: {response.status_code} - {response.text[:200]}")
+        except Exception as e:
+            log_warning(f"  Error fetching checklist templates: {e}")
+
+    return []
 
 
 async def create_overdue_checklists_async(
@@ -2267,19 +2354,86 @@ async def create_requests_resolved_closed_async(
 async def create_history_changes_async(
     token: str,
     user_ids: dict[str, int],
+    users_data: dict,
+    template_ids: list[int],
 ) -> None:
-    """Create history change records for templates, escalations, checklists, and roles."""
-    log_step("Creating history changes (async)")
+    """Create audit history by performing normal updates through service APIs."""
+    log_step("Creating audit-history source changes (async)")
 
     try:
-        history_changes = load_json("history_changes.json")
+        load_json("history_changes.json")
     except FileNotFoundError:
         log_warning("  history_changes.json not found, skipping")
         return
 
-    log_warning("  History changes cannot be created via API (created automatically by services)")
-    log_warning("  Skipping history changes creation")
-    return
+    headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+    changed_count = 0
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    if not template_ids:
+        template_ids = await fetch_existing_checklist_templates(token)
+
+    async with httpx.AsyncClient(follow_redirects=True) as client:
+        for template_id in template_ids[:3]:
+            try:
+                response = await client.get(
+                    f"{ADMIN_WEB_URL}/api/v1/templates/{template_id}",
+                    headers=headers,
+                )
+                if response.status_code != 200:
+                    log_warning(f"  Failed to fetch template {template_id}: {response.status_code}")
+                    continue
+
+                template = response.json()
+                description = template.get("description") or ""
+                update_resp = await client.put(
+                    f"{ADMIN_WEB_URL}/api/v1/templates/{template_id}",
+                    headers=headers,
+                    json={
+                        "description": f"{description}\nMock audit update at {timestamp}",
+                    },
+                )
+                if update_resp.status_code in (200, 201):
+                    changed_count += 1
+                    log_success("")
+                else:
+                    log_warning(f"  Failed to update template {template_id}: {update_resp.status_code}")
+            except Exception as e:
+                log_warning(f"  Error updating template {template_id}: {e}")
+
+        role_targets = [
+            (user_key, user_id, users_data.get(user_key))
+            for user_key, user_id in user_ids.items()
+            if users_data.get(user_key, {}).get("role") == "NEWBIE"
+        ]
+        if role_targets:
+            user_key, user_id, user_data = role_targets[0]
+            original_role = user_data.get("role", "NEWBIE")
+            try:
+                promote_resp = await client.post(
+                    f"{ADMIN_WEB_URL}/api/v1/users/{user_id}/change-role",
+                    headers=headers,
+                    params={"role": "MENTOR"},
+                )
+                restore_resp = await client.post(
+                    f"{ADMIN_WEB_URL}/api/v1/users/{user_id}/change-role",
+                    headers=headers,
+                    params={"role": original_role},
+                )
+                if promote_resp.status_code in (200, 201) and restore_resp.status_code in (200, 201):
+                    changed_count += 2
+                    log_success("")
+                    log_success("")
+                else:
+                    log_warning(
+                        f"  Failed to create role-change history for {user_key}: "
+                        f"{promote_resp.status_code}/{restore_resp.status_code}"
+                    )
+            except Exception as e:
+                log_warning(f"  Error creating role-change history for {user_key}: {e}")
+
+    if changed_count > 0:
+        log_success_newline()
 
 
 async def create_notification_templates_async(token: str) -> int:
@@ -2381,7 +2535,7 @@ async def create_supplementary_data(
         log_success_newline()
 
     if should_run("user_sessions"):
-        await create_user_sessions_async(token, user_ids)
+        await create_user_sessions_async(token, user_ids, users_data)
         log_success_newline()
 
     if should_run("requests_resolved_closed"):
@@ -2389,7 +2543,7 @@ async def create_supplementary_data(
         log_success_newline()
 
     if should_run("history_changes"):
-        await create_history_changes_async(token, user_ids)
+        await create_history_changes_async(token, user_ids, users_data, template_ids)
         log_success_newline()
 
     if should_run("notification_templates") and "notification" not in skip_services:
@@ -2406,7 +2560,7 @@ async def create_supplementary_data(
             template_ids,
             users_data,
             user_ids,
-            mentor_id,
+            mentor_ids[0] if mentor_ids else None,
             hr_id,
         )
         log_success_newline()
@@ -2449,6 +2603,10 @@ async def main(
 
     if not await wait_for_admin_web(ADMIN_WEB_URL):
         log_error("admin_web is not available. Exiting.")
+        sys.exit(1)
+
+    if not await wait_for_auth_service():
+        log_error("auth_service is not available. Exiting.")
         sys.exit(1)
 
     if not dry_run and not create_admin_user():
@@ -2540,7 +2698,6 @@ async def main(
             mentor_ids[0] if mentor_ids else None,
             hr_ids[0] if hr_ids else None,
         )
-        log_success_newline()
 
         # Create mock file attachments for tasks
         await create_mock_task_attachments(token, user_ids)

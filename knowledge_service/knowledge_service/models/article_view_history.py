@@ -16,7 +16,7 @@ class ArticleViewHistory(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     article_id: Mapped[int] = mapped_column(ForeignKey("articles.id"), nullable=False, index=True)
-    user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True, index=True)
+    user_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
     viewed_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False, index=True
     )

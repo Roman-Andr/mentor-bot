@@ -22,9 +22,16 @@ class ArticleViewRepository(SqlAlchemyBaseRepository[ArticleView, int], IArticle
         """Initialize article view repository."""
         super().__init__(session, ArticleView)
 
-    async def record_view(self, article_id: int, user_id: int | None = None) -> ArticleView:
+    async def record_view(
+        self,
+        article_id: int,
+        user_id: int | None = None,
+        viewed_at: datetime | None = None,
+    ) -> ArticleView:
         """Record a view event for an article."""
         view = ArticleView(article_id=article_id, user_id=user_id)
+        if viewed_at is not None:
+            view.viewed_at = viewed_at
         return await self.create(view)
 
     async def get_top_articles(

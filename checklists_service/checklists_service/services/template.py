@@ -10,7 +10,7 @@ from checklists_service.core import (
     TemplateStatus,
     ValidationException,
 )
-from checklists_service.models import TaskTemplate, Template
+from checklists_service.models import TaskTemplate, Template, TemplateChangeHistory
 from checklists_service.repositories.unit_of_work import IUnitOfWork
 from checklists_service.schemas import TaskTemplateCreate, TemplateCreate, TemplateUpdate, TemplateWithTasks
 from checklists_service.schemas.template import TaskTemplateResponse, TemplateResponse
@@ -78,10 +78,13 @@ class TemplateService:
             tasks=[TaskTemplateResponse.model_validate(task) for task in tasks],
         )
 
-    async def update_template(self, template_id: int, update_data: TemplateUpdate) -> Template:
+    async def update_template(self, template_id: int, update_data: TemplateUpdate, changed_by: int | None = None) -> Template:
         """Update template."""
         logger.debug("Updating template (template_id={})", template_id)
         template = await self.get_template(template_id)
+        old_name = template.name
+        old_description = template.description
+        old_status = template.status
 
         if update_data.is_default and update_data.is_default != template.is_default:
             await self._uow.templates.clear_other_defaults(template.department_id, template_id)
@@ -96,6 +99,25 @@ class TemplateService:
 
         template.updated_at = datetime.now(UTC)
         await self._uow.templates.update(template)
+        update_dict = update_data.model_dump(exclude_unset=True)
+        changes = []
+        if "name" in update_dict and old_name != template.name:
+            changes.append(f"name: {old_name} -> {template.name}")
+        if "description" in update_dict and old_description != template.description:
+            changes.append("description updated")
+        if "status" in update_dict and old_status != template.status:
+            changes.append(f"status: {old_status} -> {template.status}")
+        if changes:
+            await self._uow.template_change_history.create(
+                TemplateChangeHistory(
+                    template_id=template_id,
+                    action="UPDATED",
+                    old_name=old_name,
+                    new_name=template.name,
+                    changed_by=changed_by,
+                    change_summary="; ".join(changes),
+                )
+            )
         logger.info("Template updated (template_id={})", template_id)
         return await self.get_template(template_id)
 

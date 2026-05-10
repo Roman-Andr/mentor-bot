@@ -22,7 +22,7 @@ class TemplateChangeHistory(Base):
     changed_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False, index=True
     )
-    changed_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    changed_by: Mapped[int | None] = mapped_column(Integer, nullable=True)
     change_summary: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     def __repr__(self) -> str:

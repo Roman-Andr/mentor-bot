@@ -12,6 +12,7 @@ from knowledge_service.schemas import (
     ArticleListResponse,
     ArticleResponse,
     ArticleUpdate,
+    ArticleViewCreate,
     ArticleViewStats,
     MessageResponse,
 )
@@ -171,6 +172,31 @@ async def get_article(
         ) from e
     else:
         return response
+
+
+@router.post("/{article_id}/views")
+async def record_article_view(
+    article_id: int,
+    view_data: ArticleViewCreate,
+    article_service: ArticleServiceDep,
+    current_user: CurrentUser,
+) -> MessageResponse:
+    """Record an article view."""
+    if (view_data.user_id is not None or view_data.viewed_at is not None) and current_user.role not in ["HR", "ADMIN"]:
+        msg = "Only HR or admin users can record views for another user or time"
+        raise PermissionDenied(msg)
+
+    user_id = view_data.user_id if view_data.user_id is not None else current_user.id
+    try:
+        await article_service.get_article_by_id(article_id)
+        await article_service.record_view(article_id, user_id=user_id, viewed_at=view_data.viewed_at)
+    except NotFoundException as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e.detail),
+        ) from e
+
+    return MessageResponse(message="Article view recorded")
 
 
 @router.put("/{article_id}")

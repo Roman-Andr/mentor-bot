@@ -13,6 +13,7 @@ from knowledge_service.schemas.article import (
     ArticleListResponse,
     ArticleResponse,
     ArticleUpdate,
+    ArticleViewCreate,
     ArticleViewStats,
 )
 from knowledge_service.schemas.attachment import (
@@ -74,6 +75,7 @@ __all__ = [
     "ArticleListResponse",
     "ArticleResponse",
     "ArticleUpdate",
+    "ArticleViewCreate",
     "ArticleViewStats",
     "AttachmentBase",
     "AttachmentCreate",

@@ -12,7 +12,12 @@ class IArticleViewRepository(BaseRepository["ArticleView", int]):
     """ArticleView repository interface with specific queries."""
 
     @abstractmethod
-    async def record_view(self, article_id: int, user_id: int | None = None) -> ArticleView:
+    async def record_view(
+        self,
+        article_id: int,
+        user_id: int | None = None,
+        viewed_at: datetime | None = None,
+    ) -> ArticleView:
         """Record a new article view."""
 
     @abstractmethod
