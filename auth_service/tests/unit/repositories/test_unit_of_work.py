@@ -1,6 +1,6 @@
 """Unit tests for Unit of Work pattern."""
 
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from auth_service.repositories.implementations.department import DepartmentRepository
@@ -12,6 +12,7 @@ from auth_service.repositories.unit_of_work import (
     SqlAlchemyUnitOfWork,
     sqlalchemy_uow,
 )
+from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 
@@ -74,6 +75,44 @@ class TestSqlAlchemyUnitOfWork:
             async with uow:
                 raise ValueError("Test exception")
 
+        mock_session.close.assert_awaited_once()
+
+    async def test_exit_logs_client_http_exception_at_debug(self, mock_session_factory, mock_session):
+        """Test that expected client HTTP errors do not create warning noise."""
+        uow = SqlAlchemyUnitOfWork(mock_session_factory)
+
+        with (
+            patch("auth_service.repositories.unit_of_work.logger") as mock_logger,
+            pytest.raises(HTTPException),
+        ):
+            async with uow:
+                raise HTTPException(status_code=404, detail="User not found")
+
+        mock_logger.debug.assert_called_once_with(
+            "UoW rollback on exit due to handled HTTP exception: {} {}",
+            404,
+            "HTTPException",
+        )
+        mock_logger.warning.assert_not_called()
+        mock_session.rollback.assert_awaited_once()
+        mock_session.close.assert_awaited_once()
+
+    async def test_exit_logs_server_http_exception_at_warning(self, mock_session_factory, mock_session):
+        """Test that server HTTP errors still emit a warning."""
+        uow = SqlAlchemyUnitOfWork(mock_session_factory)
+
+        with (
+            patch("auth_service.repositories.unit_of_work.logger") as mock_logger,
+            pytest.raises(HTTPException),
+        ):
+            async with uow:
+                raise HTTPException(status_code=500, detail="Internal error")
+
+        mock_logger.warning.assert_called_once_with(
+            "UoW rollback on exit due to exception: {}",
+            "HTTPException",
+        )
+        mock_session.rollback.assert_awaited_once()
         mock_session.close.assert_awaited_once()
 
     async def test_commit_success(self, mock_session_factory, mock_session):

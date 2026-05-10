@@ -4,6 +4,7 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from typing import Protocol, Self, runtime_checkable
 
+from fastapi import HTTPException, status
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
@@ -96,7 +97,14 @@ class SqlAlchemyUnitOfWork(IUnitOfWork):
         """Exit async context manager and clean up session."""
         if self._session:
             if exc_type:
-                logger.warning("UoW rollback on exit due to exception: {}", exc_type.__name__)
+                if _is_expected_http_exception(exc_val):
+                    logger.debug(
+                        "UoW rollback on exit due to handled HTTP exception: {} {}",
+                        exc_val.status_code,
+                        exc_type.__name__,
+                    )
+                else:
+                    logger.warning("UoW rollback on exit due to exception: {}", exc_type.__name__)
                 await self._session.rollback()
             await self._session.close()
             self._session = None
@@ -125,3 +133,11 @@ async def sqlalchemy_uow(session_factory: async_sessionmaker) -> AsyncGenerator[
     """Async context manager for SqlAlchemyUnitOfWork."""
     async with SqlAlchemyUnitOfWork(session_factory) as uow:
         yield uow
+
+
+def _is_expected_http_exception(exc_val: BaseException | None) -> bool:
+    """Return true for client HTTP errors that are part of normal API control flow."""
+    return (
+        isinstance(exc_val, HTTPException)
+        and status.HTTP_400_BAD_REQUEST <= exc_val.status_code < status.HTTP_500_INTERNAL_SERVER_ERROR
+    )
