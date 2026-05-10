@@ -22,12 +22,12 @@ export function HistoryDetailDrawer({ event, open, onClose }: HistoryDetailDrawe
   const relativeTime = formatDistanceToNow(timestamp, { addSuffix: true });
 
   // Find old/new diff keys in raw
-  const oldKeys = Object.keys(event.raw).filter(k => k.startsWith("old_"));
-  const newKeys = Object.keys(event.raw).filter(k => k.startsWith("new_"));
+  const oldKeys = Object.keys(event.raw).filter((k) => k.startsWith("old_"));
+  const newKeys = Object.keys(event.raw).filter((k) => k.startsWith("new_"));
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-h-[80vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Badge variant="secondary">{event.source}</Badge>
@@ -35,10 +35,12 @@ export function HistoryDetailDrawer({ event, open, onClose }: HistoryDetailDrawe
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4 mt-4">
+        <div className="mt-4 space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <p className="text-sm text-muted-foreground">{t("analytics.history.columns.timestamp")}</p>
+              <p className="text-sm text-muted-foreground">
+                {t("analytics.history.columns.timestamp")}
+              </p>
               <p className="font-medium">{timestamp.toLocaleString()}</p>
               <p className="text-xs text-muted-foreground">{relativeTime}</p>
             </div>
@@ -50,39 +52,49 @@ export function HistoryDetailDrawer({ event, open, onClose }: HistoryDetailDrawe
 
           {event.actor_id !== null && (
             <div>
-              <p className="text-sm text-muted-foreground">{t("analytics.history.columns.actor")}</p>
-              <p className="font-medium"><UserName userId={event.actor_id} /></p>
+              <p className="text-sm text-muted-foreground">
+                {t("analytics.history.columns.actor")}
+              </p>
+              <p className="font-medium">
+                <UserName userId={event.actor_id} />
+              </p>
             </div>
           )}
 
           {event.subject_user_id !== null && (
             <div>
               <p className="text-sm text-muted-foreground">{t("analytics.history.subject")}</p>
-              <p className="font-medium"><UserName userId={event.subject_user_id} /></p>
+              <p className="font-medium">
+                <UserName userId={event.subject_user_id} />
+              </p>
             </div>
           )}
 
           {event.resource_type && event.resource_id && (
             <div>
               <p className="text-sm text-muted-foreground">{t("analytics.history.resource")}</p>
-              <p className="font-medium">{event.resource_type} #{event.resource_id}</p>
+              <p className="font-medium">
+                {event.resource_type} #{event.resource_id}
+              </p>
             </div>
           )}
 
           {oldKeys.length > 0 && newKeys.length > 0 && (
             <div>
-              <p className="text-sm text-muted-foreground mb-2">{t("analytics.history.changes")}</p>
-              <div className="border rounded-md p-3 space-y-2">
-                {oldKeys.map(oldKey => {
+              <p className="mb-2 text-sm text-muted-foreground">{t("analytics.history.changes")}</p>
+              <div className="space-y-2 rounded-md border p-3">
+                {oldKeys.map((oldKey) => {
                   const newKey = oldKey.replace("old_", "new_");
                   const label = oldKey.replace("old_", "").replace("_", " ");
                   return (
                     <div key={oldKey} className="grid grid-cols-2 gap-2 text-sm">
                       <div className="text-muted-foreground">
-                        <span className="font-medium">{label}:</span> {String(event.raw[oldKey] || "—")}
+                        <span className="font-medium">{label}:</span>{" "}
+                        {String(event.raw[oldKey] || "—")}
                       </div>
                       <div className="text-green-600">
-                        <span className="font-medium">{label}:</span> {String(event.raw[newKey] || "—")}
+                        <span className="font-medium">{label}:</span>{" "}
+                        {String(event.raw[newKey] || "—")}
                       </div>
                     </div>
                   );
@@ -92,8 +104,8 @@ export function HistoryDetailDrawer({ event, open, onClose }: HistoryDetailDrawe
           )}
 
           <div>
-            <p className="text-sm text-muted-foreground mb-2">{t("analytics.history.metadata")}</p>
-            <pre className="text-xs bg-muted p-3 rounded-md overflow-x-auto">
+            <p className="mb-2 text-sm text-muted-foreground">{t("analytics.history.metadata")}</p>
+            <pre className="overflow-x-auto rounded-md bg-muted p-3 text-xs">
               {JSON.stringify(event.raw, null, 2)}
             </pre>
           </div>

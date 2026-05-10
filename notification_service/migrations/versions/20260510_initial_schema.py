@@ -46,7 +46,7 @@ def upgrade() -> None:
         "notifications",
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("user_id", sa.Integer(), nullable=False),
-        sa.Column("recipient_telegram_id", sa.Integer(), nullable=True),
+        sa.Column("recipient_telegram_id", sa.BigInteger(), nullable=True),
         sa.Column("recipient_email", sa.String(length=255), nullable=True),
         sa.Column(
             "type",
@@ -78,7 +78,7 @@ def upgrade() -> None:
         "scheduled_notifications",
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("user_id", sa.Integer(), nullable=False),
-        sa.Column("recipient_telegram_id", sa.Integer(), nullable=True),
+        sa.Column("recipient_telegram_id", sa.BigInteger(), nullable=True),
         sa.Column("recipient_email", sa.String(length=255), nullable=True),
         sa.Column(
             "type",

@@ -10,9 +10,17 @@ import { Label } from "@/shared/ui/label";
 import { Textarea } from "@/shared/ui/textarea";
 import { Select } from "@/shared/ui/select";
 import { Badge } from "@/shared/ui/badge";
-import { useCreateNotificationTemplate, useUpdateNotificationTemplate, usePreviewNotificationTemplate } from "@/shared/hooks/use-notification-templates";
+import {
+  useCreateNotificationTemplate,
+  useUpdateNotificationTemplate,
+  usePreviewNotificationTemplate,
+} from "@/shared/hooks/use-notification-templates";
 import { useToast } from "@/shared/hooks/use-toast";
-import type { NotificationTemplate, NotificationTemplateCreate, NotificationTemplateUpdate } from "@/shared/types/notification";
+import type {
+  NotificationTemplate,
+  NotificationTemplateCreate,
+  NotificationTemplateUpdate,
+} from "@/shared/types/notification";
 import { X, Eye } from "lucide-react";
 
 interface NotificationTemplateFormDialogProps {
@@ -32,7 +40,11 @@ const LANGUAGE_OPTIONS = [
   { value: "ru", label: "Russian" },
 ];
 
-export function NotificationTemplateFormDialog({ open, onOpenChange, template }: NotificationTemplateFormDialogProps) {
+export function NotificationTemplateFormDialog({
+  open,
+  onOpenChange,
+  template,
+}: NotificationTemplateFormDialogProps) {
   const t = useTranslations("notificationTemplates");
   const tCommon = useTranslations("common");
   const { toast } = useToast();
@@ -49,7 +61,9 @@ export function NotificationTemplateFormDialog({ open, onOpenChange, template }:
   const [variables, setVariables] = useState<string[]>([]);
   const [variableInput, setVariableInput] = useState("");
   const [isActive, setIsActive] = useState(true);
-  const [previewData, setPreviewData] = useState<{ subject: string | null; body: string } | null>(null);
+  const [previewData, setPreviewData] = useState<{ subject: string | null; body: string } | null>(
+    null,
+  );
 
   const isEdit = !!template && template.id > 0;
   const isClone = !!template && template.id === 0;
@@ -103,7 +117,10 @@ export function NotificationTemplateFormDialog({ open, onOpenChange, template }:
         body_text: bodyText.trim() || null,
         body_html: bodyHtml.trim() || null,
         subject: subject.trim() || null,
-        variables: variables.reduce((acc, v) => ({ ...acc, [v]: `{${v}}` }), {} as Record<string, string>),
+        variables: variables.reduce(
+          (acc, v) => ({ ...acc, [v]: `{${v}}` }),
+          {} as Record<string, string>,
+        ),
       },
       {
         onSuccess: (data) => {
@@ -114,7 +131,7 @@ export function NotificationTemplateFormDialog({ open, onOpenChange, template }:
         onError: () => {
           toast(t("previewError"), "error");
         },
-      }
+      },
     );
   };
 
@@ -160,7 +177,7 @@ export function NotificationTemplateFormDialog({ open, onOpenChange, template }:
           onError: () => {
             toast(t("updateError"), "error");
           },
-        }
+        },
       );
     } else {
       createMutation.mutate(data, {
@@ -180,7 +197,9 @@ export function NotificationTemplateFormDialog({ open, onOpenChange, template }:
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{isEdit ? t("editTemplate") : isClone ? t("cloneTemplate") : t("createTemplate")}</DialogTitle>
+          <DialogTitle>
+            {isEdit ? t("editTemplate") : isClone ? t("cloneTemplate") : t("createTemplate")}
+          </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
@@ -275,7 +294,7 @@ export function NotificationTemplateFormDialog({ open, onOpenChange, template }:
                     <button
                       type="button"
                       onClick={() => handleRemoveVariable(variable)}
-                      className="hover:text-destructive ml-1"
+                      className="ml-1 hover:text-destructive"
                     >
                       <X className="size-3" />
                     </button>
@@ -315,13 +334,15 @@ export function NotificationTemplateFormDialog({ open, onOpenChange, template }:
               </div>
               {previewData.subject && (
                 <div className="space-y-1">
-                  <Label className="text-muted-foreground text-xs">{t("subject")}:</Label>
-                  <div className="bg-muted rounded p-2 text-sm">{previewData.subject}</div>
+                  <Label className="text-xs text-muted-foreground">{t("subject")}:</Label>
+                  <div className="rounded bg-muted p-2 text-sm">{previewData.subject}</div>
                 </div>
               )}
               <div className="space-y-1">
-                <Label className="text-muted-foreground text-xs">{t("body")}:</Label>
-                <div className="bg-muted rounded p-2 text-sm whitespace-pre-wrap">{previewData.body}</div>
+                <Label className="text-xs text-muted-foreground">{t("body")}:</Label>
+                <div className="rounded bg-muted p-2 text-sm whitespace-pre-wrap">
+                  {previewData.body}
+                </div>
               </div>
             </div>
           )}
@@ -343,8 +364,8 @@ export function NotificationTemplateFormDialog({ open, onOpenChange, template }:
               {createMutation.isPending || updateMutation.isPending
                 ? tCommon("saving")
                 : isEdit
-                ? tCommon("save")
-                : tCommon("create")}
+                  ? tCommon("save")
+                  : tCommon("create")}
             </Button>
           </DialogFooter>
         </form>

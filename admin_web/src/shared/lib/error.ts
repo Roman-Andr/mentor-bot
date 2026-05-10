@@ -15,7 +15,11 @@ export class AppError extends Error {
 export function handleError(error: unknown, context?: Record<string, unknown>): AppError {
   // Already an AppError
   if (error instanceof AppError) {
-    logger.error(error.message, { code: error.code, statusCode: error.statusCode, context: { ...error.context, ...context } });
+    logger.error(error.message, {
+      code: error.code,
+      statusCode: error.statusCode,
+      context: { ...error.context, ...context },
+    });
     return error;
   }
 

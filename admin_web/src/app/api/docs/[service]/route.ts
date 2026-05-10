@@ -12,7 +12,7 @@ const serviceUrls: Record<string, string> = {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ service: string }> }
+  { params }: { params: Promise<{ service: string }> },
 ) {
   const { service } = await params;
   const url = serviceUrls[service];
@@ -29,19 +29,13 @@ export async function GET(
     });
 
     if (!response.ok) {
-      return NextResponse.json(
-        { error: "Failed to fetch spec" },
-        { status: response.status }
-      );
+      return NextResponse.json({ error: "Failed to fetch spec" }, { status: response.status });
     }
 
     const spec = await response.json();
 
     return NextResponse.json(spec);
   } catch (error) {
-    return NextResponse.json(
-      { error: "Service unavailable" },
-      { status: 503 }
-    );
+    return NextResponse.json({ error: "Service unavailable" }, { status: 503 });
   }
 }

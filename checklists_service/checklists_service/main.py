@@ -16,7 +16,7 @@ from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
 from sqlalchemy import text
 
-from checklists_service.api import audit, certificates, checklists, tasks, templates
+from checklists_service.api import audit, certificates, checklists, internal, tasks, templates
 from checklists_service.config import settings
 from checklists_service.database import engine, init_db
 from checklists_service.middleware.auth import AuthTokenMiddleware
@@ -94,6 +94,7 @@ app.include_router(checklists.router, prefix=f"{settings.API_V1_PREFIX}/checklis
 app.include_router(tasks.router, prefix=f"{settings.API_V1_PREFIX}/tasks", tags=["tasks"])
 app.include_router(certificates.router, prefix=f"{settings.API_V1_PREFIX}/certificates", tags=["certificates"])
 app.include_router(audit.router, prefix=f"{settings.API_V1_PREFIX}/checklists/audit", tags=["audit"])
+app.include_router(internal.router, prefix=f"{settings.API_V1_PREFIX}/checklists/internal", tags=["internal"])
 
 
 @app.get("/")

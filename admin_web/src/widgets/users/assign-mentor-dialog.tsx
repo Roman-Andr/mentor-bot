@@ -99,19 +99,17 @@ export function AssignMentorDialog({
       <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{t("users.assignMentor")}</DialogTitle>
-          <DialogDescription>
-            {t("users.assignMentorToUser", { name: userName })}
-          </DialogDescription>
+          <DialogDescription>{t("users.assignMentorToUser", { name: userName })}</DialogDescription>
         </DialogHeader>
 
         {/* Current Mentor Section */}
         {currentMentor && (
-          <div className="bg-muted rounded-md p-3">
+          <div className="rounded-md bg-muted p-3">
             <p className="text-sm font-medium">{t("users.currentMentor")}</p>
             <div className="mt-2 flex items-center justify-between">
               <div>
                 <p className="text-sm">{t("users.mentorId", { id: currentMentor.mentor_id })}</p>
-                <p className="text-muted-foreground text-xs">
+                <p className="text-xs text-muted-foreground">
                   {currentMentor.is_active ? t("users.mentorActive") : t("users.mentorInactive")}
                 </p>
               </div>
@@ -152,10 +150,7 @@ export function AssignMentorDialog({
           <Button variant="outline" onClick={() => handleOpenChange(false)}>
             {t("common.cancel")}
           </Button>
-          <Button 
-            onClick={handleAssign} 
-            disabled={!selectedMentorId || assigning}
-          >
+          <Button onClick={handleAssign} disabled={!selectedMentorId || assigning}>
             {assigning ? t("users.assigning") : t("users.assign")}
           </Button>
         </DialogFooter>

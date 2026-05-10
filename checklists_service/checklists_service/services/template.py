@@ -78,7 +78,9 @@ class TemplateService:
             tasks=[TaskTemplateResponse.model_validate(task) for task in tasks],
         )
 
-    async def update_template(self, template_id: int, update_data: TemplateUpdate, changed_by: int | None = None) -> Template:
+    async def update_template(
+        self, template_id: int, update_data: TemplateUpdate, changed_by: int | None = None
+    ) -> Template:
         """Update template."""
         logger.debug("Updating template (template_id={})", template_id)
         template = await self.get_template(template_id)

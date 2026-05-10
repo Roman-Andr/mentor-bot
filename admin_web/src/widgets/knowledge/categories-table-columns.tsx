@@ -11,7 +11,7 @@ interface Column {
 
 export function useCategoriesColumns(
   tCommon: (key: string) => string | undefined,
-  tKnowledge: (key: string) => string | undefined
+  tKnowledge: (key: string) => string | undefined,
 ): Column[] {
   return [
     {
@@ -20,8 +20,8 @@ export function useCategoriesColumns(
       sortable: true,
       render: (item: CategoryRow) => (
         <div className="flex items-start gap-3">
-          <div className="bg-muted flex size-8 shrink-0 items-center justify-center rounded-lg">
-            <FolderOpen className="text-muted-foreground size-4" />
+          <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted">
+            <FolderOpen className="size-4 text-muted-foreground" />
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
@@ -34,7 +34,7 @@ export function useCategoriesColumns(
               <span className="font-medium">{item.name}</span>
             </div>
             {item.description && (
-              <p className="text-muted-foreground text-sm">{item.description}</p>
+              <p className="text-sm text-muted-foreground">{item.description}</p>
             )}
           </div>
         </div>
@@ -67,7 +67,9 @@ export function useCategoriesColumns(
         <div className="flex flex-col gap-1 text-sm">
           <span>{item.articles_count}</span>
           {item.children_count > 0 && (
-            <span className="text-muted-foreground text-xs">{item.children_count} {tKnowledge("subcategories") ?? "subcat."}</span>
+            <span className="text-xs text-muted-foreground">
+              {item.children_count} {tKnowledge("subcategories") ?? "subcat."}
+            </span>
           )}
         </div>
       ),

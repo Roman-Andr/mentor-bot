@@ -2,7 +2,10 @@ import { useState, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import type { FilterConfig } from "./types";
 
-export function useEntityFilters(filters: FilterConfig[] = [], setCurrentPage: (page: number) => void) {
+export function useEntityFilters(
+  filters: FilterConfig[] = [],
+  setCurrentPage: (page: number) => void,
+) {
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -17,23 +20,28 @@ export function useEntityFilters(filters: FilterConfig[] = [], setCurrentPage: (
   });
 
   const [sortField, setSortField] = useState<string | null>(searchParams.get("sort_by") ?? null);
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">((searchParams.get("sort_order") as "asc" | "desc") ?? "asc");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">(
+    (searchParams.get("sort_order") as "asc" | "desc") ?? "asc",
+  );
 
-  const setFilterValue = useCallback((name: string, value: string) => {
-    setFilterValues((prev) => ({ ...prev, [name]: value }));
-    setCurrentPage(1);
+  const setFilterValue = useCallback(
+    (name: string, value: string) => {
+      setFilterValues((prev) => ({ ...prev, [name]: value }));
+      setCurrentPage(1);
 
-    // Update URL
-    const params = new URLSearchParams(searchParams.toString());
-    const filter = filters.find((f) => f.name === name);
-    const paramName = filter?.paramName ?? name;
-    if (value === "ALL" || value === "") {
-      params.delete(paramName);
-    } else {
-      params.set(paramName, value);
-    }
-    router.push(`?${params.toString()}`, { scroll: false });
-  }, [setCurrentPage, searchParams, router, filters]);
+      // Update URL
+      const params = new URLSearchParams(searchParams.toString());
+      const filter = filters.find((f) => f.name === name);
+      const paramName = filter?.paramName ?? name;
+      if (value === "ALL" || value === "") {
+        params.delete(paramName);
+      } else {
+        params.set(paramName, value);
+      }
+      router.push(`?${params.toString()}`, { scroll: false });
+    },
+    [setCurrentPage, searchParams, router, filters],
+  );
 
   const resetFilters = useCallback(() => {
     const initial: Record<string, string> = {};
@@ -55,29 +63,42 @@ export function useEntityFilters(filters: FilterConfig[] = [], setCurrentPage: (
     router.push(`?${params.toString()}`, { scroll: false });
   }, [filters, searchParams, router]);
 
-  const toggleSort = useCallback((field: string) => {
-    const newSortField = field;
-    const newSortDirection = sortField === null ? "desc" : (sortField === field ? (sortDirection === "asc" ? "desc" : "asc") : "asc");
-    setSortField(newSortField);
-    setSortDirection(newSortDirection);
+  const toggleSort = useCallback(
+    (field: string) => {
+      const newSortField = field;
+      const newSortDirection =
+        sortField === null
+          ? "desc"
+          : sortField === field
+            ? sortDirection === "asc"
+              ? "desc"
+              : "asc"
+            : "asc";
+      setSortField(newSortField);
+      setSortDirection(newSortDirection);
 
-    // Update URL
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("sort_by", newSortField);
-    params.set("sort_order", newSortDirection);
-    router.push(`?${params.toString()}`, { scroll: false });
-  }, [sortField, sortDirection, searchParams, router]);
+      // Update URL
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("sort_by", newSortField);
+      params.set("sort_order", newSortDirection);
+      router.push(`?${params.toString()}`, { scroll: false });
+    },
+    [sortField, sortDirection, searchParams, router],
+  );
 
-  const setSort = useCallback((field: string, direction: "asc" | "desc") => {
-    setSortField(field);
-    setSortDirection(direction);
+  const setSort = useCallback(
+    (field: string, direction: "asc" | "desc") => {
+      setSortField(field);
+      setSortDirection(direction);
 
-    // Update URL
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("sort_by", field);
-    params.set("sort_order", direction);
-    router.push(`?${params.toString()}`, { scroll: false });
-  }, [searchParams, router]);
+      // Update URL
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("sort_by", field);
+      params.set("sort_order", direction);
+      router.push(`?${params.toString()}`, { scroll: false });
+    },
+    [searchParams, router],
+  );
 
   const clearSort = useCallback(() => {
     setSortField(null);

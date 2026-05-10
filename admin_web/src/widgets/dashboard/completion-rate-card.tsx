@@ -33,9 +33,22 @@ export function CompletionRateCard({ stats, href }: CompletionRateCardProps) {
         <div className="flex flex-col items-center justify-center py-4">
           <div className="relative flex size-24 items-center justify-center">
             <svg className="absolute inset-0 -rotate-90" viewBox="0 0 100 100">
-              <circle cx="50" cy="50" r="42" fill="none" stroke="currentColor" strokeWidth="8" className="text-muted opacity-20" />
               <circle
-                cx="50" cy="50" r="42" fill="none" stroke="currentColor" strokeWidth="8"
+                cx="50"
+                cy="50"
+                r="42"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="8"
+                className="text-muted opacity-20"
+              />
+              <circle
+                cx="50"
+                cy="50"
+                r="42"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="8"
                 strokeDasharray={`${2 * Math.PI * 42}`}
                 strokeDashoffset={`${2 * Math.PI * 42 * (1 - Math.min(stats.average_completion_days / 90, 1))}`}
                 className="text-blue-500"
@@ -43,11 +56,15 @@ export function CompletionRateCard({ stats, href }: CompletionRateCardProps) {
               />
             </svg>
             <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">{stats?.average_completion_days || 0}</div>
-              <div className="text-muted-foreground text-xs">{t("dashboard.days")}</div>
+              <div className="text-2xl font-bold text-blue-600">
+                {stats?.average_completion_days || 0}
+              </div>
+              <div className="text-xs text-muted-foreground">{t("dashboard.days")}</div>
             </div>
           </div>
-          <p className="text-muted-foreground mt-3 text-center text-sm">{t("dashboard.daysAverage")}</p>
+          <p className="mt-3 text-center text-sm text-muted-foreground">
+            {t("dashboard.daysAverage")}
+          </p>
         </div>
         <div className="mt-2 space-y-2 border-t pt-3">
           <div className="flex justify-between text-xs">
@@ -56,7 +73,7 @@ export function CompletionRateCard({ stats, href }: CompletionRateCardProps) {
           </div>
           <div className="flex justify-between text-xs">
             <span className="text-muted-foreground">{t("dashboard.notStarted")}</span>
-            <span className="text-muted-foreground font-medium">{stats.pending_tasks}</span>
+            <span className="font-medium text-muted-foreground">{stats.pending_tasks}</span>
           </div>
         </div>
       </CardContent>

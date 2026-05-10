@@ -15,12 +15,12 @@ export function SearchSummaryCards({ summary }: SearchSummaryCardsProps) {
   if (!summary) return null;
 
   return (
-    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
       <Card>
         <CardContent className="pt-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-muted-foreground text-sm">{t("analytics.search.totalSearches")}</p>
+              <p className="text-sm text-muted-foreground">{t("analytics.search.totalSearches")}</p>
               <p className="text-2xl font-bold">{summary.total_searches}</p>
             </div>
             <Search className="size-8 text-blue-500" />
@@ -31,7 +31,7 @@ export function SearchSummaryCards({ summary }: SearchSummaryCardsProps) {
         <CardContent className="pt-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-muted-foreground text-sm">{t("analytics.search.uniqueUsers")}</p>
+              <p className="text-sm text-muted-foreground">{t("analytics.search.uniqueUsers")}</p>
               <p className="text-2xl font-bold">{summary.unique_users}</p>
             </div>
             <Users className="size-8 text-purple-500" />
@@ -42,7 +42,7 @@ export function SearchSummaryCards({ summary }: SearchSummaryCardsProps) {
         <CardContent className="pt-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-muted-foreground text-sm">{t("analytics.search.uniqueQueries")}</p>
+              <p className="text-sm text-muted-foreground">{t("analytics.search.uniqueQueries")}</p>
               <p className="text-2xl font-bold">{summary.unique_queries}</p>
             </div>
             <FileText className="size-8 text-green-500" />
@@ -53,7 +53,7 @@ export function SearchSummaryCards({ summary }: SearchSummaryCardsProps) {
         <CardContent className="pt-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-muted-foreground text-sm">{t("analytics.search.avgResults")}</p>
+              <p className="text-sm text-muted-foreground">{t("analytics.search.avgResults")}</p>
               <p className="text-2xl font-bold">{summary.avg_results_per_search.toFixed(1)}</p>
             </div>
             <BarChart3 className="size-8 text-yellow-500" />
@@ -64,7 +64,9 @@ export function SearchSummaryCards({ summary }: SearchSummaryCardsProps) {
         <CardContent className="pt-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-muted-foreground text-sm">{t("analytics.search.zeroResultsPercent")}</p>
+              <p className="text-sm text-muted-foreground">
+                {t("analytics.search.zeroResultsPercent")}
+              </p>
               <p className="text-2xl font-bold">{summary.zero_results_percentage.toFixed(1)}%</p>
             </div>
             <AlertCircle className="size-8 text-red-500" />

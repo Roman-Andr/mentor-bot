@@ -142,7 +142,12 @@ export function useChecklists() {
     }
   }
 
-  const entity = useEntity<ChecklistItem, ChecklistFormData, ReturnType<typeof toCreatePayload>, ReturnType<typeof toUpdatePayload>>({
+  const entity = useEntity<
+    ChecklistItem,
+    ChecklistFormData,
+    ReturnType<typeof toCreatePayload>,
+    ReturnType<typeof toUpdatePayload>
+  >({
     entityName: "Чек-лист",
     translationNamespace: "checklists",
     queryKeyPrefix: "checklists",
@@ -169,7 +174,12 @@ export function useChecklists() {
     sortable: true,
     filters: [
       { name: "status", defaultValue: "ALL" },
-      { name: "department", defaultValue: "ALL", paramName: "department_id", transform: (v) => parseInt(v) },
+      {
+        name: "department",
+        defaultValue: "ALL",
+        paramName: "department_id",
+        transform: (v) => parseInt(v),
+      },
     ],
   });
 
@@ -208,7 +218,7 @@ export function useChecklists() {
         }
       }
       if (failedTasks.length > 0) {
-        const errorMsg = failedTasks.map(t => `- Task ID ${t.taskId}: ${t.error}`).join("\n");
+        const errorMsg = failedTasks.map((t) => `- Task ID ${t.taskId}: ${t.error}`).join("\n");
         alert(`Failed to complete some tasks:\n${errorMsg}`);
       }
     }
@@ -235,17 +245,23 @@ export function useChecklists() {
           try {
             const result = await api.checklists.completeTask(task.id);
             if (!result?.success) {
-              failedTasks.push({ title: task.title, error: result.error?.message || "Unknown error" });
+              failedTasks.push({
+                title: task.title,
+                error: result.error?.message || "Unknown error",
+              });
             }
           } catch (error: any) {
-            failedTasks.push({ title: task.title, error: error.message || "Failed to complete task" });
+            failedTasks.push({
+              title: task.title,
+              error: error.message || "Failed to complete task",
+            });
           }
         }
       }
 
       // If any tasks failed, show error and don't complete checklist
       if (failedTasks.length > 0) {
-        const errorMsg = failedTasks.map(t => `- ${t.title}: ${t.error}`).join("\n");
+        const errorMsg = failedTasks.map((t) => `- ${t.title}: ${t.error}`).join("\n");
         alert(`Cannot complete checklist. Failed to complete tasks:\n${errorMsg}`);
         return;
       }

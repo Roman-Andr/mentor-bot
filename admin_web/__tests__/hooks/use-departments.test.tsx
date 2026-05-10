@@ -1,20 +1,28 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { renderHook, waitFor, act } from '@testing-library/react'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { NextIntlClientProvider } from 'next-intl'
-import { ToastProvider } from '@/shared/ui/toast'
-import { PaginationContext } from '@/shared/providers/pagination-provider'
-import { useDepartments, mapDepartment, toCreatePayload, toUpdatePayload, toForm, type DepartmentRow, type DepartmentFormData } from '@/shared/hooks/use-departments'
-import { mockFetchResponse } from '../setup'
-import messages from '../../messages/en.json'
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { renderHook, waitFor, act } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { NextIntlClientProvider } from "next-intl";
+import { ToastProvider } from "@/shared/ui/toast";
+import { PaginationContext } from "@/shared/providers/pagination-provider";
+import {
+  useDepartments,
+  mapDepartment,
+  toCreatePayload,
+  toUpdatePayload,
+  toForm,
+  type DepartmentRow,
+  type DepartmentFormData,
+} from "@/shared/hooks/use-departments";
+import { mockFetchResponse } from "../setup";
+import messages from "../../messages/en.json";
 
 const MockPaginationProvider = ({ children }: { children: React.ReactNode }) => {
   return (
     <PaginationContext.Provider value={{ pageSize: 20, setPageSize: vi.fn() }}>
       {children}
     </PaginationContext.Provider>
-  )
-}
+  );
+};
 
 const createWrapper = () => {
   const queryClient = new QueryClient({
@@ -22,7 +30,7 @@ const createWrapper = () => {
       queries: { retry: false },
       mutations: { retry: false },
     },
-  })
+  });
   return ({ children }: { children: React.ReactNode }) => (
     <NextIntlClientProvider locale="en" messages={messages}>
       <MockPaginationProvider>
@@ -31,387 +39,391 @@ const createWrapper = () => {
         </ToastProvider>
       </MockPaginationProvider>
     </NextIntlClientProvider>
-  )
-}
+  );
+};
 
-describe('useDepartments', () => {
+describe("useDepartments", () => {
   beforeEach(() => {
-    vi.clearAllMocks()
-  })
+    vi.clearAllMocks();
+  });
 
-  describe('helper functions', () => {
-    it('exports useDepartments function', () => {
-      expect(typeof useDepartments).toBe('function')
-    })
+  describe("helper functions", () => {
+    it("exports useDepartments function", () => {
+      expect(typeof useDepartments).toBe("function");
+    });
 
-    describe('mapDepartment', () => {
-      it('maps Department to DepartmentRow', () => {
+    describe("mapDepartment", () => {
+      it("maps Department to DepartmentRow", () => {
         const department = {
           id: 1,
-          name: 'Engineering',
-          description: 'Engineering department',
-          created_at: '2024-01-01T00:00:00Z',
+          name: "Engineering",
+          description: "Engineering department",
+          created_at: "2024-01-01T00:00:00Z",
           updated_at: null,
-        }
+        };
 
-        const result = mapDepartment(department)
-        expect(result.id).toBe(1)
-        expect(result.name).toBe('Engineering')
-        expect(result.description).toBe('Engineering department')
-        expect(result.createdAt).toBe('2024-01-01')
-      })
+        const result = mapDepartment(department);
+        expect(result.id).toBe(1);
+        expect(result.name).toBe("Engineering");
+        expect(result.description).toBe("Engineering department");
+        expect(result.createdAt).toBe("2024-01-01");
+      });
 
-      it('handles null description', () => {
+      it("handles null description", () => {
         const department = {
           id: 1,
-          name: 'Engineering',
+          name: "Engineering",
           description: null,
-          created_at: '2024-01-01T00:00:00Z',
+          created_at: "2024-01-01T00:00:00Z",
           updated_at: null,
-        }
+        };
 
-        const result = mapDepartment(department)
-        expect(result.description).toBe('')
-      })
+        const result = mapDepartment(department);
+        expect(result.description).toBe("");
+      });
 
-      it('handles null created_at', () => {
+      it("handles null created_at", () => {
         const department = {
           id: 1,
-          name: 'Engineering',
-          description: 'Test',
-          created_at: '2024-01-01T00:00:00Z',
+          name: "Engineering",
+          description: "Test",
+          created_at: "2024-01-01T00:00:00Z",
           updated_at: null,
-        }
+        };
 
-        const result = mapDepartment(department)
-        expect(result.createdAt).toBe('2024-01-01')
-      })
-    })
+        const result = mapDepartment(department);
+        expect(result.createdAt).toBe("2024-01-01");
+      });
+    });
 
-    describe('toCreatePayload', () => {
-      it('converts form data to create payload', () => {
+    describe("toCreatePayload", () => {
+      it("converts form data to create payload", () => {
         const form: DepartmentFormData = {
-          name: 'Engineering',
-          description: 'Engineering department',
-        }
+          name: "Engineering",
+          description: "Engineering department",
+        };
 
-        const result = toCreatePayload(form)
-        expect(result.name).toBe('Engineering')
-        expect(result.description).toBe('Engineering department')
-      })
+        const result = toCreatePayload(form);
+        expect(result.name).toBe("Engineering");
+        expect(result.description).toBe("Engineering department");
+      });
 
-      it('converts empty description to null', () => {
+      it("converts empty description to null", () => {
         const form: DepartmentFormData = {
-          name: 'Engineering',
-          description: '',
-        }
+          name: "Engineering",
+          description: "",
+        };
 
-        const result = toCreatePayload(form)
-        expect(result.description).toBeNull()
-      })
-    })
+        const result = toCreatePayload(form);
+        expect(result.description).toBeNull();
+      });
+    });
 
-    describe('toUpdatePayload', () => {
-      it('uses same logic as toCreatePayload', () => {
+    describe("toUpdatePayload", () => {
+      it("uses same logic as toCreatePayload", () => {
         const form: DepartmentFormData = {
-          name: 'Engineering',
-          description: 'Updated description',
-        }
+          name: "Engineering",
+          description: "Updated description",
+        };
 
-        const result = toUpdatePayload(form)
-        expect(result.name).toBe('Engineering')
-        expect(result.description).toBe('Updated description')
-      })
+        const result = toUpdatePayload(form);
+        expect(result.name).toBe("Engineering");
+        expect(result.description).toBe("Updated description");
+      });
 
-      it('converts empty description to null', () => {
+      it("converts empty description to null", () => {
         const form: DepartmentFormData = {
-          name: 'Engineering',
-          description: '',
-        }
+          name: "Engineering",
+          description: "",
+        };
 
-        const result = toUpdatePayload(form)
-        expect(result.description).toBeNull()
-      })
-    })
+        const result = toUpdatePayload(form);
+        expect(result.description).toBeNull();
+      });
+    });
 
-    describe('toForm', () => {
-      it('converts DepartmentRow to FormData', () => {
+    describe("toForm", () => {
+      it("converts DepartmentRow to FormData", () => {
         const item: DepartmentRow = {
           id: 1,
-          name: 'Engineering',
-          description: 'Engineering department',
-          createdAt: '2024-01-01',
-        }
+          name: "Engineering",
+          description: "Engineering department",
+          createdAt: "2024-01-01",
+        };
 
-        const result = toForm(item)
-        expect(result.name).toBe('Engineering')
-        expect(result.description).toBe('Engineering department')
-      })
+        const result = toForm(item);
+        expect(result.name).toBe("Engineering");
+        expect(result.description).toBe("Engineering department");
+      });
 
-      it('handles empty description', () => {
+      it("handles empty description", () => {
         const item: DepartmentRow = {
           id: 1,
-          name: 'Engineering',
-          description: '',
-          createdAt: '2024-01-01',
-        }
+          name: "Engineering",
+          description: "",
+          createdAt: "2024-01-01",
+        };
 
-        const result = toForm(item)
-        expect(result.description).toBe('')
-      })
-    })
-  })
+        const result = toForm(item);
+        expect(result.description).toBe("");
+      });
+    });
+  });
 
-  describe('hook integration', () => {
-    it('loads departments list', async () => {
+  describe("hook integration", () => {
+    it("loads departments list", async () => {
       mockFetchResponse({
         departments: [
           {
             id: 1,
-            name: 'Engineering',
-            description: 'Engineering department',
-            created_at: '2024-01-01T00:00:00Z',
+            name: "Engineering",
+            description: "Engineering department",
+            created_at: "2024-01-01T00:00:00Z",
             updated_at: null,
-          }
+          },
         ],
         total: 1,
-      })
+      });
 
-      const { result } = renderHook(() => useDepartments(), { wrapper: createWrapper() })
+      const { result } = renderHook(() => useDepartments(), { wrapper: createWrapper() });
 
       await waitFor(() => {
-        expect(result.current.loading).toBe(false)
-      })
+        expect(result.current.loading).toBe(false);
+      });
 
-      expect(result.current.items).toHaveLength(1)
-      expect(result.current.totalCount).toBe(1)
-    })
+      expect(result.current.items).toHaveLength(1);
+      expect(result.current.totalCount).toBe(1);
+    });
 
-    it('handles search query', async () => {
+    it("handles search query", async () => {
       mockFetchResponse({
         departments: [],
         total: 0,
-      })
+      });
 
-      const { result } = renderHook(() => useDepartments(), { wrapper: createWrapper() })
+      const { result } = renderHook(() => useDepartments(), { wrapper: createWrapper() });
 
       await waitFor(() => {
-        expect(result.current.loading).toBe(false)
-      })
+        expect(result.current.loading).toBe(false);
+      });
 
       act(() => {
-        result.current.setSearchQuery('engineering')
-      })
-      expect(result.current.searchQuery).toBe('engineering')
-    })
+        result.current.setSearchQuery("engineering");
+      });
+      expect(result.current.searchQuery).toBe("engineering");
+    });
 
-    it('handles pagination', async () => {
+    it("handles pagination", async () => {
       mockFetchResponse({
         departments: [],
         total: 0,
-      })
+      });
 
-      const { result } = renderHook(() => useDepartments(), { wrapper: createWrapper() })
+      const { result } = renderHook(() => useDepartments(), { wrapper: createWrapper() });
 
       await waitFor(() => {
-        expect(result.current.loading).toBe(false)
-      })
+        expect(result.current.loading).toBe(false);
+      });
 
-      expect(result.current.pageSize).toBe(20)
-      expect(result.current.currentPage).toBe(1)
+      expect(result.current.pageSize).toBe(20);
+      expect(result.current.currentPage).toBe(1);
 
       act(() => {
-        result.current.setCurrentPage(2)
-      })
-      expect(result.current.currentPage).toBe(2)
-    })
+        result.current.setCurrentPage(2);
+      });
+      expect(result.current.currentPage).toBe(2);
+    });
 
-    it('handles sorting', async () => {
+    it("handles sorting", async () => {
       mockFetchResponse({
         departments: [],
         total: 0,
-      })
+      });
 
-      const { result } = renderHook(() => useDepartments(), { wrapper: createWrapper() })
+      const { result } = renderHook(() => useDepartments(), { wrapper: createWrapper() });
 
       await waitFor(() => {
-        expect(result.current.loading).toBe(false)
-      })
+        expect(result.current.loading).toBe(false);
+      });
 
       act(() => {
-        result.current.toggleSort('name')
-      })
-      expect(result.current.sortField).toBe('name')
-    })
+        result.current.toggleSort("name");
+      });
+      expect(result.current.sortField).toBe("name");
+    });
 
-    it('handles form data', async () => {
+    it("handles form data", async () => {
       mockFetchResponse({
         departments: [],
         total: 0,
-      })
+      });
 
-      const { result } = renderHook(() => useDepartments(), { wrapper: createWrapper() })
+      const { result } = renderHook(() => useDepartments(), { wrapper: createWrapper() });
 
       await waitFor(() => {
-        expect(result.current.loading).toBe(false)
-      })
+        expect(result.current.loading).toBe(false);
+      });
 
       const newFormData: DepartmentFormData = {
-        name: 'New Department',
-        description: 'New description',
-      }
+        name: "New Department",
+        description: "New description",
+      };
 
       act(() => {
-        result.current.setFormData(newFormData)
-      })
-      expect(result.current.formData).toEqual(newFormData)
-    })
+        result.current.setFormData(newFormData);
+      });
+      expect(result.current.formData).toEqual(newFormData);
+    });
 
-    it('resets form', async () => {
+    it("resets form", async () => {
       mockFetchResponse({
         departments: [],
         total: 0,
-      })
+      });
 
-      const { result } = renderHook(() => useDepartments(), { wrapper: createWrapper() })
+      const { result } = renderHook(() => useDepartments(), { wrapper: createWrapper() });
 
       await waitFor(() => {
-        expect(result.current.loading).toBe(false)
-      })
+        expect(result.current.loading).toBe(false);
+      });
 
       act(() => {
-        result.current.resetForm()
-      })
-      expect(result.current.formData.name).toBe('')
-    })
+        result.current.resetForm();
+      });
+      expect(result.current.formData.name).toBe("");
+    });
 
-    it('handles dialog states', async () => {
+    it("handles dialog states", async () => {
       mockFetchResponse({
         departments: [],
         total: 0,
-      })
+      });
 
-      const { result } = renderHook(() => useDepartments(), { wrapper: createWrapper() })
+      const { result } = renderHook(() => useDepartments(), { wrapper: createWrapper() });
 
       await waitFor(() => {
-        expect(result.current.loading).toBe(false)
-      })
+        expect(result.current.loading).toBe(false);
+      });
 
       act(() => {
-        result.current.setIsCreateDialogOpen(true)
-      })
-      expect(result.current.isCreateDialogOpen).toBe(true)
+        result.current.setIsCreateDialogOpen(true);
+      });
+      expect(result.current.isCreateDialogOpen).toBe(true);
 
       act(() => {
-        result.current.setIsEditDialogOpen(true)
-      })
-      expect(result.current.isEditDialogOpen).toBe(true)
-    })
+        result.current.setIsEditDialogOpen(true);
+      });
+      expect(result.current.isEditDialogOpen).toBe(true);
+    });
 
-    it('handles selected item', async () => {
+    it("handles selected item", async () => {
       mockFetchResponse({
         departments: [],
         total: 0,
-      })
+      });
 
-      const { result } = renderHook(() => useDepartments(), { wrapper: createWrapper() })
+      const { result } = renderHook(() => useDepartments(), { wrapper: createWrapper() });
 
       await waitFor(() => {
-        expect(result.current.loading).toBe(false)
-      })
+        expect(result.current.loading).toBe(false);
+      });
 
       const department: DepartmentRow = {
         id: 1,
-        name: 'Engineering',
-        description: '',
-        createdAt: '2024-01-01',
-      }
+        name: "Engineering",
+        description: "",
+        createdAt: "2024-01-01",
+      };
 
       act(() => {
-        result.current.setSelectedItem(department)
-      })
-      expect(result.current.selectedItem).toEqual(department)
-    })
+        result.current.setSelectedItem(department);
+      });
+      expect(result.current.selectedItem).toEqual(department);
+    });
 
-    it('handles create operation', async () => {
-      const mockResponse = { id: 1, name: 'New Department', description: 'Test description' }
-      mockFetchResponse(mockResponse)
+    it("handles create operation", async () => {
+      const mockResponse = { id: 1, name: "New Department", description: "Test description" };
+      mockFetchResponse(mockResponse);
 
-      const { result } = renderHook(() => useDepartments(), { wrapper: createWrapper() })
+      const { result } = renderHook(() => useDepartments(), { wrapper: createWrapper() });
 
       await waitFor(() => {
-        expect(result.current.loading).toBe(false)
-      })
+        expect(result.current.loading).toBe(false);
+      });
 
       act(() => {
         result.current.setFormData({
-          name: 'New Department',
-          description: 'Test description'
-        })
-      })
+          name: "New Department",
+          description: "Test description",
+        });
+      });
 
       act(() => {
-        result.current.handleSubmit()
-      })
+        result.current.handleSubmit();
+      });
 
       await waitFor(() => {
-        expect(result.current.isSubmitting).toBe(false)
-      })
-    })
+        expect(result.current.isSubmitting).toBe(false);
+      });
+    });
 
-    it('handles update operation', async () => {
-      const mockResponse = { id: 1, name: 'Updated Department', description: 'Updated description' }
-      mockFetchResponse(mockResponse)
+    it("handles update operation", async () => {
+      const mockResponse = {
+        id: 1,
+        name: "Updated Department",
+        description: "Updated description",
+      };
+      mockFetchResponse(mockResponse);
 
-      const { result } = renderHook(() => useDepartments(), { wrapper: createWrapper() })
+      const { result } = renderHook(() => useDepartments(), { wrapper: createWrapper() });
 
       await waitFor(() => {
-        expect(result.current.loading).toBe(false)
-      })
+        expect(result.current.loading).toBe(false);
+      });
 
       const department: DepartmentRow = {
         id: 1,
-        name: 'Engineering',
-        description: '',
-        createdAt: '2024-01-01',
-      }
+        name: "Engineering",
+        description: "",
+        createdAt: "2024-01-01",
+      };
 
       act(() => {
-        result.current.setSelectedItem(department)
-      })
+        result.current.setSelectedItem(department);
+      });
 
       act(() => {
         result.current.setFormData({
-          name: 'Updated Department',
-          description: 'Updated description'
-        })
-      })
+          name: "Updated Department",
+          description: "Updated description",
+        });
+      });
 
       act(() => {
-        result.current.handleSubmit()
-      })
+        result.current.handleSubmit();
+      });
 
       await waitFor(() => {
-        expect(result.current.isSubmitting).toBe(false)
-      })
-    })
+        expect(result.current.isSubmitting).toBe(false);
+      });
+    });
 
-    it('handles delete operation', async () => {
-      mockFetchResponse({ message: 'Department deleted successfully' })
+    it("handles delete operation", async () => {
+      mockFetchResponse({ message: "Department deleted successfully" });
 
-      const { result } = renderHook(() => useDepartments(), { wrapper: createWrapper() })
+      const { result } = renderHook(() => useDepartments(), { wrapper: createWrapper() });
 
       await waitFor(() => {
-        expect(result.current.loading).toBe(false)
-      })
+        expect(result.current.loading).toBe(false);
+      });
 
       act(() => {
-        result.current.handleDelete(1)
-      })
+        result.current.handleDelete(1);
+      });
 
       await waitFor(() => {
-        expect(result.current.isDeleting).toBe(false)
-      })
-    })
-  })
-})
+        expect(result.current.isDeleting).toBe(false);
+      });
+    });
+  });
+});

@@ -7,15 +7,14 @@ import { SearchInput } from "@/shared/ui/search-input";
 import { Select } from "@/shared/ui/select";
 import { StatusBadge } from "@/shared/ui/status-badge";
 import { SortableTableHead } from "@/shared/ui/sortable-table-head";
-import { TableActions, buildCopyAction, buildResendAction, buildRevokeAction, buildDeleteAction } from "@/shared/components";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/shared/ui/table";
+  TableActions,
+  buildCopyAction,
+  buildResendAction,
+  buildRevokeAction,
+  buildDeleteAction,
+} from "@/shared/components";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 import { DataTable } from "@/shared/ui/data-table";
 import { DataTableSkeleton } from "@/shared/ui/table-skeleton";
 import { CardHeader, CardTitle, Card, CardContent } from "@/shared/ui/card";
@@ -103,10 +102,13 @@ export function InvitationsTable({
   );
 
   const ROLE_STYLES: Record<string, string> = {
-    ADMIN: "bg-violet-100 text-violet-700 border-violet-200 dark:bg-violet-950/50 dark:text-violet-300 dark:border-violet-800",
+    ADMIN:
+      "bg-violet-100 text-violet-700 border-violet-200 dark:bg-violet-950/50 dark:text-violet-300 dark:border-violet-800",
     HR: "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950/50 dark:text-blue-300 dark:border-blue-800",
-    MENTOR: "bg-teal-100 text-teal-700 border-teal-200 dark:bg-teal-950/50 dark:text-teal-300 dark:border-teal-800",
-    NEWBIE: "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-800",
+    MENTOR:
+      "bg-teal-100 text-teal-700 border-teal-200 dark:bg-teal-950/50 dark:text-teal-300 dark:border-teal-800",
+    NEWBIE:
+      "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-800",
   };
 
   function InvitationCard({
@@ -126,17 +128,19 @@ export function InvitationsTable({
     copiedId: number | null;
     t: (key: string) => string;
   }) {
+    const isRevoked = invitation.status === "REVOKED";
+
     return (
       <Card>
         <CardContent className="p-4">
           {/* Header: Email + Status */}
           <div className="mb-3 flex items-start gap-3">
             <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
-              <Mail className="text-primary size-4" />
+              <Mail className="size-4 text-primary" />
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <h3 className="font-semibold truncate">{invitation.email}</h3>
+                <h3 className="truncate font-semibold">{invitation.email}</h3>
                 <StatusBadge status={invitation.status} />
               </div>
             </div>
@@ -146,7 +150,12 @@ export function InvitationsTable({
           <div className="mb-3 grid grid-cols-2 gap-2 text-xs">
             <div>
               <span className="text-muted-foreground">{t("common.role")}: </span>
-              <span className={cn("inline-flex items-center rounded-full border px-2 py-0.5 font-semibold", ROLE_STYLES[invitation.role] ?? "bg-muted text-muted-foreground")}>
+              <span
+                className={cn(
+                  "inline-flex items-center rounded-full border px-2 py-0.5 font-semibold",
+                  ROLE_STYLES[invitation.role] ?? "bg-muted text-muted-foreground",
+                )}
+              >
                 {t(`statuses.${invitation.role}`)}
               </span>
             </div>
@@ -169,29 +178,33 @@ export function InvitationsTable({
             className="grid grid-cols-2 gap-2 border-t pt-3 sm:flex sm:flex-row"
             onClick={(e) => e.stopPropagation()}
           >
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => handleCopy(invitation.invitationUrl, invitation.id)}
-            >
-              {copiedId === invitation.id ? t("common.copied") : t("invitations.copyLink")}
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => onResend(invitation.id)}
-              disabled={invitation.status !== "PENDING"}
-            >
-              {t("invitations.resend")}
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => onRevoke(invitation.id)}
-              disabled={invitation.status !== "PENDING"}
-            >
-              {t("invitations.revoke")}
-            </Button>
+            {!isRevoked && (
+              <>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleCopy(invitation.invitationUrl, invitation.id)}
+                >
+                  {copiedId === invitation.id ? t("common.copied") : t("invitations.copyLink")}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => onResend(invitation.id)}
+                  disabled={invitation.status !== "PENDING"}
+                >
+                  {t("invitations.resend")}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => onRevoke(invitation.id)}
+                  disabled={invitation.status !== "PENDING"}
+                >
+                  {t("invitations.revoke")}
+                </Button>
+              </>
+            )}
             <Button size="sm" variant="destructive" onClick={() => onDelete(invitation.id)}>
               {t("common.delete")}
             </Button>
@@ -218,14 +231,19 @@ export function InvitationsTable({
         <CardHeader>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <CardTitle>{t("invitations.title")}</CardTitle>
-            <div className="flex flex-col gap-2 w-full sm:flex-row sm:items-center sm:flex-wrap">
+            <div className="flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
               <SearchInput
                 placeholder={t("invitations.searchByEmail")}
                 value={searchQuery}
                 onChange={onSearchChange}
                 className="w-full sm:w-auto"
               />
-              <Select value={roleFilter} onChange={onRoleFilterChange} options={roleOptions} className="w-full sm:w-auto" />
+              <Select
+                value={roleFilter}
+                onChange={onRoleFilterChange}
+                options={roleOptions}
+                className="w-full sm:w-auto"
+              />
               <Select
                 value={statusFilter}
                 onChange={onStatusFilterChange}
@@ -305,14 +323,12 @@ export function InvitationsTable({
             <TableRow key={invitation.id}>
               <TableCell>
                 <div className="flex items-center gap-2">
-                  <Mail className="text-muted-foreground size-4" />
+                  <Mail className="size-4 text-muted-foreground" />
                   <span className="font-medium">{invitation.email}</span>
                 </div>
               </TableCell>
               <TableCell>
-                <Badge variant="outline">
-                  {t(`statuses.${invitation.role}`)}
-                </Badge>
+                <Badge variant="outline">{t(`statuses.${invitation.role}`)}</Badge>
               </TableCell>
               <TableCell>{invitation.department}</TableCell>
               <TableCell>
@@ -331,7 +347,7 @@ export function InvitationsTable({
                     buildCopyAction(
                       () => handleCopy(invitation.invitationUrl, invitation.id),
                       t("invitations.copyLink"),
-                      true,
+                      invitation.status !== "REVOKED",
                       copiedId === invitation.id,
                     ),
                     buildRevokeAction(

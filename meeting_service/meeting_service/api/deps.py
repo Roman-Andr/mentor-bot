@@ -68,6 +68,13 @@ async def get_current_user(
             raise AuthException(msg) from e
 
 
+async def get_auth_token(
+    credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)],
+) -> str | None:
+    """Dependency to get the raw bearer token for downstream service calls."""
+    return credentials.credentials if credentials else None
+
+
 async def get_current_active_user(
     current_user: Annotated[UserInfo, Depends(get_current_user)],
 ) -> UserInfo:
@@ -105,6 +112,7 @@ CurrentUser = Annotated[UserInfo, Depends(get_current_active_user)]
 AdminUser = Annotated[UserInfo, Depends(require_admin)]
 HRUser = Annotated[UserInfo, Depends(require_hr)]
 DatabaseSession = Annotated[AsyncSession, Depends(get_db)]
+AuthToken = Annotated[str | None, Depends(get_auth_token)]
 
 
 # Unit of Work dependency

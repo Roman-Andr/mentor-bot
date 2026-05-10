@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  Document,
-  Page,
-  Text,
-  View,
-  StyleSheet,
-  PDFDownloadLink,
-} from "@react-pdf/renderer";
+import { Document, Page, Text, View, StyleSheet, PDFDownloadLink } from "@react-pdf/renderer";
 import type { ChecklistStats } from "@/shared/types";
 import "@/shared/lib/pdf/fonts";
 

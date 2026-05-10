@@ -19,6 +19,7 @@ export function LanguageSwitcher() {
   return (
     <div className="flex items-center gap-1">
       <button
+        title="RU"
         onClick={() => switchLocale("ru")}
         className={`rounded px-2 py-1 text-xs font-medium transition-colors ${
           locale === "ru"
@@ -30,6 +31,7 @@ export function LanguageSwitcher() {
         RU
       </button>
       <button
+        title="EN"
         onClick={() => switchLocale("en")}
         className={`rounded px-2 py-1 text-xs font-medium transition-colors ${
           locale === "en"

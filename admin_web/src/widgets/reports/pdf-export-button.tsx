@@ -56,7 +56,8 @@ export function PDFExportButton({
         completionRate: t("completionRate"),
         byDepartments: t("byDepartments"),
         monthlyDynamics: t("onboardingDynamics"),
-        completionTimeDistribution: locale === "ru" ? "Распределение по времени завершения" : "Completion Time Distribution",
+        completionTimeDistribution:
+          locale === "ru" ? "Распределение по времени завершения" : "Completion Time Distribution",
         department: tCommon("department"),
         count: tCommon("total"),
         month: locale === "ru" ? "Месяц" : "Month",

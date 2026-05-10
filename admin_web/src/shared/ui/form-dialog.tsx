@@ -48,7 +48,7 @@ export function FormDialog({
       <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{description || ''}</DialogDescription>
+          <DialogDescription>{description || ""}</DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">{children}</div>
         <DialogFooter>

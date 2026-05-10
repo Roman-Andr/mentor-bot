@@ -18,7 +18,9 @@ export function usePreferences() {
       await queryClient.cancelQueries({ queryKey: queryKeys.preferences() });
 
       // Snapshot previous value
-      const previousPreferences = queryClient.getQueryData<UserPreferences>(queryKeys.preferences());
+      const previousPreferences = queryClient.getQueryData<UserPreferences>(
+        queryKeys.preferences(),
+      );
 
       // Optimistically update
       if (previousPreferences) {

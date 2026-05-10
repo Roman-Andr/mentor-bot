@@ -8,18 +8,16 @@ import { Select } from "@/shared/ui/select";
 import { Checkbox } from "@/shared/ui/checkbox";
 import { SortableTableHead } from "@/shared/ui/sortable-table-head";
 import { StatusBadge } from "@/shared/ui/status-badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/shared/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 import { DataTable } from "@/shared/ui/data-table";
 import { DataTableSkeleton } from "@/shared/ui/table-skeleton";
 import { CardHeader, CardTitle, Card, CardContent } from "@/shared/ui/card";
-import { TableActions, buildEditAction, buildDeleteAction, buildPublishAction } from "@/shared/components";
+import {
+  TableActions,
+  buildEditAction,
+  buildDeleteAction,
+  buildPublishAction,
+} from "@/shared/components";
 import { BookOpen, Eye, Pin, Star } from "lucide-react";
 import type { Category } from "@/shared/types";
 import { getArticleStatusOptions } from "@/shared/lib/constants";
@@ -120,17 +118,17 @@ export function ArticlesTable({
         <CardContent className="p-4">
           {/* Header: Title + Status + Badges */}
           <div className="mb-3 flex items-start gap-3">
-            <div className="bg-muted flex size-8 shrink-0 items-center justify-center rounded-lg">
-              <BookOpen className="text-muted-foreground size-4" />
+            <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted">
+              <BookOpen className="size-4 text-muted-foreground" />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="font-semibold truncate">{article.title}</h3>
-                {article.isPinned && <Pin className="size-3 text-purple-500 shrink-0" />}
-                {article.isFeatured && <Star className="size-3 text-yellow-500 shrink-0" />}
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="truncate font-semibold">{article.title}</h3>
+                {article.isPinned && <Pin className="size-3 shrink-0 text-purple-500" />}
+                {article.isFeatured && <Star className="size-3 shrink-0 text-yellow-500" />}
                 <StatusBadge status={article.status} />
               </div>
-              <p className="text-muted-foreground mt-1 line-clamp-2 text-xs">{article.excerpt}</p>
+              <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{article.excerpt}</p>
             </div>
           </div>
 
@@ -141,7 +139,7 @@ export function ArticlesTable({
                 variant="secondary"
                 style={{
                   backgroundColor: article.category_color || undefined,
-                  color: article.category_color ? '#fff' : undefined,
+                  color: article.category_color ? "#fff" : undefined,
                 }}
               >
                 {article.category}
@@ -152,7 +150,7 @@ export function ArticlesTable({
               <span>{article.author}</span>
             </div>
             <div className="flex items-center gap-1">
-              <Eye className="text-muted-foreground size-3" />
+              <Eye className="size-3 text-muted-foreground" />
               <span>{article.viewCount}</span>
             </div>
             <div>
@@ -163,7 +161,7 @@ export function ArticlesTable({
 
           {/* Footer: Actions */}
           <div
-            className="flex items-center gap-2 border-t pt-3 flex-col sm:flex-row"
+            className="flex flex-col items-center gap-2 border-t pt-3 sm:flex-row"
             onClick={(e) => e.stopPropagation()}
           >
             <Button size="sm" variant="outline" className="flex-1" onClick={() => onEdit(article)}>
@@ -218,8 +216,13 @@ export function ArticlesTable({
         <CardHeader>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <CardTitle>{t("knowledge.articles")}</CardTitle>
-            <div className="flex flex-col gap-2 w-full sm:flex-row sm:items-center sm:flex-wrap">
-              <SearchInput placeholder={t("common.searchPlaceholder")} value={searchQuery} onChange={onSearchChange} className="w-full sm:w-auto" />
+            <div className="flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+              <SearchInput
+                placeholder={t("common.searchPlaceholder")}
+                value={searchQuery}
+                onChange={onSearchChange}
+                className="w-full sm:w-auto"
+              />
               <Select
                 value={categoryFilter}
                 onChange={onCategoryFilterChange}
@@ -238,7 +241,7 @@ export function ArticlesTable({
                   checked={pinnedFilter === "true"}
                   onCheckedChange={(checked) => onPinnedFilterChange(checked ? "true" : "ALL")}
                 />
-                <label htmlFor="pinned-filter" className="text-sm cursor-pointer">
+                <label htmlFor="pinned-filter" className="cursor-pointer text-sm">
                   {t("knowledge.pinnedOnly")}
                 </label>
               </div>
@@ -272,13 +275,13 @@ export function ArticlesTable({
           {articles.map((article) => (
             <TableRow
               key={article.id}
-              className="hover:bg-muted cursor-pointer"
+              className="cursor-pointer hover:bg-muted"
               onClick={() => onEdit(article)}
             >
               <TableCell>
                 <div className="flex items-start gap-3">
-                  <div className="bg-muted flex size-8 shrink-0 items-center justify-center rounded-lg">
-                    <BookOpen className="text-muted-foreground size-4" />
+                  <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted">
+                    <BookOpen className="size-4 text-muted-foreground" />
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
@@ -286,7 +289,7 @@ export function ArticlesTable({
                       {article.isPinned && <Pin className="size-3 text-purple-500" />}
                       {article.isFeatured && <Star className="size-3 text-yellow-500" />}
                     </div>
-                    <p className="text-muted-foreground text-sm">{article.excerpt}</p>
+                    <p className="text-sm text-muted-foreground">{article.excerpt}</p>
                   </div>
                 </div>
               </TableCell>
@@ -295,7 +298,7 @@ export function ArticlesTable({
                   variant="secondary"
                   style={{
                     backgroundColor: article.category_color || undefined,
-                    color: article.category_color ? '#fff' : undefined,
+                    color: article.category_color ? "#fff" : undefined,
                   }}
                 >
                   {article.category}
@@ -304,7 +307,7 @@ export function ArticlesTable({
               <TableCell>{article.author}</TableCell>
               <TableCell>
                 <div className="flex items-center gap-1">
-                  <Eye className="text-muted-foreground size-4" />
+                  <Eye className="size-4 text-muted-foreground" />
                   {article.viewCount}
                 </div>
               </TableCell>

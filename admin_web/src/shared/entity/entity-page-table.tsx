@@ -1,11 +1,5 @@
 import { cn } from "@/shared/lib/utils";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHeader,
-  TableRow,
-} from "@/shared/ui/table";
+import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/shared/ui/table";
 import { DataTable } from "@/shared/ui/data-table";
 import { DataTableSkeleton } from "@/shared/ui/table-skeleton";
 import { SortableTableHead } from "@/shared/ui/sortable-table-head";
@@ -99,14 +93,18 @@ export function EntityPageTable<TItem, TForm>({
       onPageChange={onPageChange}
       onPageSizeChange={onPageSizeChange}
       showPageSizeSelector={!!onPageSizeChange}
-      skeleton={<DataTableSkeleton columns={columns.length} rows={Math.min(pageSize, 8)} showHeader={false} />}
+      skeleton={
+        <DataTableSkeleton
+          columns={columns.length}
+          rows={Math.min(pageSize, 8)}
+          showHeader={false}
+        />
+      }
       header={
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-2xl font-bold">{title}</h2>
-            {description && (
-              <p className="text-muted-foreground mt-1">{description}</p>
-            )}
+            {description && <p className="mt-1 text-muted-foreground">{description}</p>}
           </div>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2">
             {showSearch && (
@@ -115,14 +113,15 @@ export function EntityPageTable<TItem, TForm>({
                 placeholder={searchPlaceholder}
                 value={searchQuery}
                 onChange={(e) => onSearchChange?.(e.target.value)}
-                className="rounded border px-3 py-2 w-full sm:w-auto"
+                className="w-full rounded border px-3 py-2 sm:w-auto"
               />
             )}
             {filters}
             {additionalActions}
             <button
               onClick={onCreateOpen}
-              className="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center justify-center gap-2 rounded px-4 py-2 w-full sm:w-auto"
+              title={createButtonLabel}
+              className="flex w-full items-center justify-center gap-2 rounded bg-primary px-4 py-2 text-primary-foreground hover:bg-primary/90 sm:w-auto"
             >
               <span className="size-4">+</span>
               {createButtonLabel}
@@ -156,10 +155,7 @@ export function EntityPageTable<TItem, TForm>({
           {items.map((item, idx) => (
             <TableRow
               key={getItemKey ? getItemKey(item) : idx}
-              className={cn(
-                "transition-colors",
-                onRowClick && "cursor-pointer hover:bg-muted"
-              )}
+              className={cn("transition-colors", onRowClick && "cursor-pointer hover:bg-muted")}
               onClick={() => onRowClick?.(item)}
             >
               {columns.map((column) => (
@@ -167,9 +163,11 @@ export function EntityPageTable<TItem, TForm>({
                   key={`${getItemKey ? getItemKey(item) : idx}-${column.key}`}
                   className={column.cellClassName}
                 >
-                  {column.key === "actions"
-                    ? <EntityPageActions item={item} onEdit={onEditOpen} onDelete={onDelete} t={t} />
-                    : column.cell(item)}
+                  {column.key === "actions" ? (
+                    <EntityPageActions item={item} onEdit={onEditOpen} onDelete={onDelete} t={t} />
+                  ) : (
+                    column.cell(item)
+                  )}
                 </TableCell>
               ))}
             </TableRow>

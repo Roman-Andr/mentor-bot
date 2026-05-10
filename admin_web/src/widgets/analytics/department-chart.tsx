@@ -27,11 +27,20 @@ const DEPARTMENT_COLORS = [
   "#D97706", // orange
 ];
 
-const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ payload: DepartmentData }> }) => {
+const CustomTooltip = ({
+  active,
+  payload,
+}: {
+  active?: boolean;
+  payload?: Array<{ payload: DepartmentData }>;
+}) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload as DepartmentData;
     return (
-      <div className="rounded-lg border border-gray-200 bg-white/95 px-3 py-2 text-sm font-medium text-gray-900 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100" style={{ pointerEvents: "none" }}>
+      <div
+        className="rounded-lg border border-gray-200 bg-white/95 px-3 py-2 text-sm font-medium text-gray-900 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+        style={{ pointerEvents: "none" }}
+      >
         {data.name}: {data.value}
       </div>
     );

@@ -98,7 +98,9 @@ export function MeetingFormDialog({
           <label className="mb-1 block text-sm font-medium">{t("meetings.department")}</label>
           <SearchableSelect
             value={formData.department_id ? String(formData.department_id) : ""}
-            onChange={(val) => onFormDataChange((prev) => ({ ...prev, department_id: val ? Number(val) : 0 }))}
+            onChange={(val) =>
+              onFormDataChange((prev) => ({ ...prev, department_id: val ? Number(val) : 0 }))
+            }
             options={departmentOptions}
             placeholder={t("meetings.selectDepartment")}
           />
@@ -127,7 +129,10 @@ export function MeetingFormDialog({
             className="w-full rounded-md border px-3 py-2 text-sm"
             value={formData.deadline_days}
             onChange={(e) =>
-              onFormDataChange((prev) => ({ ...prev, deadline_days: parseInt(e.target.value) || 0 }))
+              onFormDataChange((prev) => ({
+                ...prev,
+                deadline_days: parseInt(e.target.value) || 0,
+              }))
             }
           />
         </div>
@@ -140,7 +145,10 @@ export function MeetingFormDialog({
             className="w-full rounded-md border px-3 py-2 text-sm"
             value={formData.duration_minutes}
             onChange={(e) =>
-              onFormDataChange((prev) => ({ ...prev, duration_minutes: parseInt(e.target.value) || 60 }))
+              onFormDataChange((prev) => ({
+                ...prev,
+                duration_minutes: parseInt(e.target.value) || 60,
+              }))
             }
           />
         </div>
@@ -149,7 +157,9 @@ export function MeetingFormDialog({
             type="checkbox"
             id="is_mandatory"
             checked={formData.is_mandatory}
-            onChange={(e) => onFormDataChange((prev) => ({ ...prev, is_mandatory: e.target.checked }))}
+            onChange={(e) =>
+              onFormDataChange((prev) => ({ ...prev, is_mandatory: e.target.checked }))
+            }
           />
           <label htmlFor="is_mandatory" className="text-sm font-medium">
             {t("meetings.isMandatory")}
@@ -171,7 +181,9 @@ export function MeetingFormDialog({
         <Button variant="outline" onClick={onCancel}>
           {t("common.cancel")}
         </Button>
-        <Button onClick={onSubmit}>{mode === "create" ? t("common.create") : t("common.save")}</Button>
+        <Button onClick={onSubmit}>
+          {mode === "create" ? t("common.create") : t("common.save")}
+        </Button>
       </DialogFooter>
     </DialogContent>
   );

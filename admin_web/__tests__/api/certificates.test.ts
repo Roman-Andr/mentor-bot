@@ -32,38 +32,38 @@ describe("certificatesApi", () => {
     });
 
     it("should handle API errors", async () => {
-      (fetchApi as ReturnType<typeof vi.fn>).mockRejectedValue(
-        new Error("Network error")
-      );
+      (fetchApi as ReturnType<typeof vi.fn>).mockRejectedValue(new Error("Network error"));
 
-      await expect(certificatesApi.getMyCertificates()).rejects.toThrow(
-        "Network error"
-      );
+      await expect(certificatesApi.getMyCertificates()).rejects.toThrow("Network error");
     });
   });
 
   describe("downloadCertificate", () => {
     it("should download certificate PDF", async () => {
       const mockBlob = new Blob(["PDF content"], { type: "application/pdf" });
-      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-        ok: true,
-        blob: async () => mockBlob,
-      }));
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockResolvedValue({
+          ok: true,
+          blob: async () => mockBlob,
+        }),
+      );
 
       const result = await certificatesApi.downloadCertificate("cert-123", "en");
 
-      expect(global.fetch).toHaveBeenCalledWith(
-        "/certificates/cert-123/download?locale=en",
-      );
+      expect(global.fetch).toHaveBeenCalledWith("/certificates/cert-123/download?locale=en");
       expect(result).toBe(mockBlob);
     });
 
     it("should use default locale if not provided", async () => {
       const mockBlob = new Blob(["PDF content"], { type: "application/pdf" });
-      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-        ok: true,
-        blob: async () => mockBlob,
-      }));
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockResolvedValue({
+          ok: true,
+          blob: async () => mockBlob,
+        }),
+      );
 
       const result = await certificatesApi.downloadCertificate("cert-123");
 
@@ -105,6 +105,19 @@ describe("certificatesApi", () => {
   });
 
   describe("listCertificates", () => {
+    it("should skip undefined filters", async () => {
+      (fetchApi as ReturnType<typeof vi.fn>).mockResolvedValue({
+        success: true,
+        data: { certificates: [], total: 0, page: 1, size: 20, pages: 0 },
+      });
+
+      await certificatesApi.listCertificates({ skip: undefined, limit: 20 });
+
+      const fetchCall = (fetchApi as ReturnType<typeof vi.fn>).mock.calls[0];
+      expect(fetchCall[0]).toContain("limit=20");
+      expect(fetchCall[0]).not.toContain("skip=");
+    });
+
     it("should list certificates with filters", async () => {
       const mockResponse = {
         certificates: [
@@ -165,25 +178,27 @@ describe("certificatesApi", () => {
 
   describe("downloadCertificate error handling", () => {
     it("should handle HTTP errors when downloading certificate", async () => {
-      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-        ok: false,
-        status: 404,
-      }));
-
-      await expect(certificatesApi.downloadCertificate("cert-123")).rejects.toThrow(
-        "HTTP 404"
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockResolvedValue({
+          ok: false,
+          status: 404,
+        }),
       );
+
+      await expect(certificatesApi.downloadCertificate("cert-123")).rejects.toThrow("HTTP 404");
     });
 
     it("should handle server errors when downloading certificate", async () => {
-      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-        ok: false,
-        status: 500,
-      }));
-
-      await expect(certificatesApi.downloadCertificate("cert-456")).rejects.toThrow(
-        "HTTP 500"
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockResolvedValue({
+          ok: false,
+          status: 500,
+        }),
       );
+
+      await expect(certificatesApi.downloadCertificate("cert-456")).rejects.toThrow("HTTP 500");
     });
   });
 });

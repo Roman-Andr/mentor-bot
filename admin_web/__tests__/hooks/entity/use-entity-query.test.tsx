@@ -1,15 +1,16 @@
-import { describe, it, expect, vi } from 'vitest'
-import { renderHook, waitFor } from '@testing-library/react'
-import { useEntityQuery } from '@/shared/hooks/entity/use-entity-query'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { describe, it, expect, vi } from "vitest";
+import { renderHook, waitFor } from "@testing-library/react";
+import { useEntityQuery } from "@/shared/hooks/entity/use-entity-query";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-vi.mock('@/shared/lib/query-keys', () => ({
+vi.mock("@/shared/lib/query-keys", () => ({
   queryKeys: {
     users: {
-      list: (params: any) => ['users', 'list', params],
+      list: (params: any) => ["users", "list", params],
     },
+    unknown: {},
   },
-}))
+}));
 
 const createWrapper = () => {
   const queryClient = new QueryClient({
@@ -19,168 +20,199 @@ const createWrapper = () => {
         staleTime: Infinity,
       },
     },
-  })
+  });
   return ({ children }: { children: React.ReactNode }) => (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-  )
-}
+  );
+};
 
-describe('useEntityQuery', () => {
-  it('returns expected structure', () => {
+describe("useEntityQuery", () => {
+  it("returns expected structure", () => {
     const listFn = vi.fn().mockResolvedValue({
       success: true,
       data: { items: [], total: 0, pages: 0 },
-    })
-    
+    });
+
     const { result } = renderHook(
       () =>
         useEntityQuery(
           {
-            queryKeyPrefix: 'users',
+            queryKeyPrefix: "users",
             listFn,
-            listDataKey: 'items',
+            listDataKey: "items",
             mapItem: (item: any) => item,
           },
           { skip: 0, limit: 10 },
         ),
       { wrapper: createWrapper() },
-    )
+    );
 
-    expect(result.current).toHaveProperty('items')
-    expect(result.current).toHaveProperty('loading')
-    expect(result.current).toHaveProperty('totalCount')
-    expect(result.current).toHaveProperty('totalPages')
-    expect(result.current).toHaveProperty('listQueryKey')
-    expect(Array.isArray(result.current.items)).toBe(true)
-    expect(typeof result.current.loading).toBe('boolean')
-    expect(typeof result.current.totalCount).toBe('number')
-    expect(typeof result.current.totalPages).toBe('number')
-  })
+    expect(result.current).toHaveProperty("items");
+    expect(result.current).toHaveProperty("loading");
+    expect(result.current).toHaveProperty("totalCount");
+    expect(result.current).toHaveProperty("totalPages");
+    expect(result.current).toHaveProperty("listQueryKey");
+    expect(Array.isArray(result.current.items)).toBe(true);
+    expect(typeof result.current.loading).toBe("boolean");
+    expect(typeof result.current.totalCount).toBe("number");
+    expect(typeof result.current.totalPages).toBe("number");
+  });
 
-  it('calls listFn with correct params', () => {
+  it("calls listFn with correct params", () => {
     const listFn = vi.fn().mockResolvedValue({
       success: true,
       data: { items: [], total: 0, pages: 0 },
-    })
-    
+    });
+
     renderHook(
       () =>
         useEntityQuery(
           {
-            queryKeyPrefix: 'users',
+            queryKeyPrefix: "users",
             listFn,
-            listDataKey: 'items',
+            listDataKey: "items",
             mapItem: (item: any) => item,
           },
-          { skip: 10, limit: 20, search: 'test' },
+          { skip: 10, limit: 20, search: "test" },
         ),
       { wrapper: createWrapper() },
-    )
+    );
 
     // The hook should have called the query function
-    expect(listFn).toBeDefined()
-  })
+    expect(listFn).toBeDefined();
+  });
 
-  it('uses custom listDataKey', () => {
+  it("uses custom listDataKey", () => {
     const listFn = vi.fn().mockResolvedValue({
       success: true,
       data: { users: [], total: 0, pages: 0 },
-    })
-    
+    });
+
     const { result } = renderHook(
       () =>
         useEntityQuery(
           {
-            queryKeyPrefix: 'users',
+            queryKeyPrefix: "users",
             listFn,
-            listDataKey: 'users',
+            listDataKey: "users",
             mapItem: (item: any) => item,
           },
           { skip: 0, limit: 10 },
         ),
       { wrapper: createWrapper() },
-    )
+    );
 
-    expect(result.current.items).toEqual([])
-  })
+    expect(result.current.items).toEqual([]);
+  });
 
-  it('uses default listDataKey when not specified', () => {
+  it("uses default listDataKey when not specified", () => {
     const listFn = vi.fn().mockResolvedValue({
       success: true,
       data: { items: [], total: 0, pages: 0 },
-    })
-    
+    });
+
     const { result } = renderHook(
       () =>
         useEntityQuery(
           {
-            queryKeyPrefix: 'users',
+            queryKeyPrefix: "users",
             listFn,
             mapItem: (item: any) => item,
           },
           { skip: 0, limit: 10 },
         ),
       { wrapper: createWrapper() },
-    )
+    );
 
-    expect(result.current.items).toEqual([])
-  })
+    expect(result.current.items).toEqual([]);
+  });
 
-  it('handles mapItem function', () => {
+  it("handles mapItem function", () => {
     const listFn = vi.fn().mockResolvedValue({
       success: true,
       data: { items: [], total: 0, pages: 0 },
-    })
-    
-    const mapItem = vi.fn((item: any) => ({ ...item, mapped: true }))
-    
+    });
+
+    const mapItem = vi.fn((item: any) => ({ ...item, mapped: true }));
+
     renderHook(
       () =>
         useEntityQuery(
           {
-            queryKeyPrefix: 'users',
+            queryKeyPrefix: "users",
             listFn,
-            listDataKey: 'items',
+            listDataKey: "items",
             mapItem,
           },
           { skip: 0, limit: 10 },
         ),
       { wrapper: createWrapper() },
-    )
+    );
 
-    expect(mapItem).toBeDefined()
-  })
+    expect(mapItem).toBeDefined();
+  });
 
-  it('handles array data response directly', async () => {
+  it("handles array data response directly", async () => {
     const listFn = vi.fn().mockResolvedValue({
       success: true,
-      data: [{ id: 1, name: 'Test' }, { id: 2, name: 'Test 2' }],
-    })
-    
-    const mapItem = vi.fn((item: any) => ({ ...item, mapped: true }))
-    
+      data: [
+        { id: 1, name: "Test" },
+        { id: 2, name: "Test 2" },
+      ],
+    });
+
+    const mapItem = vi.fn((item: any) => ({ ...item, mapped: true }));
+
     const { result } = renderHook(
       () =>
         useEntityQuery(
           {
-            queryKeyPrefix: 'users',
+            queryKeyPrefix: "users",
             listFn,
-            listDataKey: 'items',
+            listDataKey: "items",
             mapItem,
           },
           { skip: 0, limit: 10 },
         ),
       { wrapper: createWrapper() },
-    )
+    );
 
     await waitFor(() => {
-      expect(result.current.loading).toBe(false)
-    })
+      expect(result.current.loading).toBe(false);
+    });
 
-    expect(result.current).toHaveProperty('items')
-    expect(result.current).toHaveProperty('totalCount')
-    expect(result.current).toHaveProperty('totalPages')
-    expect(result.current.totalCount).toBe(2)
-    expect(result.current.totalPages).toBe(1)
-  })
-})
+    expect(result.current).toHaveProperty("items");
+    expect(result.current).toHaveProperty("totalCount");
+    expect(result.current).toHaveProperty("totalPages");
+    expect(result.current.totalCount).toBe(2);
+    expect(result.current.totalPages).toBe(1);
+  });
+
+  it("uses fallback query keys and ignores unsuccessful responses", async () => {
+    const listFn = vi.fn().mockResolvedValue({
+      success: false,
+      error: { message: "No data" },
+    });
+
+    const { result } = renderHook(
+      () =>
+        useEntityQuery(
+          {
+            queryKeyPrefix: "unknown",
+            listFn,
+            listDataKey: "items",
+            mapItem: (item: any) => item,
+          },
+          { skip: 0, limit: 10 },
+        ),
+      { wrapper: createWrapper() },
+    );
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
+
+    expect(result.current.listQueryKey).toEqual(["unknown", "list", { skip: 0, limit: 10 }]);
+    expect(result.current.items).toEqual([]);
+  });
+});

@@ -9,15 +9,12 @@ from unittest.mock import AsyncMock, MagicMock
 
 from auth_service.core.enums import UserRole
 from auth_service.models import (
-    Invitation,
     InvitationStatusHistory,
     LoginHistory,
     LogoutHistory,
     MentorAssignmentHistory,
     PasswordChangeHistory,
-    PasswordResetToken,
     RoleChangeHistory,
-    UserMentor,
 )
 from auth_service.repositories.implementations.invitation import InvitationRepository
 from auth_service.repositories.implementations.invitation_status_history import InvitationStatusHistoryRepository
@@ -418,8 +415,6 @@ class TestInvitationStatusHistoryRepository:
 
     async def test_nullify_changed_by(self, mock_session):
         """Test nullify_changed_by method (covers lines 77-84)."""
-        from sqlalchemy import update
-
         mock_result = MagicMock()
         mock_result.rowcount = 2
         mock_session.execute.return_value = mock_result
@@ -529,8 +524,6 @@ class TestLoginHistoryRepositoryDelete:
 
     async def test_delete_by_user_id(self, mock_session):
         """Test delete_by_user_id method (covers lines 76-81)."""
-        from sqlalchemy import delete
-
         mock_result = MagicMock()
         mock_result.rowcount = 5
         mock_session.execute.return_value = mock_result
@@ -555,8 +548,6 @@ class TestLogoutHistoryRepositoryDelete:
 
     async def test_delete_by_user_id(self, mock_session):
         """Test delete_by_user_id method (covers lines 76-81)."""
-        from sqlalchemy import delete
-
         mock_result = MagicMock()
         mock_result.rowcount = 3
         mock_session.execute.return_value = mock_result
@@ -581,8 +572,6 @@ class TestPasswordChangeHistoryRepositoryDelete:
 
     async def test_delete_by_user_id(self, mock_session):
         """Test delete_by_user_id method (covers lines 77-82)."""
-        from sqlalchemy import delete
-
         mock_result = MagicMock()
         mock_result.rowcount = 2
         mock_session.execute.return_value = mock_result
@@ -595,8 +584,6 @@ class TestPasswordChangeHistoryRepositoryDelete:
 
     async def test_nullify_changed_by(self, mock_session):
         """Test nullify_changed_by method (covers lines 86-91)."""
-        from sqlalchemy import update
-
         mock_result = MagicMock()
         mock_result.rowcount = 2
         mock_session.execute.return_value = mock_result
@@ -621,8 +608,6 @@ class TestRoleChangeHistoryRepositoryDelete:
 
     async def test_delete_by_user_id(self, mock_session):
         """Test delete_by_user_id method (covers lines 75-80)."""
-        from sqlalchemy import delete
-
         mock_result = MagicMock()
         mock_result.rowcount = 2
         mock_session.execute.return_value = mock_result
@@ -635,8 +620,6 @@ class TestRoleChangeHistoryRepositoryDelete:
 
     async def test_nullify_changed_by(self, mock_session):
         """Test nullify_changed_by method (covers lines 84-89)."""
-        from sqlalchemy import update
-
         mock_result = MagicMock()
         mock_result.rowcount = 2
         mock_session.execute.return_value = mock_result
@@ -661,8 +644,6 @@ class TestMentorAssignmentHistoryRepositoryDelete:
 
     async def test_delete_by_user_id(self, mock_session):
         """Test delete_by_user_id method (covers lines 96-101)."""
-        from sqlalchemy import delete
-
         mock_result = MagicMock()
         mock_result.rowcount = 3
         mock_session.execute.return_value = mock_result
@@ -675,8 +656,6 @@ class TestMentorAssignmentHistoryRepositoryDelete:
 
     async def test_delete_by_mentor_id(self, mock_session):
         """Test delete_by_mentor_id method (covers lines 105-110)."""
-        from sqlalchemy import delete
-
         mock_result = MagicMock()
         mock_result.rowcount = 2
         mock_session.execute.return_value = mock_result
@@ -689,8 +668,6 @@ class TestMentorAssignmentHistoryRepositoryDelete:
 
     async def test_nullify_changed_by(self, mock_session):
         """Test nullify_changed_by method (covers lines 114-121)."""
-        from sqlalchemy import update
-
         mock_result = MagicMock()
         mock_result.rowcount = 2
         mock_session.execute.return_value = mock_result
@@ -715,8 +692,6 @@ class TestUserMentorRepositoryDelete:
 
     async def test_delete_by_user_id(self, mock_session):
         """Test delete_by_user_id method (covers lines 52-57)."""
-        from sqlalchemy import delete
-
         mock_result = MagicMock()
         mock_result.rowcount = 3
         mock_session.execute.return_value = mock_result
@@ -729,8 +704,6 @@ class TestUserMentorRepositoryDelete:
 
     async def test_delete_by_mentor_id(self, mock_session):
         """Test delete_by_mentor_id method (covers lines 61-66)."""
-        from sqlalchemy import delete
-
         mock_result = MagicMock()
         mock_result.rowcount = 2
         mock_session.execute.return_value = mock_result
@@ -755,8 +728,6 @@ class TestInvitationRepositoryNullify:
 
     async def test_nullify_user_id(self, mock_session):
         """Test nullify_user_id method (covers lines 231-236)."""
-        from sqlalchemy import update
-
         mock_result = MagicMock()
         mock_result.rowcount = 5
         mock_session.execute.return_value = mock_result
@@ -769,8 +740,6 @@ class TestInvitationRepositoryNullify:
 
     async def test_nullify_mentor_id(self, mock_session):
         """Test nullify_mentor_id method (covers lines 240-245)."""
-        from sqlalchemy import update
-
         mock_result = MagicMock()
         mock_result.rowcount = 3
         mock_session.execute.return_value = mock_result
@@ -795,8 +764,6 @@ class TestPasswordResetRepositoryDelete:
 
     async def test_delete_by_user_id(self, mock_session):
         """Test delete_by_user_id method (covers lines 20-23)."""
-        from sqlalchemy import delete
-
         mock_result = MagicMock()
         mock_result.rowcount = 2
         mock_session.execute.return_value = mock_result

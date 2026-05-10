@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-from sqlalchemy import DateTime, Enum, Integer, String, Text
+from sqlalchemy import BigInteger, DateTime, Enum, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
@@ -20,7 +20,7 @@ class ScheduledNotification(Base):
 
     # Recipient
     user_id: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
-    recipient_telegram_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    recipient_telegram_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     recipient_email: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
     # Content

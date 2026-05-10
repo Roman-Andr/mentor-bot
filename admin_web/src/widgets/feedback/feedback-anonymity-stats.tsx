@@ -21,25 +21,29 @@ function AnonStatCard({
   return (
     <div className={cn("rounded-xl border bg-card p-4", className)}>
       <div className="mb-3 flex items-center gap-2">
-        <Shield className="text-muted-foreground size-4" />
+        <Shield className="size-4 text-muted-foreground" />
         <p className="text-sm font-medium">{title}</p>
       </div>
       <div className="flex items-end gap-3">
         <div>
           <div className="flex items-baseline gap-1">
             <span className="text-2xl font-bold">{anonCount}</span>
-            <span className="text-muted-foreground text-sm">{t("feedback.anonymous")}</span>
+            <span className="text-sm text-muted-foreground">{t("feedback.anonymous")}</span>
           </div>
-          <div className="text-muted-foreground text-xs">{attributedCount} {t("feedback.attributed")}</div>
+          <div className="text-xs text-muted-foreground">
+            {attributedCount} {t("feedback.attributed")}
+          </div>
         </div>
         <div className="flex-1">
-          <div className="bg-muted mb-1 h-2 overflow-hidden rounded-full">
+          <div className="mb-1 h-2 overflow-hidden rounded-full bg-muted">
             <div
               className="h-full rounded-full bg-amber-400 transition-all"
               style={{ width: `${anonPct}%` }}
             />
           </div>
-          <p className="text-muted-foreground text-right text-xs">{anonPct}% {t("feedback.anonymous")}</p>
+          <p className="text-right text-xs text-muted-foreground">
+            {anonPct}% {t("feedback.anonymous")}
+          </p>
         </div>
       </div>
     </div>

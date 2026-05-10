@@ -100,7 +100,7 @@ export function mapCategory(c: Category, departmentsMap: Record<number, string>)
     name: c.name,
     slug: c.slug,
     description: c.description || "",
-    parent_id: c.parent_id,
+    parent_id: c.parent_id || null,
     parent_name: c.parent_name || "",
     order: c.order,
     department_id: c.department_id,
@@ -178,7 +178,13 @@ export function useCategories() {
     return map;
   }, [departmentsData]);
 
-  const entity = useEntity<CategoryRow, CategoryFormData, ReturnType<typeof toCreatePayload>, ReturnType<typeof toUpdatePayload>, Record<string, unknown>>({
+  const entity = useEntity<
+    CategoryRow,
+    CategoryFormData,
+    ReturnType<typeof toCreatePayload>,
+    ReturnType<typeof toUpdatePayload>,
+    Record<string, unknown>
+  >({
     entityName: "Категория",
     translationNamespace: "knowledge",
     queryKeyPrefix: "categories",
@@ -211,15 +217,18 @@ export function useCategories() {
   });
 
   // Custom updateFormField that auto-generates slug from name
-  const updateFormField = useCallback((field: keyof CategoryFormData, value: string | number) => {
-    entity.setFormData((prev) => {
-      const next = { ...prev, [field]: value };
-      if (field === "name" && !prev.slug) {
-        next.slug = slugify(String(value));
-      }
-      return next;
-    });
-  }, [entity]);
+  const updateFormField = useCallback(
+    (field: keyof CategoryFormData, value: string | number) => {
+      entity.setFormData((prev) => {
+        const next = { ...prev, [field]: value };
+        if (field === "name" && !prev.slug) {
+          next.slug = slugify(String(value));
+        }
+        return next;
+      });
+    },
+    [entity],
+  );
 
   return {
     ...entity,

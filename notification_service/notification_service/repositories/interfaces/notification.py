@@ -45,3 +45,13 @@ class IScheduledNotificationRepository(BaseRepository["ScheduledNotification", i
     @abstractmethod
     async def increment_retry(self, notification_id: int, next_scheduled_time: datetime) -> ScheduledNotification:
         """Increment retry count and update scheduled time for next attempt."""
+
+    @abstractmethod
+    async def cancel_pending(
+        self,
+        *,
+        user_id: int,
+        notification_type: NotificationType,
+        data_match: dict,
+    ) -> int:
+        """Mark pending scheduled notifications matching data as processed."""

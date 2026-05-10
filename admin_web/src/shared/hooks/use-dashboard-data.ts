@@ -105,7 +105,9 @@ export function useDashboardData(): UseDashboardDataResult {
       // Process escalation data
       if (escalationResult.success && escalationResult.data?.requests) {
         const items = escalationResult.data.requests;
-        const openEscalations = items.filter((e) => e.status !== "RESOLVED" && e.status !== "CLOSED");
+        const openEscalations = items.filter(
+          (e) => e.status !== "RESOLVED" && e.status !== "CLOSED",
+        );
         const counts: EscalationCounts = {
           hr: openEscalations.filter((e) => e.type === "HR").length,
           mentor: openEscalations.filter((e) => e.type === "MENTOR").length,

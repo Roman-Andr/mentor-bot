@@ -231,6 +231,29 @@ async def get_pulse_anonymity_stats(
         return stats
 
 
+@router.delete("/pulse/{survey_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_pulse_survey(
+    survey_id: int,
+    uow: UOWDep,
+    current_user: HRAdminUser,
+) -> None:
+    """Delete a pulse survey (HR/Admin only)."""
+    deleted = await uow.pulse_surveys.delete(survey_id)
+    if not deleted:
+        logger.warning(
+            "Delete pulse survey failed: not found (survey_id={}, user_id={})",
+            survey_id,
+            current_user.id,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Pulse survey not found",
+        )
+
+    await uow.commit()
+    logger.info("Pulse survey deleted (survey_id={}, user_id={})", survey_id, current_user.id)
+
+
 # ============================================================================
 # Experience Rating Endpoints
 # ============================================================================
@@ -425,6 +448,29 @@ async def get_experience_anonymity_stats(
         ) from None
     else:
         return stats
+
+
+@router.delete("/experience/{rating_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_experience_rating(
+    rating_id: int,
+    uow: UOWDep,
+    current_user: HRAdminUser,
+) -> None:
+    """Delete an experience rating (HR/Admin only)."""
+    deleted = await uow.experience_ratings.delete(rating_id)
+    if not deleted:
+        logger.warning(
+            "Delete experience rating failed: not found (rating_id={}, user_id={})",
+            rating_id,
+            current_user.id,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Experience rating not found",
+        )
+
+    await uow.commit()
+    logger.info("Experience rating deleted (rating_id={}, user_id={})", rating_id, current_user.id)
 
 
 # ============================================================================
@@ -644,3 +690,26 @@ async def reply_to_comment(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to reply to comment",
         ) from None
+
+
+@router.delete("/comments/{comment_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_comment(
+    comment_id: int,
+    uow: UOWDep,
+    current_user: HRAdminUser,
+) -> None:
+    """Delete a comment (HR/Admin only)."""
+    deleted = await uow.comments.delete(comment_id)
+    if not deleted:
+        logger.warning(
+            "Delete comment failed: not found (comment_id={}, user_id={})",
+            comment_id,
+            current_user.id,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Comment not found",
+        )
+
+    await uow.commit()
+    logger.info("Comment deleted (comment_id={}, user_id={})", comment_id, current_user.id)

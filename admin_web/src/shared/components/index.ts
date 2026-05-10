@@ -16,15 +16,15 @@ export {
   buildAssignMentorAction,
   buildPublishAction,
 } from "./table-actions";
-export { 
-  TableFilters, 
+export {
+  TableFilters,
   type FilterDefinition,
   type FilterOption,
   buildSearchFilter,
   buildSelectFilter,
   buildResetFilter,
 } from "./table-filters";
-export { 
+export {
   type ColumnDefinition,
   buildTextColumn,
   buildDateColumn,

@@ -49,7 +49,7 @@ def get_my_mentor_keyboard(*, locale: str = "en") -> InlineKeyboardBuilder:
             callback_data="mentor_tasks",
             style=ButtonStyle.PRIMARY,
         ),
-        create_inline_button(t("common.menu_button", locale=locale), callback_data="menu"),
+        create_inline_button(f"\u2190 {t('common.menu_button', locale=locale)}", callback_data="menu"),
     )
     builder.adjust(1)
     return builder

@@ -73,7 +73,7 @@ export function TableFilters({ filters }: TableFiltersProps) {
 export const buildSearchFilter = (
   value: string,
   onChange: (value: string) => void,
-  placeholder = "Search..."
+  placeholder = "Search...",
 ): FilterDefinition => ({
   type: "search",
   value,
@@ -85,7 +85,7 @@ export const buildSelectFilter = (
   key: string,
   value: string,
   onChange: (value: string) => void,
-  options: FilterOption[]
+  options: FilterOption[],
 ): FilterDefinition => ({
   type: "select",
   key,
@@ -94,10 +94,7 @@ export const buildSelectFilter = (
   options,
 });
 
-export const buildResetFilter = (
-  onReset: () => void,
-  label = "Reset"
-): FilterDefinition => ({
+export const buildResetFilter = (onReset: () => void, label = "Reset"): FilterDefinition => ({
   type: "reset",
   onReset,
   label,

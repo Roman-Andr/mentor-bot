@@ -49,9 +49,22 @@ interface SortableOptionRowProps {
   optionLabelPlaceholder: string;
 }
 
-function SortableOptionRow({ idx, opt, stepNumberOptions, onUpdate, onRemove, optionLabelPlaceholder }: SortableOptionRowProps) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: idx });
-  const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 };
+function SortableOptionRow({
+  idx,
+  opt,
+  stepNumberOptions,
+  onUpdate,
+  onRemove,
+  optionLabelPlaceholder,
+}: SortableOptionRowProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: idx,
+  });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
 
   return (
     <div ref={setNodeRef} style={style} className="flex items-center gap-2">
@@ -151,9 +164,7 @@ export function StepFormDialog({
   };
 
   const updateOption = (idx: number, field: "label" | "next_step", value: string | number) => {
-    const newOptions = formData.options.map((o, i) =>
-      i === idx ? { ...o, [field]: value } : o,
-    );
+    const newOptions = formData.options.map((o, i) => (i === idx ? { ...o, [field]: value } : o));
     onFormDataChange({ ...formData, options: newOptions });
   };
 
@@ -168,9 +179,7 @@ export function StepFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
-            {isCreate ? t("dialogues.addStep") : t("dialogues.editStep")}
-          </DialogTitle>
+          <DialogTitle>{isCreate ? t("dialogues.addStep") : t("dialogues.editStep")}</DialogTitle>
           <DialogDescription>
             {isCreate ? t("dialogues.addStepDesc") : t("dialogues.editStepDesc")}
           </DialogDescription>
@@ -218,7 +227,9 @@ export function StepFormDialog({
           {(formData.answer_type === "TEXT" || formData.answer_type === "LINK") && (
             <div className="grid gap-2">
               <label className="text-sm font-medium">
-                {formData.answer_type === "LINK" ? t("dialogues.answerLink") : t("dialogues.answerContent")}
+                {formData.answer_type === "LINK"
+                  ? t("dialogues.answerLink")
+                  : t("dialogues.answerContent")}
               </label>
               <Textarea
                 value={formData.answer_content}
@@ -243,7 +254,7 @@ export function StepFormDialog({
                 </Button>
               </div>
               {formData.options.length === 0 && (
-                <p className="text-muted-foreground text-xs">{t("dialogues.noOptions")}</p>
+                <p className="text-xs text-muted-foreground">{t("dialogues.noOptions")}</p>
               )}
               <DndContext
                 sensors={sensors}
@@ -267,7 +278,7 @@ export function StepFormDialog({
                   ))}
                 </SortableContext>
               </DndContext>
-              <p className="text-muted-foreground text-xs">{t("dialogues.optionsHint")}</p>
+              <p className="text-xs text-muted-foreground">{t("dialogues.optionsHint")}</p>
             </div>
           )}
 
@@ -275,7 +286,7 @@ export function StepFormDialog({
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <label className="text-sm font-medium">{t("dialogues.nextStepId")}</label>
-                <p className="text-muted-foreground text-xs">{t("dialogues.nextStepIdHint")}</p>
+                <p className="text-xs text-muted-foreground">{t("dialogues.nextStepIdHint")}</p>
                 <Select
                   options={stepIdOptions}
                   value={formData.next_step_id !== null ? String(formData.next_step_id) : ""}
@@ -289,7 +300,7 @@ export function StepFormDialog({
               </div>
               <div className="grid gap-2">
                 <label className="text-sm font-medium">{t("dialogues.parentStepId")}</label>
-                <p className="text-muted-foreground text-xs">{t("dialogues.parentStepIdHint")}</p>
+                <p className="text-xs text-muted-foreground">{t("dialogues.parentStepIdHint")}</p>
                 <Select
                   options={stepIdOptions}
                   value={formData.parent_step_id !== null ? String(formData.parent_step_id) : ""}
@@ -320,10 +331,7 @@ export function StepFormDialog({
           <Button variant="outline" onClick={onCancel}>
             {t("common.cancel")}
           </Button>
-          <Button
-            onClick={onSubmit}
-            disabled={!formData.question || isSubmitting}
-          >
+          <Button onClick={onSubmit} disabled={!formData.question || isSubmitting}>
             {isCreate ? t("common.create") : t("common.save")}
           </Button>
         </DialogFooter>

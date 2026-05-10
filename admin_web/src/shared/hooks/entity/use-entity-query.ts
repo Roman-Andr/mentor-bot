@@ -5,21 +5,21 @@ import type { ListParams } from "../use-queries";
 import type { UseEntityOptions } from "./types";
 
 export function useEntityQuery<TItem>(
-  options: Pick<UseEntityOptions<TItem, unknown, unknown, unknown>, "queryKeyPrefix" | "listFn" | "listDataKey" | "mapItem">,
+  options: Pick<
+    UseEntityOptions<TItem, unknown, unknown, unknown>,
+    "queryKeyPrefix" | "listFn" | "listDataKey" | "mapItem"
+  >,
   queryParams: ListParams,
 ) {
   const { queryKeyPrefix, listFn, listDataKey = "items", mapItem } = options;
 
-  const listQueryKey = useMemo(
-    () => {
-      const keyConfig = queryKeys[queryKeyPrefix as keyof typeof queryKeys];
-      if ("list" in keyConfig && typeof keyConfig.list === "function") {
-        return keyConfig.list(queryParams);
-      }
-      return [queryKeyPrefix, "list", queryParams];
-    },
-    [queryKeyPrefix, queryParams],
-  );
+  const listQueryKey = useMemo(() => {
+    const keyConfig = queryKeys[queryKeyPrefix as keyof typeof queryKeys];
+    if ("list" in keyConfig && typeof keyConfig.list === "function") {
+      return keyConfig.list(queryParams);
+    }
+    return [queryKeyPrefix, "list", queryParams];
+  }, [queryKeyPrefix, queryParams]);
 
   const { data: listData, isLoading: loading } = useQuery({
     queryKey: listQueryKey,

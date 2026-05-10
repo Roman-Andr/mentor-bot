@@ -15,6 +15,7 @@ os.environ.setdefault("DATABASE_URL", "postgresql+asyncpg://test:test@localhost:
 os.environ.setdefault("REDIS_URL", "redis://localhost:6379/0")
 os.environ.setdefault("SERVICE_API_KEY", "test-service-api-key")
 os.environ.setdefault("AUTH_SERVICE_URL", "http://localhost:8001")
+os.environ.setdefault("NOTIFICATION_SERVICE_URL", "http://localhost:8004")
 os.environ.setdefault("GOOGLE_CLIENT_ID", "test-google-client-id")
 os.environ.setdefault("GOOGLE_CLIENT_SECRET", "test-google-client-secret")
 os.environ.setdefault("GOOGLE_REDIRECT_URI", "http://localhost:8000/callback")

@@ -28,7 +28,12 @@ export function CompletionTimeChart({ data }: CompletionTimeChartProps) {
             <XAxis type="number" tick={{ fontSize: 12 }} />
             <YAxis dataKey="range" type="category" width={80} tick={{ fontSize: 12 }} />
             <Tooltip />
-            <Bar dataKey="count" name={t("analytics.users") || "Count"} fill="#8B5CF6" radius={[0, 4, 4, 0]} />
+            <Bar
+              dataKey="count"
+              name={t("analytics.users") || "Count"}
+              fill="#8B5CF6"
+              radius={[0, 4, 4, 0]}
+            />
           </BarChart>
         </ResponsiveContainer>
       </CardContent>

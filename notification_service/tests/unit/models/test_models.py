@@ -4,6 +4,7 @@ from datetime import UTC, datetime, timedelta
 
 from notification_service.core.enums import NotificationChannel, NotificationStatus, NotificationType
 from notification_service.models import Notification, NotificationTemplate, ScheduledNotification
+from sqlalchemy import BigInteger
 
 
 class TestNotificationModel:
@@ -11,10 +12,11 @@ class TestNotificationModel:
 
     def test_notification_creation(self):
         """Test creating a Notification instance."""
+        large_telegram_id = 6551457244
         notification = Notification(
             id=1,
             user_id=42,
-            recipient_telegram_id=123456789,
+            recipient_telegram_id=large_telegram_id,
             recipient_email="user@example.com",
             type=NotificationType.GENERAL,
             channel=NotificationChannel.EMAIL,
@@ -26,7 +28,7 @@ class TestNotificationModel:
 
         assert notification.id == 1
         assert notification.user_id == 42
-        assert notification.recipient_telegram_id == 123456789
+        assert notification.recipient_telegram_id == large_telegram_id
         assert notification.recipient_email == "user@example.com"
         assert notification.type == NotificationType.GENERAL
         assert notification.channel == NotificationChannel.EMAIL
@@ -102,6 +104,12 @@ class TestNotificationModel:
         assert notification.scheduled_for is None
         assert notification.sent_at is None
 
+    def test_recipient_telegram_id_uses_bigint_column(self):
+        """Telegram IDs may be outside the signed 32-bit integer range."""
+        column_type = Notification.__table__.c.recipient_telegram_id.type
+
+        assert isinstance(column_type, BigInteger)
+
 
 class TestScheduledNotificationModel:
     """Tests for the ScheduledNotification model."""
@@ -109,11 +117,12 @@ class TestScheduledNotificationModel:
     def test_scheduled_notification_creation(self):
         """Test creating a ScheduledNotification instance."""
         scheduled_time = datetime.now(UTC) + timedelta(hours=1)
+        large_telegram_id = 6551457244
 
         notification = ScheduledNotification(
             id=1,
             user_id=42,
-            recipient_telegram_id=123456789,
+            recipient_telegram_id=large_telegram_id,
             recipient_email="user@example.com",
             type=NotificationType.MEETING_REMINDER,
             channel=NotificationChannel.EMAIL,
@@ -126,7 +135,7 @@ class TestScheduledNotificationModel:
 
         assert notification.id == 1
         assert notification.user_id == 42
-        assert notification.recipient_telegram_id == 123456789
+        assert notification.recipient_telegram_id == large_telegram_id
         assert notification.recipient_email == "user@example.com"
         assert notification.type == NotificationType.MEETING_REMINDER
         assert notification.channel == NotificationChannel.EMAIL
@@ -192,6 +201,12 @@ class TestScheduledNotificationModel:
         assert notification.recipient_email is None
         assert notification.subject is None
         assert notification.processed_at is None
+
+    def test_recipient_telegram_id_uses_bigint_column(self):
+        """Telegram IDs may be outside the signed 32-bit integer range."""
+        column_type = ScheduledNotification.__table__.c.recipient_telegram_id.type
+
+        assert isinstance(column_type, BigInteger)
 
     def test_scheduled_notification_processed_field(self):
         """Test that processed field exists and can be set."""

@@ -9,7 +9,10 @@ interface DepartmentDocumentDownloadButtonProps {
   fileName: string;
 }
 
-export function DepartmentDocumentDownloadButton({ documentId, fileName }: DepartmentDocumentDownloadButtonProps) {
+export function DepartmentDocumentDownloadButton({
+  documentId,
+  fileName,
+}: DepartmentDocumentDownloadButtonProps) {
   const handleDownload = () => {
     const url = departmentDocumentsApi.downloadUrl(documentId);
     const link = document.createElement("a");

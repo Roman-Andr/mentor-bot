@@ -18,12 +18,12 @@ export function StatCard({ title, value, subtitle, icon: Icon, color = "default"
   };
 
   return (
-    <div className="bg-card rounded-xl border p-6 transition-shadow hover:shadow-lg">
+    <div className="rounded-xl border bg-card p-6 transition-shadow hover:shadow-lg">
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <div className="text-muted-foreground text-sm font-medium">{title}</div>
+          <div className="text-sm font-medium text-muted-foreground">{title}</div>
           <div className="mt-2 text-3xl font-bold">{value}</div>
-          <div className="text-muted-foreground mt-1 text-xs">{subtitle}</div>
+          <div className="mt-1 text-xs text-muted-foreground">{subtitle}</div>
         </div>
         <div className={`rounded-lg p-3 ${colorClasses[color]}`}>
           <Icon className="h-5 w-5" />

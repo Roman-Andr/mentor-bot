@@ -28,6 +28,8 @@ os.environ.setdefault("NOTIFICATION_SERVICE_URL", "http://localhost:8004")
 os.environ.setdefault("ADMIN_WEB_URL", "http://localhost:3000")
 os.environ.setdefault("ADMIN_EMAIL", "admin@example.com")
 os.environ.setdefault("ADMIN_PASSWORD", "admin123")
+os.environ.setdefault("ESCALATION_SERVICE_URL", "http://localhost:8007")
+os.environ.setdefault("FEEDBACK_SERVICE_URL", "http://localhost:8008")
 
 from collections.abc import AsyncGenerator
 
@@ -83,6 +85,7 @@ def mock_uow():
     uow.users.update = AsyncMock()
     uow.users.create = AsyncMock()
     uow.users.deactivate_user = AsyncMock()
+    uow.users.delete = AsyncMock()
     uow.users.update_role = AsyncMock()
     uow.users.find_users = AsyncMock()
 
@@ -107,6 +110,8 @@ def mock_uow():
     uow.user_mentors.create = AsyncMock()
     uow.user_mentors.update = AsyncMock()
     uow.user_mentors.delete = AsyncMock()
+    uow.user_mentors.delete_by_user_id = AsyncMock()
+    uow.user_mentors.delete_by_mentor_id = AsyncMock()
 
     uow.departments = MagicMock()
     uow.departments.get_by_id = AsyncMock()

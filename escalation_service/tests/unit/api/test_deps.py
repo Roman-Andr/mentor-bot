@@ -12,6 +12,7 @@ from escalation_service.api.deps import (
     get_escalation_service,
     require_admin,
     require_hr,
+    verify_service_api_key,
 )
 from escalation_service.core.exceptions import AuthException, NotFoundException, PermissionDenied
 from escalation_service.repositories.unit_of_work import SqlAlchemyUnitOfWork
@@ -494,4 +495,43 @@ class TestRequireAnyAssigneeOrHR:
             await require_any_assignee_or_hr(user, escalation_id=1, uow=mock_uow)
 
         assert "Access denied" in exc_info.value.detail
+        assert exc_info.value.status_code == 403
+
+
+class TestVerifyServiceApiKey:
+    """Tests for verify_service_api_key dependency."""
+
+    async def test_valid_key_returns_true(self) -> None:
+        """Returns True when correct API key is provided."""
+        mock_request = MagicMock()
+        mock_request.headers.get.return_value = "test-service-api-key"
+
+        with patch("escalation_service.api.deps.settings") as mock_settings:
+            mock_settings.SERVICE_API_KEY = "test-service-api-key"
+            result = await verify_service_api_key(mock_request)
+
+        assert result is True
+
+    async def test_invalid_key_raises_403(self) -> None:
+        """Raises HTTPException 403 when wrong API key is provided."""
+        mock_request = MagicMock()
+        mock_request.headers.get.return_value = "wrong-key"
+
+        with patch("escalation_service.api.deps.settings") as mock_settings:
+            mock_settings.SERVICE_API_KEY = "correct-key"
+            with pytest.raises(HTTPException) as exc_info:
+                await verify_service_api_key(mock_request)
+
+        assert exc_info.value.status_code == 403
+
+    async def test_missing_key_raises_403(self) -> None:
+        """Raises HTTPException 403 when API key header is absent."""
+        mock_request = MagicMock()
+        mock_request.headers.get.return_value = None
+
+        with patch("escalation_service.api.deps.settings") as mock_settings:
+            mock_settings.SERVICE_API_KEY = "correct-key"
+            with pytest.raises(HTTPException) as exc_info:
+                await verify_service_api_key(mock_request)
+
         assert exc_info.value.status_code == 403

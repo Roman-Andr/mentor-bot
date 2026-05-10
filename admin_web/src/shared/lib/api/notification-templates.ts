@@ -23,9 +23,13 @@ export const notificationTemplatesApi = {
     if (params?.channel) searchParams.set("channel", params.channel);
     if (params?.language) searchParams.set("language", params.language);
     if (params?.is_active !== undefined) searchParams.set("is_active", String(params.is_active));
-    return fetchApi<{ templates: NotificationTemplate[]; total: number; page: number; size: number; pages: number }>(
-      `/api/v1/notification-templates/list?${searchParams.toString()}`
-    );
+    return fetchApi<{
+      templates: NotificationTemplate[];
+      total: number;
+      page: number;
+      size: number;
+      pages: number;
+    }>(`/api/v1/notification-templates/list?${searchParams.toString()}`);
   },
 
   get: (id: number) => {
@@ -34,7 +38,7 @@ export const notificationTemplatesApi = {
 
   getByName: (name: string, channel: string, language: string) => {
     return fetchApi<NotificationTemplate>(
-      `/api/v1/notification-templates/by-name/${name}?channel=${channel}&language=${language}`
+      `/api/v1/notification-templates/by-name/${name}?channel=${channel}&language=${language}`,
     );
   },
 
@@ -65,13 +69,15 @@ export const notificationTemplatesApi = {
     });
   },
 
-  preview: (data: { body_text?: string | null; body_html?: string | null; subject?: string | null; variables: Record<string, string> }) => {
-    return fetchApi<NotificationTemplateRenderResponse>(
-      "/api/v1/notification-templates/preview",
-      {
-        method: "POST",
-        body: JSON.stringify(data),
-      }
-    );
+  preview: (data: {
+    body_text?: string | null;
+    body_html?: string | null;
+    subject?: string | null;
+    variables: Record<string, string>;
+  }) => {
+    return fetchApi<NotificationTemplateRenderResponse>("/api/v1/notification-templates/preview", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
   },
 };

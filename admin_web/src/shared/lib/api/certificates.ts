@@ -38,7 +38,9 @@ export const certificatesApi = {
     return response.blob();
   },
 
-  issueCertificate: async (checklistId: number): Promise<ApiResult<{ cert_uid: string; message: string }>> => {
+  issueCertificate: async (
+    checklistId: number,
+  ): Promise<ApiResult<{ cert_uid: string; message: string }>> => {
     return fetchApi<{ cert_uid: string; message: string }>("/certificates/issue", {
       method: "POST",
       body: JSON.stringify({ checklist_id: checklistId }),

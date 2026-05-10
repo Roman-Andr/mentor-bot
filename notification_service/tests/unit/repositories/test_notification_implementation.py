@@ -449,3 +449,62 @@ class TestScheduledNotificationRepositoryIncrementRetry:
 
         with pytest.raises(NotFoundException):
             await scheduled_repo.increment_retry(999, datetime.now(UTC))
+
+
+class TestScheduledNotificationRepositoryCancelPending:
+    """Tests for ScheduledNotificationRepository.cancel_pending."""
+
+    async def test_cancel_pending_marks_notifications_processed(
+        self, scheduled_repo: ScheduledNotificationRepository, mock_session: MagicMock
+    ) -> None:
+        """Marks matching notifications as processed and returns count."""
+        n1 = ScheduledNotification(
+            id=1,
+            user_id=42,
+            type=NotificationType.GENERAL,
+            channel=NotificationChannel.EMAIL,
+            body="msg",
+            processed=False,
+        )
+        n2 = ScheduledNotification(
+            id=2,
+            user_id=42,
+            type=NotificationType.GENERAL,
+            channel=NotificationChannel.TELEGRAM,
+            body="msg2",
+            processed=False,
+        )
+        mock_result = MagicMock()
+        mock_result.scalars.return_value.all.return_value = [n1, n2]
+        mock_session.execute.return_value = mock_result
+        mock_session.flush = AsyncMock()
+
+        count = await scheduled_repo.cancel_pending(
+            user_id=42,
+            notification_type=NotificationType.GENERAL,
+            data_match={"task_id": 5},
+        )
+
+        assert count == 2
+        assert n1.processed is True
+        assert n1.processed_at is not None
+        assert n2.processed is True
+        mock_session.flush.assert_awaited_once()
+
+    async def test_cancel_pending_returns_zero_when_none_found(
+        self, scheduled_repo: ScheduledNotificationRepository, mock_session: MagicMock
+    ) -> None:
+        """Returns 0 when no matching notifications found."""
+        mock_result = MagicMock()
+        mock_result.scalars.return_value.all.return_value = []
+        mock_session.execute.return_value = mock_result
+        mock_session.flush = AsyncMock()
+
+        count = await scheduled_repo.cancel_pending(
+            user_id=99,
+            notification_type=NotificationType.GENERAL,
+            data_match={},
+        )
+
+        assert count == 0
+        mock_session.flush.assert_awaited_once()

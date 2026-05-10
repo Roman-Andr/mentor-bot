@@ -12,7 +12,13 @@ interface CategoryFormProps {
   isEdit?: boolean;
 }
 
-export function CategoryForm({ formData, onChange, categories, departments, isEdit }: CategoryFormProps) {
+export function CategoryForm({
+  formData,
+  onChange,
+  categories,
+  departments,
+  isEdit,
+}: CategoryFormProps) {
   const t = useTranslations("knowledge");
   const tCommon = useTranslations("common");
 
@@ -57,9 +63,7 @@ export function CategoryForm({ formData, onChange, categories, departments, isEd
           onChange={(e) => handleChange("slug", e.target.value)}
           disabled={isEdit}
         />
-        {isEdit && (
-          <p className="text-muted-foreground text-xs">{t("slugImmutable")}</p>
-        )}
+        {isEdit && <p className="text-xs text-muted-foreground">{t("slugImmutable")}</p>}
       </div>
 
       <div className="grid gap-2">
@@ -72,7 +76,7 @@ export function CategoryForm({ formData, onChange, categories, departments, isEd
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="grid gap-2">
           <label className="text-sm font-medium">{t("parentCategory")}</label>
           <Select
@@ -92,7 +96,7 @@ export function CategoryForm({ formData, onChange, categories, departments, isEd
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="grid gap-2">
           <label className="text-sm font-medium">{t("position")}</label>
           <Input
@@ -121,7 +125,7 @@ export function CategoryForm({ formData, onChange, categories, departments, isEd
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="grid gap-2">
           <label className="text-sm font-medium">{t("icon")}</label>
           <Input

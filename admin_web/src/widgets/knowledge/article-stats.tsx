@@ -22,7 +22,11 @@ export function ArticleStats({ articles }: ArticleStatsProps) {
   return (
     <StatsGrid
       stats={[
-        { label: t("knowledge.totalArticles") || "Total Articles", value: articles.length, icon: BookOpen },
+        {
+          label: t("knowledge.totalArticles") || "Total Articles",
+          value: articles.length,
+          icon: BookOpen,
+        },
         { label: t("knowledge.published") || "Published", value: published, icon: Eye },
         { label: t("knowledge.pinned") || "Pinned", value: pinned, icon: Pin },
         { label: t("knowledge.featured") || "Featured", value: featured, icon: Star },

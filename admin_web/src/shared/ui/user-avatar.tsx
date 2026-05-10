@@ -1,8 +1,14 @@
 import { cn } from "@/shared/lib/utils";
 
 const AVATAR_COLORS = [
-  "bg-blue-500", "bg-teal-500", "bg-violet-500", "bg-amber-500",
-  "bg-rose-500", "bg-cyan-500", "bg-emerald-500", "bg-indigo-500",
+  "bg-blue-500",
+  "bg-teal-500",
+  "bg-violet-500",
+  "bg-amber-500",
+  "bg-rose-500",
+  "bg-cyan-500",
+  "bg-emerald-500",
+  "bg-indigo-500",
 ];
 
 interface UserAvatarProps {
@@ -22,7 +28,7 @@ export function UserAvatar({ name, id, size = "md" }: UserAvatarProps) {
   return (
     <div
       className={cn(
-        "shrink-0 flex items-center justify-center rounded-full font-bold text-white",
+        "flex shrink-0 items-center justify-center rounded-full font-bold text-white",
         size === "sm" ? "size-6 text-[10px]" : "size-8 text-xs",
         color,
       )}

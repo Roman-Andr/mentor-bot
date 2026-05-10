@@ -19,14 +19,31 @@ class TestSubmitPulseSurvey:
 
     async def test_submit_pulse_survey_success(self, feedback_client, monkeypatch):
         """Test successful pulse survey submission."""
+        captured_payload = {}
 
         async def mock_post(*args, **kwargs):
+            captured_payload.update(kwargs.get("json", {}))
             return Response(status_code=status.HTTP_201_CREATED)
 
         monkeypatch.setattr(feedback_client.client, "post", mock_post)
 
-        result = await feedback_client.submit_pulse_survey(1, 5, "test-token")
+        result = await feedback_client.submit_pulse_survey(5, False, "test-token", user_id=1)
         assert result is True
+        assert captured_payload == {"rating": 5, "is_anonymous": False, "user_id": 1}
+
+    async def test_submit_pulse_survey_anonymous_omits_user_id(self, feedback_client, monkeypatch):
+        """Test anonymous pulse survey does not send user_id."""
+        captured_payload = {}
+
+        async def mock_post(*args, **kwargs):
+            captured_payload.update(kwargs.get("json", {}))
+            return Response(status_code=status.HTTP_201_CREATED)
+
+        monkeypatch.setattr(feedback_client.client, "post", mock_post)
+
+        result = await feedback_client.submit_pulse_survey(5, True, "test-token", user_id=1)
+        assert result is True
+        assert captured_payload == {"rating": 5, "is_anonymous": True}
 
     async def test_submit_pulse_survey_failure(self, feedback_client, monkeypatch):
         """Test failed pulse survey submission."""
@@ -36,7 +53,7 @@ class TestSubmitPulseSurvey:
 
         monkeypatch.setattr(feedback_client.client, "post", mock_post)
 
-        result = await feedback_client.submit_pulse_survey(1, 5, "test-token")
+        result = await feedback_client.submit_pulse_survey(5, False, "test-token", user_id=1)
         assert result is False
 
     async def test_submit_pulse_survey_request_error(self, feedback_client, monkeypatch):
@@ -48,7 +65,7 @@ class TestSubmitPulseSurvey:
 
         monkeypatch.setattr(feedback_client.client, "post", mock_post)
 
-        result = await feedback_client.submit_pulse_survey(1, 5, "test-token")
+        result = await feedback_client.submit_pulse_survey(5, False, "test-token", user_id=1)
         assert result is False
 
 
@@ -57,14 +74,31 @@ class TestSubmitExperienceRating:
 
     async def test_submit_experience_rating_success(self, feedback_client, monkeypatch):
         """Test successful experience rating submission."""
+        captured_payload = {}
 
         async def mock_post(*args, **kwargs):
+            captured_payload.update(kwargs.get("json", {}))
             return Response(status_code=status.HTTP_201_CREATED)
 
         monkeypatch.setattr(feedback_client.client, "post", mock_post)
 
-        result = await feedback_client.submit_experience_rating(1, 4, "test-token")
+        result = await feedback_client.submit_experience_rating(4, False, "test-token", user_id=1)
         assert result is True
+        assert captured_payload == {"rating": 4, "is_anonymous": False, "user_id": 1}
+
+    async def test_submit_experience_rating_anonymous_omits_user_id(self, feedback_client, monkeypatch):
+        """Test anonymous experience rating does not send user_id."""
+        captured_payload = {}
+
+        async def mock_post(*args, **kwargs):
+            captured_payload.update(kwargs.get("json", {}))
+            return Response(status_code=status.HTTP_201_CREATED)
+
+        monkeypatch.setattr(feedback_client.client, "post", mock_post)
+
+        result = await feedback_client.submit_experience_rating(4, True, "test-token", user_id=1)
+        assert result is True
+        assert captured_payload == {"rating": 4, "is_anonymous": True}
 
     async def test_submit_experience_rating_failure(self, feedback_client, monkeypatch):
         """Test failed experience rating submission."""
@@ -74,7 +108,7 @@ class TestSubmitExperienceRating:
 
         monkeypatch.setattr(feedback_client.client, "post", mock_post)
 
-        result = await feedback_client.submit_experience_rating(1, 4, "test-token")
+        result = await feedback_client.submit_experience_rating(4, False, "test-token", user_id=1)
         assert result is False
 
     async def test_submit_experience_rating_request_error(self, feedback_client, monkeypatch):
@@ -86,7 +120,7 @@ class TestSubmitExperienceRating:
 
         monkeypatch.setattr(feedback_client.client, "post", mock_post)
 
-        result = await feedback_client.submit_experience_rating(1, 4, "test-token")
+        result = await feedback_client.submit_experience_rating(4, False, "test-token", user_id=1)
         assert result is False
 
 
@@ -95,14 +129,22 @@ class TestSubmitComment:
 
     async def test_submit_comment_success(self, feedback_client, monkeypatch):
         """Test successful comment submission."""
+        captured_payload = {}
 
         async def mock_post(*args, **kwargs):
+            captured_payload.update(kwargs.get("json", {}))
             return Response(status_code=status.HTTP_201_CREATED)
 
         monkeypatch.setattr(feedback_client.client, "post", mock_post)
 
-        result = await feedback_client.submit_comment(1, "Great service!", "test-token", is_anonymous=False)
+        result = await feedback_client.submit_comment("Great service!", "test-token", user_id=1, is_anonymous=False)
         assert result is True
+        assert captured_payload == {
+            "comment": "Great service!",
+            "is_anonymous": False,
+            "allow_contact": False,
+            "user_id": 1,
+        }
 
     async def test_submit_comment_failure(self, feedback_client, monkeypatch):
         """Test failed comment submission."""
@@ -112,7 +154,7 @@ class TestSubmitComment:
 
         monkeypatch.setattr(feedback_client.client, "post", mock_post)
 
-        result = await feedback_client.submit_comment(1, "Great service!", "test-token", is_anonymous=False)
+        result = await feedback_client.submit_comment("Great service!", "test-token", user_id=1, is_anonymous=False)
         assert result is False
 
     async def test_submit_comment_empty_comment(self, feedback_client, monkeypatch):
@@ -123,7 +165,7 @@ class TestSubmitComment:
 
         monkeypatch.setattr(feedback_client.client, "post", mock_post)
 
-        result = await feedback_client.submit_comment(1, "", "test-token", is_anonymous=False)
+        result = await feedback_client.submit_comment("", "test-token", user_id=1, is_anonymous=False)
         assert result is True
 
     async def test_submit_comment_request_error(self, feedback_client, monkeypatch):

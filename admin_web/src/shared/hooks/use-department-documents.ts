@@ -2,7 +2,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { departmentDocumentsApi } from "@/shared/lib/api/department-documents";
 import type { DepartmentDocumentUpdate } from "@/shared/types/department-document";
 
-export function useDepartmentDocuments(params?: { department_id?: number; category?: string; is_public?: boolean }) {
+export function useDepartmentDocuments(params?: {
+  department_id?: number;
+  category?: string;
+  is_public?: boolean;
+}) {
   const queryClient = useQueryClient();
 
   const listQuery = useQuery({
@@ -33,7 +37,8 @@ export function useDepartmentDocuments(params?: { department_id?: number; catego
   });
 
   return {
-    documents: listQuery.data?.success && listQuery.data.data ? listQuery.data.data.documents || [] : [],
+    documents:
+      listQuery.data?.success && listQuery.data.data ? listQuery.data.data.documents || [] : [],
     total: listQuery.data?.success && listQuery.data.data ? listQuery.data.data.total || 0 : 0,
     isLoading: listQuery.isLoading,
     error: listQuery.error,

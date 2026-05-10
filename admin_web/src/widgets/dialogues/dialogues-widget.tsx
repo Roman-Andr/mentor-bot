@@ -17,8 +17,15 @@ export function DialoguesWidget() {
       title={t("dialogues.title")}
       subtitle={t("dialogues.title")}
       actions={
-        <Button className="gap-2" onClick={() => { dialogues.resetForm(); dialogues.setIsCreateDialogOpen(true); }}>
-          <Plus className="size-4" />{t("dialogues.addDialogue")}
+        <Button
+          className="gap-2"
+          onClick={() => {
+            dialogues.resetForm();
+            dialogues.setIsCreateDialogOpen(true);
+          }}
+        >
+          <Plus className="size-4" />
+          {t("dialogues.addDialogue")}
         </Button>
       }
     >
@@ -29,7 +36,10 @@ export function DialoguesWidget() {
         formData={dialogues.formData}
         onFormDataChange={dialogues.setFormData}
         onSubmit={dialogues.handleSubmit}
-        onCancel={() => { dialogues.setIsCreateDialogOpen(false); dialogues.resetForm(); }}
+        onCancel={() => {
+          dialogues.setIsCreateDialogOpen(false);
+          dialogues.resetForm();
+        }}
       />
       <DialoguesTable
         dialogues={dialogues.dialogues}

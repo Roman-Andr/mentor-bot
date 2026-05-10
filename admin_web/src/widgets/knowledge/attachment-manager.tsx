@@ -20,10 +20,12 @@ function formatFileSize(bytes: number | null): string {
 }
 
 function getFileIcon(mimeType: string | null) {
-  if (!mimeType) return <FileText className="text-muted-foreground size-4" />;
-  if (mimeType.startsWith("image/")) return <FileText className="size-4 text-blue-500 dark:text-blue-400" />;
-  if (mimeType === "application/pdf") return <FileText className="size-4 text-red-500 dark:text-red-400" />;
-  return <FileText className="text-muted-foreground size-4" />;
+  if (!mimeType) return <FileText className="size-4 text-muted-foreground" />;
+  if (mimeType.startsWith("image/"))
+    return <FileText className="size-4 text-blue-500 dark:text-blue-400" />;
+  if (mimeType === "application/pdf")
+    return <FileText className="size-4 text-red-500 dark:text-red-400" />;
+  return <FileText className="size-4 text-muted-foreground" />;
 }
 
 function getFileExt(name: string): string {
@@ -97,7 +99,14 @@ export function AttachmentManager({
             onAttachmentsChange([...attachments, ...newAttachments]);
           }
         } else {
-          setUploadErrors([...clientErrors, { filename: null, error: !response.success && response.error ? response.error.message : t("common.error") }]);
+          setUploadErrors([
+            ...clientErrors,
+            {
+              filename: null,
+              error:
+                !response.success && response.error ? response.error.message : t("common.error"),
+            },
+          ]);
         }
         setUploading(false);
       }
@@ -213,7 +222,7 @@ export function AttachmentManager({
               {getFileIcon(att.mime_type)}
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium">{att.name}</p>
-                <p className="text-muted-foreground text-xs">
+                <p className="text-xs text-muted-foreground">
                   {formatFileSize(att.file_size)}
                   {att.description && ` — ${att.description}`}
                 </p>
@@ -266,7 +275,7 @@ export function AttachmentManager({
               {getFileIcon(file.type || null)}
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium">{file.name}</p>
-                <p className="text-muted-foreground text-xs">
+                <p className="text-xs text-muted-foreground">
                   {formatFileSize(file.size)} — {t("knowledge.willUploadAfterSave")}
                 </p>
               </div>
@@ -294,7 +303,7 @@ export function AttachmentManager({
       )}
 
       {attachments.length === 0 && pendingFiles.length === 0 && (
-        <p className="text-muted-foreground text-xs">{t("knowledge.noAttachments")}</p>
+        <p className="text-xs text-muted-foreground">{t("knowledge.noAttachments")}</p>
       )}
     </div>
   );

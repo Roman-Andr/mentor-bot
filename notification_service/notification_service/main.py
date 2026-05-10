@@ -15,7 +15,7 @@ from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
 from sqlalchemy import text
 
-from notification_service.api import notifications, templates
+from notification_service.api import internal, notifications, templates
 from notification_service.api.endpoints import audit, email
 from notification_service.config import settings
 from notification_service.database import engine, init_db
@@ -82,6 +82,7 @@ app.include_router(notifications.router, prefix=f"{settings.API_V1_PREFIX}/notif
 app.include_router(email.router, prefix=f"{settings.API_V1_PREFIX}/email", tags=["email"])
 app.include_router(templates.router, prefix=f"{settings.API_V1_PREFIX}/templates", tags=["templates"])
 app.include_router(audit.router, prefix=f"{settings.API_V1_PREFIX}/notifications/audit", tags=["audit"])
+app.include_router(internal.router, prefix=f"{settings.API_V1_PREFIX}/notifications/internal", tags=["internal"])
 
 
 @app.get("/")

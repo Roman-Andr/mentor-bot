@@ -30,7 +30,7 @@ export function Sidebar() {
   return (
     <div
       className={cn(
-        "flex h-full flex-col border-r bg-card text-card-foreground transition-all duration-300 h-dvh z-10 relative",
+        "relative z-10 flex h-dvh h-full flex-col border-r bg-card text-card-foreground transition-all duration-300",
         collapsed ? "w-16" : "w-64",
       )}
     >
@@ -48,7 +48,9 @@ export function Sidebar() {
           {!collapsed && <LanguageSwitcher />}
           <button
             onClick={() => setCollapsed(!collapsed)}
-            className="hover:bg-muted rounded-lg p-1.5 transition-colors"
+            aria-label={collapsed ? t("nav.expandSidebar") : t("nav.collapseSidebar")}
+            title={collapsed ? t("nav.expandSidebar") : t("nav.collapseSidebar")}
+            className="rounded-lg p-1.5 transition-colors hover:bg-muted"
           >
             {collapsed ? <ChevronRight className="size-4" /> : <ChevronLeft className="size-4" />}
           </button>
@@ -60,13 +62,13 @@ export function Sidebar() {
         <div className="border-b px-4 py-3">
           <div className="flex items-center gap-2.5">
             <div className="flex size-8 items-center justify-center rounded-full bg-primary/10">
-              <span className="text-primary text-xs font-semibold">
+              <span className="text-xs font-semibold text-primary">
                 {user.email?.charAt(0).toUpperCase()}
               </span>
             </div>
             <div className="min-w-0 flex-1">
               <p className="truncate text-xs font-medium">{user.email}</p>
-              <p className="text-muted-foreground text-xs capitalize">{user.role?.toLowerCase()}</p>
+              <p className="text-xs text-muted-foreground capitalize">{user.role?.toLowerCase()}</p>
             </div>
           </div>
         </div>
@@ -78,7 +80,7 @@ export function Sidebar() {
           {NAV_GROUPS.map((group) => (
             <div key={group.labelKey} className={cn("mb-2", collapsed ? "px-2" : "px-3")}>
               {!collapsed && (
-                <p className="text-muted-foreground mb-1 px-2 text-xs font-medium uppercase tracking-wider">
+                <p className="mb-1 px-2 text-xs font-medium tracking-wider text-muted-foreground uppercase">
                   {t(group.labelKey as Parameters<typeof t>[0])}
                 </p>
               )}
@@ -133,8 +135,9 @@ export function Sidebar() {
               <TooltipTrigger asChild>
                 <button
                   onClick={handleLogout}
+                  title={t("nav.logout")}
                   className={cn(
-                    "text-muted-foreground hover:bg-muted hover:text-foreground flex flex-1 items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm transition-colors",
+                    "flex flex-1 items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
                     collapsed && "flex-none justify-center",
                   )}
                 >

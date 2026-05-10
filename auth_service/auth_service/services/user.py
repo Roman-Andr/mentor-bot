@@ -15,6 +15,8 @@ from auth_service.core import (
 from auth_service.models import RoleChangeHistory, User
 from auth_service.repositories.unit_of_work import IUnitOfWork
 from auth_service.schemas import UserCreate, UserPreferencesUpdate, UserUpdate
+from auth_service.services.user_cleanup import UserCleanupClient
+from auth_service.utils.telegram_events import publish_telegram_event
 
 
 class UserService:
@@ -23,6 +25,7 @@ class UserService:
     def __init__(self, uow: IUnitOfWork) -> None:
         """Initialize user service with database session."""
         self._uow = uow
+        self._cleanup_client = UserCleanupClient()
 
     async def get_user_by_id(self, user_id: int) -> User:
         """Get user by ID."""
@@ -141,45 +144,52 @@ class UserService:
     async def deactivate_user(self, user_id: int) -> None:
         """Deactivate user account."""
         logger.info("Deactivating user (user_id={})", user_id)
+        user = await self.get_user_by_id(user_id)
+        telegram_id = user.telegram_id
         await self._uow.users.deactivate_user(user_id)
         await self._uow.commit()
+        if telegram_id:
+            await publish_telegram_event(
+                "user_deactivated",
+                user_id=user_id,
+                telegram_id=telegram_id,
+            )
 
     async def delete_user(self, user_id: int) -> None:
-        """Permanently delete user account with cascade delete of related records."""
-        logger.info("Deleting user (user_id={})", user_id)
-        # Verify user exists before deleting
+        """Delete user-owned service data and the auth account."""
+        logger.info("Deleting user-owned data and auth account (user_id={})", user_id)
         user = await self.get_user_by_id(user_id)
+        telegram_id = user.telegram_id
 
-        # Nullify changed_by fields in history tables (nullable fields)
+        await self._cleanup_client.cleanup_user_data(user_id)
+        await self._cleanup_auth_user_references(user_id)
+        await self._uow.users.delete(user_id)
+        await self._uow.commit()
+        if telegram_id:
+            await publish_telegram_event(
+                "user_deleted",
+                user_id=user_id,
+                telegram_id=telegram_id,
+            )
+        logger.info("User data cleanup and account deletion completed (user_id={})", user_id)
+
+    async def _cleanup_auth_user_references(self, user_id: int) -> None:
+        """Remove auth-service data tied to a deleted user."""
         await self._uow.mentor_assignment_history.nullify_changed_by(user_id)
         await self._uow.role_change_history.nullify_changed_by(user_id)
         await self._uow.password_change_history.nullify_changed_by(user_id)
         await self._uow.invitation_status_history.nullify_changed_by(user_id)
-
-        # Delete related records in correct order to respect foreign key constraints
-        # Delete history records first
+        await self._uow.user_mentors.delete_by_user_id(user_id)
+        await self._uow.user_mentors.delete_by_mentor_id(user_id)
+        await self._uow.invitations.nullify_user_id(user_id)
+        await self._uow.invitations.nullify_mentor_id(user_id)
         await self._uow.login_history.delete_by_user_id(user_id)
         await self._uow.logout_history.delete_by_user_id(user_id)
         await self._uow.password_change_history.delete_by_user_id(user_id)
+        await self._uow.password_reset.delete_by_user_id(user_id)
         await self._uow.role_change_history.delete_by_user_id(user_id)
         await self._uow.mentor_assignment_history.delete_by_user_id(user_id)
         await self._uow.mentor_assignment_history.delete_by_mentor_id(user_id)
-
-        # Delete password reset tokens
-        await self._uow.password_reset.delete_by_user_id(user_id)
-
-        # Nullify user_id and mentor_id in invitations (nullable fields)
-        await self._uow.invitations.nullify_user_id(user_id)
-        await self._uow.invitations.nullify_mentor_id(user_id)
-
-        # Delete user-mentor relations
-        await self._uow.user_mentors.delete_by_user_id(user_id)
-        await self._uow.user_mentors.delete_by_mentor_id(user_id)
-
-        # Delete the user
-        await self._uow.users.delete(user_id)
-        await self._uow.commit()
-        logger.info("User deleted successfully (user_id={})", user_id)
 
     async def get_users(
         self,

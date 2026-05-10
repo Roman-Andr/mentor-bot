@@ -20,8 +20,15 @@ export function ChecklistsWidget() {
       title={t("checklists.title")}
       subtitle={t("checklists.subtitle")}
       actions={
-        <Button className="gap-2" onClick={() => { c.resetForm(); c.setIsCreateDialogOpen(true); }}>
-          <Plus className="size-4" />{t("checklists.addChecklist")}
+        <Button
+          className="gap-2"
+          onClick={() => {
+            c.resetForm();
+            c.setIsCreateDialogOpen(true);
+          }}
+        >
+          <Plus className="size-4" />
+          {t("checklists.addChecklist")}
         </Button>
       }
     >
@@ -36,12 +43,18 @@ export function ChecklistsWidget() {
       />
       <ChecklistFormDialog
         open={c.isEditDialogOpen}
-        onOpenChange={(open) => { c.setIsEditDialogOpen(open); if (!open) c.setSelectedChecklist(null); }}
+        onOpenChange={(open) => {
+          c.setIsEditDialogOpen(open);
+          if (!open) c.setSelectedChecklist(null);
+        }}
         mode="edit"
         formData={c.formData}
         onFormDataChange={c.setFormData}
         onSubmit={(tasksToComplete) => c.handleUpdate(tasksToComplete)}
-        onCancel={() => { c.setIsEditDialogOpen(false); c.setSelectedChecklist(null); }}
+        onCancel={() => {
+          c.setIsEditDialogOpen(false);
+          c.setSelectedChecklist(null);
+        }}
         checklistId={c.selectedChecklist?.id}
       />
       <ChecklistStats checklists={c.checklists} />

@@ -57,9 +57,9 @@ export function FeedbackReplyDialog({
           </DialogHeader>
 
           {item?.comment && (
-            <div className="bg-muted/40 rounded-md border p-3 text-sm">
+            <div className="rounded-md border bg-muted/40 p-3 text-sm">
               <div className="mb-1 font-medium">{t("feedback.originalComment")}</div>
-              <p className="text-muted-foreground whitespace-pre-wrap">{item.comment}</p>
+              <p className="whitespace-pre-wrap text-muted-foreground">{item.comment}</p>
             </div>
           )}
 
@@ -76,7 +76,12 @@ export function FeedbackReplyDialog({
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={submitting}
+            >
               {t("common.cancel")}
             </Button>
             <Button type="submit" disabled={!trimmedReply || submitting}>

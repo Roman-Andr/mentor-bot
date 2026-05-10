@@ -93,6 +93,16 @@ Please complete it on time.""",
             "body_html": "<h1>Task Reminder</h1><p>Hi {{ user_name }},</p><p>Your task <strong>{{ task_title }}</strong> is due on <strong>{{ due_date }}</strong>.</p><p>Please complete it on time.</p>",
             "variables": ["user_name", "task_title", "due_date"],
         },
+        ("task_reminder", "email", "ru"): {
+            "subject": "Срок задачи: {{ task_title }}",
+            "body_text": """Здравствуйте, {{ user_name }}!
+
+Напоминаем, что срок задачи '{{ task_title }}' истекает {{ due_date }}.
+
+Пожалуйста, выполните ее вовремя.""",
+            "body_html": "<h1>Напоминание о задаче</h1><p>Здравствуйте, {{ user_name }}!</p><p>Срок задачи <strong>{{ task_title }}</strong> истекает <strong>{{ due_date }}</strong>.</p><p>Пожалуйста, выполните ее вовремя.</p>",
+            "variables": ["user_name", "task_title", "due_date"],
+        },
         # Meeting reminder templates
         ("meeting_scheduled", "telegram", "en"): {
             "subject": None,
@@ -128,6 +138,26 @@ See you there!""",
             "subject": None,
             "body_text": "⏰ Напоминание: {{ meeting_title }} начнется через {{ minutes_until }} минут!",
             "variables": ["meeting_title", "minutes_until"],
+        },
+        ("meeting_reminder", "email", "en"): {
+            "subject": "Meeting starts in {{ minutes_until }} minutes: {{ meeting_title }}",
+            "body_text": """Hi {{ user_name }},
+
+This is a reminder that your meeting '{{ meeting_title }}' starts in {{ minutes_until }} minutes.
+
+Time: {{ meeting_time }}""",
+            "body_html": "<h1>Meeting Reminder</h1><p>Hi {{ user_name }},</p><p>Your meeting <strong>{{ meeting_title }}</strong> starts in <strong>{{ minutes_until }} minutes</strong>.</p><p><strong>Time:</strong> {{ meeting_time }}</p>",
+            "variables": ["user_name", "meeting_title", "meeting_time", "minutes_until"],
+        },
+        ("meeting_reminder", "email", "ru"): {
+            "subject": "Встреча через {{ minutes_until }} минут: {{ meeting_title }}",
+            "body_text": """Здравствуйте, {{ user_name }}!
+
+Напоминаем, что встреча '{{ meeting_title }}' начнется через {{ minutes_until }} минут.
+
+Время: {{ meeting_time }}""",
+            "body_html": "<h1>Напоминание о встрече</h1><p>Здравствуйте, {{ user_name }}!</p><p>Встреча <strong>{{ meeting_title }}</strong> начнется через <strong>{{ minutes_until }} минут</strong>.</p><p><strong>Время:</strong> {{ meeting_time }}</p>",
+            "variables": ["user_name", "meeting_title", "meeting_time", "minutes_until"],
         },
         # Escalation templates
         ("escalation_assigned", "telegram", "en"): {

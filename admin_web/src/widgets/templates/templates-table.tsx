@@ -7,17 +7,15 @@ import { Select } from "@/shared/ui/select";
 import { SearchInput } from "@/shared/ui/search-input";
 import { StatusBadge } from "@/shared/ui/status-badge";
 import { SortableTableHead } from "@/shared/ui/sortable-table-head";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/shared/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 import { DataTable } from "@/shared/ui/data-table";
 import { CardHeader, CardTitle, Card, CardContent } from "@/shared/ui/card";
-import { TableActions, buildEditAction, buildDeleteAction, buildPublishAction } from "@/shared/components";
+import {
+  TableActions,
+  buildEditAction,
+  buildDeleteAction,
+  buildPublishAction,
+} from "@/shared/components";
 import type { ActionDefinition } from "@/shared/components/table-actions";
 import { Calendar, Copy, ListTodo, Building2 } from "lucide-react";
 import { getTemplateStatusOptions } from "@/shared/lib/constants";
@@ -97,23 +95,25 @@ export function TemplatesTable({
           {/* Header: Name + Default Badge + Status */}
           <div className="mb-3">
             <div className="flex items-center gap-2">
-              <h3 className="font-semibold truncate">{template.name}</h3>
+              <h3 className="truncate font-semibold">{template.name}</h3>
               {template.isDefault && (
-                <Badge variant="secondary" className="text-xs shrink-0">
+                <Badge variant="secondary" className="shrink-0 text-xs">
                   {t("templates.default")}
                 </Badge>
               )}
               <StatusBadge status={template.status} />
             </div>
             {template.description && (
-              <p className="text-muted-foreground mt-1 line-clamp-2 text-xs">{template.description}</p>
+              <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+                {template.description}
+              </p>
             )}
           </div>
 
           {/* Metadata */}
           <div className="mb-3 grid grid-cols-2 gap-2 text-xs">
             <div className="flex items-center gap-1.5">
-              <Building2 className="text-muted-foreground size-3.5 shrink-0" />
+              <Building2 className="size-3.5 shrink-0 text-muted-foreground" />
               <span className="text-muted-foreground">{t("common.department")}: </span>
               <span className="truncate">{template.department || "—"}</span>
             </div>
@@ -122,20 +122,22 @@ export function TemplatesTable({
               <span>{template.position || "—"}</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <Calendar className="text-muted-foreground size-3.5 shrink-0" />
+              <Calendar className="size-3.5 shrink-0 text-muted-foreground" />
               <span className="text-muted-foreground">{t("common.days")}: </span>
               <span>{template.durationDays}</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <ListTodo className="text-muted-foreground size-3.5 shrink-0" />
+              <ListTodo className="size-3.5 shrink-0 text-muted-foreground" />
               <span className="text-muted-foreground">{t("common.tasks")}: </span>
-              <span className={cn(template.taskCount === 0 && "text-muted-foreground")}>{template.taskCount}</span>
+              <span className={cn(template.taskCount === 0 && "text-muted-foreground")}>
+                {template.taskCount}
+              </span>
             </div>
           </div>
 
           {/* Footer: Actions */}
           <div
-            className="flex items-center gap-2 border-t pt-3 flex-col sm:flex-row"
+            className="flex flex-col items-center gap-2 border-t pt-3 sm:flex-row"
             onClick={(e) => e.stopPropagation()}
           >
             <Button size="sm" variant="outline" className="flex-1" onClick={() => onEdit(template)}>
@@ -150,7 +152,12 @@ export function TemplatesTable({
               {template.status === "DRAFT" ? t("templates.publish") : t("templates.unpublish")}
             </Button>
             {onClone && (
-              <Button size="sm" variant="outline" className="flex-1" onClick={() => onClone(template.id)}>
+              <Button
+                size="sm"
+                variant="outline"
+                className="flex-1"
+                onClick={() => onClone(template.id)}
+              >
                 <Copy className="size-3.5" />
               </Button>
             )}
@@ -194,15 +201,24 @@ export function TemplatesTable({
       header={
         <CardHeader>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <CardTitle>
+            <CardTitle className="inline-flex items-baseline gap-1 whitespace-nowrap">
               {t("templates.checklistTemplates")}{" "}
-              <span className="text-muted-foreground text-sm font-normal">
+              <span className="text-sm font-normal text-muted-foreground">
                 ({totalCount ?? templates.length})
               </span>
             </CardTitle>
-            <div className="flex flex-col gap-2 w-full sm:flex-row sm:items-center sm:flex-wrap">
-              <SearchInput value={searchQuery} onChange={onSearchChange} className="w-full sm:w-auto" />
-              <Select value={statusFilter} onChange={onStatusFilterChange} options={statusOptions} className="w-full sm:w-auto" />
+            <div className="flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+              <SearchInput
+                value={searchQuery}
+                onChange={onSearchChange}
+                className="w-full sm:w-auto"
+              />
+              <Select
+                value={statusFilter}
+                onChange={onStatusFilterChange}
+                options={statusOptions}
+                className="w-full sm:w-auto"
+              />
               <Button variant="outline" onClick={onReset} className="w-full sm:w-auto">
                 {t("common.reset")}
               </Button>
@@ -214,22 +230,58 @@ export function TemplatesTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <SortableTableHead field="name" sortable={!!onSort} sortField={sortField ?? null} sortDirection={sortDirection} onSort={onSort ?? (() => {})}>
+            <SortableTableHead
+              field="name"
+              sortable={!!onSort}
+              sortField={sortField ?? null}
+              sortDirection={sortDirection}
+              onSort={onSort ?? (() => {})}
+            >
               {t("common.name")}
             </SortableTableHead>
-            <SortableTableHead field="department" sortable={!!onSort} sortField={sortField ?? null} sortDirection={sortDirection} onSort={onSort ?? (() => {})}>
+            <SortableTableHead
+              field="department"
+              sortable={!!onSort}
+              sortField={sortField ?? null}
+              sortDirection={sortDirection}
+              onSort={onSort ?? (() => {})}
+            >
               {t("common.department")}
             </SortableTableHead>
-            <SortableTableHead field="position" sortable={!!onSort} sortField={sortField ?? null} sortDirection={sortDirection} onSort={onSort ?? (() => {})}>
+            <SortableTableHead
+              field="position"
+              sortable={!!onSort}
+              sortField={sortField ?? null}
+              sortDirection={sortDirection}
+              onSort={onSort ?? (() => {})}
+            >
               {t("common.position")}
             </SortableTableHead>
-            <SortableTableHead field="durationDays" sortable={!!onSort} sortField={sortField ?? null} sortDirection={sortDirection} onSort={onSort ?? (() => {})}>
+            <SortableTableHead
+              field="durationDays"
+              sortable={!!onSort}
+              sortField={sortField ?? null}
+              sortDirection={sortDirection}
+              onSort={onSort ?? (() => {})}
+            >
               {t("common.days")}
             </SortableTableHead>
-            <SortableTableHead field="tasks" sortable={!!onSort} sortField={sortField ?? null} sortDirection={sortDirection} onSort={onSort ?? (() => {})}>
+            <SortableTableHead
+              field="tasks"
+              sortable={!!onSort}
+              sortField={sortField ?? null}
+              sortDirection={sortDirection}
+              onSort={onSort ?? (() => {})}
+            >
               {t("common.tasks")}
             </SortableTableHead>
-            <SortableTableHead field="status" sortable={!!onSort} sortField={sortField ?? null} sortDirection={sortDirection} onSort={onSort ?? (() => {})}>
+            <SortableTableHead
+              field="status"
+              sortable={!!onSort}
+              sortField={sortField ?? null}
+              sortDirection={sortDirection}
+              onSort={onSort ?? (() => {})}
+            >
               {t("common.status")}
             </SortableTableHead>
             <TableHead className="w-32">{t("common.actions")}</TableHead>
@@ -239,7 +291,7 @@ export function TemplatesTable({
           {templates.map((template) => (
             <TableRow
               key={template.id}
-              className="hover:bg-muted cursor-pointer transition-colors"
+              className="cursor-pointer transition-colors hover:bg-muted"
               onClick={() => onEdit(template)}
             >
               <TableCell>
@@ -253,13 +305,15 @@ export function TemplatesTable({
                     )}
                   </div>
                   {template.description && (
-                    <p className="text-muted-foreground line-clamp-1 text-xs">{template.description}</p>
+                    <p className="line-clamp-1 text-xs text-muted-foreground">
+                      {template.description}
+                    </p>
                   )}
                 </div>
               </TableCell>
               <TableCell>
                 <div className="flex items-center gap-1.5">
-                  <Building2 className="text-muted-foreground size-3.5" />
+                  <Building2 className="size-3.5 text-muted-foreground" />
                   <span className="text-sm">{template.department || "—"}</span>
                 </div>
               </TableCell>
@@ -268,14 +322,16 @@ export function TemplatesTable({
               </TableCell>
               <TableCell>
                 <div className="flex items-center gap-1.5 text-sm">
-                  <Calendar className="text-muted-foreground size-3.5" />
+                  <Calendar className="size-3.5 text-muted-foreground" />
                   {template.durationDays}
                 </div>
               </TableCell>
               <TableCell>
                 <div className="flex items-center gap-1.5 text-sm">
-                  <ListTodo className="text-muted-foreground size-3.5" />
-                  <span className={cn(template.taskCount === 0 && "text-muted-foreground")}>{template.taskCount}</span>
+                  <ListTodo className="size-3.5 text-muted-foreground" />
+                  <span className={cn(template.taskCount === 0 && "text-muted-foreground")}>
+                    {template.taskCount}
+                  </span>
                 </div>
               </TableCell>
               <TableCell>
@@ -287,18 +343,24 @@ export function TemplatesTable({
                     buildEditAction(() => onEdit(template), t("common.edit")),
                     buildPublishAction(
                       () => onPublish(template.id),
-                      template.status === "DRAFT" ? t("templates.publish") : t("templates.unpublish"),
+                      template.status === "DRAFT"
+                        ? t("templates.publish")
+                        : t("templates.unpublish"),
                       true,
                     ),
-                    ...(onClone ? [{
-                      type: "toggle" as const,
-                      icon: Copy,
-                      label: t("templates.clone") || "Clone",
-                      onClick: () => onClone(template.id),
-                      variant: "ghost" as const,
-                      color: "text-blue-500",
-                      show: true,
-                    } as ActionDefinition] : []),
+                    ...(onClone
+                      ? [
+                          {
+                            type: "toggle" as const,
+                            icon: Copy,
+                            label: t("templates.clone") || "Clone",
+                            onClick: () => onClone(template.id),
+                            variant: "ghost" as const,
+                            color: "text-blue-500",
+                            show: true,
+                          } as ActionDefinition,
+                        ]
+                      : []),
                     buildDeleteAction(() => onDelete(template.id), t("common.delete")),
                   ]}
                 />

@@ -1,4 +1,3 @@
-
 import { StatusBadge } from "@/shared/ui/status-badge";
 import { Button } from "@/shared/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/shared/ui/tooltip";
@@ -25,7 +24,7 @@ function ExpiryCell({ expiresAt, status }: { expiresAt: string; status: string }
   return (
     <div className="flex items-center gap-1.5">
       {isExpired ? (
-        <span className="text-muted-foreground text-sm">{expDate.toLocaleDateString()}</span>
+        <span className="text-sm text-muted-foreground">{expDate.toLocaleDateString()}</span>
       ) : isUrgent ? (
         <>
           <AlertCircle className="size-3.5 text-red-500" />
@@ -43,14 +42,18 @@ function ExpiryCell({ expiresAt, status }: { expiresAt: string; status: string }
   );
 }
 
-export function useInvitationsColumns({ copiedId, onCopy, onResend, onRevoke, t }: InvitationsColumnsProps) {
+export function useInvitationsColumns({
+  copiedId,
+  onCopy,
+  onResend,
+  onRevoke,
+  t,
+}: InvitationsColumnsProps) {
   return [
     {
       key: "email",
       header: t("invitations.email"),
-      cell: (item: InvitationItem) => (
-        <span className="font-medium">{item.email}</span>
-      ),
+      cell: (item: InvitationItem) => <span className="font-medium">{item.email}</span>,
       sortable: true,
     },
     {
@@ -69,9 +72,7 @@ export function useInvitationsColumns({ copiedId, onCopy, onResend, onRevoke, t 
     {
       key: "department",
       header: t("common.department"),
-      cell: (item: InvitationItem) => (
-        <span className="text-sm">{item.department || "—"}</span>
-      ),
+      cell: (item: InvitationItem) => <span className="text-sm">{item.department || "—"}</span>,
       sortable: true,
     },
     {
@@ -107,7 +108,10 @@ export function useInvitationsColumns({ copiedId, onCopy, onResend, onRevoke, t 
                 <Button
                   variant="ghost"
                   size="icon"
-                  className={cn("size-8", copiedId === item.id ? "text-green-600" : "text-muted-foreground")}
+                  className={cn(
+                    "size-8",
+                    copiedId === item.id ? "text-green-600" : "text-muted-foreground",
+                  )}
                   onClick={() => onCopy(item.invitationUrl, item.id)}
                 >
                   {copiedId === item.id ? (

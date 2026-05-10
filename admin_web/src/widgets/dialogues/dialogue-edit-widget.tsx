@@ -23,10 +23,25 @@ export function DialogueEditWidget({ params }: Props) {
   const confirm = useConfirm();
 
   const {
-    dialogue, isLoading, metaForm, setMetaForm, handleSaveMeta, isSavingMeta,
-    isStepDialogOpen, setIsStepDialogOpen, editingStepId, stepForm, setStepForm,
-    openAddStep, openEditStep, handleSaveStep, handleDeleteStep, isSavingStep,
-    orderedSteps, setOrderedSteps, saveCurrentOrder,
+    dialogue,
+    isLoading,
+    metaForm,
+    setMetaForm,
+    handleSaveMeta,
+    isSavingMeta,
+    isStepDialogOpen,
+    setIsStepDialogOpen,
+    editingStepId,
+    stepForm,
+    setStepForm,
+    openAddStep,
+    openEditStep,
+    handleSaveStep,
+    handleDeleteStep,
+    isSavingStep,
+    orderedSteps,
+    setOrderedSteps,
+    saveCurrentOrder,
   } = useDialogueEdit(dialogueId);
 
   const reorder = (steps: typeof orderedSteps, activeId: number, overId: number) => {
@@ -39,7 +54,9 @@ export function DialogueEditWidget({ params }: Props) {
   const handleDragOver = (event: DragOverEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
-    setOrderedSteps((prev: DialogueStep[]) => reorder(prev, active.id as number, over.id as number));
+    setOrderedSteps((prev: DialogueStep[]) =>
+      reorder(prev, active.id as number, over.id as number),
+    );
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -49,21 +66,32 @@ export function DialogueEditWidget({ params }: Props) {
   };
 
   const handleDeleteStepConfirm = async (stepId: number, question: string) => {
-    if (!(await confirm({
-      title: t("dialogues.deleteStep"),
-      description: t("common.confirmDelete").replace("item", `"${question}"`),
-      variant: "destructive",
-      confirmText: t("common.delete"),
-    }))) return;
+    if (
+      !(await confirm({
+        title: t("dialogues.deleteStep"),
+        description: t("common.confirmDelete").replace("item", `"${question}"`),
+        variant: "destructive",
+        confirmText: t("common.delete"),
+      }))
+    )
+      return;
     handleDeleteStep(stepId);
   };
 
   if (isLoading) {
-    return <div className="flex h-64 items-center justify-center"><p className="text-muted-foreground">{t("common.loading")}</p></div>;
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <p className="text-muted-foreground">{t("common.loading")}</p>
+      </div>
+    );
   }
 
   if (!dialogue || !metaForm) {
-    return <div className="flex h-64 items-center justify-center"><p className="text-muted-foreground">{t("common.notFound")}</p></div>;
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <p className="text-muted-foreground">{t("common.notFound")}</p>
+      </div>
+    );
   }
 
   return (
@@ -77,7 +105,9 @@ export function DialogueEditWidget({ params }: Props) {
         displayOrder={metaForm.display_order}
         isActive={metaForm.is_active}
         onTitleChange={(value: string) => setMetaForm({ ...metaForm, title: value })}
-        onCategoryChange={(value: string) => setMetaForm({ ...metaForm, category: value as DialogueCategory })}
+        onCategoryChange={(value: string) =>
+          setMetaForm({ ...metaForm, category: value as DialogueCategory })
+        }
         onDescriptionChange={(value: string) => setMetaForm({ ...metaForm, description: value })}
         onKeywordsChange={(value: string) => setMetaForm({ ...metaForm, keywords: value })}
         onDisplayOrderChange={(value: number) => setMetaForm({ ...metaForm, display_order: value })}

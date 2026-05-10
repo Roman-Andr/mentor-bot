@@ -5,19 +5,17 @@ import { Button } from "@/shared/ui/button";
 import { SearchInput } from "@/shared/ui/search-input";
 import { Select } from "@/shared/ui/select";
 import { SortableTableHead } from "@/shared/ui/sortable-table-head";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/shared/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 import { DataTable } from "@/shared/ui/data-table";
 import { CardHeader, CardTitle, Card, CardContent } from "@/shared/ui/card";
 import { useConfirm } from "@/shared/hooks/use-confirm";
 import { cn } from "@/shared/lib/utils";
-import { TableActions, buildEditAction, buildDeleteAction, buildToggleAction } from "@/shared/components";
+import {
+  TableActions,
+  buildEditAction,
+  buildDeleteAction,
+  buildToggleAction,
+} from "@/shared/components";
 import { useRouter } from "next/navigation";
 import type { DialogueRow } from "@/shared/hooks/use-dialogues";
 import type { SortDirection } from "@/shared/hooks/use-sorting";
@@ -140,12 +138,12 @@ export function DialoguesTable({
         <CardContent className="p-4">
           {/* Header: Title + Status */}
           <div className="mb-3 flex items-start gap-3">
-            <div className="bg-muted flex size-8 shrink-0 items-center justify-center rounded-lg">
-              <MessageSquare className="text-muted-foreground size-4" />
+            <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted">
+              <MessageSquare className="size-4 text-muted-foreground" />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="font-semibold truncate">{dialogue.title}</h3>
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="truncate font-semibold">{dialogue.title}</h3>
                 {dialogue.isActive ? (
                   <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">
                     <CheckCircle2 className="size-3" />
@@ -159,7 +157,9 @@ export function DialoguesTable({
                 )}
               </div>
               {dialogue.description && (
-                <p className="text-muted-foreground mt-1 line-clamp-2 text-xs">{dialogue.description}</p>
+                <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+                  {dialogue.description}
+                </p>
               )}
             </div>
           </div>
@@ -167,15 +167,17 @@ export function DialoguesTable({
           {/* Metadata */}
           <div className="mb-3 grid grid-cols-2 gap-2 text-xs">
             <div>
-              <span className={cn(
-                "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium",
-                CATEGORY_COLORS[dialogue.category] ?? "bg-muted text-muted-foreground",
-              )}>
+              <span
+                className={cn(
+                  "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium",
+                  CATEGORY_COLORS[dialogue.category] ?? "bg-muted text-muted-foreground",
+                )}
+              >
                 {getCategoryLabel(dialogue.category)}
               </span>
             </div>
             <div className="flex items-center gap-1">
-              <ListOrdered className="text-muted-foreground size-3" />
+              <ListOrdered className="size-3 text-muted-foreground" />
               <span className="text-muted-foreground">{t("dialogues.stepsCount")}: </span>
               <span>{dialogue.stepsCount}</span>
             </div>
@@ -183,7 +185,7 @@ export function DialoguesTable({
 
           {/* Footer: Actions */}
           <div
-            className="flex items-center gap-2 border-t pt-3 flex-col sm:flex-row"
+            className="flex flex-col items-center gap-2 border-t pt-3 sm:flex-row"
             onClick={(e) => e.stopPropagation()}
           >
             <Button size="sm" variant="outline" className="flex-1" onClick={() => onEdit(dialogue)}>
@@ -192,12 +194,21 @@ export function DialoguesTable({
             <Button
               size="sm"
               variant="outline"
-              className={cn("flex-1", dialogue.isActive ? "text-amber-500 hover:text-amber-600" : "text-emerald-500 hover:text-emerald-600")}
+              className={cn(
+                "flex-1",
+                dialogue.isActive
+                  ? "text-amber-500 hover:text-amber-600"
+                  : "text-emerald-500 hover:text-emerald-600",
+              )}
               onClick={() => onToggleActive(dialogue.id, !dialogue.isActive)}
             >
               {dialogue.isActive ? t("common.deactivate") : t("common.activate")}
             </Button>
-            <Button size="sm" variant="destructive" onClick={() => onDelete(dialogue.id, dialogue.title)}>
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={() => onDelete(dialogue.id, dialogue.title)}
+            >
               {t("common.delete")}
             </Button>
           </div>
@@ -237,9 +248,9 @@ export function DialoguesTable({
         <CardHeader>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
-              <CardTitle>
+              <CardTitle className="inline-flex items-baseline gap-1 whitespace-nowrap">
                 {t("dialogues.title")}{" "}
-                <span className="text-muted-foreground text-sm font-normal">
+                <span className="text-sm font-normal text-muted-foreground">
                   ({totalCount ?? dialogues.length})
                 </span>
               </CardTitle>
@@ -250,7 +261,7 @@ export function DialoguesTable({
                 </span>
               </div>
             </div>
-            <div className="flex flex-col gap-2 w-full sm:flex-row sm:items-center sm:flex-wrap">
+            <div className="flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
               <SearchInput
                 placeholder={t("dialogues.searchDialogues")}
                 value={searchQuery}
@@ -271,16 +282,40 @@ export function DialoguesTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <SortableTableHead field="title" sortable={!!onSort} sortField={sortField ?? null} sortDirection={sortDirection} onSort={onSort ?? (() => {})}>
+            <SortableTableHead
+              field="title"
+              sortable={!!onSort}
+              sortField={sortField ?? null}
+              sortDirection={sortDirection}
+              onSort={onSort ?? (() => {})}
+            >
               {t("dialogues.name")}
             </SortableTableHead>
-            <SortableTableHead field="category" sortable={!!onSort} sortField={sortField ?? null} sortDirection={sortDirection} onSort={onSort ?? (() => {})}>
+            <SortableTableHead
+              field="category"
+              sortable={!!onSort}
+              sortField={sortField ?? null}
+              sortDirection={sortDirection}
+              onSort={onSort ?? (() => {})}
+            >
               {t("dialogues.category")}
             </SortableTableHead>
-            <SortableTableHead field="stepsCount" sortable={false} sortField={sortField ?? null} sortDirection={sortDirection} onSort={onSort ?? (() => {})}>
+            <SortableTableHead
+              field="stepsCount"
+              sortable={false}
+              sortField={sortField ?? null}
+              sortDirection={sortDirection}
+              onSort={onSort ?? (() => {})}
+            >
               {t("dialogues.stepsCount")}
             </SortableTableHead>
-            <SortableTableHead field="isActive" sortable={!!onSort} sortField={sortField ?? null} sortDirection={sortDirection} onSort={onSort ?? (() => {})}>
+            <SortableTableHead
+              field="isActive"
+              sortable={!!onSort}
+              sortField={sortField ?? null}
+              sortDirection={sortDirection}
+              onSort={onSort ?? (() => {})}
+            >
               {t("common.status")}
             </SortableTableHead>
             <TableHead className="w-28">{t("common.actions")}</TableHead>
@@ -290,33 +325,37 @@ export function DialoguesTable({
           {dialogues.map((d) => (
             <TableRow
               key={d.id}
-              className="hover:bg-muted cursor-pointer transition-colors"
+              className="cursor-pointer transition-colors hover:bg-muted"
               onClick={() => handleEdit(d)}
             >
               <TableCell>
                 <div className="flex items-start gap-3">
-                  <div className="bg-muted flex size-8 shrink-0 items-center justify-center rounded-lg">
-                    <MessageSquare className="text-muted-foreground size-4" />
+                  <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted">
+                    <MessageSquare className="size-4 text-muted-foreground" />
                   </div>
                   <div>
-                    <p className="font-medium leading-none">{d.title}</p>
+                    <p className="leading-none font-medium">{d.title}</p>
                     {d.description && (
-                      <p className="text-muted-foreground mt-0.5 line-clamp-1 text-xs">{d.description}</p>
+                      <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">
+                        {d.description}
+                      </p>
                     )}
                   </div>
                 </div>
               </TableCell>
               <TableCell>
-                <span className={cn(
-                  "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
-                  CATEGORY_COLORS[d.category] ?? "bg-muted text-muted-foreground",
-                )}>
+                <span
+                  className={cn(
+                    "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
+                    CATEGORY_COLORS[d.category] ?? "bg-muted text-muted-foreground",
+                  )}
+                >
                   {getCategoryLabel(d.category)}
                 </span>
               </TableCell>
               <TableCell>
                 <div className="flex items-center gap-1.5 text-sm">
-                  <ListOrdered className="text-muted-foreground size-3.5" />
+                  <ListOrdered className="size-3.5 text-muted-foreground" />
                   {d.stepsCount}
                 </div>
               </TableCell>
@@ -325,12 +364,16 @@ export function DialoguesTable({
                   {d.isActive ? (
                     <>
                       <CheckCircle2 className="size-4 text-emerald-500" />
-                      <span className="text-xs text-emerald-600 dark:text-emerald-400">{t("dialogues.activeStatus")}</span>
+                      <span className="text-xs text-emerald-600 dark:text-emerald-400">
+                        {t("dialogues.activeStatus")}
+                      </span>
                     </>
                   ) : (
                     <>
-                      <XCircle className="text-muted-foreground size-4" />
-                      <span className="text-muted-foreground text-xs">{t("dialogues.inactiveStatus")}</span>
+                      <XCircle className="size-4 text-muted-foreground" />
+                      <span className="text-xs text-muted-foreground">
+                        {t("dialogues.inactiveStatus")}
+                      </span>
                     </>
                   )}
                 </div>

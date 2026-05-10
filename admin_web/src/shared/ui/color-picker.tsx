@@ -196,9 +196,7 @@ export function ColorPicker({ value, onChange, className }: ColorPickerProps) {
       // Draw hue canvas
       const hueHeight = hueCanvas.height;
       const hueGradient2 = hueCtx.createLinearGradient(0, 0, 0, hueHeight);
-      const colors = [
-        "#ff0000", "#ffff00", "#00ff00", "#00ffff", "#0000ff", "#ff00ff", "#ff0000",
-      ];
+      const colors = ["#ff0000", "#ffff00", "#00ff00", "#00ffff", "#0000ff", "#ff00ff", "#ff0000"];
       colors.forEach((color, i) => {
         hueGradient2.addColorStop(i / (colors.length - 1), color);
       });
@@ -233,8 +231,10 @@ export function ColorPicker({ value, onChange, className }: ColorPickerProps) {
       <div className="flex items-center gap-2">
         <button
           type="button"
+          aria-label={t("common.customColor") || "Custom color"}
+          title={t("common.customColor") || "Custom color"}
           onClick={() => setIsOpen(!isOpen)}
-          className="border-input bg-background hover:bg-accent focus-visible:ring-ring flex h-9 w-12 items-center justify-center rounded-md border transition-colors focus-visible:ring-1 focus-visible:outline-none"
+          className="flex h-9 w-12 items-center justify-center rounded-md border border-input bg-background transition-colors hover:bg-accent focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none"
         >
           <div
             className="size-5 rounded-sm border"
@@ -245,23 +245,25 @@ export function ColorPicker({ value, onChange, className }: ColorPickerProps) {
           type="text"
           value={value || "#6366f1"}
           onChange={(e) => onChange(e.target.value)}
-          className="border-input focus-visible:ring-ring flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:ring-1 focus-visible:outline-none"
+          className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none"
           placeholder="#6366f1"
         />
         <button
           type="button"
+          aria-label={t("common.customColor") || "Custom color"}
+          title={t("common.customColor") || "Custom color"}
           onClick={() => setIsOpen(!isOpen)}
-          className="border-input bg-background hover:bg-accent focus-visible:ring-ring flex h-9 items-center justify-center rounded-md border px-2 transition-colors focus-visible:ring-1 focus-visible:outline-none"
+          className="flex h-9 items-center justify-center rounded-md border border-input bg-background px-2 transition-colors hover:bg-accent focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none"
         >
           <ChevronDown className="size-4" />
         </button>
       </div>
 
       {isOpen && (
-        <div className="bg-popover text-popover-foreground absolute bottom-full z-50 mb-2 w-72 rounded-md border shadow-md">
+        <div className="absolute bottom-full z-50 mb-2 w-72 rounded-md border bg-popover text-popover-foreground shadow-md">
           <div className="p-4">
             <div className="mb-4">
-              <label className="text-muted-foreground mb-2 block text-xs font-medium">
+              <label className="mb-2 block text-xs font-medium text-muted-foreground">
                 {t("common.customColor") || "Custom color"}
               </label>
 
@@ -273,7 +275,7 @@ export function ColorPicker({ value, onChange, className }: ColorPickerProps) {
                     height={200}
                     onMouseDown={handleSvClick}
                     onMouseMove={(e) => e.buttons === 1 && handleSvClick(e)}
-                    className="border-input cursor-crosshair rounded-md border"
+                    className="cursor-crosshair rounded-md border border-input"
                   />
                 </div>
                 <div className="relative">
@@ -283,19 +285,19 @@ export function ColorPicker({ value, onChange, className }: ColorPickerProps) {
                     height={200}
                     onMouseDown={handleHueClick}
                     onMouseMove={(e) => e.buttons === 1 && handleHueClick(e)}
-                    className="border-input cursor-crosshair rounded-md border"
+                    className="cursor-crosshair rounded-md border border-input"
                   />
                 </div>
               </div>
 
               <div
-                className="border-input mt-3 h-8 w-full rounded-md border"
+                className="mt-3 h-8 w-full rounded-md border border-input"
                 style={{ backgroundColor: value || "#6366f1" }}
               />
             </div>
 
             <div>
-              <label className="text-muted-foreground mb-2 block text-xs font-medium">
+              <label className="mb-2 block text-xs font-medium text-muted-foreground">
                 {t("common.presetColors") || "Preset colors"}
               </label>
               <div className="grid grid-cols-7 gap-2">
@@ -303,15 +305,15 @@ export function ColorPicker({ value, onChange, className }: ColorPickerProps) {
                   <button
                     key={color}
                     type="button"
+                    aria-label={color}
+                    title={color}
                     onClick={() => {
                       onChange(color);
                     }}
-                    className="hover:border-ring focus-visible:ring-ring relative flex size-8 items-center justify-center rounded-md border transition-colors focus-visible:ring-1 focus-visible:outline-none"
+                    className="relative flex size-8 items-center justify-center rounded-md border transition-colors hover:border-ring focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none"
                     style={{ backgroundColor: color }}
                   >
-                    {value === color && (
-                      <Check className="size-4 text-white" />
-                    )}
+                    {value === color && <Check className="size-4 text-white" />}
                   </button>
                 ))}
               </div>

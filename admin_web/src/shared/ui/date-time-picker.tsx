@@ -21,7 +21,7 @@ export function DateTimePicker({ value, onChange, placeholder, className }: Date
         aria-label={placeholder || "Select date and time"}
         className={cn(
           "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 pl-9 text-sm shadow-sm transition-colors",
-          "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+          "focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none",
           !value && "text-muted-foreground",
         )}
       />

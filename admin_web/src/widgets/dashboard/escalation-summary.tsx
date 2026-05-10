@@ -32,18 +32,22 @@ export function EscalationSummary({ escalations }: EscalationSummaryProps) {
       <CardContent className="space-y-2">
         {escalations.items.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-4 text-center">
-            <div className="bg-muted mb-2 flex size-10 items-center justify-center rounded-full">
-              <AlertTriangle className="text-muted-foreground size-5" />
+            <div className="mb-2 flex size-10 items-center justify-center rounded-full bg-muted">
+              <AlertTriangle className="size-5 text-muted-foreground" />
             </div>
-            <p className="text-muted-foreground text-sm">{t("escalations.noEscalations")}</p>
+            <p className="text-sm text-muted-foreground">{t("escalations.noEscalations")}</p>
           </div>
         ) : (
           <div className="space-y-2">
             {escalations.items.slice(0, 5).map((item: any) => (
               <div key={item.id} className="rounded-lg border px-3 py-2">
                 <div className="mb-1 flex items-start justify-between gap-2">
-                  <p className="min-w-0 flex-1 truncate text-sm font-medium">{item.reason || item.description || `Эскалация #${item.id}`}</p>
-                  <span className="text-muted-foreground text-xs whitespace-nowrap">{new Date(item.created_at).toLocaleDateString()}</span>
+                  <p className="min-w-0 flex-1 truncate text-sm font-medium">
+                    {item.reason || item.description || `Эскалация #${item.id}`}
+                  </p>
+                  <span className="text-xs whitespace-nowrap text-muted-foreground">
+                    {new Date(item.created_at).toLocaleDateString()}
+                  </span>
                 </div>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <span className="rounded bg-muted px-1.5 py-0.5">{item.type}</span>
@@ -59,7 +63,7 @@ export function EscalationSummary({ escalations }: EscalationSummaryProps) {
               </div>
             ))}
             {escalations.items.length > 5 && (
-              <p className="text-muted-foreground text-center text-xs">
+              <p className="text-center text-xs text-muted-foreground">
                 +{escalations.items.length - 5} {t("common.more")}
               </p>
             )}

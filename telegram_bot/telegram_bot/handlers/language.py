@@ -14,9 +14,9 @@ router = Router()
 
 @router.message(Command("language"))
 async def cmd_language(message: Message, *, locale: str = "en") -> None:
-    """Show language selection (deprecated, redirects to settings)."""
+    """Show language selection."""
     await message.answer(
-        t("settings.language_deprecated", locale=locale),
+        t("settings.choose_language", locale=locale),
         reply_markup=get_language_keyboard(locale=locale),
     )
 

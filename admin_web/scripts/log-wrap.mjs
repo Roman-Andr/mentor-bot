@@ -14,7 +14,7 @@ if (!cmd) {
 }
 
 const ALREADY_FORMATTED = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3} \| /;
-// eslint-disable-next-line no-control-regex
+
 const ANSI_RE = /\x1b\[[0-9;]*[A-Za-z]/g;
 
 const pad = (n, w = 2) => String(n).padStart(w, "0");

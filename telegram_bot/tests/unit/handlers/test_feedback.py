@@ -115,7 +115,7 @@ class TestFeedbackHandlers:
 
                 await process_pulse_rating(mock_callback, mock_state, mock_user, mock_auth_token, locale="en")
 
-        mock_submit.assert_called_once_with(rating=8, is_anonymous=False, auth_token=mock_auth_token)
+        mock_submit.assert_called_once_with(rating=8, is_anonymous=False, auth_token=mock_auth_token, user_id=1)
         mock_state.clear.assert_called_once()
 
     async def test_process_pulse_rating_invalid_format(self, mock_callback, mock_state, mock_user, mock_auth_token):
@@ -195,7 +195,7 @@ class TestFeedbackHandlers:
 
                 await process_experience_rating(mock_callback, mock_state, mock_user, mock_auth_token, locale="en")
 
-        mock_submit.assert_called_once_with(rating=4, is_anonymous=False, auth_token=mock_auth_token)
+        mock_submit.assert_called_once_with(rating=4, is_anonymous=False, auth_token=mock_auth_token, user_id=1)
 
     async def test_process_experience_rating_submit_failed(self, mock_callback, mock_state, mock_user, mock_auth_token):
         """Test processing experience rating when submit fails."""
@@ -536,5 +536,5 @@ class TestFeedbackHandlers:
 
                 await process_experience_rating(mock_callback, mock_state, mock_user, mock_auth_token, locale="en")
 
-        mock_submit.assert_called_once_with(rating=5, is_anonymous=True, auth_token=mock_auth_token)
+        mock_submit.assert_called_once_with(rating=5, is_anonymous=True, auth_token=mock_auth_token, user_id=1)
         mock_state.clear.assert_called_once()

@@ -37,7 +37,7 @@ export function SearchZeroResultsTable({ data }: SearchZeroResultsTableProps) {
           <TableBody>
             {data.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={3} className="text-muted-foreground text-center">
+                <TableCell colSpan={3} className="text-center text-muted-foreground">
                   {t("common.noData")}
                 </TableCell>
               </TableRow>

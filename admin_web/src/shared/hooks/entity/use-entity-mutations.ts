@@ -6,7 +6,13 @@ import type { UseEntityContext, UseEntityOptions } from "./types";
 export function useEntityMutations<TItem, TForm, TCreatePayload, TUpdatePayload, TExtendedState>(
   options: Pick<
     UseEntityOptions<TItem, TForm, TCreatePayload, TUpdatePayload, TExtendedState>,
-    "createFn" | "updateFn" | "deleteFn" | "queryKeyPrefix" | "onAfterCreate" | "onAfterUpdate" | "toCreatePayload"
+    | "createFn"
+    | "updateFn"
+    | "deleteFn"
+    | "queryKeyPrefix"
+    | "onAfterCreate"
+    | "onAfterUpdate"
+    | "toCreatePayload"
   >,
   context: Pick<
     UseEntityContext<TItem, TForm, TExtendedState>,
@@ -82,12 +88,22 @@ export function useEntityMutations<TItem, TForm, TCreatePayload, TUpdatePayload,
   const handleSubmit = useCallback(() => {
     if (context.selectedItem) {
       const payload = toUpdatePayload(context.formData);
-      updateMutation.mutate({ id: (context.selectedItem as Record<string, unknown>).id as number, data: payload });
+      updateMutation.mutate({
+        id: (context.selectedItem as Record<string, unknown>).id as number,
+        data: payload,
+      });
     } else {
       const payload = toCreatePayload(context.formData);
       createMutation.mutate(payload);
     }
-  }, [context.selectedItem, context.formData, toUpdatePayload, toCreatePayload, createMutation, updateMutation]);
+  }, [
+    context.selectedItem,
+    context.formData,
+    toUpdatePayload,
+    toCreatePayload,
+    createMutation,
+    updateMutation,
+  ]);
 
   return {
     createMutation,

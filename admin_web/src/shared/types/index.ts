@@ -9,4 +9,14 @@ export * from "./meeting";
 export * from "./escalation";
 export * from "./notification";
 export * from "./analytics";
-export type { PulseSurvey, ExperienceRating, FeedbackListResponse, PulseStats, ExperienceStats, AnonymityStats, FeedbackType, FeedbackItem, Comment as FeedbackComment } from "./feedback";
+export type {
+  PulseSurvey,
+  ExperienceRating,
+  FeedbackListResponse,
+  PulseStats,
+  ExperienceStats,
+  AnonymityStats,
+  FeedbackType,
+  FeedbackItem,
+  Comment as FeedbackComment,
+} from "./feedback";

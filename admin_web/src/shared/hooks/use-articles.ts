@@ -117,7 +117,13 @@ export function toForm(article: ArticleRow): ArticleFormData {
 }
 
 export function useArticles() {
-  const entity = useEntity<ArticleRow, ArticleFormData, ReturnType<typeof toPayload>, ReturnType<typeof toPayload>, ExtendedState>({
+  const entity = useEntity<
+    ArticleRow,
+    ArticleFormData,
+    ReturnType<typeof toPayload>,
+    ReturnType<typeof toPayload>,
+    ExtendedState
+  >({
     entityName: "Статья",
     translationNamespace: "knowledge",
     queryKeyPrefix: "articles",
@@ -138,8 +144,18 @@ export function useArticles() {
     searchParamName: "search",
     filters: [
       { name: "status", defaultValue: "ALL" },
-      { name: "category", defaultValue: "ALL", paramName: "category_id", transform: (v) => parseInt(v) },
-      { name: "pinned", defaultValue: "ALL", paramName: "pinned_only", transform: (v) => v === "true" },
+      {
+        name: "category",
+        defaultValue: "ALL",
+        paramName: "category_id",
+        transform: (v) => parseInt(v),
+      },
+      {
+        name: "pinned",
+        defaultValue: "ALL",
+        paramName: "pinned_only",
+        transform: (v) => v === "true",
+      },
     ],
     sortable: true,
     labels: {
@@ -163,7 +179,7 @@ export function useArticles() {
   const { data: categoriesData, refetch: refetchCategories } = useQuery({
     queryKey: queryKeys.categories.all,
     queryFn: () => api.categories.list({ limit: 100, include_tree: true }),
-    select: (result) => result.success ? result.data?.categories || [] : [],
+    select: (result) => (result.success ? result.data?.categories || [] : []),
   });
 
   // Custom openEdit that loads attachments
@@ -276,4 +292,3 @@ export function useArticles() {
     toggleSort: entity.toggleSort,
   };
 }
-

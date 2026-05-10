@@ -9,18 +9,19 @@ interface EntityPageActionsProps<TItem> {
   t: (key: string) => string;
 }
 
-export function EntityPageActions<TItem>({ item, onEdit, onDelete, t }: EntityPageActionsProps<TItem>) {
+export function EntityPageActions<TItem>({
+  item,
+  onEdit,
+  onDelete,
+  t,
+}: EntityPageActionsProps<TItem>) {
   const id = (item as Record<string, unknown>).id as number;
   return (
     <TooltipProvider>
-      <div className="flex gap-1 flex-wrap sm:flex-nowrap" onClick={(e) => e.stopPropagation()}>
+      <div className="flex flex-wrap gap-1 sm:flex-nowrap" onClick={(e) => e.stopPropagation()}>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onEdit(item)}
-            >
+            <Button variant="ghost" size="icon" onClick={() => onEdit(item)}>
               <SquarePen className="size-4" />
             </Button>
           </TooltipTrigger>

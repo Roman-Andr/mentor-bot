@@ -2,7 +2,6 @@
 
 from abc import abstractmethod
 
-from auth_service.models import PasswordResetToken
 from auth_service.repositories.interfaces.base import BaseRepository
 
 

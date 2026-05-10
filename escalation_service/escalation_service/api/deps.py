@@ -131,9 +131,18 @@ async def get_escalation_service(uow: Annotated[SqlAlchemyUnitOfWork, Depends(ge
     return EscalationService(uow)
 
 
+async def verify_service_api_key(request: Request) -> bool:
+    """Verify that the request comes from a trusted internal service."""
+    api_key = request.headers.get("X-Service-Api-Key")
+    if not api_key or api_key != settings.SERVICE_API_KEY:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid service API key")
+    return True
+
+
 # Type aliases
 DatabaseSession = Annotated[AsyncSession, Depends(get_db)]
 UOWDep = Annotated[SqlAlchemyUnitOfWork, Depends(get_uow)]
+ServiceAuth = Annotated[bool, Depends(verify_service_api_key)]
 UnitOfWorkDep = UOWDep  # Alias for consistency
 EscalationServiceDep = Annotated[EscalationService, Depends(get_escalation_service)]
 CurrentUser = Annotated[UserInfo, Depends(get_current_active_user)]

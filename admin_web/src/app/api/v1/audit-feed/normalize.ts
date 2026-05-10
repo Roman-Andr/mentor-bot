@@ -87,9 +87,10 @@ export function normalizeLogoutHistory(item: any): NormalizedAuditEvent {
 // Knowledge endpoints
 export function normalizeArticleChangeHistory(item: any): NormalizedAuditEvent {
   const action = item.action || "changed";
-  const titleChange = item.old_title && item.new_title
-    ? `${item.old_title} → ${item.new_title}`
-    : item.new_title || item.old_title || "";
+  const titleChange =
+    item.old_title && item.new_title
+      ? `${item.old_title} → ${item.new_title}`
+      : item.new_title || item.old_title || "";
   return {
     id: makeId("knowledge", "article_change", item.id),
     source: "knowledge",
@@ -167,7 +168,11 @@ export function normalizeMeetingStatusChangeHistory(item: any): NormalizedAuditE
 
 export function normalizeMeetingParticipantHistory(item: any): NormalizedAuditEvent {
   return {
-    id: makeId("meetings", "meeting_participant_change", item.id || `${item.meeting_id}_${item.user_id}_${item.joined_at}`),
+    id: makeId(
+      "meetings",
+      "meeting_participant_change",
+      item.id || `${item.meeting_id}_${item.user_id}_${item.joined_at}`,
+    ),
     source: "meetings",
     event_type: "meeting_participant_change",
     timestamp: item.joined_at,

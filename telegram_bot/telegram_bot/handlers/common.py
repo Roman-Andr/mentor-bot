@@ -15,8 +15,8 @@ from telegram_bot.keyboards.common_kb import (
     get_my_mentor_keyboard,
     get_my_mentor_no_mentor_keyboard,
     get_progress_keyboard,
-    get_schedule_mentor_keyboard,
 )
+from telegram_bot.keyboards.meetings_kb import get_meetings_menu_keyboard
 from telegram_bot.services.auth_client import auth_client
 from telegram_bot.services.checklists_client import checklists_client
 from telegram_bot.states.escalation_states import EscalationStates
@@ -151,6 +151,8 @@ async def my_mentor(
             mentor_name = f"{mentor_info.get('first_name', '')} {mentor_info.get('last_name', '')}"
             dept = mentor_info.get("department")
             dept_name = dept.get("name", "N/A") if isinstance(dept, dict) else (dept or "N/A")
+            phone = mentor_info.get("phone")
+            phone_line = f"  \U0001f4f1 {phone}\n" if phone else ""
             mentor_text = (
                 f"*\U0001f468\u200d\U0001f3eb {t('mentor.title', locale=locale)}*\n\n"
                 f"{t('mentor.name', locale=locale, name=mentor_name)}\n"
@@ -158,7 +160,7 @@ async def my_mentor(
                 f"{t('mentor.department', locale=locale, department=dept_name)}\n\n"
                 f"*{t('mentor.contact_info', locale=locale)}*\n"
                 f"  \U0001f4e7 {mentor_info.get('email', 'N/A')}\n"
-                f"  \U0001f4f1 {mentor_info.get('phone', 'N/A')}\n\n"
+                f"{phone_line}\n"
                 f"*{t('mentor.help_with', locale=locale)}*\n"
                 f"  \U0001f5a5\ufe0f {t('mentor.help_technical', locale=locale)}\n"
                 f"  \U0001f465 {t('mentor.help_team', locale=locale)}\n"
@@ -198,16 +200,27 @@ async def message_mentor(callback: CallbackQuery, state: FSMContext, *, locale: 
 
 
 @router.callback_query(F.data == "schedule_mentor")
-async def schedule_mentor(callback: CallbackQuery, *, locale: str = "en") -> None:
-    """Schedule a meeting with mentor."""
+async def schedule_mentor(
+    callback: CallbackQuery,
+    user: dict | None = None,
+    auth_token: str | None = None,
+    *,
+    locale: str = "en",
+) -> None:
+    """Open meetings menu from mentor screen."""
     if callback.message is None:
         return
 
+    if not user or not auth_token:
+        await callback.answer(t("common.auth_required_short", locale=locale))
+        return
+
+    text = f"*\U0001f4c5 {t('meetings.title', locale=locale)}*\n\n"
+    text += t("meetings.use_options", locale=locale)
+
     await callback.message.edit_text(
-        f"\U0001f4c5 *{t('mentor.btn_schedule', locale=locale)}*\n\n"
-        f"Use the Meetings menu to schedule a meeting with your mentor.\n\n"
-        f"Select the meeting type as 'Mentor' when scheduling.",
-        reply_markup=get_schedule_mentor_keyboard(locale=locale).as_markup(),
+        text=text,
+        reply_markup=get_meetings_menu_keyboard(locale=locale),
         parse_mode="Markdown",
     )
     await callback.answer()

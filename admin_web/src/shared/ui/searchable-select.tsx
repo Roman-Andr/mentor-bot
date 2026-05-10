@@ -89,9 +89,10 @@ export function SearchableSelect({
   }, []);
 
   return (
-    <div ref={containerRef} className={cn("relative", className)}>
+    <div ref={containerRef} className={cn("relative", isOpen && "z-10", className)}>
       <button
         type="button"
+        title={selectedOption ? selectedOption.label : placeholderText}
         disabled={disabled}
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
@@ -105,7 +106,7 @@ export function SearchableSelect({
         <div className="flex items-center gap-1">
           {selectedOption && !disabled && (
             <X
-              className="text-muted-foreground hover:text-foreground/80 size-3.5"
+              className="size-3.5 text-muted-foreground hover:text-foreground/80"
               onClick={(e) => {
                 e.stopPropagation();
                 onChange("");
@@ -117,20 +118,20 @@ export function SearchableSelect({
       </button>
 
       {isOpen && (
-        <div className="bg-popover text-popover-foreground absolute z-50 mt-1 w-full rounded-md border shadow-md">
+        <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover text-popover-foreground shadow-md">
           <div className="flex items-center border-b px-2">
-            <Search className="text-muted-foreground size-4 shrink-0" />
+            <Search className="size-4 shrink-0 text-muted-foreground" />
             <input
               ref={inputRef}
-              className="placeholder:text-muted-foreground flex h-9 w-full bg-transparent px-2 py-1 text-sm outline-none"
+              className="flex h-9 w-full bg-transparent px-2 py-1 text-sm outline-none placeholder:text-muted-foreground"
               placeholder={searchPlaceholderText}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-            <div className="max-h-50 overflow-y-auto p-1">
+          <div className="max-h-50 overflow-y-auto p-1">
             {filtered.length === 0 ? (
-              <div className="text-muted-foreground px-2 py-3 text-center text-sm">
+              <div className="px-2 py-3 text-center text-sm text-muted-foreground">
                 {t("common.noResults")}
               </div>
             ) : (
@@ -138,6 +139,7 @@ export function SearchableSelect({
                 <button
                   key={option.value}
                   type="button"
+                  title={option.label}
                   className={cn(
                     "flex w-full cursor-pointer flex-col items-start rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground",
                     option.value === value && "bg-accent text-accent-foreground",
@@ -150,7 +152,7 @@ export function SearchableSelect({
                 >
                   <span className="w-full truncate text-left">{option.label}</span>
                   {option.description && (
-                    <span className="text-muted-foreground w-full truncate text-left text-xs">
+                    <span className="w-full truncate text-left text-xs text-muted-foreground">
                       {option.description}
                     </span>
                   )}
@@ -239,9 +241,10 @@ export function AsyncSearchableSelect({
   const displayLabel = selectedLabel || (value ? value : "");
 
   return (
-    <div ref={containerRef} className={cn("relative", className)}>
+    <div ref={containerRef} className={cn("relative", isOpen && "z-10", className)}>
       <button
         type="button"
+        title={value ? displayLabel : placeholderText}
         disabled={disabled}
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
@@ -252,13 +255,15 @@ export function AsyncSearchableSelect({
         )}
       >
         <div className="flex items-center gap-2 overflow-hidden">
-          {selectedOption?.id && <UserAvatar name={selectedOption.label} id={selectedOption.id} size="sm" />}
+          {selectedOption?.id && (
+            <UserAvatar name={selectedOption.label} id={selectedOption.id} size="sm" />
+          )}
           <span className="truncate">{value ? displayLabel : placeholderText}</span>
         </div>
         <div className="flex items-center gap-1">
           {value && !disabled && (
             <X
-              className="text-muted-foreground hover:text-foreground/80 size-3.5"
+              className="size-3.5 text-muted-foreground hover:text-foreground/80"
               onClick={(e) => {
                 e.stopPropagation();
                 onChange("");
@@ -270,12 +275,12 @@ export function AsyncSearchableSelect({
       </button>
 
       {isOpen && (
-        <div className="bg-popover text-popover-foreground absolute z-50 mt-1 w-full rounded-md border shadow-md">
+        <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover text-popover-foreground shadow-md">
           <div className="flex items-center border-b px-2">
-            <Search className="text-muted-foreground size-4 shrink-0" />
+            <Search className="size-4 shrink-0 text-muted-foreground" />
             <input
               ref={inputRef}
-              className="placeholder:text-muted-foreground flex h-9 w-full bg-transparent px-2 py-1 text-sm outline-none"
+              className="flex h-9 w-full bg-transparent px-2 py-1 text-sm outline-none placeholder:text-muted-foreground"
               placeholder={searchPlaceholderText}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -283,13 +288,15 @@ export function AsyncSearchableSelect({
           </div>
           <div className="max-h-50 overflow-y-auto p-1">
             {loading ? (
-              <div className="text-muted-foreground px-2 py-3 text-center text-sm">{t("common.loading")}</div>
+              <div className="px-2 py-3 text-center text-sm text-muted-foreground">
+                {t("common.loading")}
+              </div>
             ) : search.length < minSearchLength ? (
-              <div className="text-muted-foreground px-2 py-3 text-center text-sm">
+              <div className="px-2 py-3 text-center text-sm text-muted-foreground">
                 {t("common.minSearchChars", { count: minSearchLength })}
               </div>
             ) : options.length === 0 ? (
-              <div className="text-muted-foreground px-2 py-3 text-center text-sm">
+              <div className="px-2 py-3 text-center text-sm text-muted-foreground">
                 {t("common.noResults")}
               </div>
             ) : (
@@ -297,6 +304,7 @@ export function AsyncSearchableSelect({
                 <button
                   key={option.value}
                   type="button"
+                  title={option.label}
                   className={cn(
                     "flex w-full cursor-pointer items-start gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground",
                     option.value === value && "bg-accent text-accent-foreground",
@@ -312,7 +320,7 @@ export function AsyncSearchableSelect({
                   <div className="flex flex-col items-start overflow-hidden">
                     <span className="truncate text-left">{option.label}</span>
                     {option.description && (
-                      <span className="text-muted-foreground truncate text-left text-xs">
+                      <span className="truncate text-left text-xs text-muted-foreground">
                         {option.description}
                       </span>
                     )}

@@ -37,7 +37,12 @@ export function SendNotificationDialog({ open, onOpenChange }: SendNotificationD
   const t = useTranslations();
   const { toast } = useToast();
   const [form, setForm] = useState({
-    userId: "", type: "GENERAL", channel: "TELEGRAM", subject: "", body: "", scheduledAt: "",
+    userId: "",
+    type: "GENERAL",
+    channel: "TELEGRAM",
+    subject: "",
+    body: "",
+    scheduledAt: "",
   });
   const [selectedUserLabel, setSelectedUserLabel] = useState("");
   const [selectedUserOption, setSelectedUserOption] = useState<SelectOption | undefined>(undefined);
@@ -65,23 +70,39 @@ export function SendNotificationDialog({ open, onOpenChange }: SendNotificationD
     setSending(true);
     try {
       if (form.scheduledAt) {
-        await notificationsApi.schedule({
+        const result = await notificationsApi.schedule({
           user_id: Number(form.userId),
+          recipient_telegram_id: selectedUserTelegramId,
+          recipient_email: selectedUserEmail,
           type: form.type,
           channel: form.channel,
           body: form.body,
           subject: form.subject || null,
           scheduled_time: new Date(form.scheduledAt).toISOString(),
         });
+        if (!result.success) {
+          toast(result.error.message || t("common.error") || "Error", "error");
+          return;
+        }
         toast(t("settings.notificationScheduled") || "Notification scheduled", "success");
       } else {
-        await notificationsApi.send({
+        const result = await notificationsApi.send({
           user_id: Number(form.userId),
+          recipient_telegram_id: selectedUserTelegramId,
+          recipient_email: selectedUserEmail,
           type: form.type,
           channel: form.channel,
           body: form.body,
           subject: form.subject || null,
         });
+        if (!result.success) {
+          toast(result.error.message || t("common.error") || "Error", "error");
+          return;
+        }
+        if (result.data.status === "FAILED") {
+          toast(result.data.error_message || t("common.error") || "Error", "error");
+          return;
+        }
         toast(t("settings.notificationSent") || "Notification sent", "success");
       }
       setForm((f) => ({ ...f, userId: "", body: "", subject: "", scheduledAt: "" }));
@@ -112,7 +133,15 @@ export function SendNotificationDialog({ open, onOpenChange }: SendNotificationD
               <Label>{t("settings.recipientUserId") || "Recipient User"}</Label>
               <AsyncSearchableSelect
                 value={form.userId}
-                onChange={(v) => setForm((f) => ({ ...f, userId: v }))}
+                onChange={(v) => {
+                  setForm((f) => ({ ...f, userId: v }));
+                  if (!v) {
+                    setSelectedUserLabel("");
+                    setSelectedUserOption(undefined);
+                    setSelectedUserTelegramId(null);
+                    setSelectedUserEmail(null);
+                  }
+                }}
                 onSearch={searchUsers}
                 selectedLabel={selectedUserLabel}
                 selectedOption={selectedUserOption}
@@ -129,11 +158,19 @@ export function SendNotificationDialog({ open, onOpenChange }: SendNotificationD
             </div>
             <div className="space-y-1.5">
               <Label>{t("settings.notificationType") || "Type"}</Label>
-              <Select value={form.type} onChange={(v) => setForm((f) => ({ ...f, type: v }))} options={NOTIFICATION_TYPES} />
+              <Select
+                value={form.type}
+                onChange={(v) => setForm((f) => ({ ...f, type: v }))}
+                options={NOTIFICATION_TYPES}
+              />
             </div>
             <div className="space-y-1.5">
               <Label>{t("settings.channel") || "Channel"}</Label>
-              <Select value={form.channel} onChange={(v) => setForm((f) => ({ ...f, channel: v }))} options={NOTIFICATION_CHANNELS} />
+              <Select
+                value={form.channel}
+                onChange={(v) => setForm((f) => ({ ...f, channel: v }))}
+                options={NOTIFICATION_CHANNELS}
+              />
             </div>
             <div className="space-y-1.5">
               <Label>{t("settings.subject") || "Subject (optional)"}</Label>
@@ -152,7 +189,7 @@ export function SendNotificationDialog({ open, onOpenChange }: SendNotificationD
               placeholder={t("settings.messagePlaceholder") || "Enter notification message..."}
               required
               rows={3}
-              className="border-input bg-background placeholder:text-muted-foreground focus-visible:ring-ring flex min-h-[80px] w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-1 focus-visible:outline-none"
+              className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none"
             />
           </div>
           <div className="space-y-1.5">
@@ -165,15 +202,24 @@ export function SendNotificationDialog({ open, onOpenChange }: SendNotificationD
               onChange={(value) => setForm((f) => ({ ...f, scheduledAt: value }))}
               placeholder={t("settings.selectDateTime") || "Select date and time"}
             />
-            <p className="text-muted-foreground text-xs">{t("settings.leaveBlankToSendNow") || "Leave blank to send immediately"}</p>
+            <p className="text-xs text-muted-foreground">
+              {t("settings.leaveBlankToSendNow") || "Leave blank to send immediately"}
+            </p>
           </div>
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={sending}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={sending}
+            >
               {t("common.cancel")}
             </Button>
             <Button type="submit" disabled={sending} className="gap-2">
               {form.scheduledAt ? <Clock className="size-4" /> : <Send className="size-4" />}
-              {form.scheduledAt ? t("settings.scheduleNotification") || "Schedule" : t("settings.sendNow") || "Send Now"}
+              {form.scheduledAt
+                ? t("settings.scheduleNotification") || "Schedule"
+                : t("settings.sendNow") || "Send Now"}
             </Button>
           </div>
         </form>

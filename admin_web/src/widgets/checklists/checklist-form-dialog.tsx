@@ -155,7 +155,9 @@ export function ChecklistFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{isCreate ? t("checklists.addChecklist") : t("checklists.editChecklist")}</DialogTitle>
+          <DialogTitle>
+            {isCreate ? t("checklists.addChecklist") : t("checklists.editChecklist")}
+          </DialogTitle>
           <DialogDescription>
             {isCreate ? t("checklists.assignChecklist") : t("checklists.changeChecklistParams")}
           </DialogDescription>
@@ -172,7 +174,7 @@ export function ChecklistFormDialog({
               disabled={!isCreate || loading}
             />
             {formData.employee_id && (
-              <p className="text-muted-foreground text-xs">
+              <p className="text-xs text-muted-foreground">
                 {t("checklists.employeeId")}: {formData.employee_id}
               </p>
             )}
@@ -272,38 +274,57 @@ export function ChecklistFormDialog({
             <div className="grid gap-2">
               <label className="text-sm font-medium">Tasks</label>
               {tasksLoading ? (
-                <p className="text-muted-foreground text-sm">{t("common.loading")}</p>
+                <p className="text-sm text-muted-foreground">{t("common.loading")}</p>
               ) : tasks.length === 0 ? (
-                <p className="text-muted-foreground text-sm">No tasks found</p>
+                <p className="text-sm text-muted-foreground">No tasks found</p>
               ) : (
                 <div className="max-h-60 space-y-2 overflow-y-auto rounded-md border p-3">
                   {tasks
                     .sort((a, b) => a.order - b.order)
                     .map((task) => (
-                      <div key={task.id} className="flex items-start gap-2 rounded border bg-card p-2 text-sm">
+                      <div
+                        key={task.id}
+                        className="flex items-start gap-2 rounded border bg-card p-2 text-sm"
+                      >
                         {task.status !== "COMPLETED" && task.can_complete && (
                           <input
                             type="checkbox"
                             checked={tasksToComplete.has(task.id)}
                             onChange={() => toggleTaskComplete(task.id)}
-                            className="mt-0.5 size-4 shrink-0 cursor-pointer rounded border border-input bg-background ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                            className="mt-0.5 size-4 shrink-0 cursor-pointer rounded border border-input bg-background ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                           />
                         )}
                         {task.status === "COMPLETED" && (
                           <div className="mt-0.5 size-4 shrink-0 rounded-full bg-green-500" />
                         )}
                         {task.status !== "COMPLETED" && !task.can_complete && (
-                          <div className="mt-0.5 size-4 shrink-0 rounded-full bg-gray-300" title="Cannot complete: dependencies not met" />
+                          <div
+                            className="mt-0.5 size-4 shrink-0 rounded-full bg-gray-300"
+                            title="Cannot complete: dependencies not met"
+                          />
                         )}
                         <div className="flex-1">
                           <p className="font-medium">{task.title}</p>
-                          {task.description && <p className="text-muted-foreground text-xs">{task.description}</p>}
+                          {task.description && (
+                            <p className="text-xs text-muted-foreground">{task.description}</p>
+                          )}
                           <div className="mt-1 flex gap-2 text-xs text-muted-foreground">
-                            <span>{t("common.status")}: {task.status}</span>
-                            {task.category && <span>{t("common.category")}: {task.category}</span>}
-                            {task.status !== "COMPLETED" && !task.can_complete && task.depends_on && task.depends_on.length > 0 && (
-                              <span className="text-amber-600">⚠️ Depends on {task.depends_on.length} task(s)</span>
+                            <span>
+                              {t("common.status")}: {task.status}
+                            </span>
+                            {task.category && (
+                              <span>
+                                {t("common.category")}: {task.category}
+                              </span>
                             )}
+                            {task.status !== "COMPLETED" &&
+                              !task.can_complete &&
+                              task.depends_on &&
+                              task.depends_on.length > 0 && (
+                                <span className="text-amber-600">
+                                  ⚠️ Depends on {task.depends_on.length} task(s)
+                                </span>
+                              )}
                           </div>
                         </div>
                       </div>

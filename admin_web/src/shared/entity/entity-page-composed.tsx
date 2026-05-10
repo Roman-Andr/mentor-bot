@@ -85,25 +85,24 @@ export function EntityPage<TItem, TForm>(props: EntityPageProps<TItem, TForm>) {
         <Dialog open={isCreateOpen || isEditOpen} onOpenChange={onCloseDialog}>
           <DialogContent className={dialogMaxWidth}>
             <DialogHeader>
-              <DialogTitle>{mode === "create" ? (createButtonLabel ?? defaultCreateLabel) : (editButtonLabel ?? defaultEditLabel)}</DialogTitle>
+              <DialogTitle>
+                {mode === "create"
+                  ? (createButtonLabel ?? defaultCreateLabel)
+                  : (editButtonLabel ?? defaultEditLabel)}
+              </DialogTitle>
             </DialogHeader>
             {renderForm({ formData, onChange: onFormChange, mode })}
-            {submitError && (
-              <div className="text-destructive mt-2 text-sm">{submitError}</div>
-            )}
+            {submitError && <div className="mt-2 text-sm text-destructive">{submitError}</div>}
             <div className="mt-4 flex justify-end gap-2">
-              <button
-                onClick={onCloseDialog}
-                className="hover:bg-muted rounded border px-4 py-2"
-              >
+              <button onClick={onCloseDialog} className="rounded border px-4 py-2 hover:bg-muted">
                 {t("cancel") ?? "Cancel"}
               </button>
               <button
                 onClick={onSubmit}
                 disabled={isSubmitting || !isFormValid}
-                className="bg-primary text-primary-foreground hover:bg-primary/90 rounded px-4 py-2 disabled:opacity-50"
+                className="rounded bg-primary px-4 py-2 text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
               >
-                {isSubmitting ? t("saving") ?? "Saving..." : (t("save") ?? "Save")}
+                {isSubmitting ? (t("saving") ?? "Saving...") : (t("save") ?? "Save")}
               </button>
             </div>
           </DialogContent>
@@ -161,25 +160,24 @@ export function EntityPage<TItem, TForm>(props: EntityPageProps<TItem, TForm>) {
       <Dialog open={isCreateOpen || isEditOpen} onOpenChange={onCloseDialog}>
         <DialogContent className={dialogMaxWidth}>
           <DialogHeader>
-            <DialogTitle>{mode === "create" ? (createButtonLabel ?? defaultCreateLabel) : (editButtonLabel ?? defaultEditLabel)}</DialogTitle>
+            <DialogTitle>
+              {mode === "create"
+                ? (createButtonLabel ?? defaultCreateLabel)
+                : (editButtonLabel ?? defaultEditLabel)}
+            </DialogTitle>
           </DialogHeader>
           {renderForm({ formData, onChange: onFormChange, mode })}
-          {submitError && (
-            <div className="text-destructive mt-2 text-sm">{submitError}</div>
-          )}
+          {submitError && <div className="mt-2 text-sm text-destructive">{submitError}</div>}
           <div className="mt-4 flex justify-end gap-2">
-            <button
-              onClick={onCloseDialog}
-              className="hover:bg-muted rounded border px-4 py-2"
-            >
+            <button onClick={onCloseDialog} className="rounded border px-4 py-2 hover:bg-muted">
               {t("cancel") ?? "Cancel"}
             </button>
             <button
               onClick={onSubmit}
               disabled={isSubmitting || !isFormValid}
-              className="bg-primary text-primary-foreground hover:bg-primary/90 rounded px-4 py-2 disabled:opacity-50"
+              className="rounded bg-primary px-4 py-2 text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
             >
-              {isSubmitting ? t("saving") ?? "Saving..." : (t("save") ?? "Save")}
+              {isSubmitting ? (t("saving") ?? "Saving...") : (t("save") ?? "Save")}
             </button>
           </div>
         </DialogContent>

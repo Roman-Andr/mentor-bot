@@ -13,10 +13,22 @@ export const TEMPLATE_STATUS_VALUES = ["ACTIVE", "DRAFT", "ARCHIVED"] as const;
 export const ARTICLE_STATUS_VALUES = ["PUBLISHED", "DRAFT"] as const;
 
 // Checklist status values
-export const CHECKLIST_STATUS_VALUES = ["PENDING", "IN_PROGRESS", "COMPLETED", "BLOCKED", "CANCELLED"] as const;
+export const CHECKLIST_STATUS_VALUES = [
+  "PENDING",
+  "IN_PROGRESS",
+  "COMPLETED",
+  "BLOCKED",
+  "CANCELLED",
+] as const;
 
 // Escalation status values
-export const ESCALATION_STATUS_VALUES = ["PENDING", "ASSIGNED", "IN_PROGRESS", "RESOLVED", "CLOSED"] as const;
+export const ESCALATION_STATUS_VALUES = [
+  "PENDING",
+  "ASSIGNED",
+  "IN_PROGRESS",
+  "RESOLVED",
+  "CLOSED",
+] as const;
 
 // Escalation type values
 export const ESCALATION_TYPE_VALUES = ["HR", "MENTOR"] as const;
@@ -34,10 +46,25 @@ export const FEEDBACK_TYPE_VALUES = ["pulse", "experience", "comment"] as const;
 export const ANONYMITY_VALUES = ["anonymous", "attributed"] as const;
 
 // Document category values
-export const DOCUMENT_CATEGORY_VALUES = ["regulations", "templates", "resources", "policies"] as const;
+export const DOCUMENT_CATEGORY_VALUES = [
+  "regulations",
+  "templates",
+  "resources",
+  "policies",
+] as const;
 
 // Task category values
-export const TASK_CATEGORY_VALUES = ["DOCUMENTATION", "INTRODUCTION", "TECHNICAL", "TRAINING", "MEETING", "PAPERWORK", "SECURITY", "HR", "OTHER"] as const;
+export const TASK_CATEGORY_VALUES = [
+  "DOCUMENTATION",
+  "INTRODUCTION",
+  "TECHNICAL",
+  "TRAINING",
+  "MEETING",
+  "PAPERWORK",
+  "SECURITY",
+  "HR",
+  "OTHER",
+] as const;
 
 export const DEPARTMENT_COLORS: Record<string, string> = {
   Разработка: "bg-blue-500 dark:bg-blue-600",

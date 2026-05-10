@@ -5,7 +5,10 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatDate(date: string | Date | null | undefined, locale: string = "ru-RU"): string {
+export function formatDate(
+  date: string | Date | null | undefined,
+  locale: string = "ru-RU",
+): string {
   if (!date) return "-";
   const d = new Date(date);
   return d.toLocaleDateString(locale, {
@@ -15,7 +18,10 @@ export function formatDate(date: string | Date | null | undefined, locale: strin
   });
 }
 
-export function formatDateTime(date: string | Date | null | undefined, locale: string = "ru-RU"): string {
+export function formatDateTime(
+  date: string | Date | null | undefined,
+  locale: string = "ru-RU",
+): string {
   if (!date) return "-";
   const d = new Date(date);
   return d.toLocaleString(locale, {

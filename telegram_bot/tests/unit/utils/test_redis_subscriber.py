@@ -8,7 +8,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from aiogram import Bot
 from redis.asyncio import Redis
-
 from telegram_bot.utils.redis_subscriber import RedisNotificationSubscriber
 
 
@@ -122,7 +121,7 @@ class TestRedisNotificationSubscriber:
 
         call_count = 0
 
-        async def fake_get_message(timeout=1.0):
+        async def fake_get_message(**_kwargs):
             nonlocal call_count
             call_count += 1
             if call_count == 1:
@@ -154,7 +153,7 @@ class TestRedisNotificationSubscriber:
 
         call_count = 0
 
-        async def fake_get_message(timeout=1.0):
+        async def fake_get_message(**_kwargs):
             nonlocal call_count
             call_count += 1
             if call_count == 1:
@@ -184,13 +183,12 @@ class TestRedisNotificationSubscriber:
 
         call_count = 0
 
-        async def fake_get_message(timeout=1.0):
+        async def fake_get_message(**_kwargs):
             nonlocal call_count
             call_count += 1
             if call_count == 1:
                 raise RuntimeError("Redis error")
             sub._running = False
-            return None
 
         mock_pubsub = MagicMock()
         mock_pubsub.subscribe = AsyncMock()
@@ -288,7 +286,7 @@ class TestRedisNotificationSubscriber:
             mock_cache.get_user = AsyncMock(return_value={"locale": "en"})
 
             with patch("telegram_bot.utils.redis_subscriber.t") as mock_t:
-                mock_t.side_effect = lambda key, locale: f"Translated {key}"
+                mock_t.side_effect = lambda key, **_kwargs: f"Translated {key}"
 
                 with patch("telegram_bot.keyboards.calendar_kb.get_calendar_connected_keyboard") as mock_kb:
                     mock_kb.return_value = MagicMock()
@@ -306,6 +304,67 @@ class TestRedisNotificationSubscriber:
 
         with patch("telegram_bot.utils.redis_subscriber.logger"):
             await sub._handle_event(data)
+
+    async def test_handle_event_user_deleted_invalidates_cache(self):
+        """Test user_deleted event clears cached auth state."""
+        sub = RedisNotificationSubscriber()
+
+        payload = {"type": "user_deleted", "user_id": 123, "telegram_id": 456}
+        data = json.dumps(payload)
+
+        with patch("telegram_bot.utils.redis_subscriber.user_cache") as mock_cache:
+            mock_cache.delete_user = AsyncMock(return_value=True)
+
+            await sub._handle_event(data)
+
+        mock_cache.delete_user.assert_awaited_once_with(456)
+
+    async def test_handle_user_removed_falls_back_to_user_id_lookup(self):
+        """Test removal event can resolve telegram_id from cached user_id."""
+        sub = RedisNotificationSubscriber()
+
+        payload = {"type": "user_deactivated", "user_id": 123}
+
+        with patch("telegram_bot.utils.redis_subscriber.user_cache") as mock_cache:
+            mock_cache.find_telegram_id_by_user_id = AsyncMock(return_value=456)
+            mock_cache.delete_user = AsyncMock(return_value=True)
+
+            await sub._handle_user_removed(payload)
+
+        mock_cache.find_telegram_id_by_user_id.assert_awaited_once_with(123)
+        mock_cache.delete_user.assert_awaited_once_with(456)
+
+    async def test_handle_user_removed_missing_telegram_id(self):
+        """Test removal event logs and returns when telegram_id cannot be resolved."""
+        sub = RedisNotificationSubscriber()
+
+        payload = {"type": "user_deleted", "user_id": 123}
+
+        with patch("telegram_bot.utils.redis_subscriber.user_cache") as mock_cache:
+            mock_cache.find_telegram_id_by_user_id = AsyncMock(return_value=None)
+            mock_cache.delete_user = AsyncMock()
+
+            with patch("telegram_bot.utils.redis_subscriber.logger") as mock_logger:
+                await sub._handle_user_removed(payload)
+
+        mock_cache.find_telegram_id_by_user_id.assert_awaited_once_with(123)
+        mock_cache.delete_user.assert_not_awaited()
+        mock_logger.warning.assert_called_once()
+
+    async def test_handle_user_removed_delete_failure(self):
+        """Test removal event logs when cache invalidation returns false."""
+        sub = RedisNotificationSubscriber()
+
+        payload = {"type": "user_deleted", "telegram_id": 456}
+
+        with patch("telegram_bot.utils.redis_subscriber.user_cache") as mock_cache:
+            mock_cache.delete_user = AsyncMock(return_value=False)
+
+            with patch("telegram_bot.utils.redis_subscriber.logger") as mock_logger:
+                await sub._handle_user_removed(payload)
+
+        mock_cache.delete_user.assert_awaited_once_with(456)
+        mock_logger.warning.assert_called_once()
 
     async def test_handle_calendar_connected_no_user_id(self, mock_bot):
         """Test calendar_connected event with missing user_id."""
@@ -373,7 +432,7 @@ class TestRedisNotificationSubscriber:
             mock_cache.get_user = AsyncMock(return_value=None)
 
             with patch("telegram_bot.utils.redis_subscriber.t") as mock_t:
-                mock_t.side_effect = lambda key, locale: f"Translated {key}"
+                mock_t.side_effect = lambda key, **_kwargs: f"Translated {key}"
 
                 with patch("telegram_bot.keyboards.calendar_kb.get_calendar_connected_keyboard") as mock_kb:
                     mock_kb.return_value = MagicMock()

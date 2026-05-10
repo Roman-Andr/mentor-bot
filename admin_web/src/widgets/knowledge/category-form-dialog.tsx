@@ -43,7 +43,9 @@ export function CategoryFormDialog({
   return (
     <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto">
       <DialogHeader>
-        <DialogTitle>{isEdit ? t("knowledge.editCategoryTitle") : t("knowledge.addCategoryTitle")}</DialogTitle>
+        <DialogTitle>
+          {isEdit ? t("knowledge.editCategoryTitle") : t("knowledge.addCategoryTitle")}
+        </DialogTitle>
         <DialogDescription>
           {isEdit ? t("knowledge.changeCategory") : t("knowledge.createNewCategory")}
         </DialogDescription>
@@ -73,7 +75,7 @@ export function CategoryFormDialog({
             onChange={(e) => onFormDataChange("description", e.target.value)}
           />
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="grid gap-2">
             <label className="text-sm font-medium">{t("knowledge.parentCategory")}</label>
             <Select
@@ -98,7 +100,7 @@ export function CategoryFormDialog({
             />
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="grid gap-2">
             <label className="text-sm font-medium">{t("common.department")}</label>
             <Select
@@ -120,7 +122,7 @@ export function CategoryFormDialog({
             />
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="grid gap-2">
             <label className="text-sm font-medium">{t("knowledge.level")}</label>
             <Select

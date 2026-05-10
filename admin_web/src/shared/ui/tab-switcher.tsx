@@ -16,7 +16,12 @@ interface TabSwitcherProps {
   onTabChange?: (tabId: string) => void;
 }
 
-export function TabSwitcher({ tabs, paramName = "tab", activeTab: controlledActiveTab, onTabChange: controlledOnTabChange }: TabSwitcherProps) {
+export function TabSwitcher({
+  tabs,
+  paramName = "tab",
+  activeTab: controlledActiveTab,
+  onTabChange: controlledOnTabChange,
+}: TabSwitcherProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -43,8 +48,9 @@ export function TabSwitcher({ tabs, paramName = "tab", activeTab: controlledActi
           return (
             <button
               key={tab.id}
+              title={tab.label}
               className={cn(
-                "flex shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap px-3 py-1.5 text-sm font-medium transition-colors",
+                "flex shrink-0 cursor-pointer items-center gap-1.5 px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-colors",
                 isFirst && "rounded-l-md",
                 isLast && "rounded-r-md",
                 activeTab === tab.id

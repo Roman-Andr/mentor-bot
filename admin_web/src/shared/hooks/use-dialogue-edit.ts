@@ -56,7 +56,7 @@ export function useDialogueEdit(id: number) {
   const { data: dialogue, isLoading } = useQuery({
     queryKey: QUERY_KEY,
     queryFn: () => api.dialogues.get(id),
-    select: (r) => r.success ? r.data ?? null : null,
+    select: (r) => (r.success ? (r.data ?? null) : null),
     enabled: !!id,
   });
 
@@ -127,8 +127,13 @@ export function useDialogueEdit(id: number) {
   });
 
   const updateStep = useMutation({
-    mutationFn: ({ stepId, data }: { stepId: number; data: Parameters<typeof api.dialogues.updateStep>[1] }) =>
-      api.dialogues.updateStep(stepId, data),
+    mutationFn: ({
+      stepId,
+      data,
+    }: {
+      stepId: number;
+      data: Parameters<typeof api.dialogues.updateStep>[1];
+    }) => api.dialogues.updateStep(stepId, data),
     onSuccess: (r) => {
       if (r.success) {
         queryClient.invalidateQueries({ queryKey: QUERY_KEY });

@@ -10,6 +10,8 @@ export const notificationsApi = {
   },
   send: (data: {
     user_id: number;
+    recipient_telegram_id?: number | null;
+    recipient_email?: string | null;
     type: string;
     channel: string;
     body: string;
@@ -21,6 +23,8 @@ export const notificationsApi = {
     }),
   schedule: (data: {
     user_id: number;
+    recipient_telegram_id?: number | null;
+    recipient_email?: string | null;
     type: string;
     channel: string;
     body: string;

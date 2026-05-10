@@ -138,3 +138,28 @@ class ScheduledNotificationRepository(
         await self._session.flush()
         await self._session.refresh(notification)
         return notification
+
+    async def cancel_pending(
+        self,
+        *,
+        user_id: int,
+        notification_type: NotificationType,
+        data_match: dict,
+    ) -> int:
+        """Mark pending scheduled notifications matching data as processed."""
+        stmt = select(ScheduledNotification).where(
+            and_(
+                ScheduledNotification.user_id == user_id,
+                ScheduledNotification.type == notification_type,
+                ScheduledNotification.processed == False,  # noqa: E712
+                ScheduledNotification.data.contains(data_match),
+            )
+        )
+        result = await self._session.execute(stmt)
+        notifications = list(result.scalars().all())
+        now = datetime.now(UTC)
+        for notification in notifications:
+            notification.processed = True
+            notification.processed_at = now
+        await self._session.flush()
+        return len(notifications)

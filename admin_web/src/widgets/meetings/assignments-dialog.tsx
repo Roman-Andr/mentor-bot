@@ -10,14 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/shared/ui/dialog";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/shared/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 import { formatDate } from "@/shared/lib/utils";
 import { X } from "lucide-react";
 import type { User, UserMeeting } from "@/shared/types";
@@ -55,9 +48,9 @@ export function AssignmentsDialog({
         </DialogHeader>
         <div className="py-4">
           {assignmentsLoading ? (
-            <p className="text-muted-foreground text-sm">{t("common.loading")}</p>
+            <p className="text-sm text-muted-foreground">{t("common.loading")}</p>
           ) : assignments.length === 0 ? (
-            <p className="text-muted-foreground text-sm">{t("meetings.noAssignedUsers")}</p>
+            <p className="text-sm text-muted-foreground">{t("meetings.noAssignedUsers")}</p>
           ) : (
             <Table>
               <TableHeader>
@@ -80,10 +73,12 @@ export function AssignmentsDialog({
                             <p className="font-medium">
                               {user.first_name} {user.last_name || ""}
                             </p>
-                            <p className="text-muted-foreground text-xs">{user.email}</p>
+                            <p className="text-xs text-muted-foreground">{user.email}</p>
                           </div>
                         ) : (
-                          <span className="text-muted-foreground">{t("common.user")} #{a.user_id}</span>
+                          <span className="text-muted-foreground">
+                            {t("common.user")} #{a.user_id}
+                          </span>
                         )}
                       </TableCell>
                       <TableCell>

@@ -86,7 +86,7 @@ export function CreateInvitationDialog({
   const mentorOptions: SelectOption[] = users.map((u) => ({
     value: String(u.id),
     label: [u.first_name, u.last_name].filter(Boolean).join(" ") + ` (${u.email})`,
-    description: [u.department, u.position].filter(Boolean).join(" · "),
+    description: [u.department?.name, u.position].filter(Boolean).join(" · "),
   }));
 
   return (
@@ -101,7 +101,8 @@ export function CreateInvitationDialog({
         <DialogHeader>
           <DialogTitle>{t("invitations.createInvitation")}</DialogTitle>
           <DialogDescription>
-            {t("invitations.sendInvitationDescription") || "Send invitation to new employee for registration"}
+            {t("invitations.sendInvitationDescription") ||
+              "Send invitation to new employee for registration"}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -116,7 +117,11 @@ export function CreateInvitationDialog({
               onChange={(e) => onFormDataChange({ ...formData, email: e.target.value })}
               onBlur={() => onEmailTouchedChange(true)}
             />
-            {showEmailError && <p className="text-sm text-red-500">{t("invitations.invalidEmail") || "Invalid email format"}</p>}
+            {showEmailError && (
+              <p className="text-sm text-red-500">
+                {t("invitations.invalidEmail") || "Invalid email format"}
+              </p>
+            )}
           </div>
           <div className="grid gap-2">
             <Label htmlFor="employeeId">{t("invitations.employeeId")}</Label>
@@ -173,7 +178,9 @@ export function CreateInvitationDialog({
               options={mentorOptions}
               value={formData.mentor_id ? String(formData.mentor_id) : ""}
               onChange={(v) => onFormDataChange({ ...formData, mentor_id: v ? parseInt(v) : 0 })}
-              placeholder={loading ? t("common.loading") : t("invitations.notAssigned") || "Not assigned"}
+              placeholder={
+                loading ? t("common.loading") : t("invitations.notAssigned") || "Not assigned"
+              }
               searchPlaceholder={t("invitations.searchByName")}
               disabled={loading}
             />

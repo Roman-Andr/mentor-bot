@@ -72,7 +72,8 @@ export const queryKeys = {
   // User Meetings (assignments)
   userMeetings: {
     all: ["user-meetings"] as const,
-    byMeeting: (meetingId: number) => [...queryKeys.userMeetings.all, "by-meeting", meetingId] as const,
+    byMeeting: (meetingId: number) =>
+      [...queryKeys.userMeetings.all, "by-meeting", meetingId] as const,
     byUser: (userId: number) => [...queryKeys.userMeetings.all, "by-user", userId] as const,
   },
 
@@ -115,17 +116,34 @@ export const queryKeys = {
     all: ["analytics"] as const,
     overview: () => [...queryKeys.analytics.all, "overview"] as const,
     department: (deptId: number) => [...queryKeys.analytics.all, "department", deptId] as const,
-    checklist: (checklistId: number) => [...queryKeys.analytics.all, "checklist", checklistId] as const,
+    checklist: (checklistId: number) =>
+      [...queryKeys.analytics.all, "checklist", checklistId] as const,
     knowledge: {
-      summary: (params?: { from_date?: string; to_date?: string }) => [...queryKeys.analytics.all, "knowledge", "summary", params] as const,
-      topArticles: (params?: { from_date?: string; to_date?: string; limit?: number }) => [...queryKeys.analytics.all, "knowledge", "top-articles", params] as const,
-      timeseries: (params?: { from_date?: string; to_date?: string; granularity?: string; article_id?: number }) => [...queryKeys.analytics.all, "knowledge", "timeseries", params] as const,
-      byCategory: (params?: { from_date?: string; to_date?: string }) => [...queryKeys.analytics.all, "knowledge", "by-category", params] as const,
-      byTag: (params?: { from_date?: string; to_date?: string }) => [...queryKeys.analytics.all, "knowledge", "by-tag", params] as const,
+      summary: (params?: { from_date?: string; to_date?: string }) =>
+        [...queryKeys.analytics.all, "knowledge", "summary", params] as const,
+      topArticles: (params?: { from_date?: string; to_date?: string; limit?: number }) =>
+        [...queryKeys.analytics.all, "knowledge", "top-articles", params] as const,
+      timeseries: (params?: {
+        from_date?: string;
+        to_date?: string;
+        granularity?: string;
+        article_id?: number;
+      }) => [...queryKeys.analytics.all, "knowledge", "timeseries", params] as const,
+      byCategory: (params?: { from_date?: string; to_date?: string }) =>
+        [...queryKeys.analytics.all, "knowledge", "by-category", params] as const,
+      byTag: (params?: { from_date?: string; to_date?: string }) =>
+        [...queryKeys.analytics.all, "knowledge", "by-tag", params] as const,
     },
     history: {
-      feed: (params: { from_date?: string; to_date?: string; sources?: string[]; event_types?: string[]; actor_id?: number; page: number; page_size: number }) =>
-        [...queryKeys.analytics.all, "history", "feed", params] as const,
+      feed: (params: {
+        from_date?: string;
+        to_date?: string;
+        sources?: string[];
+        event_types?: string[];
+        actor_id?: number;
+        page: number;
+        page_size: number;
+      }) => [...queryKeys.analytics.all, "history", "feed", params] as const,
     },
   },
 
@@ -145,13 +163,15 @@ export const queryKeys = {
     pulseAnonymityStats: () => [...queryKeys.feedback.all, "pulse", "anonymity-stats"] as const,
     experience: (params: unknown) => [...queryKeys.feedback.all, "experience", params] as const,
     experienceStats: () => [...queryKeys.feedback.all, "experience", "stats"] as const,
-    experienceAnonymityStats: () => [...queryKeys.feedback.all, "experience", "anonymity-stats"] as const,
+    experienceAnonymityStats: () =>
+      [...queryKeys.feedback.all, "experience", "anonymity-stats"] as const,
     comments: (params: unknown) => [...queryKeys.feedback.all, "comments", params] as const,
-    commentAnonymityStats: () => [...queryKeys.feedback.all, "comments", "anonymity-stats"] as const,
+    commentAnonymityStats: () =>
+      [...queryKeys.feedback.all, "comments", "anonymity-stats"] as const,
   },
 } as const;
 
 // Helper to invalidate all list queries for an entity
 export function getEntityListKey(entity: keyof typeof queryKeys) {
-  return typeof queryKeys[entity] === 'function' ? [entity] : queryKeys[entity]?.all ?? [entity];
+  return typeof queryKeys[entity] === "function" ? [entity] : (queryKeys[entity]?.all ?? [entity]);
 }

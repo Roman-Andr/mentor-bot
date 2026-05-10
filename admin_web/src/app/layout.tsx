@@ -1,6 +1,6 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { NextIntlClientProvider } from "next-intl";
-import { getMessages } from "next-intl/server";
+import { getLocale, getMessages } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing } from "@/shared/i18n/routing";
 import { Providers } from "./providers";
@@ -10,12 +10,13 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Admin Panel | Mentor Bot",
   description: "Administrator panel for onboarding system management",
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default async function RootLayout({
@@ -23,7 +24,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const locale = routing.defaultLocale;
+  const locale = await getLocale();
   if (!routing.locales.includes(locale as never)) {
     notFound();
   }
@@ -34,7 +35,7 @@ export default async function RootLayout({
     <html lang={locale} suppressHydrationWarning>
       <body>
         <ErrorBoundary>
-          <NextIntlClientProvider messages={messages}>
+          <NextIntlClientProvider locale={locale} messages={messages}>
             <Providers>{children}</Providers>
           </NextIntlClientProvider>
         </ErrorBoundary>

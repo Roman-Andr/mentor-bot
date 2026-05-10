@@ -31,6 +31,7 @@ class TaskUpdate(BaseModel):
 
     status: TaskStatus | None = None
     assignee_id: int | None = None
+    due_date: datetime | None = None
     started_at: datetime | None = None
     completed_at: datetime | None = None
     completed_by: int | None = None

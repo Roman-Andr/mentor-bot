@@ -75,9 +75,9 @@ export function DataTable({
       <CardContent className="p-0 transition-none">
         {header}
         {loading && showLoadingSkeleton ? (
-          skeleton ?? <DataTableSkeleton columns={5} rows={5} showHeader={false} />
+          (skeleton ?? <DataTableSkeleton columns={5} rows={5} showHeader={false} />)
         ) : empty ? (
-          <div className="text-muted-foreground flex items-center justify-center py-12">
+          <div className="flex items-center justify-center py-12 text-muted-foreground">
             {emptyMessage ?? t("common.noData")}
           </div>
         ) : (
@@ -85,7 +85,9 @@ export function DataTable({
             {/* Desktop/Table View */}
             <div className={breakpointClasses[mobileBreakpoint]}>{children}</div>
             {/* Mobile Card View */}
-            {mobileView && <div className={mobileBreakpointClasses[mobileBreakpoint]}>{mobileView}</div>}
+            {mobileView && (
+              <div className={mobileBreakpointClasses[mobileBreakpoint]}>{mobileView}</div>
+            )}
           </>
         )}
         {!loading && hasPagination && (

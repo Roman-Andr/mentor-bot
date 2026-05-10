@@ -3,9 +3,11 @@
 from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 
-from fastapi import status
+import pytest
+from fastapi import HTTPException, status
 from fastapi.testclient import TestClient
 from feedback_service.api.deps import get_current_active_user, get_uow, require_auth, verify_service_api_key
+from feedback_service.api.endpoints.feedback import delete_comment, delete_experience_rating, delete_pulse_survey
 from feedback_service.database import get_db
 from feedback_service.main import app
 from feedback_service.models import Comment, ExperienceRating, PulseSurvey
@@ -47,6 +49,7 @@ def create_mock_uow():
     mock_uow.pulse_surveys.get_stats = AsyncMock()
     mock_uow.pulse_surveys.get_rating_distribution = AsyncMock()
     mock_uow.pulse_surveys.get_anonymity_stats = AsyncMock()
+    mock_uow.pulse_surveys.delete = AsyncMock()
 
     # Mock experience_ratings repository
     mock_uow.experience_ratings = MagicMock()
@@ -55,6 +58,7 @@ def create_mock_uow():
     mock_uow.experience_ratings.get_stats = AsyncMock()
     mock_uow.experience_ratings.get_rating_distribution = AsyncMock()
     mock_uow.experience_ratings.get_anonymity_stats = AsyncMock()
+    mock_uow.experience_ratings.delete = AsyncMock()
 
     # Mock comments repository
     mock_uow.comments = MagicMock()
@@ -63,6 +67,7 @@ def create_mock_uow():
     mock_uow.comments.get_by_id = AsyncMock()
     mock_uow.comments.add_reply = AsyncMock()
     mock_uow.comments.get_anonymity_stats = AsyncMock()
+    mock_uow.comments.delete = AsyncMock()
 
     mock_uow.commit = AsyncMock()
     mock_uow.rollback = AsyncMock()
@@ -1017,6 +1022,82 @@ class TestReplyToComment:
         # Assert
         assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
         assert "reply" in response.json()["detail"].lower()
+
+
+class TestDeleteFeedback:
+    """Tests for HR/Admin feedback deletion endpoints."""
+
+    @pytest.mark.asyncio
+    async def test_delete_pulse_survey_success(self) -> None:
+        """Test successful pulse survey deletion returns 204."""
+        mock_uow = create_mock_uow()
+        mock_uow.pulse_surveys.delete.return_value = True
+
+        await delete_pulse_survey(1, mock_uow, mock_current_user(2, "HR"))
+
+        mock_uow.pulse_surveys.delete.assert_awaited_once_with(1)
+        mock_uow.commit.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_delete_pulse_survey_not_found(self) -> None:
+        """Test deleting a missing pulse survey returns 404."""
+        mock_uow = create_mock_uow()
+        mock_uow.pulse_surveys.delete.return_value = False
+
+        with pytest.raises(HTTPException) as exc_info:
+            await delete_pulse_survey(999, mock_uow, mock_current_user(2, "HR"))
+
+        assert exc_info.value.status_code == status.HTTP_404_NOT_FOUND
+        assert exc_info.value.detail == "Pulse survey not found"
+        mock_uow.commit.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_delete_experience_rating_success(self) -> None:
+        """Test successful experience rating deletion returns 204."""
+        mock_uow = create_mock_uow()
+        mock_uow.experience_ratings.delete.return_value = True
+
+        await delete_experience_rating(1, mock_uow, mock_current_user(2, "ADMIN"))
+
+        mock_uow.experience_ratings.delete.assert_awaited_once_with(1)
+        mock_uow.commit.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_delete_experience_rating_not_found(self) -> None:
+        """Test deleting a missing experience rating returns 404."""
+        mock_uow = create_mock_uow()
+        mock_uow.experience_ratings.delete.return_value = False
+
+        with pytest.raises(HTTPException) as exc_info:
+            await delete_experience_rating(999, mock_uow, mock_current_user(2, "HR"))
+
+        assert exc_info.value.status_code == status.HTTP_404_NOT_FOUND
+        assert exc_info.value.detail == "Experience rating not found"
+        mock_uow.commit.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_delete_comment_success(self) -> None:
+        """Test successful comment deletion returns 204."""
+        mock_uow = create_mock_uow()
+        mock_uow.comments.delete.return_value = True
+
+        await delete_comment(1, mock_uow, mock_current_user(2, "HR"))
+
+        mock_uow.comments.delete.assert_awaited_once_with(1)
+        mock_uow.commit.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_delete_comment_not_found(self) -> None:
+        """Test deleting a missing comment returns 404."""
+        mock_uow = create_mock_uow()
+        mock_uow.comments.delete.return_value = False
+
+        with pytest.raises(HTTPException) as exc_info:
+            await delete_comment(999, mock_uow, mock_current_user(2, "HR"))
+
+        assert exc_info.value.status_code == status.HTTP_404_NOT_FOUND
+        assert exc_info.value.detail == "Comment not found"
+        mock_uow.commit.assert_not_called()
 
 
 class TestGetExperienceAnonymityStats:

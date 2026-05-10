@@ -36,7 +36,12 @@ export function KnowledgeTopArticlesChart({ data }: KnowledgeTopArticlesChartPro
             <XAxis type="number" />
             <YAxis dataKey="title" type="category" width={200} tick={{ fontSize: 12 }} />
             <Tooltip />
-            <Bar dataKey="views" name={t("analytics.knowledge.views")} fill="#3B82F6" radius={[0, 4, 4, 0]} />
+            <Bar
+              dataKey="views"
+              name={t("analytics.knowledge.views")}
+              fill="#3B82F6"
+              radius={[0, 4, 4, 0]}
+            />
           </BarChart>
         </ResponsiveContainer>
       </CardContent>

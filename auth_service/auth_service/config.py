@@ -54,6 +54,8 @@ class Settings(BaseSettings):
 
     # Inter-service communication
     CHECKLISTS_SERVICE_URL: str = Field(...)
+    ESCALATION_SERVICE_URL: str = Field(...)
+    FEEDBACK_SERVICE_URL: str = Field(...)
     KNOWLEDGE_SERVICE_URL: str = Field(...)
     MEETING_SERVICE_URL: str = Field(...)
     NOTIFICATION_SERVICE_URL: str = Field(...)

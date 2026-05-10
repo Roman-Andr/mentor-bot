@@ -35,12 +35,22 @@ const ENDPOINTS: Array<{ source: AuditSource; path: string }> = [
 
 // Create a map from source to endpoint paths (without the /source/ prefix)
 const ENDPOINT_MAP: Record<AuditSource, string[]> = {
-  auth: ENDPOINTS.filter(e => e.source === "auth").map(e => e.path.replace("/auth/", "")),
-  knowledge: ENDPOINTS.filter(e => e.source === "knowledge").map(e => e.path.replace("/knowledge/", "")),
-  meetings: ENDPOINTS.filter(e => e.source === "meetings").map(e => e.path.replace("/meetings/", "")),
-  feedback: ENDPOINTS.filter(e => e.source === "feedback").map(e => e.path.replace("/feedback/", "")),
-  checklists: ENDPOINTS.filter(e => e.source === "checklists").map(e => e.path.replace("/checklists/", "")),
-  escalations: ENDPOINTS.filter(e => e.source === "escalations").map(e => e.path.replace("/escalations/", "")),
+  auth: ENDPOINTS.filter((e) => e.source === "auth").map((e) => e.path.replace("/auth/", "")),
+  knowledge: ENDPOINTS.filter((e) => e.source === "knowledge").map((e) =>
+    e.path.replace("/knowledge/", ""),
+  ),
+  meetings: ENDPOINTS.filter((e) => e.source === "meetings").map((e) =>
+    e.path.replace("/meetings/", ""),
+  ),
+  feedback: ENDPOINTS.filter((e) => e.source === "feedback").map((e) =>
+    e.path.replace("/feedback/", ""),
+  ),
+  checklists: ENDPOINTS.filter((e) => e.source === "checklists").map((e) =>
+    e.path.replace("/checklists/", ""),
+  ),
+  escalations: ENDPOINTS.filter((e) => e.source === "escalations").map((e) =>
+    e.path.replace("/escalations/", ""),
+  ),
 };
 
 const MAX_UPSTREAM_ROWS_PER_SOURCE = 1000;
@@ -167,7 +177,7 @@ export async function GET(request: NextRequest) {
 
   const sources: AuditSource[] = sourcesParam
     ? (sourcesParam.split(",") as AuditSource[])
-    : Object.keys(SERVICE_MAP) as AuditSource[];
+    : (Object.keys(SERVICE_MAP) as AuditSource[]);
   const eventTypes = eventTypesParam ? eventTypesParam.split(",") : undefined;
   const actorId = actorIdParam ? parseInt(actorIdParam, 10) : undefined;
 
@@ -196,7 +206,7 @@ export async function GET(request: NextRequest) {
 
   // Fan out to all sources in parallel
   const fetchPromises = sources.map((source) =>
-    fetchFromSource(source, SERVICE_MAP[source], headers, fromDate, toDate)
+    fetchFromSource(source, SERVICE_MAP[source], headers, fromDate, toDate),
   );
 
   const results = await Promise.allSettled(fetchPromises);

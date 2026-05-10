@@ -344,6 +344,7 @@ class TestUpdateMeetingMaterial:
 
         async def mock_update(mat):
             return mat
+
         mock_uow.materials.update = mock_update
 
         app = create_test_app(mock_uow, mock_user_hr)
@@ -413,6 +414,7 @@ class TestReorderMeetingMaterials:
 
         async def mock_update(mat):
             return mat
+
         mock_uow.materials.update = mock_update
 
         app = create_test_app(mock_uow, mock_user_hr)

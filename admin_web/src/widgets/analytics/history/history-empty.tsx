@@ -8,9 +8,9 @@ export function HistoryEmpty() {
 
   return (
     <div className="flex flex-col items-center justify-center py-12 text-center">
-      <FileText className="h-12 w-12 text-muted-foreground mb-4" />
-      <h3 className="text-lg font-semibold mb-2">{t("analytics.history.empty")}</h3>
-      <p className="text-muted-foreground text-sm">
+      <FileText className="mb-4 h-12 w-12 text-muted-foreground" />
+      <h3 className="mb-2 text-lg font-semibold">{t("analytics.history.empty")}</h3>
+      <p className="text-sm text-muted-foreground">
         Try adjusting your filters to see more results
       </p>
     </div>

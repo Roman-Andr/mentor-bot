@@ -9,6 +9,7 @@ import asyncio
 import logging
 from concurrent.futures import ThreadPoolExecutor
 from io import BytesIO
+from urllib.parse import quote
 
 import boto3
 from botocore.config import Config
@@ -17,6 +18,16 @@ from botocore.exceptions import ClientError
 from checklists_service.config import settings
 
 logger = logging.getLogger(__name__)
+
+
+def _to_s3_metadata_value(value: object) -> str:
+    """Convert user metadata to an ASCII-only S3 metadata value."""
+    metadata_value = str(value)
+    try:
+        metadata_value.encode("ascii")
+    except UnicodeEncodeError:
+        return quote(metadata_value, safe="")
+    return metadata_value
 
 
 class StorageError(Exception):
@@ -145,7 +156,7 @@ class StorageService:
             if content_type:
                 extra_args["ContentType"] = content_type
             if metadata:
-                extra_args["Metadata"] = {k: str(v) for k, v in metadata.items()}  # type: ignore[dict-item]
+                extra_args["Metadata"] = {str(k): _to_s3_metadata_value(v) for k, v in metadata.items()}
 
             loop = asyncio.get_running_loop()
             await loop.run_in_executor(

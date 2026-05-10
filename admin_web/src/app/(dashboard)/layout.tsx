@@ -13,18 +13,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <AuthCheck>
       <div className="flex min-h-dvh bg-background">
         {/* Desktop Sidebar - hidden on mobile, visible on lg+ */}
-        <div className="hidden lg:block sticky top-0 h-dvh">
+        <div className="sticky top-0 hidden h-dvh lg:block">
           <Sidebar />
         </div>
 
         {/* Mobile Header - visible on mobile, hidden on lg+ */}
-        <div className="lg:hidden flex w-full flex-col">
+        <div className="flex w-full flex-col lg:hidden">
           <MobileHeader onMenuClick={() => setMobileDrawerOpen(true)} />
           <div className="min-w-0 flex-1 overflow-y-auto">{children}</div>
         </div>
 
         {/* Desktop Content Area - visible on lg+ */}
-        <div className="hidden lg:block min-w-0 flex-1 overflow-y-auto bg-background">
+        <div className="hidden min-w-0 flex-1 overflow-y-auto bg-background lg:block">
           {children}
         </div>
 

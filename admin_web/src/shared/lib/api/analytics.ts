@@ -1,5 +1,12 @@
 import { fetchApi } from "./client";
-import type { ChecklistStats, DepartmentSearchStats, SearchSummary, SearchTimeseriesPoint, TopQueryStats, ZeroResultQuery } from "@/shared/types";
+import type {
+  ChecklistStats,
+  DepartmentSearchStats,
+  SearchSummary,
+  SearchTimeseriesPoint,
+  TopQueryStats,
+  ZeroResultQuery,
+} from "@/shared/types";
 
 interface MonthlyStats {
   month: string;
@@ -55,7 +62,9 @@ export const analyticsApi = {
     if (params?.department_id !== undefined)
       searchParams.set("department_id", String(params.department_id));
     const queryString = searchParams.toString();
-    const url = queryString ? `/api/v1/checklists/stats/summary?${queryString}` : "/api/v1/checklists/stats/summary";
+    const url = queryString
+      ? `/api/v1/checklists/stats/summary?${queryString}`
+      : "/api/v1/checklists/stats/summary";
     return fetchApi<ChecklistStats>(url);
   },
   monthlyStats: (months: number = 6) => {
@@ -82,7 +91,9 @@ export const analyticsApi = {
       if (params?.from_date) searchParams.set("from_date", params.from_date);
       if (params?.to_date) searchParams.set("to_date", params.to_date);
       const queryString = searchParams.toString();
-      const url = queryString ? `/api/v1/knowledge/analytics/summary?${queryString}` : "/api/v1/knowledge/analytics/summary";
+      const url = queryString
+        ? `/api/v1/knowledge/analytics/summary?${queryString}`
+        : "/api/v1/knowledge/analytics/summary";
       return fetchApi<KnowledgeSummary>(url);
     },
     topArticles: (params?: DateRange & { limit?: number }) => {
@@ -91,7 +102,9 @@ export const analyticsApi = {
       if (params?.to_date) searchParams.set("to_date", params.to_date);
       if (params?.limit) searchParams.set("limit", String(params.limit));
       const queryString = searchParams.toString();
-      const url = queryString ? `/api/v1/knowledge/analytics/top-articles?${queryString}` : "/api/v1/knowledge/analytics/top-articles";
+      const url = queryString
+        ? `/api/v1/knowledge/analytics/top-articles?${queryString}`
+        : "/api/v1/knowledge/analytics/top-articles";
       return fetchApi<TopArticleStats[]>(url);
     },
     timeseries: (params?: DateRange & { granularity?: "day" | "week" }) => {
@@ -100,7 +113,9 @@ export const analyticsApi = {
       if (params?.to_date) searchParams.set("to_date", params.to_date);
       if (params?.granularity) searchParams.set("granularity", params.granularity);
       const queryString = searchParams.toString();
-      const url = queryString ? `/api/v1/knowledge/analytics/views-timeseries?${queryString}` : "/api/v1/knowledge/analytics/views-timeseries";
+      const url = queryString
+        ? `/api/v1/knowledge/analytics/views-timeseries?${queryString}`
+        : "/api/v1/knowledge/analytics/views-timeseries";
       return fetchApi<TimeseriesPoint[]>(url);
     },
     byCategory: (params?: DateRange) => {
@@ -108,7 +123,9 @@ export const analyticsApi = {
       if (params?.from_date) searchParams.set("from_date", params.from_date);
       if (params?.to_date) searchParams.set("to_date", params.to_date);
       const queryString = searchParams.toString();
-      const url = queryString ? `/api/v1/knowledge/analytics/views-by-category?${queryString}` : "/api/v1/knowledge/analytics/views-by-category";
+      const url = queryString
+        ? `/api/v1/knowledge/analytics/views-by-category?${queryString}`
+        : "/api/v1/knowledge/analytics/views-by-category";
       return fetchApi<CategoryStats[]>(url);
     },
     byTag: (params?: DateRange) => {
@@ -116,7 +133,9 @@ export const analyticsApi = {
       if (params?.from_date) searchParams.set("from_date", params.from_date);
       if (params?.to_date) searchParams.set("to_date", params.to_date);
       const queryString = searchParams.toString();
-      const url = queryString ? `/api/v1/knowledge/analytics/views-by-tag?${queryString}` : "/api/v1/knowledge/analytics/views-by-tag";
+      const url = queryString
+        ? `/api/v1/knowledge/analytics/views-by-tag?${queryString}`
+        : "/api/v1/knowledge/analytics/views-by-tag";
       return fetchApi<TagStats[]>(url);
     },
   },
@@ -125,9 +144,12 @@ export const analyticsApi = {
       const searchParams = new URLSearchParams();
       if (params?.from_date) searchParams.set("from_date", params.from_date);
       if (params?.to_date) searchParams.set("to_date", params.to_date);
-      if (params?.department_id !== undefined) searchParams.set("department_id", String(params.department_id));
+      if (params?.department_id !== undefined)
+        searchParams.set("department_id", String(params.department_id));
       const queryString = searchParams.toString();
-      const url = queryString ? `/api/v1/knowledge/search-analytics/summary?${queryString}` : "/api/v1/knowledge/search-analytics/summary";
+      const url = queryString
+        ? `/api/v1/knowledge/search-analytics/summary?${queryString}`
+        : "/api/v1/knowledge/search-analytics/summary";
       return fetchApi<SearchSummary>(url);
     },
     topQueries: (params?: DateRange & { department_id?: number; limit?: number }) => {
@@ -138,7 +160,9 @@ export const analyticsApi = {
         searchParams.set("department_id", String(params.department_id));
       if (params?.limit) searchParams.set("limit", String(params.limit));
       const queryString = searchParams.toString();
-      const url = queryString ? `/api/v1/knowledge/search-analytics/top-queries?${queryString}` : "/api/v1/knowledge/search-analytics/top-queries";
+      const url = queryString
+        ? `/api/v1/knowledge/search-analytics/top-queries?${queryString}`
+        : "/api/v1/knowledge/search-analytics/top-queries";
       return fetchApi<TopQueryStats[]>(url);
     },
     zeroResults: (params?: DateRange & { department_id?: number; limit?: number }) => {
@@ -149,7 +173,9 @@ export const analyticsApi = {
         searchParams.set("department_id", String(params.department_id));
       if (params?.limit) searchParams.set("limit", String(params.limit));
       const queryString = searchParams.toString();
-      const url = queryString ? `/api/v1/knowledge/search-analytics/zero-results?${queryString}` : "/api/v1/knowledge/search-analytics/zero-results";
+      const url = queryString
+        ? `/api/v1/knowledge/search-analytics/zero-results?${queryString}`
+        : "/api/v1/knowledge/search-analytics/zero-results";
       return fetchApi<ZeroResultQuery[]>(url);
     },
     byDepartment: (params?: DateRange) => {
@@ -157,7 +183,9 @@ export const analyticsApi = {
       if (params?.from_date) searchParams.set("from_date", params.from_date);
       if (params?.to_date) searchParams.set("to_date", params.to_date);
       const queryString = searchParams.toString();
-      const url = queryString ? `/api/v1/knowledge/search-analytics/by-department?${queryString}` : "/api/v1/knowledge/search-analytics/by-department";
+      const url = queryString
+        ? `/api/v1/knowledge/search-analytics/by-department?${queryString}`
+        : "/api/v1/knowledge/search-analytics/by-department";
       return fetchApi<DepartmentSearchStats[]>(url);
     },
     timeseries: (params?: DateRange & { granularity?: "day" | "week" }) => {
@@ -166,7 +194,9 @@ export const analyticsApi = {
       if (params?.to_date) searchParams.set("to_date", params.to_date);
       if (params?.granularity) searchParams.set("granularity", params.granularity);
       const queryString = searchParams.toString();
-      const url = queryString ? `/api/v1/knowledge/search-analytics/timeseries?${queryString}` : "/api/v1/knowledge/search-analytics/timeseries";
+      const url = queryString
+        ? `/api/v1/knowledge/search-analytics/timeseries?${queryString}`
+        : "/api/v1/knowledge/search-analytics/timeseries";
       return fetchApi<SearchTimeseriesPoint[]>(url);
     },
   },

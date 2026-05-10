@@ -1,5 +1,7 @@
 """Unit tests for user_service/services/user.py."""
 
+from unittest.mock import AsyncMock
+
 import pytest
 from auth_service.core import ConflictException, NotFoundException, UserRole
 from auth_service.models import User
@@ -269,67 +271,56 @@ class TestDeactivateUser:
 
     async def test_deactivate_user_success(self, mock_uow):
         """Test deactivating a user."""
+        user = User(id=1, email="test@example.com", employee_id="EMP001", telegram_id=123456)
+        mock_uow.users.get_by_id.return_value = user
         mock_uow.users.deactivate_user.return_value = None
         service = UserService(mock_uow)
 
-        await service.deactivate_user(1)
+        with pytest.MonkeyPatch.context() as monkeypatch:
+            mock_publish = AsyncMock()
+            monkeypatch.setattr("auth_service.services.user.publish_telegram_event", mock_publish)
+            await service.deactivate_user(1)
 
+        mock_uow.users.get_by_id.assert_called_once_with(1)
         mock_uow.users.deactivate_user.assert_called_once_with(1)
         mock_uow.commit.assert_awaited_once()
+        mock_publish.assert_awaited_once_with("user_deactivated", user_id=1, telegram_id=123456)
+
+    async def test_deactivate_user_without_telegram_does_not_publish(self, mock_uow, sample_user):
+        """Test deactivating a user without Telegram ID."""
+        mock_uow.users.get_by_id.return_value = sample_user
+        service = UserService(mock_uow)
+
+        with pytest.MonkeyPatch.context() as monkeypatch:
+            mock_publish = AsyncMock()
+            monkeypatch.setattr("auth_service.services.user.publish_telegram_event", mock_publish)
+            await service.deactivate_user(1)
+
+        mock_publish.assert_not_awaited()
 
 
 class TestDeleteUser:
-    """Tests for UserService.delete_user method (covers lines 116-117)."""
+    """Tests for UserService.delete_user method."""
 
     async def test_delete_user_success(self, mock_uow, sample_user):
-        """Test deleting a user with cascade delete of related records."""
-        from unittest.mock import AsyncMock
-
+        """Test deleting a user hard-deletes the account and cleans up all data."""
+        sample_user.telegram_id = 123456
         mock_uow.users.get_by_id.return_value = sample_user
-        mock_uow.users.delete = AsyncMock(return_value=True)
-
-        # Mock all cascade delete methods
-        mock_uow.mentor_assignment_history.nullify_changed_by = AsyncMock(return_value=0)
-        mock_uow.role_change_history.nullify_changed_by = AsyncMock(return_value=0)
-        mock_uow.password_change_history.nullify_changed_by = AsyncMock(return_value=0)
-        mock_uow.invitation_status_history.nullify_changed_by = AsyncMock(return_value=0)
-        mock_uow.login_history.delete_by_user_id = AsyncMock(return_value=0)
-        mock_uow.logout_history.delete_by_user_id = AsyncMock(return_value=0)
-        mock_uow.password_change_history.delete_by_user_id = AsyncMock(return_value=0)
-        mock_uow.role_change_history.delete_by_user_id = AsyncMock(return_value=0)
-        mock_uow.mentor_assignment_history.delete_by_user_id = AsyncMock(return_value=0)
-        mock_uow.mentor_assignment_history.delete_by_mentor_id = AsyncMock(return_value=0)
-        mock_uow.password_reset.delete_by_user_id = AsyncMock(return_value=0)
-        mock_uow.invitations.nullify_user_id = AsyncMock(return_value=0)
-        mock_uow.invitations.nullify_mentor_id = AsyncMock(return_value=0)
-        mock_uow.user_mentors.delete_by_user_id = AsyncMock(return_value=0)
-        mock_uow.user_mentors.delete_by_mentor_id = AsyncMock(return_value=0)
 
         service = UserService(mock_uow)
 
-        await service.delete_user(1)
+        with pytest.MonkeyPatch.context() as monkeypatch:
+            mock_publish = AsyncMock()
+            mock_cleanup = AsyncMock()
+            monkeypatch.setattr("auth_service.services.user.publish_telegram_event", mock_publish)
+            service._cleanup_client.cleanup_user_data = mock_cleanup
+            await service.delete_user(1)
 
-        # Verify user exists
         mock_uow.users.get_by_id.assert_called_once_with(1)
-        # Verify cascade delete operations
-        mock_uow.mentor_assignment_history.nullify_changed_by.assert_awaited_once_with(1)
-        mock_uow.role_change_history.nullify_changed_by.assert_awaited_once_with(1)
-        mock_uow.password_change_history.nullify_changed_by.assert_awaited_once_with(1)
-        mock_uow.invitation_status_history.nullify_changed_by.assert_awaited_once_with(1)
-        mock_uow.login_history.delete_by_user_id.assert_awaited_once_with(1)
-        mock_uow.logout_history.delete_by_user_id.assert_awaited_once_with(1)
-        mock_uow.password_change_history.delete_by_user_id.assert_awaited_once_with(1)
-        mock_uow.role_change_history.delete_by_user_id.assert_awaited_once_with(1)
-        mock_uow.mentor_assignment_history.delete_by_user_id.assert_awaited_once_with(1)
-        mock_uow.mentor_assignment_history.delete_by_mentor_id.assert_awaited_once_with(1)
-        mock_uow.password_reset.delete_by_user_id.assert_awaited_once_with(1)
-        mock_uow.invitations.nullify_user_id.assert_awaited_once_with(1)
-        mock_uow.invitations.nullify_mentor_id.assert_awaited_once_with(1)
-        mock_uow.user_mentors.delete_by_user_id.assert_awaited_once_with(1)
-        mock_uow.user_mentors.delete_by_mentor_id.assert_awaited_once_with(1)
-        # Delete the user
+        mock_cleanup.assert_awaited_once_with(1)
         mock_uow.users.delete.assert_awaited_once_with(1)
         mock_uow.commit.assert_awaited_once()
+        mock_publish.assert_awaited_once_with("user_deleted", user_id=1, telegram_id=123456)
 
     async def test_delete_user_not_found_raises(self, mock_uow):
         """Test deleting non-existent user raises NotFoundException."""
@@ -340,7 +331,7 @@ class TestDeleteUser:
             await service.delete_user(999)
 
         assert "not found" in str(exc_info.value.detail).lower()
-        mock_uow.users.delete.assert_not_called()
+        mock_uow.users.deactivate_user.assert_not_called()
 
 
 class TestGetUsers:

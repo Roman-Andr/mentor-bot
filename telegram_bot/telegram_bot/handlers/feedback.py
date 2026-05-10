@@ -127,6 +127,7 @@ async def process_pulse_rating(
             rating=rating,
             is_anonymous=is_anonymous,
             auth_token=auth_token,
+            user_id=user["id"],
         )
         if not success:
             await callback.answer(t("feedback.submit_failed", locale=locale), show_alert=True)
@@ -207,6 +208,7 @@ async def process_experience_rating(
             rating=rating,
             is_anonymous=is_anonymous,
             auth_token=auth_token,
+            user_id=user["id"],
         )
         if not success:
             await callback.answer(t("feedback.submit_failed", locale=locale), show_alert=True)
@@ -290,6 +292,7 @@ async def process_comments(
             comment=comment,
             is_anonymous=is_anonymous,
             auth_token=auth_token,
+            user_id=user["id"],
         )
         if not success:
             await message.answer(t("feedback.submit_failed", locale=locale))

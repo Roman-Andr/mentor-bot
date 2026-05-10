@@ -3,7 +3,13 @@ import { buildQueryString } from "@/shared/lib/utils/query-builder";
 import type { Template, TemplateWithTasks, TaskTemplate } from "@/shared/types";
 
 export const templatesApi = {
-  list: (params?: { department_id?: number; status?: string; search?: string; skip?: number; limit?: number }) => {
+  list: (params?: {
+    department_id?: number;
+    status?: string;
+    search?: string;
+    skip?: number;
+    limit?: number;
+  }) => {
     const qs = buildQueryString(params);
     return fetchApi<Template[]>(`/api/v1/templates${qs ? `?${qs}` : ""}`);
   },

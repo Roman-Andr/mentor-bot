@@ -35,8 +35,7 @@ export function useCreateNotificationTemplate() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: NotificationTemplateCreate) =>
-      notificationTemplatesApi.create(data),
+    mutationFn: (data: NotificationTemplateCreate) => notificationTemplatesApi.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.notificationTemplates.all });
     },
@@ -71,14 +70,17 @@ export function useDeleteNotificationTemplate() {
 
 export function useRenderNotificationTemplate() {
   return useMutation({
-    mutationFn: (data: NotificationTemplateRenderRequest) =>
-      notificationTemplatesApi.render(data),
+    mutationFn: (data: NotificationTemplateRenderRequest) => notificationTemplatesApi.render(data),
   });
 }
 
 export function usePreviewNotificationTemplate() {
   return useMutation({
-    mutationFn: (data: { body_text?: string | null; body_html?: string | null; subject?: string | null; variables: Record<string, string> }) =>
-      notificationTemplatesApi.preview(data),
+    mutationFn: (data: {
+      body_text?: string | null;
+      body_html?: string | null;
+      subject?: string | null;
+      variables: Record<string, string>;
+    }) => notificationTemplatesApi.preview(data),
   });
 }

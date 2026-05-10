@@ -1,6 +1,7 @@
 """Meeting management service with repository pattern."""
 
 from datetime import UTC, datetime, timedelta
+from typing import Any
 
 from loguru import logger
 from sqlalchemy.exc import IntegrityError
@@ -28,9 +29,10 @@ from meeting_service.services.google_calendar_service import GoogleCalendarServi
 class MeetingService:
     """Service for meeting management operations with repository pattern."""
 
-    def __init__(self, uow: IUnitOfWork) -> None:
+    def __init__(self, uow: IUnitOfWork, *, notifications_enabled: bool = False) -> None:
         """Initialize MeetingService with Unit of Work."""
         self._uow = uow
+        self._notifications_enabled = notifications_enabled
 
     # --- Meeting templates ---
     async def create_meeting(self, meeting_data: MeetingCreate) -> Meeting:
@@ -178,15 +180,120 @@ class MeetingService:
                 await self._uow.materials.update(material_map[material_id])
 
         await self._uow.commit()
-        
+
         # Return materials in their original order (with updated order values)
         result_materials = [material_map[m.id] for m in materials]
-        
+
         logger.info("Materials reordered (meeting_id={})", meeting_id)
         return result_materials
 
     # --- User assignments ---
-    async def assign_meeting(self, assignment_data: UserMeetingCreate) -> UserMeeting:
+    @staticmethod
+    def _user_name(user_data: dict[str, Any] | None) -> str:
+        """Build a display name for notification templates."""
+        if not user_data:
+            return "there"
+        name = f"{user_data.get('first_name', '')} {user_data.get('last_name', '')}".strip()
+        return name or user_data.get("email") or "there"
+
+    @staticmethod
+    def _user_language(user_data: dict[str, Any] | None) -> str:
+        """Get user language for notification templates."""
+        return str((user_data or {}).get("language") or "en")
+
+    async def _cancel_meeting_reminders(self, assignment: UserMeeting) -> None:
+        """Cancel pending reminders for an assignment."""
+        if not self._notifications_enabled:
+            return
+        try:
+            from meeting_service.utils.integrations import notification_service_client
+
+            await notification_service_client.cancel_scheduled_notifications(
+                user_id=assignment.user_id,
+                notification_type="MEETING_REMINDER",
+                data_match={
+                    "source_service": "meeting_service",
+                    "assignment_id": assignment.id,
+                },
+            )
+        except Exception:
+            logger.exception("Failed to cancel meeting reminders (assignment_id={})", assignment.id)
+
+    async def _schedule_meeting_reminders(
+        self,
+        assignment: UserMeeting,
+        meeting: Meeting,
+        user_data: dict[str, Any] | None,
+    ) -> None:
+        """Schedule 15-minute and 5-minute reminders for a meeting assignment."""
+        if not self._notifications_enabled:
+            return
+        if user_data is None:
+            logger.info("Meeting reminders skipped: no user data (assignment_id={})", assignment.id)
+            return
+        await self._cancel_meeting_reminders(assignment)
+        if not assignment.scheduled_at or assignment.status == MeetingStatus.COMPLETED:
+            return
+
+        scheduled_at = assignment.scheduled_at
+        if scheduled_at.tzinfo is None:
+            scheduled_at = scheduled_at.replace(tzinfo=UTC)
+
+        telegram_id = (user_data or {}).get("telegram_id")
+        email = (user_data or {}).get("email")
+        if not telegram_id and not email:
+            logger.info("Meeting reminders skipped: no recipient contacts (assignment_id={})", assignment.id)
+            return
+
+        from meeting_service.utils.integrations import notification_service_client
+
+        variables = {
+            "user_name": self._user_name(user_data),
+            "meeting_title": meeting.title,
+            "meeting_time": scheduled_at.isoformat(),
+        }
+        now = datetime.now(UTC)
+        for minutes_until in (15, 5):
+            reminder_time = scheduled_at - timedelta(minutes=minutes_until)
+            if reminder_time <= now:
+                continue
+            reminder_variables = {**variables, "minutes_until": minutes_until}
+            base_data = {
+                "source_service": "meeting_service",
+                "assignment_id": assignment.id,
+                "meeting_id": meeting.id,
+                "minutes_until": minutes_until,
+            }
+            if telegram_id:
+                await notification_service_client.schedule_template_notification(
+                    template_name="meeting_reminder",
+                    user_id=assignment.user_id,
+                    variables=reminder_variables,
+                    channel="TELEGRAM",
+                    scheduled_time=reminder_time.isoformat(),
+                    notification_type="MEETING_REMINDER",
+                    recipient_telegram_id=int(telegram_id),
+                    language=self._user_language(user_data),
+                    data={**base_data, "channel": "telegram"},
+                )
+            if email:
+                await notification_service_client.schedule_template_notification(
+                    template_name="meeting_reminder",
+                    user_id=assignment.user_id,
+                    variables=reminder_variables,
+                    channel="EMAIL",
+                    scheduled_time=reminder_time.isoformat(),
+                    notification_type="MEETING_REMINDER",
+                    recipient_email=str(email),
+                    language=self._user_language(user_data),
+                    data={**base_data, "channel": "email"},
+                )
+
+    async def assign_meeting(
+        self,
+        assignment_data: UserMeetingCreate,
+        user_data: dict[str, Any] | None = None,
+    ) -> UserMeeting:
         """Assign a meeting template to a user."""
         logger.debug(
             "Assigning meeting (user_id={}, meeting_id={}, scheduled_at={})",
@@ -271,6 +378,7 @@ class MeetingService:
                 logger.debug("Skipped Google Calendar sync: %s", e)
 
         await self._uow.commit()
+        await self._schedule_meeting_reminders(created_assignment, meeting, user_data)
         logger.info(
             "Meeting assigned (assignment_id={}, user_id={}, meeting_id={})",
             created_assignment.id,
@@ -328,13 +436,19 @@ class MeetingService:
             raise NotFoundException(msg)
         return item
 
-    async def update_assignment(self, assignment_id: int, update_data: UserMeetingUpdate) -> UserMeeting:
+    async def update_assignment(
+        self,
+        assignment_id: int,
+        update_data: UserMeetingUpdate,
+        user_data: dict[str, Any] | None = None,
+    ) -> UserMeeting:
         """Update a user meeting assignment (status, scheduled_at)."""
         logger.debug("Updating assignment (assignment_id={})", assignment_id)
         assignment = await self.get_assignment(assignment_id)
         update_dict = update_data.model_dump(exclude_unset=True)
 
         # Handle Google Calendar sync if scheduled_at changes
+        scheduled_at_changed = False
         if "scheduled_at" in update_dict:
             new_scheduled_at = update_dict["scheduled_at"]
             old_scheduled_at = assignment.scheduled_at
@@ -346,6 +460,7 @@ class MeetingService:
 
             # Only proceed if the time actually changed
             if new_scheduled_at != old_scheduled_at:
+                scheduled_at_changed = True
                 gc_service = GoogleCalendarService(self._uow)
 
                 if new_scheduled_at is None:
@@ -399,6 +514,9 @@ class MeetingService:
         assignment.updated_at = datetime.now(UTC)
         updated = await self._uow.user_meetings.update(assignment)
         await self._uow.commit()
+        if scheduled_at_changed or update_data.status == MeetingStatus.COMPLETED:
+            meeting = await self.get_meeting(updated.meeting_id)
+            await self._schedule_meeting_reminders(updated, meeting, user_data)
         logger.info("Assignment updated (assignment_id={})", updated.id)
         return updated
 
@@ -418,6 +536,7 @@ class MeetingService:
         assignment.updated_at = datetime.now(UTC)
         updated = await self._uow.user_meetings.update(assignment)
         await self._uow.commit()
+        await self._cancel_meeting_reminders(updated)
         logger.info("Meeting completed (assignment_id={})", updated.id)
         return updated
 
@@ -441,6 +560,7 @@ class MeetingService:
 
         await self._uow.user_meetings.delete(assignment.id)
         await self._uow.commit()
+        await self._cancel_meeting_reminders(assignment)
         logger.info("Assignment deleted (assignment_id={})", assignment_id)
 
     # --- Auto-assignment for new user ---

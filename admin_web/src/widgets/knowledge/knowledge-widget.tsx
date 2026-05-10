@@ -34,12 +34,23 @@ export function KnowledgeWidget() {
     { id: "tags", label: t("knowledge.tags") || "Tags", icon: Hash },
   ];
 
-  const handleCategorySubmit = async () => { await c.handleSubmit(); a.loadCategories(); };
-  const handleCategoryDelete = async (id: number) => { await c.handleDelete(id); a.loadCategories(); };
+  const handleCategorySubmit = async () => {
+    await c.handleSubmit();
+    a.loadCategories();
+  };
+  const handleCategoryDelete = async (id: number) => {
+    await c.handleDelete(id);
+    a.loadCategories();
+  };
 
   const handleAddClick = () => {
-    if (activeTab === "articles") { a.resetForm(); a.setIsCreateDialogOpen(true); }
-    else if (activeTab === "categories") { c.resetForm(); c.setIsCreateDialogOpen(true); }
+    if (activeTab === "articles") {
+      a.resetForm();
+      a.setIsCreateDialogOpen(true);
+    } else if (activeTab === "categories") {
+      c.resetForm();
+      c.setIsCreateDialogOpen(true);
+    }
   };
 
   return (
@@ -73,7 +84,10 @@ export function KnowledgeWidget() {
                 pendingFiles={a.pendingFiles}
                 onPendingFilesChange={a.setPendingFiles}
                 onSubmit={a.handleSubmit}
-                onCancel={() => { a.setIsCreateDialogOpen(false); a.resetForm(); }}
+                onCancel={() => {
+                  a.setIsCreateDialogOpen(false);
+                  a.resetForm();
+                }}
               />
             </Dialog>
             <Dialog open={a.isEditDialogOpen} onOpenChange={a.setIsEditDialogOpen}>
@@ -89,7 +103,10 @@ export function KnowledgeWidget() {
                 pendingFiles={a.pendingFiles}
                 onPendingFilesChange={a.setPendingFiles}
                 onSubmit={a.handleSubmit}
-                onCancel={() => { a.setIsEditDialogOpen(false); a.resetForm(); }}
+                onCancel={() => {
+                  a.setIsEditDialogOpen(false);
+                  a.resetForm();
+                }}
               />
             </Dialog>
             <ArticleStats articles={a.articles} />
@@ -132,7 +149,10 @@ export function KnowledgeWidget() {
                 categories={c.categories}
                 departments={deps.items}
                 onSubmit={handleCategorySubmit}
-                onCancel={() => { c.setIsCreateDialogOpen(false); c.resetForm(); }}
+                onCancel={() => {
+                  c.setIsCreateDialogOpen(false);
+                  c.resetForm();
+                }}
               />
             </Dialog>
             <Dialog open={c.isEditDialogOpen} onOpenChange={c.setIsEditDialogOpen}>
@@ -143,7 +163,10 @@ export function KnowledgeWidget() {
                 categories={c.categories.filter((cat) => cat.id !== c.selectedCategory?.id)}
                 departments={deps.items}
                 onSubmit={handleCategorySubmit}
-                onCancel={() => { c.setIsEditDialogOpen(false); c.resetForm(); }}
+                onCancel={() => {
+                  c.setIsEditDialogOpen(false);
+                  c.resetForm();
+                }}
               />
             </Dialog>
             <CategoriesTable

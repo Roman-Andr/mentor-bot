@@ -20,7 +20,12 @@ interface FeedbackDetailsDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-export function FeedbackDetailsDialog({ item, open, getUserName, onOpenChange }: FeedbackDetailsDialogProps) {
+export function FeedbackDetailsDialog({
+  item,
+  open,
+  getUserName,
+  onOpenChange,
+}: FeedbackDetailsDialogProps) {
   const t = useTranslations();
 
   if (!item) {
@@ -28,7 +33,11 @@ export function FeedbackDetailsDialog({ item, open, getUserName, onOpenChange }:
   }
 
   const canShowReplyStatus = item.type === "comment";
-  const status = item.reply ? "replied" : item.is_anonymous && !item.allow_contact ? "no_reply" : "pending";
+  const status = item.reply
+    ? "replied"
+    : item.is_anonymous && !item.allow_contact
+      ? "no_reply"
+      : "pending";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -49,8 +58,12 @@ export function FeedbackDetailsDialog({ item, open, getUserName, onOpenChange }:
               value={item.is_anonymous ? t("feedback.anonymous") : getUserName(item.user_id)}
             />
             <Detail label={t("feedback.submittedAt")} value={formatDateTime(item.submitted_at)} />
-            {canShowReplyStatus && <Detail label={t("feedback.status")} value={<StatusBadge status={status} />} />}
-            {item.contact_email && <Detail label={t("feedback.contactEmail")} value={item.contact_email} />}
+            {canShowReplyStatus && (
+              <Detail label={t("feedback.status")} value={<StatusBadge status={status} />} />
+            )}
+            {item.contact_email && (
+              <Detail label={t("feedback.contactEmail")} value={item.contact_email} />
+            )}
           </div>
 
           {item.rating !== undefined && (
@@ -63,16 +76,18 @@ export function FeedbackDetailsDialog({ item, open, getUserName, onOpenChange }:
           {item.comment && (
             <div className="rounded-md border p-3">
               <div className="text-sm font-medium">{t("feedback.comment")}</div>
-              <p className="text-muted-foreground mt-2 text-sm whitespace-pre-wrap">{item.comment}</p>
+              <p className="mt-2 text-sm whitespace-pre-wrap text-muted-foreground">
+                {item.comment}
+              </p>
             </div>
           )}
 
           {item.reply && (
             <div className="rounded-md border border-green-200 bg-green-50 p-3 dark:border-green-900/50 dark:bg-green-950/20">
               <div className="text-sm font-medium">{t("feedback.reply")}</div>
-              <p className="text-muted-foreground mt-2 text-sm whitespace-pre-wrap">{item.reply}</p>
+              <p className="mt-2 text-sm whitespace-pre-wrap text-muted-foreground">{item.reply}</p>
               {item.replied_at && (
-                <div className="text-muted-foreground mt-2 text-xs">
+                <div className="mt-2 text-xs text-muted-foreground">
                   {t("feedback.repliedAt")}: {formatDateTime(item.replied_at)}
                 </div>
               )}
@@ -87,7 +102,7 @@ export function FeedbackDetailsDialog({ item, open, getUserName, onOpenChange }:
 function Detail({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div className="rounded-md border p-3">
-      <div className="text-muted-foreground text-xs font-medium uppercase">{label}</div>
+      <div className="text-xs font-medium text-muted-foreground uppercase">{label}</div>
       <div className="mt-1 text-sm">{value}</div>
     </div>
   );

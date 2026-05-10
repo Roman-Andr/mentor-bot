@@ -1242,3 +1242,41 @@ class TestNotificationServiceCleanup:
         await service.cleanup()
 
         service._telegram.close.assert_awaited_once()
+
+
+class TestNotificationServiceCancelScheduled:
+    """Tests for cancel_scheduled method."""
+
+    async def test_cancel_scheduled_delegates_and_commits(self, mock_uow: MagicMock) -> None:
+        """cancel_scheduled calls repo cancel_pending and commits."""
+        mock_uow.scheduled_notifications.cancel_pending = AsyncMock(return_value=3)
+        mock_uow.commit = AsyncMock()
+
+        service = NotificationService(mock_uow)
+        result = await service.cancel_scheduled(
+            user_id=42,
+            notification_type=NotificationType.GENERAL,
+            data_match={"task_id": 5},
+        )
+
+        assert result == 3
+        mock_uow.scheduled_notifications.cancel_pending.assert_awaited_once_with(
+            user_id=42,
+            notification_type=NotificationType.GENERAL,
+            data_match={"task_id": 5},
+        )
+        mock_uow.commit.assert_awaited_once()
+
+    async def test_cancel_scheduled_returns_zero_when_none_cancelled(self, mock_uow: MagicMock) -> None:
+        """Returns 0 when no notifications are cancelled."""
+        mock_uow.scheduled_notifications.cancel_pending = AsyncMock(return_value=0)
+        mock_uow.commit = AsyncMock()
+
+        service = NotificationService(mock_uow)
+        result = await service.cancel_scheduled(
+            user_id=99,
+            notification_type=NotificationType.GENERAL,
+            data_match={},
+        )
+
+        assert result == 0

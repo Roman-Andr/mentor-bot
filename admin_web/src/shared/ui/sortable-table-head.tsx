@@ -42,7 +42,7 @@ export function SortableTableHead({
         "h-10 px-2 text-left align-middle font-medium text-muted-foreground",
         sortable && "cursor-pointer select-none hover:text-foreground",
         width,
-        className
+        className,
       )}
       onClick={sortable ? () => onSort(field) : undefined}
     >
@@ -55,15 +55,15 @@ export function SortableTableHead({
                 "size-3",
                 isActive && sortDirection === "asc"
                   ? "text-foreground"
-                  : "text-muted-foreground/30"
+                  : "text-muted-foreground/30",
               )}
             />
             <ArrowDown
               className={cn(
-                "size-3 -mt-1",
+                "-mt-1 size-3",
                 isActive && sortDirection === "desc"
                   ? "text-foreground"
-                  : "text-muted-foreground/30"
+                  : "text-muted-foreground/30",
               )}
             />
           </span>

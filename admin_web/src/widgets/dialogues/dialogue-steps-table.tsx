@@ -1,12 +1,5 @@
 import { Button } from "@/shared/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/shared/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { Plus, GripVertical } from "lucide-react";
 import { TableActions, buildEditAction, buildDeleteAction } from "@/shared/components";
@@ -62,7 +55,7 @@ function SortableStepRow({ step, position, onEdit, onDelete, t }: SortableStepRo
         <button
           {...attributes}
           {...listeners}
-          className="text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing"
+          className="cursor-grab text-muted-foreground hover:text-foreground active:cursor-grabbing"
           tabIndex={-1}
         >
           <GripVertical className="size-4" />
@@ -73,19 +66,17 @@ function SortableStepRow({ step, position, onEdit, onDelete, t }: SortableStepRo
         <p className="line-clamp-2">{step.question}</p>
       </TableCell>
       <TableCell className="w-24">
-        <span className="bg-muted rounded px-2 py-0.5 text-xs font-medium">
+        <span className="rounded bg-muted px-2 py-0.5 text-xs font-medium">
           {ANSWER_TYPE_LABEL[step.answer_type] ?? step.answer_type}
         </span>
       </TableCell>
       <TableCell className="w-32">
         {step.answer_type === "CHOICE" ? (
-          <span className="text-muted-foreground text-xs">
+          <span className="text-xs text-muted-foreground">
             {step.options?.length ?? 0} {t("dialogues.options")}
           </span>
         ) : (
-          <p className="text-muted-foreground line-clamp-1 text-xs">
-            {step.answer_content || "—"}
-          </p>
+          <p className="line-clamp-1 text-xs text-muted-foreground">{step.answer_content || "—"}</p>
         )}
       </TableCell>
       <TableCell className="w-16">
@@ -140,9 +131,9 @@ export function DialogueStepsTable({
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle>
+          <CardTitle className="inline-flex items-baseline gap-1 whitespace-nowrap">
             {t("dialogues.steps")}{" "}
-            <span className="text-muted-foreground text-sm font-normal">({steps.length})</span>
+            <span className="text-sm font-normal text-muted-foreground">({steps.length})</span>
           </CardTitle>
           <Button size="sm" onClick={onAddStep} className="gap-1">
             <Plus className="size-4" />
@@ -153,7 +144,7 @@ export function DialogueStepsTable({
       <CardContent className="p-0">
         {steps.length === 0 ? (
           <div className="flex h-32 items-center justify-center">
-            <p className="text-muted-foreground text-sm">{t("dialogues.noSteps")}</p>
+            <p className="text-sm text-muted-foreground">{t("dialogues.noSteps")}</p>
           </div>
         ) : (
           <DndContext
@@ -174,7 +165,10 @@ export function DialogueStepsTable({
                   <TableHead className="w-20">{t("common.actions")}</TableHead>
                 </TableRow>
               </TableHeader>
-              <SortableContext items={steps.map((s) => s.id)} strategy={verticalListSortingStrategy}>
+              <SortableContext
+                items={steps.map((s) => s.id)}
+                strategy={verticalListSortingStrategy}
+              >
                 <TableBody>
                   {steps.map((step, index) => (
                     <SortableStepRow

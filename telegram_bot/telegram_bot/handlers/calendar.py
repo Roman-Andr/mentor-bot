@@ -110,14 +110,14 @@ async def connect_calendar(callback: CallbackQuery, user: dict, *, locale: str =
             )
         await callback.answer()
 
-    except ValueError as e:
-        logger.error("Failed to get authorization URL from Meeting Service: %s", e)
+    except ValueError:
+        logger.exception("Failed to get authorization URL from Meeting Service")
         await callback.answer(t("common.service_unavailable", locale=locale), show_alert=True)
     except httpx.HTTPStatusError as e:
-        logger.error("Meeting Service returned HTTP error: %s", e.response.status_code)
+        logger.exception("Meeting Service returned HTTP error: %s", e.response.status_code)
         await callback.answer(t("common.service_unavailable", locale=locale), show_alert=True)
-    except httpx.RequestError as e:
-        logger.error("Failed to connect to Meeting Service: %s", e)
+    except httpx.RequestError:
+        logger.exception("Failed to connect to Meeting Service")
         await callback.answer(t("common.service_unavailable", locale=locale), show_alert=True)
     except Exception:
         logger.exception("Failed to initiate calendar connection")

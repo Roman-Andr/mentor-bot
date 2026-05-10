@@ -55,7 +55,14 @@ export const meetingsApi = {
     fetchApi<MeetingMaterial[]>(`/api/v1/meetings/${meetingId}/materials`),
   addMaterial: (
     meetingId: number,
-    data: { title: string; description?: string | null; url?: string | null; content?: string | null; type: string; order?: number },
+    data: {
+      title: string;
+      description?: string | null;
+      url?: string | null;
+      content?: string | null;
+      type: string;
+      order?: number;
+    },
   ) =>
     fetchApi<MeetingMaterial>(`/api/v1/meetings/${meetingId}/materials`, {
       method: "POST",
@@ -65,7 +72,14 @@ export const meetingsApi = {
     fetchApi<void>(`/api/v1/meetings/materials/${materialId}`, { method: "DELETE" }),
   updateMaterial: (
     materialId: number,
-    data: { title?: string; description?: string | null; url?: string | null; content?: string | null; type?: string; order?: number },
+    data: {
+      title?: string;
+      description?: string | null;
+      url?: string | null;
+      content?: string | null;
+      type?: string;
+      order?: number;
+    },
   ) =>
     fetchApi<MeetingMaterial>(`/api/v1/meetings/materials/${materialId}`, {
       method: "PUT",

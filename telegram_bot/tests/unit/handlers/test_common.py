@@ -149,6 +149,32 @@ class TestCommonHandlers:
 
         mock_message.answer.assert_called_once()
 
+    async def test_my_mentor_omits_empty_phone(self, mock_message, mock_user, mock_auth_token):
+        """Test my mentor does not render phone line when phone is missing."""
+        mentor_info = {
+            "first_name": "Jane",
+            "last_name": "Smith",
+            "position": "Senior Dev",
+            "email": "jane@example.com",
+            "phone": None,
+            "department": {"name": "Engineering"},
+        }
+
+        with patch(
+            "telegram_bot.handlers.common.auth_client.get_mentor_info",
+            new_callable=AsyncMock,
+            return_value=mentor_info,
+        ):
+            with patch("telegram_bot.handlers.common.get_my_mentor_keyboard") as mock_kb:
+                mock_kb.return_value.as_markup.return_value = MagicMock()
+
+                await my_mentor(mock_message, mock_user, mock_auth_token, locale="en")
+
+        text = mock_message.answer.call_args.args[0]
+        assert "jane@example.com" in text
+        assert "\U0001f4f1" not in text
+        assert "None" not in text
+
     async def test_my_mentor_no_mentor(self, mock_callback, mock_user_no_mentor, mock_auth_token):
         """Test my mentor without mentor."""
         with patch("telegram_bot.handlers.common.get_my_mentor_no_mentor_keyboard") as mock_kb:
@@ -234,21 +260,29 @@ class TestCommonHandlers:
     # Tests for schedule_mentor
     async def test_schedule_mentor(self, mock_callback):
         """Test schedule mentor."""
-        with patch("telegram_bot.handlers.common.get_schedule_mentor_keyboard") as mock_kb:
-            mock_kb.return_value.as_markup.return_value = MagicMock()
+        with patch("telegram_bot.handlers.common.get_meetings_menu_keyboard") as mock_kb:
+            mock_kb.return_value = MagicMock()
 
-            await schedule_mentor(mock_callback, locale="en")
+            await schedule_mentor(mock_callback, {"id": 1}, "token", locale="en")
 
         mock_callback.message.edit_text.assert_called_once()
         mock_callback.answer.assert_called_once()
+        assert "Meetings" in mock_callback.message.edit_text.call_args.kwargs["text"]
 
     async def test_schedule_mentor_no_message(self, mock_callback):
         """Test schedule mentor with no message."""
         cb = MagicMock(spec=CallbackQuery)
         cb.message = None
 
-        result = await schedule_mentor(cb, locale="en")
+        result = await schedule_mentor(cb, {"id": 1}, "token", locale="en")
         assert result is None
+
+    async def test_schedule_mentor_auth_required(self, mock_callback):
+        """Test schedule mentor without authenticated user data."""
+        await schedule_mentor(mock_callback, None, None, locale="en")
+
+        mock_callback.answer.assert_called_once_with("Authentication required")
+        mock_callback.message.edit_text.assert_not_called()
 
     # Tests for mentor_tasks
     async def test_mentor_tasks_with_tasks(self, mock_callback, mock_auth_token):

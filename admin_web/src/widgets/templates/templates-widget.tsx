@@ -33,8 +33,14 @@ export function TemplatesWidget() {
     { id: "notification-templates", label: t("templates.notificationTemplates"), icon: Bell },
   ];
 
-  const handleNotificationCreate = () => { setEditingNotificationTemplate(null); setNotificationDialogOpen(true); };
-  const handleNotificationEdit = (template: any) => { setEditingNotificationTemplate(template); setNotificationDialogOpen(true); };
+  const handleNotificationCreate = () => {
+    setEditingNotificationTemplate(null);
+    setNotificationDialogOpen(true);
+  };
+  const handleNotificationEdit = (template: any) => {
+    setEditingNotificationTemplate(template);
+    setNotificationDialogOpen(true);
+  };
 
   const handleClone = async (id: number) => {
     const result = await api.templates.clone(id);
@@ -52,12 +58,20 @@ export function TemplatesWidget() {
       subtitle={t("templates.subtitle") || t("templates.title")}
       actions={
         activeTab === "checklist-templates" ? (
-          <Button className="gap-2" onClick={() => { tmpl.resetForm(); tmpl.setIsCreateDialogOpen(true); }}>
-            <Plus className="size-4" />{t("templates.addTemplate")}
+          <Button
+            className="gap-2"
+            onClick={() => {
+              tmpl.resetForm();
+              tmpl.setIsCreateDialogOpen(true);
+            }}
+          >
+            <Plus className="size-4" />
+            {t("templates.addTemplate")}
           </Button>
         ) : activeTab === "notification-templates" ? (
           <Button className="gap-2" onClick={handleNotificationCreate}>
-            <Plus className="size-4" />{t("templates.addTemplate")}
+            <Plus className="size-4" />
+            {t("templates.addTemplate")}
           </Button>
         ) : null
       }
@@ -81,7 +95,10 @@ export function TemplatesWidget() {
             />
             <TemplateFormDialog
               open={tmpl.isEditDialogOpen}
-              onOpenChange={(open) => { tmpl.setIsEditDialogOpen(open); if (!open) tmpl.setSelectedTemplate(null); }}
+              onOpenChange={(open) => {
+                tmpl.setIsEditDialogOpen(open);
+                if (!open) tmpl.setSelectedTemplate(null);
+              }}
               mode="edit"
               formData={tmpl.formData}
               onFormDataChange={tmpl.setFormData}
@@ -89,7 +106,10 @@ export function TemplatesWidget() {
               departments={deps.items}
               onTasksChange={tmpl.setTasks}
               onSubmit={tmpl.handleUpdate}
-              onCancel={() => { tmpl.setIsEditDialogOpen(false); tmpl.setSelectedTemplate(null); }}
+              onCancel={() => {
+                tmpl.setIsEditDialogOpen(false);
+                tmpl.setSelectedTemplate(null);
+              }}
             />
             <TemplateStats templates={tmpl.templates} />
             <TemplatesTable
@@ -119,8 +139,15 @@ export function TemplatesWidget() {
 
         {activeTab === "notification-templates" && (
           <>
-            <NotificationTemplatesTab onCreate={handleNotificationCreate} onEdit={handleNotificationEdit} />
-            <NotificationTemplateFormDialog open={notificationDialogOpen} onOpenChange={setNotificationDialogOpen} template={editingNotificationTemplate} />
+            <NotificationTemplatesTab
+              onCreate={handleNotificationCreate}
+              onEdit={handleNotificationEdit}
+            />
+            <NotificationTemplateFormDialog
+              open={notificationDialogOpen}
+              onOpenChange={setNotificationDialogOpen}
+              template={editingNotificationTemplate}
+            />
           </>
         )}
       </div>

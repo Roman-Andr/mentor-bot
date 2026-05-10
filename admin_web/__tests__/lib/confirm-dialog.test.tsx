@@ -1,41 +1,37 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import { ConfirmDialog, ConfirmProvider, useConfirm } from '@/shared/ui/confirm-dialog'
-import { NextIntlClientProvider } from 'next-intl'
-import messages from '../../messages/en.json'
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { ConfirmDialog, ConfirmProvider, useConfirm } from "@/shared/ui/confirm-dialog";
+import { NextIntlClientProvider } from "next-intl";
+import messages from "../../messages/en.json";
 
 const TestComponent = () => {
-  const confirm = useConfirm()
-  
+  const confirm = useConfirm();
+
   const handleClick = async () => {
-    const result = await confirm('Are you sure?')
-    console.log('Confirmed:', result)
-  }
+    const result = await confirm("Are you sure?");
+    console.log("Confirmed:", result);
+  };
 
-  return (
-    <button onClick={handleClick}>
-      Test Confirm
-    </button>
-  )
-}
+  return <button onClick={handleClick}>Test Confirm</button>;
+};
 
-const createWrapper = () => ({ children }: { children: React.ReactNode }) => (
-  <NextIntlClientProvider locale="en" messages={messages}>
-    <ConfirmProvider>
-      {children}
-    </ConfirmProvider>
-  </NextIntlClientProvider>
-)
+const createWrapper =
+  () =>
+  ({ children }: { children: React.ReactNode }) => (
+    <NextIntlClientProvider locale="en" messages={messages}>
+      <ConfirmProvider>{children}</ConfirmProvider>
+    </NextIntlClientProvider>
+  );
 
-describe('ConfirmDialog', () => {
+describe("ConfirmDialog", () => {
   beforeEach(() => {
-    vi.clearAllMocks()
-  })
+    vi.clearAllMocks();
+  });
 
-  it('renders ConfirmDialog with props', () => {
-    const onOpenChange = vi.fn()
-    const onConfirm = vi.fn()
-    
+  it("renders ConfirmDialog with props", () => {
+    const onOpenChange = vi.fn();
+    const onConfirm = vi.fn();
+
     render(
       <ConfirmDialog
         open={true}
@@ -47,19 +43,19 @@ describe('ConfirmDialog', () => {
         cancelText="Cancel"
         variant="destructive"
       />,
-      { wrapper: createWrapper() }
-    )
+      { wrapper: createWrapper() },
+    );
 
-    expect(screen.getByText('Test Title')).toBeInTheDocument()
-    expect(screen.getByText('Test Description')).toBeInTheDocument()
-    expect(screen.getByText('Confirm')).toBeInTheDocument()
-    expect(screen.getByText('Cancel')).toBeInTheDocument()
-  })
+    expect(screen.getByText("Test Title")).toBeInTheDocument();
+    expect(screen.getByText("Test Description")).toBeInTheDocument();
+    expect(screen.getByText("Confirm")).toBeInTheDocument();
+    expect(screen.getByText("Cancel")).toBeInTheDocument();
+  });
 
-  it('calls onConfirm when confirm button is clicked', () => {
-    const onOpenChange = vi.fn()
-    const onConfirm = vi.fn()
-    
+  it("calls onConfirm when confirm button is clicked", () => {
+    const onOpenChange = vi.fn();
+    const onConfirm = vi.fn();
+
     render(
       <ConfirmDialog
         open={true}
@@ -68,20 +64,20 @@ describe('ConfirmDialog', () => {
         title="Test Dialog"
         description="Test description for accessibility"
       />,
-      { wrapper: createWrapper() }
-    )
+      { wrapper: createWrapper() },
+    );
 
-    const confirmButton = screen.getByRole('button', { name: 'Confirm' })
-    fireEvent.click(confirmButton)
+    const confirmButton = screen.getByRole("button", { name: "Confirm" });
+    fireEvent.click(confirmButton);
 
-    expect(onConfirm).toHaveBeenCalled()
-    expect(onOpenChange).toHaveBeenCalledWith(false)
-  })
+    expect(onConfirm).toHaveBeenCalled();
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
 
-  it('calls onOpenChange when cancel button is clicked', () => {
-    const onOpenChange = vi.fn()
-    const onConfirm = vi.fn()
-    
+  it("calls onOpenChange when cancel button is clicked", () => {
+    const onOpenChange = vi.fn();
+    const onConfirm = vi.fn();
+
     render(
       <ConfirmDialog
         open={true}
@@ -90,96 +86,123 @@ describe('ConfirmDialog', () => {
         title="Test Dialog"
         description="Test description for accessibility"
       />,
-      { wrapper: createWrapper() }
-    )
+      { wrapper: createWrapper() },
+    );
 
-    const cancelButton = screen.getByRole('button', { name: 'Cancel' })
-    fireEvent.click(cancelButton)
+    const cancelButton = screen.getByRole("button", { name: "Cancel" });
+    fireEvent.click(cancelButton);
 
-    expect(onOpenChange).toHaveBeenCalledWith(false)
-    expect(onConfirm).not.toHaveBeenCalled()
-  })
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+    expect(onConfirm).not.toHaveBeenCalled();
+  });
 
-  it('works with ConfirmProvider and useConfirm hook', async () => {
-    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
-    
-    render(<TestComponent />, { wrapper: createWrapper() })
+  it("works with ConfirmProvider and useConfirm hook", async () => {
+    const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 
-    const button = screen.getByText('Test Confirm')
-    fireEvent.click(button)
+    render(<TestComponent />, { wrapper: createWrapper() });
 
-    await waitFor(() => {
-      expect(screen.getByText('Are you sure?')).toBeInTheDocument()
-    })
-
-    const confirmButton = screen.getByRole('button', { name: 'Confirm' })
-    fireEvent.click(confirmButton)
+    const button = screen.getByText("Test Confirm");
+    fireEvent.click(button);
 
     await waitFor(() => {
-      expect(consoleSpy).toHaveBeenCalledWith('Confirmed:', true)
-    })
+      expect(screen.getByText("Are you sure?")).toBeInTheDocument();
+    });
 
-    consoleSpy.mockRestore()
-  })
-
-  it('handles cancel in ConfirmProvider', async () => {
-    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
-    
-    render(<TestComponent />, { wrapper: createWrapper() })
-
-    const button = screen.getByText('Test Confirm')
-    fireEvent.click(button)
+    const confirmButton = screen.getByRole("button", { name: "Confirm" });
+    fireEvent.click(confirmButton);
 
     await waitFor(() => {
-      expect(screen.getByText('Are you sure?')).toBeInTheDocument()
-    })
+      expect(consoleSpy).toHaveBeenCalledWith("Confirmed:", true);
+    });
 
-    const cancelButton = screen.getByRole('button', { name: 'Cancel' })
-    fireEvent.click(cancelButton)
+    consoleSpy.mockRestore();
+  });
+
+  it("handles cancel in ConfirmProvider", async () => {
+    const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    render(<TestComponent />, { wrapper: createWrapper() });
+
+    const button = screen.getByText("Test Confirm");
+    fireEvent.click(button);
 
     await waitFor(() => {
-      expect(consoleSpy).toHaveBeenCalledWith('Confirmed:', false)
-    })
+      expect(screen.getByText("Are you sure?")).toBeInTheDocument();
+    });
 
-    consoleSpy.mockRestore()
-  })
+    const cancelButton = screen.getByRole("button", { name: "Cancel" });
+    fireEvent.click(cancelButton);
 
-  it('handles custom options in useConfirm', async () => {
-    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
-    
+    await waitFor(() => {
+      expect(consoleSpy).toHaveBeenCalledWith("Confirmed:", false);
+    });
+
+    consoleSpy.mockRestore();
+  });
+
+  it("handles custom options in useConfirm", async () => {
+    const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+
     const TestComponentWithOptions = () => {
-      const confirm = useConfirm()
-      
+      const confirm = useConfirm();
+
       const handleClick = async () => {
         const result = await confirm({
-          title: 'Custom Title',
-          description: 'Custom Description',
-          confirmText: 'Yes',
-          cancelText: 'No',
-          variant: 'default'
-        })
-        console.log('Confirmed:', result)
-      }
+          title: "Custom Title",
+          description: "Custom Description",
+          confirmText: "Yes",
+          cancelText: "No",
+          variant: "default",
+        });
+        console.log("Confirmed:", result);
+      };
 
-      return (
-        <button onClick={handleClick}>
-          Test Custom Confirm
-        </button>
-      )
-    }
+      return <button onClick={handleClick}>Test Custom Confirm</button>;
+    };
 
-    render(<TestComponentWithOptions />, { wrapper: createWrapper() })
+    render(<TestComponentWithOptions />, { wrapper: createWrapper() });
 
-    const button = screen.getByText('Test Custom Confirm')
-    fireEvent.click(button)
+    const button = screen.getByText("Test Custom Confirm");
+    fireEvent.click(button);
 
     await waitFor(() => {
-      expect(screen.getByText('Custom Title')).toBeInTheDocument()
-      expect(screen.getByText('Custom Description')).toBeInTheDocument()
-      expect(screen.getByText('Yes')).toBeInTheDocument()
-      expect(screen.getByText('No')).toBeInTheDocument()
-    })
+      expect(screen.getByText("Custom Title")).toBeInTheDocument();
+      expect(screen.getByText("Custom Description")).toBeInTheDocument();
+      expect(screen.getByText("Yes")).toBeInTheDocument();
+      expect(screen.getByText("No")).toBeInTheDocument();
+    });
 
-    consoleSpy.mockRestore()
-  })
-})
+    consoleSpy.mockRestore();
+  });
+
+  it("renders defaults and resolves false when closed externally", async () => {
+    const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    const EmptyOptionsComponent = () => {
+      const confirm = useConfirm();
+
+      const handleClick = async () => {
+        const result = await confirm();
+        console.log("Confirmed empty:", result);
+      };
+
+      return <button onClick={handleClick}>Test Empty Confirm</button>;
+    };
+
+    render(<EmptyOptionsComponent />, { wrapper: createWrapper() });
+
+    fireEvent.click(screen.getByText("Test Empty Confirm"));
+
+    await waitFor(() => {
+      expect(screen.getAllByText("Confirm").length).toBeGreaterThan(0);
+    });
+
+    fireEvent.keyDown(document, { key: "Escape" });
+
+    await waitFor(() => {
+      expect(consoleSpy).toHaveBeenCalledWith("Confirmed empty:", false);
+    });
+
+    consoleSpy.mockRestore();
+  });
+});

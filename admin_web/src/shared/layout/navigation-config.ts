@@ -61,9 +61,7 @@ export const NAV_GROUPS: NavGroup[] = [
   },
   {
     labelKey: "nav.groupKnowledge",
-    items: [
-      { key: "knowledgeBase", href: "/knowledge", icon: "BookOpen" },
-    ],
+    items: [{ key: "knowledgeBase", href: "/knowledge", icon: "BookOpen" }],
   },
   {
     labelKey: "nav.groupInsights",
@@ -75,8 +73,6 @@ export const NAV_GROUPS: NavGroup[] = [
   },
   {
     labelKey: "nav.groupSystem",
-    items: [
-      { key: "settings", href: "/settings", icon: "Settings" },
-    ],
+    items: [{ key: "settings", href: "/settings", icon: "Settings" }],
   },
 ];

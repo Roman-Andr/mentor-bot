@@ -8,7 +8,19 @@ import { useConfirm } from "@/shared/hooks/use-confirm";
 import { FileText, Upload, ExternalLink, X, AlertCircle } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 
-const ALLOWED_TYPES = ["pdf", "jpg", "jpeg", "png", "docx", "xlsx", "txt", "doc", "xls", "ppt", "pptx"];
+const ALLOWED_TYPES = [
+  "pdf",
+  "jpg",
+  "jpeg",
+  "png",
+  "docx",
+  "xlsx",
+  "txt",
+  "doc",
+  "xls",
+  "ppt",
+  "pptx",
+];
 const MAX_FILE_SIZE_MB = 10;
 
 function formatFileSize(bytes: number | null): string {
@@ -93,7 +105,9 @@ export function MaterialFileManager({ url, onUrlChange, disabled }: MaterialFile
       {!url ? (
         <div className="flex flex-col items-center justify-center rounded-md border border-dashed p-6 text-center">
           <FileText className="mb-2 size-8 text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">{t("meetings.noFileSelected") || "No file selected"}</p>
+          <p className="text-sm text-muted-foreground">
+            {t("meetings.noFileSelected") || "No file selected"}
+          </p>
           <Button
             type="button"
             variant="outline"
@@ -119,18 +133,13 @@ export function MaterialFileManager({ url, onUrlChange, disabled }: MaterialFile
             {getFileIcon(url)}
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium">{url}</p>
-              <p className="text-muted-foreground text-xs">{t("meetings.fileUrl") || "File URL"}</p>
+              <p className="text-xs text-muted-foreground">{t("meetings.fileUrl") || "File URL"}</p>
             </div>
             <TooltipProvider>
               <div className="flex gap-1">
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={handleOpenUrl}
-                    >
+                    <Button type="button" variant="ghost" size="icon" onClick={handleOpenUrl}>
                       <ExternalLink className="size-3.5" />
                     </Button>
                   </TooltipTrigger>

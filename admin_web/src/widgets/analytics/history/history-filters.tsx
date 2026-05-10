@@ -15,7 +15,14 @@ interface HistoryFiltersProps {
   onChange: (filters: HistoryFilters) => void;
 }
 
-const ALL_SOURCES: AuditSource[] = ["auth", "knowledge", "meetings", "feedback", "checklists", "escalations"];
+const ALL_SOURCES: AuditSource[] = [
+  "auth",
+  "knowledge",
+  "meetings",
+  "feedback",
+  "checklists",
+  "escalations",
+];
 
 const EVENT_TYPES_BY_SOURCE: Record<AuditSource, AuditEventType[]> = {
   auth: ["login", "role_change", "invitation_status_change", "mentor_assignment"],
@@ -41,7 +48,10 @@ export function HistoryFilters({ filters, onChange }: HistoryFiltersProps) {
     } else {
       newSources = currentSources.filter((s) => s !== source);
     }
-    onChange({ ...filters, sources: newSources.length === ALL_SOURCES.length ? undefined : newSources });
+    onChange({
+      ...filters,
+      sources: newSources.length === ALL_SOURCES.length ? undefined : newSources,
+    });
   };
 
   const handleEventTypeToggle = (eventType: AuditEventType, checked: boolean) => {
@@ -74,7 +84,7 @@ export function HistoryFilters({ filters, onChange }: HistoryFiltersProps) {
   const selectedEventTypes = filters.event_types || [];
 
   return (
-    <div className="space-y-4 p-4 border rounded-md bg-muted/20">
+    <div className="space-y-4 rounded-md border bg-muted/20 p-4">
       <div className="flex items-end gap-4">
         <div className="flex flex-col gap-2">
           <Label>{t("analytics.history.filters.dateRange")}</Label>
@@ -92,13 +102,18 @@ export function HistoryFilters({ filters, onChange }: HistoryFiltersProps) {
           </div>
         </div>
 
-        <div className="flex flex-col gap-2 flex-1">
+        <div className="flex flex-1 flex-col gap-2">
           <Label>{t("analytics.history.filters.actor")}</Label>
           <Input
             type="number"
             placeholder={t("analytics.history.filters.actorPlaceholder")}
             value={filters.actor_id || ""}
-            onChange={(e) => onChange({ ...filters, actor_id: e.target.value ? parseInt(e.target.value) : undefined })}
+            onChange={(e) =>
+              onChange({
+                ...filters,
+                actor_id: e.target.value ? parseInt(e.target.value) : undefined,
+              })
+            }
           />
         </div>
 
@@ -117,7 +132,7 @@ export function HistoryFilters({ filters, onChange }: HistoryFiltersProps) {
                 checked={selectedSources.includes(source)}
                 onCheckedChange={(checked) => handleSourceToggle(source, checked as boolean)}
               />
-              <label htmlFor={`source-${source}`} className="text-sm cursor-pointer">
+              <label htmlFor={`source-${source}`} className="cursor-pointer text-sm">
                 {t(`analytics.history.sources.${source}`)}
               </label>
             </div>
@@ -129,14 +144,16 @@ export function HistoryFilters({ filters, onChange }: HistoryFiltersProps) {
         <Label className="mb-2 block">{t("analytics.history.filters.eventTypes")}</Label>
         <SearchableSelect
           value={selectedEventTypes.length > 0 ? selectedEventTypes[0] : ""}
-          onChange={(value) => onChange({ ...filters, event_types: value ? [value as AuditEventType] : undefined })}
+          onChange={(value) =>
+            onChange({ ...filters, event_types: value ? [value as AuditEventType] : undefined })
+          }
           options={[
             { value: "", label: t("analytics.history.filters.allEventTypes") },
             ...selectedSources.flatMap((source) =>
               EVENT_TYPES_BY_SOURCE[source].map((eventType) => ({
                 value: eventType,
                 label: t(`analytics.history.eventTypes.${eventType}`),
-              }))
+              })),
             ),
           ]}
           placeholder={t("analytics.history.filters.allEventTypes")}

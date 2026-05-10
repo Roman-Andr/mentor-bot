@@ -81,7 +81,13 @@ export function toPayload(form: InvitationFormData) {
 }
 
 export function useInvitations() {
-  const entity = useEntity<InvitationItem, InvitationFormData, ReturnType<typeof toPayload>, ReturnType<typeof toPayload>, ExtendedState>({
+  const entity = useEntity<
+    InvitationItem,
+    InvitationFormData,
+    ReturnType<typeof toPayload>,
+    ReturnType<typeof toPayload>,
+    ExtendedState
+  >({
     entityName: "Приглашение",
     translationNamespace: "invitations",
     queryKeyPrefix: "invitations",
@@ -145,11 +151,10 @@ export function useInvitations() {
   // Stats derived from entity items (no duplicate API call)
   const stats = {
     total: entity.totalCount,
-    pending: entity.items.filter(i => i.status === "PENDING").length,
-    accepted: entity.items.filter(i => i.status === "ACCEPTED").length,
-    expired: entity.items.filter(i => i.status === "EXPIRED").length,
+    pending: entity.items.filter((i) => i.status === "PENDING").length,
+    accepted: entity.items.filter((i) => i.status === "ACCEPTED").length,
+    expired: entity.items.filter((i) => i.status === "EXPIRED").length,
   };
-
 
   const resetForm = () => {
     entity.resetForm();

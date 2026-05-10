@@ -92,7 +92,7 @@ export function DialogueMetadataForm({
               onChange={(e) => onKeywordsChange(e.target.value)}
               placeholder="key1, key2, key3"
             />
-            <p className="text-muted-foreground text-xs">{t("dialogues.keywordsHint")}</p>
+            <p className="text-xs text-muted-foreground">{t("dialogues.keywordsHint")}</p>
           </div>
           <div className="grid gap-2">
             <label className="text-sm font-medium">{t("dialogues.displayOrder")}</label>

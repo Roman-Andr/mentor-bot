@@ -4,14 +4,7 @@ import { useTranslations } from "@/shared/hooks/use-translations";
 import { Button } from "@/shared/ui/button";
 import { SearchInput } from "@/shared/ui/search-input";
 import { Select } from "@/shared/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/shared/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 import { DataTable } from "@/shared/ui/data-table";
 import { CardHeader, CardTitle, Card, CardContent } from "@/shared/ui/card";
 import { TableActions, buildEditAction, buildDeleteAction } from "@/shared/components";
@@ -68,7 +61,6 @@ export function DepartmentDocumentsTable({
     })),
   ];
 
-
   const getDepartmentName = (departmentId: number) => {
     return departments.find((d) => d.id === departmentId)?.name || "Неизвестно";
   };
@@ -81,19 +73,32 @@ export function DepartmentDocumentsTable({
     return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
   };
 
-  function DocumentCard({ document, onEdit, onDelete }: { document: DepartmentDocument; onEdit: (doc: DepartmentDocument) => void; onDelete: (id: number) => void }) {
+  function DocumentCard({
+    document,
+    onEdit,
+    onDelete,
+  }: {
+    document: DepartmentDocument;
+    onEdit: (doc: DepartmentDocument) => void;
+    onDelete: (id: number) => void;
+  }) {
     return (
-      <Card className="cursor-pointer transition-colors hover:bg-muted/50" onClick={() => onEdit(document)}>
+      <Card
+        className="cursor-pointer transition-colors hover:bg-muted/50"
+        onClick={() => onEdit(document)}
+      >
         <CardContent className="p-4">
           {/* Header: Title */}
           <div className="mb-3 flex items-start gap-3">
-            <div className="bg-primary/10 flex size-8 shrink-0 items-center justify-center rounded-lg">
-              <FileText className="text-primary size-4" />
+            <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+              <FileText className="size-4 text-primary" />
             </div>
             <div className="min-w-0 flex-1">
-              <h3 className="font-semibold truncate">{document.title}</h3>
+              <h3 className="truncate font-semibold">{document.title}</h3>
               {document.description && (
-                <p className="text-muted-foreground mt-1 line-clamp-2 text-xs">{document.description}</p>
+                <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+                  {document.description}
+                </p>
               )}
             </div>
           </div>
@@ -119,7 +124,10 @@ export function DepartmentDocumentsTable({
           </div>
 
           {/* Footer: Actions */}
-          <div className="flex items-center gap-2 border-t pt-3 flex-col sm:flex-row" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="flex flex-col items-center gap-2 border-t pt-3 sm:flex-row"
+            onClick={(e) => e.stopPropagation()}
+          >
             <DepartmentDocumentDownloadButton
               documentId={document.id}
               fileName={document.file_name}
@@ -139,39 +147,45 @@ export function DepartmentDocumentsTable({
   const mobileView = (
     <div className="space-y-3 p-4">
       {documents.map((document) => (
-        <DocumentCard
-          key={document.id}
-          document={document}
-          onEdit={onEdit}
-          onDelete={onDelete}
-        />
+        <DocumentCard key={document.id} document={document} onEdit={onEdit} onDelete={onDelete} />
       ))}
     </div>
   );
 
   return (
-    <DataTable loading={loading} empty={documents.length === 0} mobileView={mobileView} header={
-      <CardHeader>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <CardTitle>Документы департаментов</CardTitle>
-          <div className="flex flex-col gap-2 w-full sm:flex-row sm:items-center sm:flex-wrap">
-            <Select
-              options={departmentOptions}
-              value={departmentFilter?.toString() || "all"}
-              onChange={(value) => onDepartmentFilterChange(value === "all" ? undefined : parseInt(value, 10))}
-              className="w-full sm:w-auto"
-            />
-            <Select
-              options={categoryOptionsWithAll}
-              value={categoryFilter || "all"}
-              onChange={(value) => onCategoryFilterChange(value === "all" ? undefined : value)}
-              className="w-full sm:w-auto"
-            />
-            <SearchInput placeholder="Поиск по названию" value={searchQuery} onChange={onSearchChange} className="w-full sm:w-auto" />
+    <DataTable
+      loading={loading}
+      empty={documents.length === 0}
+      mobileView={mobileView}
+      header={
+        <CardHeader>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <CardTitle>Документы департаментов</CardTitle>
+            <div className="flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+              <Select
+                options={departmentOptions}
+                value={departmentFilter?.toString() || "all"}
+                onChange={(value) =>
+                  onDepartmentFilterChange(value === "all" ? undefined : parseInt(value, 10))
+                }
+                className="w-full sm:w-auto"
+              />
+              <Select
+                options={categoryOptionsWithAll}
+                value={categoryFilter || "all"}
+                onChange={(value) => onCategoryFilterChange(value === "all" ? undefined : value)}
+                className="w-full sm:w-auto"
+              />
+              <SearchInput
+                placeholder="Поиск по названию"
+                value={searchQuery}
+                onChange={onSearchChange}
+                className="w-full sm:w-auto"
+              />
+            </div>
           </div>
-        </div>
-      </CardHeader>
-    }
+        </CardHeader>
+      }
     >
       <Table>
         <TableHeader>
@@ -192,7 +206,9 @@ export function DepartmentDocumentsTable({
               <TableCell>
                 <span className="font-medium">{document.title}</span>
                 {document.description && (
-                  <p className="text-muted-foreground max-w-75 truncate text-sm">{document.description}</p>
+                  <p className="max-w-75 truncate text-sm text-muted-foreground">
+                    {document.description}
+                  </p>
                 )}
               </TableCell>
               <TableCell>{getCategoryLabel(document.category)}</TableCell>
@@ -207,9 +223,13 @@ export function DepartmentDocumentsTable({
               <TableCell>{new Date(document.created_at).toLocaleDateString()}</TableCell>
               <TableCell>
                 {document.is_public ? (
-                  <span className="rounded bg-green-100 px-2 py-1 text-xs text-green-800">Публичный</span>
+                  <span className="rounded bg-green-100 px-2 py-1 text-xs text-green-800">
+                    Публичный
+                  </span>
                 ) : (
-                  <span className="rounded bg-blue-100 px-2 py-1 text-xs text-blue-800">Только отдел</span>
+                  <span className="rounded bg-blue-100 px-2 py-1 text-xs text-blue-800">
+                    Только отдел
+                  </span>
                 )}
               </TableCell>
               <TableCell>

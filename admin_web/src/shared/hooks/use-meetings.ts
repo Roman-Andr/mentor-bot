@@ -93,7 +93,13 @@ export function toForm(meeting: MeetingItem): MeetingFormData {
 }
 
 export function useMeetings() {
-  const entity = useEntity<MeetingItem, MeetingFormData, ReturnType<typeof toPayload>, ReturnType<typeof toPayload>, Record<string, unknown>>({
+  const entity = useEntity<
+    MeetingItem,
+    MeetingFormData,
+    ReturnType<typeof toPayload>,
+    ReturnType<typeof toPayload>,
+    Record<string, unknown>
+  >({
     entityName: "Встреча",
     translationNamespace: "meetings",
     queryKeyPrefix: "meetings",

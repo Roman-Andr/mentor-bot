@@ -19,12 +19,12 @@ export function KnowledgeSummaryCards({ summary }: KnowledgeSummaryCardsProps) {
   const t = useTranslations();
 
   return (
-    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <Card>
         <CardContent className="pt-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-muted-foreground text-sm">{t("analytics.knowledge.totalViews")}</p>
+              <p className="text-sm text-muted-foreground">{t("analytics.knowledge.totalViews")}</p>
               <p className="text-2xl font-bold">{summary?.total_views || 0}</p>
             </div>
             <Eye className="size-8 text-blue-500" />
@@ -35,7 +35,9 @@ export function KnowledgeSummaryCards({ summary }: KnowledgeSummaryCardsProps) {
         <CardContent className="pt-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-muted-foreground text-sm">{t("analytics.knowledge.uniqueViewers")}</p>
+              <p className="text-sm text-muted-foreground">
+                {t("analytics.knowledge.uniqueViewers")}
+              </p>
               <p className="text-2xl font-bold">{summary?.unique_viewers || 0}</p>
             </div>
             <Users className="size-8 text-purple-500" />
@@ -46,7 +48,9 @@ export function KnowledgeSummaryCards({ summary }: KnowledgeSummaryCardsProps) {
         <CardContent className="pt-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-muted-foreground text-sm">{t("analytics.knowledge.totalArticles")}</p>
+              <p className="text-sm text-muted-foreground">
+                {t("analytics.knowledge.totalArticles")}
+              </p>
               <p className="text-2xl font-bold">{summary?.total_articles || 0}</p>
             </div>
             <FileText className="size-8 text-green-500" />
@@ -57,8 +61,12 @@ export function KnowledgeSummaryCards({ summary }: KnowledgeSummaryCardsProps) {
         <CardContent className="pt-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-muted-foreground text-sm">{t("analytics.knowledge.avgViewsPerArticle")}</p>
-              <p className="text-2xl font-bold">{summary?.avg_views_per_article.toFixed(1) || "0.0"}</p>
+              <p className="text-sm text-muted-foreground">
+                {t("analytics.knowledge.avgViewsPerArticle")}
+              </p>
+              <p className="text-2xl font-bold">
+                {summary?.avg_views_per_article.toFixed(1) || "0.0"}
+              </p>
             </div>
             <TrendingUp className="size-8 text-yellow-500" />
           </div>

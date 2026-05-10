@@ -33,9 +33,7 @@ export function EntityPageHeader<TItem>({
       <div className="flex items-center justify-between gap-4">
         <div>
           <CardTitle>{title}</CardTitle>
-          {description && (
-            <CardDescription className="mt-1">{description}</CardDescription>
-          )}
+          {description && <CardDescription className="mt-1">{description}</CardDescription>}
         </div>
         <div className="flex items-center gap-2">
           {showSearch && (

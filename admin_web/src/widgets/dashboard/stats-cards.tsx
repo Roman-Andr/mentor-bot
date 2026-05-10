@@ -20,11 +20,16 @@ interface StatsCardsProps {
 }
 
 const colorMap: Record<string, string> = {
-  "bg-blue-500": "from-blue-500/20 to-blue-600/10 border-blue-500/20 [&_.icon-bg]:bg-blue-500 [&_.icon-text]:text-blue-400",
-  "bg-yellow-500": "from-yellow-500/20 to-yellow-600/10 border-yellow-500/20 [&_.icon-bg]:bg-yellow-500 [&_.icon-text]:text-yellow-400",
-  "bg-green-500": "from-green-500/20 to-green-600/10 border-green-500/20 [&_.icon-bg]:bg-green-500 [&_.icon-text]:text-green-400",
-  "bg-red-500": "from-red-500/20 to-red-600/10 border-red-500/20 [&_.icon-bg]:bg-red-500 [&_.icon-text]:text-red-400",
-  "bg-purple-500": "from-purple-500/20 to-purple-600/10 border-purple-500/20 [&_.icon-bg]:bg-purple-500 [&_.icon-text]:text-purple-400",
+  "bg-blue-500":
+    "from-blue-500/20 to-blue-600/10 border-blue-500/20 [&_.icon-bg]:bg-blue-500 [&_.icon-text]:text-blue-400",
+  "bg-yellow-500":
+    "from-yellow-500/20 to-yellow-600/10 border-yellow-500/20 [&_.icon-bg]:bg-yellow-500 [&_.icon-text]:text-yellow-400",
+  "bg-green-500":
+    "from-green-500/20 to-green-600/10 border-green-500/20 [&_.icon-bg]:bg-green-500 [&_.icon-text]:text-green-400",
+  "bg-red-500":
+    "from-red-500/20 to-red-600/10 border-red-500/20 [&_.icon-bg]:bg-red-500 [&_.icon-text]:text-red-400",
+  "bg-purple-500":
+    "from-purple-500/20 to-purple-600/10 border-purple-500/20 [&_.icon-bg]:bg-purple-500 [&_.icon-text]:text-purple-400",
 };
 
 export function StatsCards({ statsData }: StatsCardsProps) {
@@ -36,7 +41,7 @@ export function StatsCards({ statsData }: StatsCardsProps) {
         const card = (
           <Card
             className={cn(
-              "relative overflow-hidden border bg-gradient-to-br transition-shadow hover:shadow-md group",
+              "group relative overflow-hidden border bg-gradient-to-br transition-shadow hover:shadow-md",
               stat.href && "cursor-pointer",
               colorClass,
             )}
@@ -44,10 +49,10 @@ export function StatsCards({ statsData }: StatsCardsProps) {
             <CardContent className="p-6">
               <div className="flex items-start justify-between">
                 <div className="min-w-0 flex-1">
-                  <p className="text-muted-foreground truncate text-sm font-medium">{stat.title}</p>
+                  <p className="truncate text-sm font-medium text-muted-foreground">{stat.title}</p>
                   <p className="mt-1 text-3xl font-bold tracking-tight">{stat.value}</p>
                   {stat.description && (
-                    <p className="text-muted-foreground mt-0.5 text-xs">{stat.description}</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">{stat.description}</p>
                   )}
                 </div>
                 <div className="icon-bg ml-3 shrink-0 rounded-xl p-2.5">
@@ -64,7 +69,7 @@ export function StatsCards({ statsData }: StatsCardsProps) {
                     <TrendingDown className="size-3.5 text-red-500" />
                   )}
                   {stat.changeType === "neutral" && (
-                    <Minus className="text-muted-foreground size-3.5" />
+                    <Minus className="size-3.5 text-muted-foreground" />
                   )}
                   <span
                     className={cn(

@@ -29,7 +29,7 @@ export function HistoryTable({ events, onRowClick }: HistoryTableProps) {
   }
 
   return (
-    <div className="border rounded-md">
+    <div className="rounded-md border">
       <Table>
         <TableHeader>
           <TableRow>

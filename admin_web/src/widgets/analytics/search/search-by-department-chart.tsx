@@ -2,7 +2,16 @@
 
 import { useTranslations } from "@/shared/hooks/use-translations";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, type TooltipProps } from "recharts";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+  type TooltipProps,
+} from "recharts";
 import type { DepartmentSearchStats } from "@/shared/types";
 
 interface SearchByDepartmentChartProps {
@@ -22,13 +31,24 @@ const DEPARTMENT_COLORS = [
   "#D97706", // orange
 ];
 
-const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ payload: DepartmentSearchStats; name: string; value: number }> }) => {
+const CustomTooltip = ({
+  active,
+  payload,
+}: {
+  active?: boolean;
+  payload?: Array<{ payload: DepartmentSearchStats; name: string; value: number }>;
+}) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload as DepartmentSearchStats;
     return (
-      <div className="rounded-lg border border-gray-200 bg-white/95 px-3 py-2 text-sm font-medium text-gray-900 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100" style={{ pointerEvents: "none" }}>
+      <div
+        className="rounded-lg border border-gray-200 bg-white/95 px-3 py-2 text-sm font-medium text-gray-900 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+        style={{ pointerEvents: "none" }}
+      >
         <div>{data.department_name}</div>
-        <div>{payload[0].name}: {payload[0].value}</div>
+        <div>
+          {payload[0].name}: {payload[0].value}
+        </div>
       </div>
     );
   }
@@ -56,12 +76,7 @@ export function SearchByDepartmentChart({ data }: SearchByDepartmentChartProps) 
             margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
           >
             <XAxis type="number" />
-            <YAxis
-              type="category"
-              dataKey="department_name"
-              width={150}
-              tick={{ fontSize: 12 }}
-            />
+            <YAxis type="category" dataKey="department_name" width={150} tick={{ fontSize: 12 }} />
             <Tooltip content={<CustomTooltip />} wrapperStyle={{ transition: "none" }} />
             <Legend />
             <Bar dataKey="search_count" name={t("analytics.search.searchCount")} fill="#3B82F6" />

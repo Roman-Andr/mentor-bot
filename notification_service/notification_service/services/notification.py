@@ -322,6 +322,7 @@ class NotificationService:
         scheduled_time: datetime,
         notification_type: NotificationType = NotificationType.GENERAL,
         language: str = "en",
+        data: dict[str, Any] | None = None,
     ) -> ScheduledNotification:
         """
         Schedule a template-based notification for future sending.
@@ -336,6 +337,7 @@ class NotificationService:
             scheduled_time: When to send the notification
             notification_type: Type of notification
             language: Language code for template selection
+            data: Additional metadata to store on the scheduled notification
 
         Returns:
             The created ScheduledNotification
@@ -378,7 +380,7 @@ class NotificationService:
             channel=channel,
             subject=rendered.subject,
             body=rendered.body,
-            data={"template_name": template_name, "variables": variables},
+            data={"template_name": template_name, "variables": variables, **(data or {})},
             scheduled_time=scheduled_time,
             processed=False,
         )
@@ -387,6 +389,28 @@ class NotificationService:
         await self._uow.commit()
         logger.info("Template notification scheduled (scheduled_id={}, template_name={})", saved.id, template_name)
         return saved
+
+    async def cancel_scheduled(
+        self,
+        *,
+        user_id: int,
+        notification_type: NotificationType,
+        data_match: dict[str, Any],
+    ) -> int:
+        """Cancel pending scheduled notifications matching the given metadata."""
+        cancelled = await self._uow.scheduled_notifications.cancel_pending(
+            user_id=user_id,
+            notification_type=notification_type,
+            data_match=data_match,
+        )
+        await self._uow.commit()
+        logger.info(
+            "Cancelled scheduled notifications (user_id={}, type={}, count={})",
+            user_id,
+            notification_type,
+            cancelled,
+        )
+        return cancelled
 
     async def _send_to_channel(self, notification: Notification) -> tuple[bool, str | None]:
         """Send notification to the appropriate channel."""

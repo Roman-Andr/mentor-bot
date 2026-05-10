@@ -22,16 +22,19 @@ export function useSorting(initialField: string | null = null): UseSortingReturn
   const [sortField, setSortField] = useState<string | null>(initialField);
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
 
-  const toggleSort = useCallback((field: string) => {
-    if (sortField === field) {
-      // Same column: toggle direction
-      setSortDirection((currentDir) => (currentDir === "asc" ? "desc" : "asc"));
-    } else {
-      // Different column: reset to asc
-      setSortField(field);
-      setSortDirection("asc");
-    }
-  }, [sortField]);
+  const toggleSort = useCallback(
+    (field: string) => {
+      if (sortField === field) {
+        // Same column: toggle direction
+        setSortDirection((currentDir) => (currentDir === "asc" ? "desc" : "asc"));
+      } else {
+        // Different column: reset to asc
+        setSortField(field);
+        setSortDirection("asc");
+      }
+    },
+    [sortField],
+  );
 
   const setSort = useCallback((field: string, direction: SortDirection) => {
     setSortField(field);

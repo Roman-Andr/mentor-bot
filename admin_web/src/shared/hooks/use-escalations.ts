@@ -48,7 +48,13 @@ export function toPayload(): Record<string, never> {
 }
 
 export function useEscalations() {
-  const entity = useEntity<EscalationItem, EscalationFormData, ReturnType<typeof toPayload>, ReturnType<typeof toPayload>, Record<string, unknown>>({
+  const entity = useEntity<
+    EscalationItem,
+    EscalationFormData,
+    ReturnType<typeof toPayload>,
+    ReturnType<typeof toPayload>,
+    Record<string, unknown>
+  >({
     entityName: "Запрос",
     translationNamespace: "escalations",
     queryKeyPrefix: "escalations",

@@ -19,8 +19,8 @@ export function SearchInput({
   const placeholderText = placeholder ?? t("common.searchPlaceholder");
 
   return (
-    <div className={`relative min-w-64 flex-1 ${className || ""}`}>
-      <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+    <div className={`relative w-full flex-1 sm:min-w-64 ${className || ""}`}>
+      <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
       <Input
         placeholder={placeholderText}
         className="pl-10"

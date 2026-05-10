@@ -14,7 +14,7 @@ export function OnboardingProgress({ progress, href }: OnboardingProgressProps) 
   const t = useTranslations();
 
   const card = (
-    <Card className="col-span-1 md:col-span-2 lg:col-span-4 transition-shadow hover:shadow-md">
+    <Card className="col-span-1 transition-shadow hover:shadow-md md:col-span-2 lg:col-span-4">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle>{t("dashboard.onboardingProgress")}</CardTitle>
         {href && (
@@ -34,9 +34,9 @@ export function OnboardingProgress({ progress, href }: OnboardingProgressProps) 
                 <div className="min-w-0 flex-1">
                   <div className="mb-1 flex items-center justify-between">
                     <p className="truncate text-sm font-medium">{item.user_name}</p>
-                    <p className="text-muted-foreground text-xs">{item.completion_percentage}%</p>
+                    <p className="text-xs text-muted-foreground">{item.completion_percentage}%</p>
                   </div>
-                  <div className="bg-muted h-2 w-full rounded-full">
+                  <div className="h-2 w-full rounded-full bg-muted">
                     <div
                       className={`h-2 rounded-full ${
                         item.completion_percentage >= 80
@@ -49,17 +49,17 @@ export function OnboardingProgress({ progress, href }: OnboardingProgressProps) 
                     />
                   </div>
                 </div>
-                 <span className="text-muted-foreground shrink-0 text-xs">
-                   {item.status === "COMPLETED"
-                     ? t("common.completed")
-                     : item.days_remaining > 0
-                       ? `${item.days_remaining} ${t("dashboard.daysRemaining")}`
-                       : `${Math.abs(item.days_remaining)} ${t("dashboard.daysOverdue")}`}
-                 </span>
+                <span className="shrink-0 text-xs text-muted-foreground">
+                  {item.status === "COMPLETED"
+                    ? t("common.completed")
+                    : item.days_remaining > 0
+                      ? `${item.days_remaining} ${t("dashboard.daysRemaining")}`
+                      : `${Math.abs(item.days_remaining)} ${t("dashboard.daysOverdue")}`}
+                </span>
               </div>
             ))
           ) : (
-            <p className="text-muted-foreground py-4 text-center text-sm">{t("common.noData")}</p>
+            <p className="py-4 text-center text-sm text-muted-foreground">{t("common.noData")}</p>
           )}
         </div>
       </CardContent>

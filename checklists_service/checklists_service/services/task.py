@@ -1,6 +1,6 @@
 """Task management service with repository pattern."""
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from loguru import logger
@@ -15,9 +15,141 @@ from checklists_service.schemas import TaskBulkUpdate, TaskProgress, TaskUpdate
 class TaskService:
     """Service for task management operations with repository pattern."""
 
-    def __init__(self, uow: IUnitOfWork) -> None:
+    def __init__(
+        self,
+        uow: IUnitOfWork,
+        auth_token: str | None = None,
+        *,
+        notifications_enabled: bool = False,
+    ) -> None:
         """Initialize task service with Unit of Work."""
         self._uow = uow
+        self.auth_token = auth_token
+        self._notifications_enabled = notifications_enabled
+
+    @staticmethod
+    def _user_name(user_data: dict[str, Any] | None) -> str:
+        """Build a display name for notification templates."""
+        if not user_data:
+            return "there"
+        name = f"{user_data.get('first_name', '')} {user_data.get('last_name', '')}".strip()
+        return name or user_data.get("email") or "there"
+
+    @staticmethod
+    def _user_language(user_data: dict[str, Any] | None) -> str:
+        """Get user language for notification templates."""
+        return str((user_data or {}).get("language") or "en")
+
+    async def _get_user_data(self, user_id: int) -> dict[str, Any] | None:
+        """Fetch user details for notification recipients."""
+        if not self.auth_token:
+            logger.warning("Task reminder user lookup skipped: no auth token (user_id={})", user_id)
+            return None
+        from checklists_service.utils import auth_service_client
+
+        return await auth_service_client.get_user(user_id, self.auth_token)
+
+    async def cancel_task_reminders(self, task: Task, user_id: int | None = None) -> None:
+        """Cancel pending task reminders for a task."""
+        if not self._notifications_enabled:
+            return
+        if user_id is None:
+            checklist = await self._uow.checklists.get_by_id(task.checklist_id)
+            user_id = task.assignee_id or getattr(checklist, "user_id", None)
+        if user_id is None:
+            logger.info("Task reminder cancellation skipped: no recipient (task_id={})", task.id)
+            return
+        try:
+            from checklists_service.utils import notification_service_client
+
+            await notification_service_client.cancel_scheduled_notifications(
+                user_id=user_id,
+                notification_type="TASK_REMINDER",
+                data_match={
+                    "source_service": "checklists_service",
+                    "task_id": task.id,
+                },
+            )
+        except Exception:
+            logger.exception("Failed to cancel task reminders (task_id={})", task.id)
+
+    async def schedule_task_reminder(
+        self,
+        task: Task,
+        checklist: Any | None = None,
+        user_data: dict[str, Any] | None = None,
+    ) -> None:
+        """Schedule task reminder 24 hours before the task due date."""
+        if not self._notifications_enabled:
+            return
+        recipient_id = task.assignee_id or getattr(checklist, "user_id", None)
+        if not recipient_id:
+            if checklist is None:
+                checklist = await self._uow.checklists.get_by_id(task.checklist_id)
+                recipient_id = task.assignee_id or getattr(checklist, "user_id", None)
+            if not recipient_id:
+                logger.info("Task reminder skipped: no recipient (task_id={})", task.id)
+                return
+
+        await self.cancel_task_reminders(task, user_id=recipient_id)
+
+        if task.status in (TaskStatus.COMPLETED, TaskStatus.CANCELLED):
+            return
+
+        due_date = task.due_date
+        if due_date.tzinfo is None:
+            due_date = due_date.replace(tzinfo=UTC)
+        reminder_time = due_date - timedelta(hours=24)
+        if reminder_time <= datetime.now(UTC):
+            return
+
+        if user_data is None:
+            user_data = await self._get_user_data(recipient_id)
+
+        telegram_id = (user_data or {}).get("telegram_id")
+        email = (user_data or {}).get("email")
+        if not telegram_id and not email:
+            logger.info("Task reminder skipped: no recipient contacts (task_id={}, user_id={})", task.id, recipient_id)
+            return
+
+        from checklists_service.utils import notification_service_client
+
+        variables = {
+            "user_name": self._user_name(user_data),
+            "task_title": task.title,
+            "due_date": due_date.isoformat(),
+        }
+        base_data = {
+            "source_service": "checklists_service",
+            "task_id": task.id,
+            "checklist_id": task.checklist_id,
+        }
+        language = self._user_language(user_data)
+
+        if telegram_id:
+            await notification_service_client.schedule_template_notification(
+                template_name="task_reminder",
+                user_id=recipient_id,
+                variables=variables,
+                channel="TELEGRAM",
+                scheduled_time=reminder_time.isoformat(),
+                notification_type="TASK_REMINDER",
+                recipient_telegram_id=int(telegram_id),
+                language=language,
+                data={**base_data, "channel": "telegram"},
+            )
+        if email:
+            await notification_service_client.schedule_template_notification(
+                template_name="task_reminder",
+                user_id=recipient_id,
+                variables=variables,
+                channel="EMAIL",
+                scheduled_time=reminder_time.isoformat(),
+                notification_type="TASK_REMINDER",
+                recipient_email=str(email),
+                language=language,
+                data={**base_data, "channel": "email"},
+            )
 
     async def get_task(self, task_id: int) -> Task:
         """Get task by ID."""
@@ -65,6 +197,8 @@ class TaskService:
         """Update task."""
         logger.debug("Updating task (task_id={})", task_id)
         task = await self.get_task(task_id)
+        checklist = await self._uow.checklists.get_by_id(task.checklist_id)
+        old_recipient_id = task.assignee_id or getattr(checklist, "user_id", None)
 
         if update_data.status and not self._is_valid_status_transition(task.status, update_data.status):
             logger.warning(
@@ -91,7 +225,8 @@ class TaskService:
                 msg = f"Cannot complete task. Dependencies not completed: {', '.join(dep_titles)}"
                 raise ValidationException(msg)
 
-        for field, value in update_data.model_dump(exclude_unset=True).items():
+        update_fields = update_data.model_dump(exclude_unset=True)
+        for field, value in update_fields.items():
             setattr(task, field, value)
 
         if update_data.status == TaskStatus.IN_PROGRESS and not task.started_at:
@@ -101,6 +236,15 @@ class TaskService:
         task = await self._uow.tasks.update(task)
 
         await self._uow.checklists.recalculate_progress(task.checklist_id)
+
+        if update_data.status in (TaskStatus.COMPLETED, TaskStatus.CANCELLED):
+            await self.cancel_task_reminders(task, user_id=old_recipient_id)
+        elif "due_date" in update_fields or "assignee_id" in update_fields:
+            if "assignee_id" in update_fields and old_recipient_id != (
+                task.assignee_id or getattr(checklist, "user_id", None)
+            ):
+                await self.cancel_task_reminders(task, user_id=old_recipient_id)
+            await self.schedule_task_reminder(task, checklist)
 
         logger.info("Task updated (task_id={}, status={})", task.id, task.status)
         return task
@@ -145,6 +289,9 @@ class TaskService:
 
         await self._uow.checklists.recalculate_progress(task.checklist_id)
 
+        if progress_data.status in (TaskStatus.COMPLETED, TaskStatus.CANCELLED):
+            await self.cancel_task_reminders(task)
+
         logger.info("Task progress updated (task_id={}, status={})", task.id, task.status)
         return task
 
@@ -182,6 +329,7 @@ class TaskService:
         task = await self._uow.tasks.update(task)
 
         await self._uow.commit()
+        await self.cancel_task_reminders(task)
 
         await self._uow.checklists.recalculate_progress(task.checklist_id)
 
@@ -213,11 +361,21 @@ class TaskService:
             raise ValidationException(msg)
 
         for task in tasks:
+            checklist = await self._uow.checklists.get_by_id(task.checklist_id)
+            old_recipient_id = task.assignee_id or getattr(checklist, "user_id", None)
             update_data = bulk_data.model_dump(exclude_unset=True, exclude={"task_ids"})
             for field, value in update_data.items():
                 setattr(task, field, value)
             task.updated_at = datetime.now(UTC)
             await self._uow.tasks.update(task)
+            if bulk_data.status in (TaskStatus.COMPLETED, TaskStatus.CANCELLED):
+                await self.cancel_task_reminders(task, user_id=old_recipient_id)
+            elif bulk_data.due_date is not None or bulk_data.assignee_id is not None:
+                if bulk_data.assignee_id is not None and old_recipient_id != (
+                    task.assignee_id or getattr(checklist, "user_id", None)
+                ):
+                    await self.cancel_task_reminders(task, user_id=old_recipient_id)
+                await self.schedule_task_reminder(task, checklist)
 
         checklist_ids = {task.checklist_id for task in tasks}
         for checklist_id in checklist_ids:

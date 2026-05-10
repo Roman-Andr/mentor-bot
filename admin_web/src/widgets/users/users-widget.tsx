@@ -80,9 +80,15 @@ export function UsersWidget() {
       actions={
         <Button className="gap-2" onClick={handleAddClick}>
           {activeTab === "users" ? (
-            <><UserPlus className="size-4" />{t("users.addUser")}</>
+            <>
+              <UserPlus className="size-4" />
+              {t("users.addUser")}
+            </>
           ) : (
-            <><Building2 className="size-4" />{t("common.create")}</>
+            <>
+              <Building2 className="size-4" />
+              {t("common.create")}
+            </>
           )}
         </Button>
       }
@@ -129,7 +135,9 @@ export function UsersWidget() {
             assignMentorDialogOpen={u.assignMentorDialogOpen}
             setAssignMentorDialogOpen={u.setAssignMentorDialogOpen}
             selectedUserForMentor={u.selectedUserForMentor}
-            handleAssignMentor={(mentorId: number) => u.handleAssignMentor(u.selectedUserForMentor?.id || 0, mentorId)}
+            handleAssignMentor={(mentorId: number) =>
+              u.handleAssignMentor(u.selectedUserForMentor?.id || 0, mentorId)
+            }
             handleUnassignMentor={() => u.handleUnassignMentor(u.currentMentor?.id || 0)}
             currentMentor={u.currentMentor}
           />

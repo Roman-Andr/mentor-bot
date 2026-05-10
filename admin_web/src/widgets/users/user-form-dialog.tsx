@@ -62,7 +62,7 @@ export function UserFormDialog({
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="grid gap-2">
               <Label htmlFor="firstName">{t("users.firstName")} *</Label>
               <Input
@@ -122,7 +122,7 @@ export function UserFormDialog({
               />
             </div>
           )}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="grid gap-2">
               <Label htmlFor="department">{t("common.department")}</Label>
               <Select
@@ -143,48 +143,50 @@ export function UserFormDialog({
               />
             </div>
           </div>
-           <div className="grid grid-cols-2 gap-4">
-             <div className="grid gap-2">
-               <Label htmlFor="role">{t("common.role")}</Label>
-               <Select
-                 id="role"
-                 value={formData.role}
-                 onChange={updateField.bind(null, "role")}
-                 options={ROLES}
-                 placeholder={t("users.selectRole")}
-               />
-             </div>
-             <div className="grid gap-2">
-               <Label htmlFor="level">{t("users.level")}</Label>
-               <Select
-                 id="level"
-                 value={formData.level || ""}
-                 onChange={(val) => updateField("level", val)}
-                 options={LEVELS_WITH_EMPTY}
-                 placeholder={t("users.selectLevel")}
-               />
-             </div>
-           </div>
-           <div className="grid gap-2">
-             <Label htmlFor="telegramId">{t("users.telegramId")}</Label>
-             <Input
-               id="telegramId"
-               type="number"
-               placeholder="123456789"
-               value={formData.telegram_id || ""}
-               onChange={(e) => updateField("telegram_id", e.target.value ? parseInt(e.target.value) : null)}
-             />
-           </div>
-           <div className="flex items-center gap-2">
-             <input
-               type="checkbox"
-               id="isActive"
-               checked={formData.is_active}
-               onChange={(e) => updateField("is_active", e.target.checked)}
-               className="border-input rounded"
-             />
-             <Label htmlFor="isActive">{t("users.isActive")}</Label>
-           </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="grid gap-2">
+              <Label htmlFor="role">{t("common.role")}</Label>
+              <Select
+                id="role"
+                value={formData.role}
+                onChange={updateField.bind(null, "role")}
+                options={ROLES}
+                placeholder={t("users.selectRole")}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="level">{t("users.level")}</Label>
+              <Select
+                id="level"
+                value={formData.level || ""}
+                onChange={(val) => updateField("level", val)}
+                options={LEVELS_WITH_EMPTY}
+                placeholder={t("users.selectLevel")}
+              />
+            </div>
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="telegramId">{t("users.telegramId")}</Label>
+            <Input
+              id="telegramId"
+              type="number"
+              placeholder="123456789"
+              value={formData.telegram_id || ""}
+              onChange={(e) =>
+                updateField("telegram_id", e.target.value ? parseInt(e.target.value) : null)
+              }
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="isActive"
+              checked={formData.is_active}
+              onChange={(e) => updateField("is_active", e.target.checked)}
+              className="rounded border-input"
+            />
+            <Label htmlFor="isActive">{t("users.isActive")}</Label>
+          </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onCancel}>

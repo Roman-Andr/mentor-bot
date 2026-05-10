@@ -99,7 +99,9 @@ export function TemplateFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{isCreate ? t("templates.createTemplate") : t("templates.editTemplateTitle")}</DialogTitle>
+          <DialogTitle>
+            {isCreate ? t("templates.createTemplate") : t("templates.editTemplateTitle")}
+          </DialogTitle>
           <DialogDescription>
             {isCreate ? t("templates.createNewTemplate") : t("templates.changeTemplate")}
           </DialogDescription>
@@ -121,7 +123,7 @@ export function TemplateFormDialog({
               onChange={(e) => onFormDataChange({ ...formData, description: e.target.value })}
             />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="grid gap-2">
               <label className="text-sm font-medium">{t("common.department")}</label>
               <Select
@@ -142,7 +144,7 @@ export function TemplateFormDialog({
               />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="grid gap-2">
               <label className="text-sm font-medium">{t("templates.durationDays")}</label>
               <Input
@@ -172,7 +174,7 @@ export function TemplateFormDialog({
               id={isCreate ? "isDefault" : "isDefaultEdit"}
               checked={formData.is_default}
               onChange={(e) => onFormDataChange({ ...formData, is_default: e.target.checked })}
-              className="border-input rounded"
+              className="rounded border-input"
             />
             <label htmlFor={isCreate ? "isDefault" : "isDefaultEdit"} className="text-sm">
               {t("templates.default")}
@@ -183,8 +185,8 @@ export function TemplateFormDialog({
             <h3 className="mb-3 font-medium">{t("templates.templateTasks")}</h3>
             <div className="mb-4 grid gap-3">
               {tasks.map((task, index) => (
-                <div key={index} className="bg-muted flex items-start gap-2 rounded-lg p-3">
-                  <GripVertical className="text-muted-foreground mt-1 size-4" />
+                <div key={index} className="flex items-start gap-2 rounded-lg bg-muted p-3">
+                  <GripVertical className="mt-1 size-4 text-muted-foreground" />
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
                       <p className="text-sm font-medium">{task.title}</p>
@@ -197,18 +199,19 @@ export function TemplateFormDialog({
                         <Trash2 className="size-3" />
                       </Button>
                     </div>
-                    <p className="text-muted-foreground text-xs">{task.description}</p>
+                    <p className="text-xs text-muted-foreground">{task.description}</p>
                     <div className="mt-1 flex gap-2">
                       <Badge variant="secondary" className="text-xs">
-                        {categoryOptions.find((c) => c.value === task.category)?.label || task.category}
+                        {categoryOptions.find((c) => c.value === task.category)?.label ||
+                          task.category}
                       </Badge>
-                      <span className="text-muted-foreground text-xs">{task.due_days} d.</span>
+                      <span className="text-xs text-muted-foreground">{task.due_days} d.</span>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
-            <div className="grid gap-2 grid-cols-2 sm:grid-cols-4">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               <Input
                 placeholder={t("templates.taskName")}
                 value={newTask.name}
@@ -220,7 +223,7 @@ export function TemplateFormDialog({
                 onChange={(val) => setNewTask({ ...newTask, category: val })}
                 options={categoryOptions}
               />
-              <div className="flex gap-1 col-span-2 sm:col-span-1">
+              <div className="col-span-2 flex gap-1 sm:col-span-1">
                 <Input
                   type="number"
                   min={1}

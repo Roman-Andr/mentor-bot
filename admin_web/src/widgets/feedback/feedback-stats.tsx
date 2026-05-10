@@ -14,9 +14,24 @@ interface FeedbackStatCardProps {
   badge?: string;
 }
 
-function FeedbackStatCard({ title, value, subtitle, icon: Icon, iconClass, gradientFrom, gradientTo, badge }: FeedbackStatCardProps) {
+function FeedbackStatCard({
+  title,
+  value,
+  subtitle,
+  icon: Icon,
+  iconClass,
+  gradientFrom,
+  gradientTo,
+  badge,
+}: FeedbackStatCardProps) {
   return (
-    <div className={cn("relative overflow-hidden rounded-xl border bg-gradient-to-br p-6", gradientFrom, gradientTo)}>
+    <div
+      className={cn(
+        "relative overflow-hidden rounded-xl border bg-gradient-to-br p-6",
+        gradientFrom,
+        gradientTo,
+      )}
+    >
       <div className="flex items-start justify-between">
         <div>
           <p className="text-sm font-medium opacity-80">{title}</p>

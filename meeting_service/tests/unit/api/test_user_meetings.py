@@ -22,6 +22,9 @@ def mock_user_hr():
         def __init__(self) -> None:
             self.id = 1
             self.email = "hr@example.com"
+            self.first_name = "HR"
+            self.last_name = "User"
+            self.telegram_id = None
             self.role = "HR"
             self.is_active = True
 
@@ -44,6 +47,9 @@ class MockUser:
         """
         self.id = user_id
         self.email = f"user{user_id}@example.com"
+        self.first_name = "Test"
+        self.last_name = "User"
+        self.telegram_id = None
         self.role = "EMPLOYEE"
         self.is_active = True
 
@@ -342,6 +348,49 @@ class TestAssignMeeting:
         assert response.status_code == status.HTTP_403_FORBIDDEN
         assert "only assign meetings to yourself" in response.json()["detail"]
 
+    async def test_assign_self_without_auth_token(self, mock_uow, mock_user_employee):
+        """Test self-assignment uses current user data without auth service call."""
+        # Arrange
+        user = mock_user_employee(100)
+        now = datetime.now(UTC)
+        meeting = Meeting(
+            id=1,
+            title="Test Meeting",
+            type=MeetingType.HR,
+            is_mandatory=True,
+            order=0,
+            deadline_days=7,
+            duration_minutes=60,
+            created_at=now,
+        )
+        mock_uow.meetings.get_by_id.return_value = meeting
+        mock_uow.user_meetings.get_user_meeting.return_value = None
+
+        assignment = UserMeeting(
+            id=1,
+            user_id=100,
+            meeting_id=1,
+            status=MeetingStatus.SCHEDULED,
+            created_at=now,
+        )
+        mock_uow.user_meetings.create.return_value = assignment
+
+        app = create_test_app(mock_uow, user)
+        # Override auth token to None
+        app.dependency_overrides[deps.get_auth_token] = lambda: None
+        client = TestClient(app)
+
+        assignment_data = {
+            "user_id": 100,
+            "meeting_id": 1,
+        }
+
+        # Act
+        response = client.post("/api/v1/user-meetings/assign", json=assignment_data)
+
+        # Assert
+        assert response.status_code == status.HTTP_200_OK
+
 
 class TestGetAssignment:
     """Tests for GET /api/v1/user-meetings/{assignment_id} endpoint."""
@@ -566,6 +615,39 @@ class TestUpdateAssignment:
 
         # Assert
         assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    async def test_update_assignment_other_user_no_auth_token(self, mock_uow, mock_user_hr):
+        """Test updating another user's assignment without auth token returns None user_data."""
+        # Arrange
+        now = datetime.now(UTC)
+        assignment = UserMeeting(
+            id=1,
+            user_id=200,  # HR user id=1, assignment user_id=200
+            meeting_id=1,
+            status=MeetingStatus.SCHEDULED,
+            created_at=now,
+        )
+        mock_uow.user_meetings.get_by_id.return_value = assignment
+        updated = UserMeeting(
+            id=1,
+            user_id=200,
+            meeting_id=1,
+            status=MeetingStatus.COMPLETED,
+            created_at=now,
+        )
+        mock_uow.user_meetings.update.return_value = updated
+
+        app = create_test_app(mock_uow, mock_user_hr)
+        app.dependency_overrides[deps.get_auth_token] = lambda: None
+        client = TestClient(app)
+
+        update_data = {"status": "COMPLETED"}
+
+        # Act
+        response = client.patch("/api/v1/user-meetings/1", json=update_data)
+
+        # Assert - should succeed even without auth token (user_data will be None)
+        assert response.status_code == status.HTTP_200_OK
 
 
 class TestCompleteMeeting:

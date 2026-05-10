@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, DateTime, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
 
@@ -15,9 +15,7 @@ class DepartmentDocument(Base):
     __tablename__ = "department_documents"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    department_id: Mapped[int] = mapped_column(
-        ForeignKey("departments.id", ondelete="CASCADE"), nullable=False, index=True
-    )
+    department_id: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
 
     # Document metadata
     title: Mapped[str] = mapped_column(String(500), nullable=False)

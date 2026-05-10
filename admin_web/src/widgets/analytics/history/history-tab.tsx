@@ -11,7 +11,10 @@ import { HistoryDetailDrawer } from "./history-detail-drawer";
 import { HistoryEmpty } from "./history-empty";
 import { Pagination } from "@/shared/ui/pagination";
 import { Select } from "@/shared/ui/select";
-import type { HistoryFilters as HistoryFiltersType, NormalizedAuditEvent } from "@/shared/types/audit";
+import type {
+  HistoryFilters as HistoryFiltersType,
+  NormalizedAuditEvent,
+} from "@/shared/types/audit";
 import { subDays } from "date-fns";
 import { useSearchParams, useRouter } from "next/navigation";
 
@@ -64,41 +67,50 @@ export function HistoryTab({ onExportCSV, onExportPDF }: HistoryTabProps) {
     staleTime: 30_000,
   });
 
-  const handleFiltersChange = useCallback((newFilters: HistoryFiltersType) => {
-    setFilters(newFilters);
-    setPage(1); // Reset to first page when filters change
+  const handleFiltersChange = useCallback(
+    (newFilters: HistoryFiltersType) => {
+      setFilters(newFilters);
+      setPage(1); // Reset to first page when filters change
 
-    // Update URL
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("from_date", newFilters.from_date || "");
-    params.set("to_date", newFilters.to_date || "");
-    params.delete("page");
-    router.push(`?${params.toString()}`, { scroll: false });
-  }, [searchParams, router]);
-
-  const handlePageChange = useCallback((newPage: number) => {
-    setPage(newPage);
-
-    // Update URL
-    const params = new URLSearchParams(searchParams.toString());
-    if (newPage === 1) {
+      // Update URL
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("from_date", newFilters.from_date || "");
+      params.set("to_date", newFilters.to_date || "");
       params.delete("page");
-    } else {
-      params.set("page", newPage.toString());
-    }
-    router.push(`?${params.toString()}`, { scroll: false });
-  }, [searchParams, router]);
+      router.push(`?${params.toString()}`, { scroll: false });
+    },
+    [searchParams, router],
+  );
 
-  const handlePageSizeChange = useCallback((newPageSize: number) => {
-    setPageSize(newPageSize);
-    setPage(1);
+  const handlePageChange = useCallback(
+    (newPage: number) => {
+      setPage(newPage);
 
-    // Update URL
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("page_size", newPageSize.toString());
-    params.delete("page");
-    router.push(`?${params.toString()}`, { scroll: false });
-  }, [searchParams, router]);
+      // Update URL
+      const params = new URLSearchParams(searchParams.toString());
+      if (newPage === 1) {
+        params.delete("page");
+      } else {
+        params.set("page", newPage.toString());
+      }
+      router.push(`?${params.toString()}`, { scroll: false });
+    },
+    [searchParams, router],
+  );
+
+  const handlePageSizeChange = useCallback(
+    (newPageSize: number) => {
+      setPageSize(newPageSize);
+      setPage(1);
+
+      // Update URL
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("page_size", newPageSize.toString());
+      params.delete("page");
+      router.push(`?${params.toString()}`, { scroll: false });
+    },
+    [searchParams, router],
+  );
 
   const handleRowClick = (event: NormalizedAuditEvent) => {
     setSelectedEvent(event);
@@ -118,9 +130,9 @@ export function HistoryTab({ onExportCSV, onExportPDF }: HistoryTabProps) {
       <HistoryFilters filters={filters} onChange={handleFiltersChange} />
 
       {isLoading ? (
-        <div className="text-center py-12 text-muted-foreground">Loading...</div>
+        <div className="py-12 text-center text-muted-foreground">Loading...</div>
       ) : error ? (
-        <div className="text-center py-12 text-destructive">
+        <div className="py-12 text-center text-destructive">
           Error loading audit events. Please try again.
         </div>
       ) : !auditData || auditData.items.length === 0 ? (
@@ -128,7 +140,7 @@ export function HistoryTab({ onExportCSV, onExportPDF }: HistoryTabProps) {
       ) : (
         <>
           {auditData.partial && auditData.partial.length > 0 && (
-            <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded">
+            <div className="rounded border border-yellow-200 bg-yellow-50 px-4 py-3 text-yellow-800">
               {t("analytics.history.partial")}
             </div>
           )}
@@ -165,11 +177,7 @@ export function HistoryTab({ onExportCSV, onExportPDF }: HistoryTabProps) {
         </>
       )}
 
-      <HistoryDetailDrawer
-        event={selectedEvent}
-        open={drawerOpen}
-        onClose={handleDrawerClose}
-      />
+      <HistoryDetailDrawer event={selectedEvent} open={drawerOpen} onClose={handleDrawerClose} />
     </div>
   );
 }

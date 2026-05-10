@@ -38,14 +38,10 @@ export class ErrorBoundary extends Component<Props, State> {
             <h1 className="mb-2 text-2xl font-bold text-red-600 dark:text-red-400">
               Something went wrong
             </h1>
-            <p className="mb-4 text-gray-600 dark:text-gray-400">
-              An unexpected error occurred
-            </p>
+            <p className="mb-4 text-gray-600 dark:text-gray-400">An unexpected error occurred</p>
             {process.env.NODE_ENV === "development" && this.state.error && (
               <details className="rounded bg-gray-100 p-4 text-left text-sm dark:bg-gray-800">
-                <summary className="mb-2 cursor-pointer font-semibold">
-                  Error details
-                </summary>
+                <summary className="mb-2 cursor-pointer font-semibold">Error details</summary>
                 <pre className="whitespace-pre-wrap">{this.state.error.stack}</pre>
               </details>
             )}

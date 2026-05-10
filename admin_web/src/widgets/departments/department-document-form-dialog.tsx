@@ -61,11 +61,9 @@ export function DepartmentDocumentFormDialog({
         {!isEdit && (
           <div className="grid gap-2">
             <Label>Файл *</Label>
-            <DepartmentDocumentUploadZone
-              onFileSelect={(file) => onFormDataChange("file", file)}
-            />
+            <DepartmentDocumentUploadZone onFileSelect={(file) => onFormDataChange("file", file)} />
             {formData.file && (
-              <p className="text-muted-foreground text-sm">Выбран: {formData.file.name}</p>
+              <p className="text-sm text-muted-foreground">Выбран: {formData.file.name}</p>
             )}
           </div>
         )}

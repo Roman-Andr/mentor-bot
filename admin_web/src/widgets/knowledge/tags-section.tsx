@@ -12,8 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { SearchInput } from "@/shared/ui/search-input";
 import { ConfirmDialog } from "@/shared/ui/confirm-dialog";
 import { FormDialog } from "@/shared/ui/form-dialog";
-import { Hash, Plus, Pencil, Trash2, Merge } from "lucide-react";
-import { cn } from "@/shared/lib/utils";
+import { Hash, Plus, Pencil, Trash2 } from "lucide-react";
 
 interface TagFormDialogProps {
   open: boolean;
@@ -32,12 +31,26 @@ function TagFormDialog({ open, onOpenChange, tag, onSaved }: TagFormDialogProps)
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      if (tag) {
-        await tagsApi.update(tag.id, { name });
-      } else {
-        await tagsApi.create({ name });
+      const trimmedName = name.trim();
+      if (!trimmedName) {
+        return;
       }
-      toast(tag ? t("knowledge.tagUpdated") || "Tag updated" : t("knowledge.tagCreated") || "Tag created", "success");
+
+      const result = tag
+        ? await tagsApi.update(tag.id, { name: trimmedName })
+        : await tagsApi.create({ name: trimmedName });
+
+      if (!result.success) {
+        toast(result.error.message || t("common.error") || "Error", "error");
+        return;
+      }
+
+      toast(
+        tag
+          ? t("knowledge.tagUpdated") || "Tag updated"
+          : t("knowledge.tagCreated") || "Tag created",
+        "success",
+      );
       qc.invalidateQueries({ queryKey: ["tags"] });
       onSaved();
       onOpenChange(false);
@@ -54,6 +67,7 @@ function TagFormDialog({ open, onOpenChange, tag, onSaved }: TagFormDialogProps)
       onOpenChange={onOpenChange}
       title={tag ? t("knowledge.editTag") || "Edit tag" : t("knowledge.addTag") || "Add tag"}
       isSubmitting={loading}
+      canSubmit={!!name.trim()}
       onSubmit={handleSubmit}
       onCancel={() => onOpenChange(false)}
     >
@@ -84,7 +98,7 @@ export function TagsSection() {
 
   const { data, isLoading } = useQuery({
     queryKey: ["tags", { search }],
-    queryFn: () => tagsApi.list({ search: search || undefined, limit: 200 }),
+    queryFn: () => tagsApi.list({ search: search || undefined, limit: 100 }),
     staleTime: 30000,
   });
 
@@ -99,7 +113,7 @@ export function TagsSection() {
     },
   });
 
-  const tags = data?.success ? (data.data as any)?.tags ?? [] : [];
+  const tags = data?.success ? data.data : [];
 
   const openCreate = () => {
     setEditingTag(null);
@@ -115,12 +129,10 @@ export function TagsSection() {
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <SearchInput
-            value={search}
-            onChange={setSearch}
-            placeholder={t("common.search")}
-          />
-          <span className="text-muted-foreground text-sm">{tags.length} {t("knowledge.tags") || "tags"}</span>
+          <SearchInput value={search} onChange={setSearch} placeholder={t("common.search")} />
+          <span className="text-sm text-muted-foreground">
+            {tags.length} {t("knowledge.tags") || "tags"}
+          </span>
         </div>
         <Button className="gap-2" onClick={openCreate}>
           <Plus className="size-4" />
@@ -131,14 +143,14 @@ export function TagsSection() {
       {isLoading ? (
         <Card>
           <CardContent className="py-8 text-center">
-            <div className="text-muted-foreground text-sm">{t("common.loading")}</div>
+            <div className="text-sm text-muted-foreground">{t("common.loading")}</div>
           </CardContent>
         </Card>
       ) : tags.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
-            <Hash className="text-muted-foreground mx-auto mb-3 size-10" />
-            <p className="text-muted-foreground text-sm">{t("common.noData")}</p>
+            <Hash className="mx-auto mb-3 size-10 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">{t("common.noData")}</p>
             <Button className="mt-4 gap-2" variant="outline" onClick={openCreate}>
               <Plus className="size-4" />
               {t("knowledge.addTag") || "Add first tag"}
@@ -155,17 +167,19 @@ export function TagsSection() {
               {tags.map((tag: Tag) => (
                 <div
                   key={tag.id}
-                  className="group flex items-center gap-1.5 rounded-full border bg-card px-3 py-1.5 text-sm transition-all hover:border-primary/50"
+                  className="group flex items-center gap-1.5 rounded-full border bg-card px-3 py-1.5 text-sm transition-all hover:border-gray-400"
                 >
-                  <Hash className="text-muted-foreground size-3.5" />
+                  <Hash className="size-3.5 text-muted-foreground" />
                   <span className="font-medium">{tag.name}</span>
                   {tag.article_count !== undefined && (
-                    <span className="text-muted-foreground ml-1 text-xs">({tag.article_count})</span>
+                    <span className="ml-1 text-xs text-muted-foreground">
+                      ({tag.article_count})
+                    </span>
                   )}
                   <div className="ml-1 flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
                     <button
                       onClick={() => openEdit(tag)}
-                      className="text-muted-foreground rounded p-0.5 hover:text-foreground"
+                      className="rounded p-0.5 text-muted-foreground hover:text-primary"
                     >
                       <Pencil className="size-3" />
                     </button>
@@ -184,6 +198,7 @@ export function TagsSection() {
       )}
 
       <TagFormDialog
+        key={`${dialogOpen ? "open" : "closed"}-${editingTag?.id ?? "create"}`}
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         tag={editingTag}

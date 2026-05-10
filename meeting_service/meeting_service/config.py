@@ -35,8 +35,13 @@ class Settings(BaseSettings):
     AUTH_SERVICE_URL: str = Field(...)
     AUTH_SERVICE_TIMEOUT: int = Field(default=10, ge=1)
 
+    # Notification service integration
+    NOTIFICATION_SERVICE_URL: str = Field(...)
+    NOTIFICATION_SERVICE_TIMEOUT: int = Field(default=10, ge=1)
+
     # Service-to-service authentication
     SERVICE_API_KEY: str = Field(...)
+    SERVICE_TIMEOUT: int = Field(default=10, ge=1)
 
     # Redis
     REDIS_URL: RedisDsn = Field(...)

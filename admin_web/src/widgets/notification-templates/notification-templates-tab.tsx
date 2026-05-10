@@ -4,19 +4,21 @@ import { useState } from "react";
 import { useTranslations } from "@/shared/hooks/use-translations";
 import { Button } from "@/shared/ui/button";
 import { DataTable } from "@/shared/ui/data-table";
-import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableHead,
-  TableRow,
-  TableCell,
-} from "@/shared/ui/table";
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/shared/ui/table";
 import { Badge } from "@/shared/ui/badge";
-import { TableActions, buildEditAction, buildDeleteAction, buildCopyAction } from "@/shared/components";
+import {
+  TableActions,
+  buildEditAction,
+  buildDeleteAction,
+  buildCopyAction,
+} from "@/shared/components";
 import { Select } from "@/shared/ui/select";
-import { CardHeader, CardTitle } from "@/shared/ui/card";
-import { useNotificationTemplates, useDeleteNotificationTemplate } from "@/shared/hooks/use-notification-templates";
+import { SearchInput } from "@/shared/ui/search-input";
+import { CardHeader, CardTitle, Card, CardContent } from "@/shared/ui/card";
+import {
+  useNotificationTemplates,
+  useDeleteNotificationTemplate,
+} from "@/shared/hooks/use-notification-templates";
 import { useConfirm } from "@/shared/hooks/use-confirm";
 import { useToast } from "@/shared/hooks/use-toast";
 import type { NotificationTemplate } from "@/shared/types/notification";
@@ -24,6 +26,65 @@ import type { NotificationTemplate } from "@/shared/types/notification";
 interface NotificationTemplatesTabProps {
   onCreate?: () => void;
   onEdit?: (template: NotificationTemplate) => void;
+}
+
+function TemplateCard({
+  template,
+  onEdit,
+  onClone,
+  onDelete,
+}: {
+  template: NotificationTemplate;
+  onEdit: (t: NotificationTemplate) => void;
+  onClone: (t: NotificationTemplate) => void;
+  onDelete: (t: NotificationTemplate) => void;
+}) {
+  const t = useTranslations("notificationTemplates");
+  const tCommon = useTranslations("common");
+
+  return (
+    <Card>
+      <CardContent className="p-4">
+        <div className="mb-2 flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <p className="truncate font-semibold">{template.name}</p>
+            {template.subject && (
+              <p className="mt-0.5 truncate text-xs text-muted-foreground">{template.subject}</p>
+            )}
+          </div>
+          <div className="flex shrink-0 flex-col items-end gap-1">
+            <Badge variant={template.is_active ? "default" : "secondary"}>
+              {template.is_active ? t("active") : t("inactive")}
+            </Badge>
+            {template.is_default && <Badge variant="outline">{t("default")}</Badge>}
+          </div>
+        </div>
+
+        <div className="mb-3 flex flex-wrap gap-1.5 text-xs">
+          <Badge variant="outline">{template.channel}</Badge>
+          <span className="text-muted-foreground">{template.language}</span>
+          <span className="text-muted-foreground">
+            {t("version")} {template.version}
+          </span>
+          {template.variables.length > 0 && (
+            <span className="text-muted-foreground">
+              {template.variables.length} {t("variables")}
+            </span>
+          )}
+        </div>
+
+        <div className="flex items-center justify-end border-t pt-2">
+          <TableActions
+            actions={[
+              buildEditAction(() => onEdit(template), tCommon("edit")),
+              buildCopyAction(() => onClone(template), tCommon("copy")),
+              buildDeleteAction(() => onDelete(template), tCommon("delete")),
+            ]}
+          />
+        </div>
+      </CardContent>
+    </Card>
+  );
 }
 
 export function NotificationTemplatesTab({ onCreate, onEdit }: NotificationTemplatesTabProps) {
@@ -67,9 +128,12 @@ export function NotificationTemplatesTab({ onCreate, onEdit }: NotificationTempl
     is_active: isActive ? isActive === "true" : undefined,
   });
 
-  const templates = templatesData?.success && templatesData.data ? templatesData.data.templates || [] : [];
-  const totalCount = templatesData?.success && templatesData.data ? templatesData.data.total || 0 : 0;
-  const totalPages = templatesData?.success && templatesData.data ? templatesData.data.pages || 1 : 1;
+  const templates =
+    templatesData?.success && templatesData.data ? templatesData.data.templates || [] : [];
+  const totalCount =
+    templatesData?.success && templatesData.data ? templatesData.data.total || 0 : 0;
+  const totalPages =
+    templatesData?.success && templatesData.data ? templatesData.data.pages || 1 : 1;
 
   const deleteMutation = useDeleteNotificationTemplate();
 
@@ -92,11 +156,10 @@ export function NotificationTemplatesTab({ onCreate, onEdit }: NotificationTempl
   };
 
   const handleClone = (template: NotificationTemplate) => {
-    // Create a copy of the template with a modified name for creating a new template
     const clonedTemplate: NotificationTemplate = {
       ...template,
       name: `${template.name} (copy)`,
-      id: 0, // Will be set by backend on create
+      id: 0,
       version: 1,
       is_active: true,
       is_default: false,
@@ -108,7 +171,6 @@ export function NotificationTemplatesTab({ onCreate, onEdit }: NotificationTempl
       onEdit(clonedTemplate);
     }
   };
-
 
   const handleSearch = (value: string) => {
     setSearch(value);
@@ -127,6 +189,22 @@ export function NotificationTemplatesTab({ onCreate, onEdit }: NotificationTempl
     setPage(0);
   };
 
+  const hasFilter = !!(search || channel || language || isActive);
+
+  const mobileView = (
+    <div className="space-y-3 p-4">
+      {templates.map((template: NotificationTemplate) => (
+        <TemplateCard
+          key={template.id}
+          template={template}
+          onEdit={(tpl) => onEdit?.(tpl)}
+          onClone={handleClone}
+          onDelete={handleDelete}
+        />
+      ))}
+    </div>
+  );
+
   return (
     <>
       <DataTable
@@ -137,22 +215,20 @@ export function NotificationTemplatesTab({ onCreate, onEdit }: NotificationTempl
         totalCount={totalCount}
         pageSize={pageSize}
         onPageChange={(p) => setPage(p - 1)}
+        mobileView={mobileView}
         header={
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <CardTitle className="inline-flex items-baseline gap-1 whitespace-nowrap">
                 {t("title")}{" "}
-                <span className="text-muted-foreground text-sm font-normal">
-                  ({totalCount})
-                </span>
+                <span className="text-sm font-normal text-muted-foreground">({totalCount})</span>
               </CardTitle>
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
+              <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center">
+                <SearchInput
                   placeholder={t("searchPlaceholder")}
                   value={search}
-                  onChange={(e) => handleSearch(e.target.value)}
-                  className="border-input focus-visible:ring-ring h-9 w-64 rounded-md border bg-transparent px-3 text-sm shadow-sm transition-colors focus-visible:ring-1 focus-visible:outline-none"
+                  onChange={handleSearch}
+                  className="w-full sm:w-64"
                 />
                 <Select
                   options={CHANNEL_OPTIONS}
@@ -161,6 +237,7 @@ export function NotificationTemplatesTab({ onCreate, onEdit }: NotificationTempl
                     setChannel(v);
                     handleFilterChange();
                   }}
+                  className="w-full sm:w-auto"
                 />
                 <Select
                   options={LANGUAGE_OPTIONS}
@@ -169,6 +246,7 @@ export function NotificationTemplatesTab({ onCreate, onEdit }: NotificationTempl
                     setLanguage(v);
                     handleFilterChange();
                   }}
+                  className="w-full sm:w-auto"
                 />
                 <Select
                   options={STATUS_OPTIONS}
@@ -177,9 +255,10 @@ export function NotificationTemplatesTab({ onCreate, onEdit }: NotificationTempl
                     setIsActive(v);
                     handleFilterChange();
                   }}
+                  className="w-full sm:w-auto"
                 />
-                {(search || channel || language || isActive) && (
-                  <Button variant="outline" onClick={resetFilters}>
+                {hasFilter && (
+                  <Button variant="outline" onClick={resetFilters} className="w-full sm:w-auto">
                     {tCommon("reset")}
                   </Button>
                 )}
@@ -209,9 +288,7 @@ export function NotificationTemplatesTab({ onCreate, onEdit }: NotificationTempl
                   <Badge variant="outline">{template.channel}</Badge>
                 </TableCell>
                 <TableCell>{template.language}</TableCell>
-                <TableCell className="max-w-[200px] truncate">
-                  {template.subject || "-"}
-                </TableCell>
+                <TableCell className="max-w-[200px] truncate">{template.subject || "-"}</TableCell>
                 <TableCell>
                   <div className="flex flex-wrap gap-1">
                     {template.variables.length > 0 ? (
@@ -221,7 +298,7 @@ export function NotificationTemplatesTab({ onCreate, onEdit }: NotificationTempl
                         </Badge>
                       ))
                     ) : (
-                      <span className="text-muted-foreground text-sm">-</span>
+                      <span className="text-sm text-muted-foreground">-</span>
                     )}
                     {template.variables.length > 3 && (
                       <Badge variant="secondary" className="text-xs">
@@ -246,7 +323,11 @@ export function NotificationTemplatesTab({ onCreate, onEdit }: NotificationTempl
                     actions={[
                       buildEditAction(() => onEdit?.(template), tCommon("edit")),
                       buildCopyAction(() => handleClone(template), tCommon("copy")),
-                      buildDeleteAction(() => handleDelete(template), tCommon("delete"), deleteMutation.isPending),
+                      buildDeleteAction(
+                        () => handleDelete(template),
+                        tCommon("delete"),
+                        deleteMutation.isPending,
+                      ),
                     ]}
                   />
                 </TableCell>

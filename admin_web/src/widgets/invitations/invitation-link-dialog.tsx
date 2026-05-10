@@ -34,7 +34,8 @@ export function InvitationLinkDialog({ url, onOpenChange }: InvitationLinkDialog
         <DialogHeader>
           <DialogTitle>{t("invitations.invitationCreated") || "Invitation Created"}</DialogTitle>
           <DialogDescription>
-            {t("invitations.invitationCreatedDescription") || "Send this link to the new employee for registration via Telegram bot"}
+            {t("invitations.invitationCreatedDescription") ||
+              "Send this link to the new employee for registration via Telegram bot"}
           </DialogDescription>
         </DialogHeader>
         <div className="flex gap-2">

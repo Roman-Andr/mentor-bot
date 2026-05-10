@@ -1,5 +1,8 @@
 import type { UseMutationResult } from "@tanstack/react-query";
 import type { ListParams } from "../use-queries";
+import type { queryKeys } from "@/shared/lib/query-keys";
+
+export type EntityQueryKeyPrefix = keyof typeof queryKeys | (string & {});
 
 export interface EntityListResponse<T = unknown> {
   items?: T[];
@@ -35,7 +38,17 @@ export interface EntityLabels {
   deleteConfirmDescription?: string;
 }
 
-export interface UseEntityOptions<TItem, TForm, TCreatePayload, TUpdatePayload, TExtendedState = Record<string, unknown>> {
+export interface UseEntityOptions<
+  TItem,
+  TForm,
+  TCreatePayload,
+  TUpdatePayload,
+  TExtendedState = Record<string, unknown>,
+  TCustomMutations extends Record<string, unknown> = Record<
+    string,
+    UseMutationResult<unknown, Error, unknown, unknown>
+  >,
+> {
   // Entity identification
   entityName: string;
 
@@ -43,13 +56,18 @@ export interface UseEntityOptions<TItem, TForm, TCreatePayload, TUpdatePayload, 
   translationNamespace?: string;
 
   // Query configuration
-  queryKeyPrefix: keyof typeof import("@/shared/lib/query-keys").queryKeys;
+  queryKeyPrefix: EntityQueryKeyPrefix;
   listFn: (params: ListParams) => Promise<import("@/shared/lib/api/client").ApiResult<unknown>>;
   listDataKey?: string;
 
   // CRUD operations
-  createFn?: (data: TCreatePayload) => Promise<import("@/shared/lib/api/client").ApiResult<unknown>>;
-  updateFn?: (id: number, data: TUpdatePayload) => Promise<import("@/shared/lib/api/client").ApiResult<unknown>>;
+  createFn?: (
+    data: TCreatePayload,
+  ) => Promise<import("@/shared/lib/api/client").ApiResult<unknown>>;
+  updateFn?: (
+    id: number,
+    data: TUpdatePayload,
+  ) => Promise<import("@/shared/lib/api/client").ApiResult<unknown>>;
   deleteFn?: (id: number) => Promise<import("@/shared/lib/api/client").ApiResult<unknown>>;
 
   // Form configuration
@@ -81,11 +99,19 @@ export interface UseEntityOptions<TItem, TForm, TCreatePayload, TUpdatePayload, 
   sortDirectionParam?: string;
 
   // Custom mutations factory
-  customMutations?: (context: UseEntityContext<TItem, TForm, TExtendedState>) => Record<string, UseMutationResult<unknown, Error, unknown, unknown>>;
+  customMutations?: (
+    context: UseEntityContext<TItem, TForm, TExtendedState>,
+  ) => TCustomMutations;
 
   // Lifecycle hooks for side effects after mutations
-  onAfterCreate?: (data: unknown, context: UseEntityContext<TItem, TForm, TExtendedState>) => void | Promise<void>;
-  onAfterUpdate?: (data: unknown, context: UseEntityContext<TItem, TForm, TExtendedState>) => void | Promise<void>;
+  onAfterCreate?: (
+    data: unknown,
+    context: UseEntityContext<TItem, TForm, TExtendedState>,
+  ) => void | Promise<void>;
+  onAfterUpdate?: (
+    data: unknown,
+    context: UseEntityContext<TItem, TForm, TExtendedState>,
+  ) => void | Promise<void>;
 
   // i18n: translation key for entity labels (e.g., "entities.users.singular")
   entityLabelKey?: string;
@@ -101,7 +127,17 @@ export interface UseEntityContext<TItem, TForm, TExtendedState = Record<string, 
   invalidate: () => void;
 }
 
-export interface UseEntityResult<TItem, TForm, TCreatePayload = unknown, TUpdatePayload = unknown, TExtendedState = Record<string, unknown>> {
+export interface UseEntityResult<
+  TItem,
+  TForm,
+  TCreatePayload = unknown,
+  TUpdatePayload = unknown,
+  TExtendedState = Record<string, unknown>,
+  TCustomMutations extends Record<string, unknown> = Record<
+    string,
+    UseMutationResult<unknown, Error, unknown, unknown>
+  >,
+> {
   // Data
   items: TItem[];
   loading: boolean;
@@ -157,8 +193,13 @@ export interface UseEntityResult<TItem, TForm, TCreatePayload = unknown, TUpdate
   openEditDialog: (item: TItem) => void;
 
   // Direct mutation functions (for custom handling)
-  createFn?: (data: TCreatePayload) => Promise<import("@/shared/lib/api/client").ApiResult<unknown>>;
-  updateFn?: (id: number, data: TUpdatePayload) => Promise<import("@/shared/lib/api/client").ApiResult<unknown>>;
+  createFn?: (
+    data: TCreatePayload,
+  ) => Promise<import("@/shared/lib/api/client").ApiResult<unknown>>;
+  updateFn?: (
+    id: number,
+    data: TUpdatePayload,
+  ) => Promise<import("@/shared/lib/api/client").ApiResult<unknown>>;
   deleteFn?: (id: number) => Promise<import("@/shared/lib/api/client").ApiResult<unknown>>;
 
   // Loading states
@@ -166,7 +207,7 @@ export interface UseEntityResult<TItem, TForm, TCreatePayload = unknown, TUpdate
   isDeleting: boolean;
 
   // Custom mutations
-  customMutations: Record<string, UseMutationResult<unknown, Error, unknown, unknown>>;
+  customMutations: TCustomMutations;
 
   // Utilities
   invalidate: () => void;

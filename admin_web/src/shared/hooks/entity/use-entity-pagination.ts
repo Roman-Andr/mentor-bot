@@ -13,25 +13,31 @@ export function useEntityPagination(initialPageSize?: number) {
   });
   const [pageSizeState, setPageSizeLocal] = useState(initialPageSize ?? globalPageSize);
 
-  const setCurrentPageWithUrl = useCallback((page: number | ((prev: number) => number)) => {
-    const newPage = typeof page === "function" ? page(currentPage) : page;
-    setCurrentPage(newPage);
+  const setCurrentPageWithUrl = useCallback(
+    (page: number | ((prev: number) => number)) => {
+      const newPage = typeof page === "function" ? page(currentPage) : page;
+      setCurrentPage(newPage);
 
-    // Update URL
-    const params = new URLSearchParams(searchParams.toString());
-    if (newPage === 1) {
-      params.delete("page");
-    } else {
-      params.set("page", newPage.toString());
-    }
-    router.push(`?${params.toString()}`, { scroll: false });
-  }, [currentPage, searchParams, router]);
+      // Update URL
+      const params = new URLSearchParams(searchParams.toString());
+      if (newPage === 1) {
+        params.delete("page");
+      } else {
+        params.set("page", newPage.toString());
+      }
+      router.push(`?${params.toString()}`, { scroll: false });
+    },
+    [currentPage, searchParams, router],
+  );
 
-  const setPageSize = useCallback((size: number) => {
-    setPageSizeLocal(size);
-    setGlobalPageSize(size);
-    setCurrentPageWithUrl(1);
-  }, [setGlobalPageSize, setCurrentPageWithUrl]);
+  const setPageSize = useCallback(
+    (size: number) => {
+      setPageSizeLocal(size);
+      setGlobalPageSize(size);
+      setCurrentPageWithUrl(1);
+    },
+    [setGlobalPageSize, setCurrentPageWithUrl],
+  );
 
   return {
     currentPage,

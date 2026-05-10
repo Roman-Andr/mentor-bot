@@ -16,7 +16,9 @@ import { Select } from "@/shared/ui/select";
 import type { DialogueFormData } from "@/shared/hooks/use-dialogues";
 import type { DialogueCategory } from "@/shared/types";
 
-function getCategoryOptions(t: (key: string) => string): { value: DialogueCategory; label: string }[] {
+function getCategoryOptions(
+  t: (key: string) => string,
+): { value: DialogueCategory; label: string }[] {
   return [
     { value: "VACATION", label: t("dialogues.vacation") },
     { value: "ACCESS", label: t("dialogues.access") },
@@ -63,7 +65,9 @@ export function DialogueFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{isCreate ? t("dialogues.createDialogue") : t("dialogues.editDialogueTitle")}</DialogTitle>
+          <DialogTitle>
+            {isCreate ? t("dialogues.createDialogue") : t("dialogues.editDialogueTitle")}
+          </DialogTitle>
           <DialogDescription>
             {isCreate ? t("dialogues.createNewDialogue") : t("dialogues.changeDialogueParams")}
           </DialogDescription>
@@ -93,7 +97,7 @@ export function DialogueFormDialog({
               onChange={(e) => onFormDataChange({ ...formData, keywords: e.target.value })}
               placeholder="key1, key2, key3"
             />
-            <p className="text-muted-foreground text-xs">{t("dialogues.keywordsHint")}</p>
+            <p className="text-xs text-muted-foreground">{t("dialogues.keywordsHint")}</p>
           </div>
           <div className="grid gap-2">
             <label className="text-sm font-medium">{t("dialogues.category")} *</label>

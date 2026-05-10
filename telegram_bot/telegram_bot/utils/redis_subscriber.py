@@ -1,6 +1,7 @@
 """Redis pub/sub subscriber for Telegram notifications."""
 
 import asyncio
+import contextlib
 import json
 import logging
 
@@ -38,10 +39,8 @@ class RedisNotificationSubscriber:
         self._running = False
         if self._task:
             self._task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await self._task
-            except asyncio.CancelledError:
-                pass
         if self.redis:
             try:
                 await self.redis.aclose()
@@ -100,7 +99,7 @@ class RedisNotificationSubscriber:
                 text=text,
                 parse_mode=parse_mode,
             )
-            logger.info("Telegram notification sent via bot (chat_id={})", chat_id)
+            logger.info("Telegram notification sent via bot (chat_id=%s)", chat_id)
         except Exception:
             logger.exception("Failed to handle notification message")
 
@@ -112,10 +111,30 @@ class RedisNotificationSubscriber:
 
             if event_type == "calendar_connected":
                 await self._handle_calendar_connected(payload)
+            elif event_type in {"user_deleted", "user_deactivated"}:
+                await self._handle_user_removed(payload)
             else:
                 logger.debug("Unknown event type: %s", event_type)
         except Exception:
             logger.exception("Failed to handle event message")
+
+    async def _handle_user_removed(self, payload: dict) -> None:
+        """Invalidate cached Telegram auth state when auth service removes a user."""
+        telegram_id = payload.get("telegram_id")
+        if not telegram_id:
+            user_id = payload.get("user_id")
+            if user_id:
+                telegram_id = await user_cache.find_telegram_id_by_user_id(user_id)
+
+        if not telegram_id:
+            logger.warning("Missing telegram_id for user removal event: %s", payload)
+            return
+
+        deleted = await user_cache.delete_user(int(telegram_id))
+        if deleted:
+            logger.info("Telegram user cache invalidated (telegram_id=%s)", telegram_id)
+        else:
+            logger.warning("Telegram user cache invalidation failed (telegram_id=%s)", telegram_id)
 
     async def _handle_calendar_connected(self, payload: dict) -> None:
         """Handle calendar connected event."""

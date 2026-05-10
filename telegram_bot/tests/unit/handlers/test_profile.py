@@ -93,15 +93,19 @@ class TestScheduleMentor:
 
     async def test_schedule_mentor_callback(self):
         """Test schedule_mentor handler."""
-        await schedule_mentor(self.mock_callback, locale="en")
+        user = {"id": 1}
+
+        await schedule_mentor(self.mock_callback, user, "token", locale="en")
 
         self.mock_callback.answer.assert_called_once()
         self.mock_callback.message.edit_text.assert_called_once()
+        call_kwargs = self.mock_callback.message.edit_text.call_args.kwargs
+        assert "Meetings" in call_kwargs["text"]
 
     async def test_schedule_mentor_no_message(self):
         """Test schedule_mentor when callback has no message."""
         self.mock_callback.message = None
 
-        result = await schedule_mentor(self.mock_callback, locale="en")
+        result = await schedule_mentor(self.mock_callback, {"id": 1}, "token", locale="en")
 
         assert result is None

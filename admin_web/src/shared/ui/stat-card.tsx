@@ -16,7 +16,7 @@ export function StatCard({ value, label, icon: Icon, color = "#3B82F6" }: StatCa
       <CardContent className="pt-6">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-muted-foreground text-sm">{label}</p>
+            <p className="text-sm text-muted-foreground">{label}</p>
             <p className="text-2xl font-bold">{value}</p>
           </div>
           <Icon className="size-8" style={{ color }} />

@@ -361,3 +361,141 @@ class TestNotificationServiceClientSingleton:
         """Test that singleton uses settings from config."""
         # The singleton should have been initialized with settings
         assert notification_service_client.base_url is not None
+
+
+class TestNotificationServiceClientScheduleTemplate:
+    """Test schedule_template_notification method."""
+
+    async def test_schedule_template_success(self) -> None:
+        """Returns response JSON on success."""
+        client = NotificationServiceClient(base_url="http://test-notification:8002")
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {"id": 5}
+
+        with patch.object(client.client, "post", new=AsyncMock(return_value=mock_response)):
+            result = await client.schedule_template_notification(
+                template_name="task_reminder",
+                user_id=1,
+                variables={"task_title": "Test"},
+                channel="TELEGRAM",
+                scheduled_time="2026-06-01T10:00:00",
+                notification_type="TASK_REMINDER",
+                recipient_telegram_id=123456,
+                language="en",
+            )
+
+        assert result == {"id": 5}
+
+    async def test_schedule_template_error_response(self) -> None:
+        """Returns None on non-200 response."""
+        client = NotificationServiceClient(base_url="http://test-notification:8002")
+        mock_response = MagicMock()
+        mock_response.status_code = 500
+        mock_response.text = "error"
+
+        with patch.object(client.client, "post", new=AsyncMock(return_value=mock_response)):
+            result = await client.schedule_template_notification(
+                template_name="task_reminder",
+                user_id=1,
+                variables={},
+                channel="EMAIL",
+                scheduled_time="2026-06-01T10:00:00",
+                notification_type="TASK_REMINDER",
+            )
+
+        assert result is None
+
+    async def test_schedule_template_request_error(self) -> None:
+        """Returns None on httpx.RequestError."""
+        client = NotificationServiceClient(base_url="http://test-notification:8002")
+
+        with patch.object(client.client, "post", new=AsyncMock(side_effect=httpx.RequestError("fail"))):
+            result = await client.schedule_template_notification(
+                template_name="task_reminder",
+                user_id=1,
+                variables={},
+                channel="TELEGRAM",
+                scheduled_time="2026-06-01T10:00:00",
+                notification_type="TASK_REMINDER",
+            )
+
+        assert result is None
+
+    async def test_schedule_template_generic_exception(self) -> None:
+        """Returns None on unexpected exception."""
+        client = NotificationServiceClient(base_url="http://test-notification:8002")
+
+        with patch.object(client.client, "post", new=AsyncMock(side_effect=Exception("unexpected"))):
+            result = await client.schedule_template_notification(
+                template_name="task_reminder",
+                user_id=1,
+                variables={},
+                channel="TELEGRAM",
+                scheduled_time="2026-06-01T10:00:00",
+                notification_type="TASK_REMINDER",
+            )
+
+        assert result is None
+
+
+class TestNotificationServiceClientCancelScheduled:
+    """Test cancel_scheduled_notifications method."""
+
+    async def test_cancel_scheduled_success(self) -> None:
+        """Returns cancelled count on success."""
+        client = NotificationServiceClient(base_url="http://test-notification:8002")
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {"cancelled": 3}
+
+        with patch.object(client.client, "post", new=AsyncMock(return_value=mock_response)):
+            result = await client.cancel_scheduled_notifications(
+                user_id=1,
+                notification_type="TASK_REMINDER",
+                data_match={"task_id": 5},
+            )
+
+        assert result == 3
+
+    async def test_cancel_scheduled_error_response(self) -> None:
+        """Returns 0 on non-200 response."""
+        client = NotificationServiceClient(base_url="http://test-notification:8002")
+        mock_response = MagicMock()
+        mock_response.status_code = 500
+        mock_response.text = "error"
+
+        with patch.object(client.client, "post", new=AsyncMock(return_value=mock_response)):
+            result = await client.cancel_scheduled_notifications(
+                user_id=1,
+                notification_type="TASK_REMINDER",
+                data_match={"task_id": 5},
+            )
+
+        assert result == 0
+
+    async def test_cancel_scheduled_request_error(self) -> None:
+        """Returns 0 on httpx.RequestError."""
+        client = NotificationServiceClient(base_url="http://test-notification:8002")
+
+        with patch.object(client.client, "post", new=AsyncMock(side_effect=httpx.RequestError("fail"))):
+            result = await client.cancel_scheduled_notifications(
+                user_id=1,
+                notification_type="TASK_REMINDER",
+                data_match={},
+            )
+
+        assert result == 0
+
+    async def test_cancel_scheduled_generic_exception(self) -> None:
+        """Returns 0 on unexpected exception."""
+        client = NotificationServiceClient(base_url="http://test-notification:8002")
+
+        with patch.object(client.client, "post", new=AsyncMock(side_effect=Exception("unexpected"))):
+            result = await client.cancel_scheduled_notifications(
+                user_id=1,
+                notification_type="TASK_REMINDER",
+                data_match={},
+            )
+
+        assert result == 0

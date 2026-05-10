@@ -2,7 +2,11 @@
 
 import { useTranslations } from "@/shared/hooks/use-translations";
 import { PageContent } from "@/shared/layout/page-content";
-import { useDepartments, type DepartmentRow, type DepartmentFormData } from "@/shared/hooks/use-departments";
+import {
+  useDepartments,
+  type DepartmentRow,
+  type DepartmentFormData,
+} from "@/shared/hooks/use-departments";
 import { TabSwitcher } from "@/shared/ui/tab-switcher";
 import { DepartmentDocumentsTab } from "@/widgets/departments/department-documents-tab";
 import { Building2, FileText, Calendar } from "lucide-react";
@@ -11,14 +15,7 @@ import { useSearchParams } from "next/navigation";
 import { Card, CardContent } from "@/shared/ui/card";
 import { Button } from "@/shared/ui/button";
 import { formatDateTime } from "@/shared/lib/utils";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/shared/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 import { Pagination } from "@/shared/ui/pagination";
 
 export function DepartmentsWidget() {
@@ -32,30 +29,51 @@ export function DepartmentsWidget() {
     { id: "documents", label: "Документы", icon: FileText },
   ];
 
-  function DepartmentCard({ department, onEdit, onDelete }: { department: DepartmentRow; onEdit: (item: DepartmentRow) => void; onDelete: (id: number) => void }) {
+  function DepartmentCard({
+    department,
+    onEdit,
+    onDelete,
+  }: {
+    department: DepartmentRow;
+    onEdit: (item: DepartmentRow) => void;
+    onDelete: (id: number) => void;
+  }) {
     return (
-      <Card className="cursor-pointer transition-colors hover:bg-muted/50" onClick={() => onEdit(department)}>
+      <Card
+        className="cursor-pointer transition-colors hover:bg-muted/50"
+        onClick={() => onEdit(department)}
+      >
         <CardContent className="p-4">
           {/* Header: Name */}
           <div className="mb-3">
-            <h3 className="font-semibold truncate">{department.name}</h3>
+            <h3 className="truncate font-semibold">{department.name}</h3>
             {department.description && (
-              <p className="text-muted-foreground mt-1 line-clamp-2 text-xs">{department.description}</p>
+              <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+                {department.description}
+              </p>
             )}
           </div>
 
           {/* Metadata */}
           <div className="mb-3 grid grid-cols-1 gap-2 text-xs">
             <div className="flex items-center gap-2">
-              <Calendar className="text-muted-foreground size-3" />
+              <Calendar className="size-3 text-muted-foreground" />
               <span className="text-muted-foreground">{t("common.created")}: </span>
               <span>{formatDateTime(department.createdAt)}</span>
             </div>
           </div>
 
           {/* Footer: Actions */}
-          <div className="flex items-center gap-2 border-t pt-3 flex-col sm:flex-row" onClick={(e) => e.stopPropagation()}>
-            <Button size="sm" variant="outline" className="flex-1" onClick={() => onEdit(department)}>
+          <div
+            className="flex flex-col items-center gap-2 border-t pt-3 sm:flex-row"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Button
+              size="sm"
+              variant="outline"
+              className="flex-1"
+              onClick={() => onEdit(department)}
+            >
               {t("common.edit")}
             </Button>
             <Button size="sm" variant="destructive" onClick={() => onDelete(department.id)}>
@@ -79,11 +97,14 @@ export function DepartmentsWidget() {
             placeholder={t("common.search")}
             value={entity.searchQuery}
             onChange={(e) => entity.setSearchQuery(e.target.value)}
-            className="rounded border px-3 py-2 w-full sm:w-auto"
+            className="w-full rounded border px-3 py-2 sm:w-auto"
           />
           <button
-            onClick={() => { entity.resetForm(); entity.setIsCreateDialogOpen(true); }}
-            className="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center justify-center gap-2 rounded px-4 py-2 w-full sm:w-auto"
+            onClick={() => {
+              entity.resetForm();
+              entity.setIsCreateDialogOpen(true);
+            }}
+            className="flex w-full items-center justify-center gap-2 rounded bg-primary px-4 py-2 text-primary-foreground hover:bg-primary/90 sm:w-auto"
           >
             <span className="size-4">+</span>
             {t("departments.addDepartment")}
@@ -91,13 +112,17 @@ export function DepartmentsWidget() {
         </div>
       </div>
       {entity.loading ? (
-        <div className="text-muted-foreground flex items-center justify-center py-12">Loading...</div>
+        <div className="flex items-center justify-center py-12 text-muted-foreground">
+          Loading...
+        </div>
       ) : entity.items.length === 0 ? (
-        <div className="text-muted-foreground flex items-center justify-center py-12">{t("departments.empty")}</div>
+        <div className="flex items-center justify-center py-12 text-muted-foreground">
+          {t("departments.empty")}
+        </div>
       ) : (
         <>
           {/* Desktop/Table View */}
-          <div className="hidden md:block border rounded-lg overflow-hidden">
+          <div className="hidden overflow-hidden rounded-lg border md:block">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -109,14 +134,36 @@ export function DepartmentsWidget() {
               </TableHeader>
               <TableBody>
                 {entity.items.map((item) => (
-                  <TableRow key={item.id} className="hover:bg-muted cursor-pointer transition-colors" onClick={() => entity.openEditDialog(item)}>
-                    <TableCell><span className="font-medium">{item.name}</span></TableCell>
-                    <TableCell><span className="text-muted-foreground max-w-75 truncate text-sm">{item.description || "—"}</span></TableCell>
+                  <TableRow
+                    key={item.id}
+                    className="cursor-pointer transition-colors hover:bg-muted"
+                    onClick={() => entity.openEditDialog(item)}
+                  >
+                    <TableCell>
+                      <span className="font-medium">{item.name}</span>
+                    </TableCell>
+                    <TableCell>
+                      <span className="max-w-75 truncate text-sm text-muted-foreground">
+                        {item.description || "—"}
+                      </span>
+                    </TableCell>
                     <TableCell>{new Date(item.createdAt).toLocaleDateString()}</TableCell>
                     <TableCell onClick={(e) => e.stopPropagation()}>
                       <div className="flex gap-2">
-                        <Button size="sm" variant="outline" onClick={() => entity.openEditDialog(item)}>{t("common.edit")}</Button>
-                        <Button size="sm" variant="destructive" onClick={() => entity.handleDelete(item.id)}>{t("common.delete")}</Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => entity.openEditDialog(item)}
+                        >
+                          {t("common.edit")}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => entity.handleDelete(item.id)}
+                        >
+                          {t("common.delete")}
+                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -125,7 +172,7 @@ export function DepartmentsWidget() {
             </Table>
           </div>
           {/* Mobile Card View */}
-          <div className="block md:hidden space-y-3">
+          <div className="block space-y-3 md:hidden">
             {entity.items.map((item) => (
               <DepartmentCard
                 key={item.id}

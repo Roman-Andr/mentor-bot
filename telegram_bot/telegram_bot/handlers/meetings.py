@@ -1,6 +1,8 @@
 """Meeting management handlers."""
 
+from collections.abc import Coroutine
 from datetime import UTC, datetime
+from typing import Protocol
 
 from aiogram import F, Router
 from aiogram.filters import Command
@@ -26,6 +28,14 @@ router = Router()
 MIN_TITLE_LENGTH = 3
 MIN_MEETING_DURATION = 15
 MAX_MEETING_DURATION = 480
+
+
+class SendMeetingMessage(Protocol):
+    """Callable shape shared by message.answer and callback edit helpers."""
+
+    def __call__(self, text: str, **kwargs: object) -> Coroutine[object, object, None]:
+        """Send or edit the meeting status message."""
+        ...
 
 
 @router.message(Command("meetings"))
@@ -208,7 +218,7 @@ async def back_to_description(callback: CallbackQuery, state: FSMContext, *, loc
 
 
 async def _finish_meeting_creation(
-    send_fn,
+    send_fn: SendMeetingMessage,
     state: FSMContext,
     user: dict,
     auth_token: str,

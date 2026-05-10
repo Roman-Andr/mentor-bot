@@ -45,7 +45,7 @@ export interface EntityFormDialogProps<TForm> {
 
 /**
  * Generic, reusable form dialog component for entity creation/editing.
- * 
+ *
  * @example
  * ```tsx
  * <EntityFormDialog
@@ -61,9 +61,9 @@ export interface EntityFormDialogProps<TForm> {
  * >
  *   <div className="grid gap-2">
  *     <label>Name *</label>
- *     <Input 
- *       value={formData.name} 
- *       onChange={(e) => setFormData({ ...formData, name: e.target.value })} 
+ *     <Input
+ *       value={formData.name}
+ *       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
  *     />
  *   </div>
  * </EntityFormDialog>
@@ -91,42 +91,23 @@ export function EntityFormDialog<TForm>({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent
-        className={cn(
-          "max-h-[90vh] overflow-y-auto",
-          maxWidth,
-          className
-        )}
-      >
+      <DialogContent className={cn("max-h-[90vh] overflow-y-auto", maxWidth, className)}>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
 
         {error && (
-          <div className="bg-destructive/10 text-destructive rounded-md p-3 text-sm">
-            {error}
-          </div>
+          <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">{error}</div>
         )}
 
-        <div className="grid gap-4 py-4">
-          {children}
-        </div>
+        <div className="grid gap-4 py-4">{children}</div>
 
         <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={onClose}
-            disabled={isSubmitting}
-            type="button"
-          >
+          <Button variant="outline" onClick={onClose} disabled={isSubmitting} type="button">
             {cancelLabel}
           </Button>
-          <Button
-            onClick={handleSubmit}
-            disabled={isSubmitting || !isValid}
-            type="button"
-          >
+          <Button onClick={handleSubmit} disabled={isSubmitting || !isValid} type="button">
             {isSubmitting ? (
               <span className="flex items-center gap-2">
                 <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />

@@ -15,9 +15,7 @@ import { Switch } from "@/shared/ui/switch";
 import { Select } from "@/shared/ui/select";
 import { PageContent } from "@/shared/layout/page-content";
 import { useToast } from "@/shared/hooks/use-toast";
-import {
-  Bell, Globe, Palette, Save, Sun, Moon, Monitor, CheckCircle2,
-} from "lucide-react";
+import { Bell, Globe, Palette, Save, Sun, Moon, Monitor, CheckCircle2 } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 
 type Section = "appearance" | "language" | "notifications";
@@ -35,7 +33,9 @@ function NavItem({ icon: Icon, label, active, onClick }: NavItemProps) {
       onClick={onClick}
       className={cn(
         "flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
-        active ? "bg-primary text-primary-foreground" : "hover:bg-muted text-muted-foreground hover:text-foreground",
+        active
+          ? "bg-primary text-primary-foreground"
+          : "text-muted-foreground hover:bg-muted hover:text-foreground",
       )}
     >
       <Icon className="size-4" />
@@ -55,15 +55,24 @@ export function SettingsWidget() {
   const [isPending, startTransition] = useTransition();
   const activeSection = (searchParams.get("tab") as Section) || "appearance";
 
-  const { preferences, isLoading: prefsLoading, updatePreferences, isUpdating: prefsUpdating } = usePreferences();
+  const {
+    preferences,
+    isLoading: prefsLoading,
+    updatePreferences,
+    isUpdating: prefsUpdating,
+  } = usePreferences();
 
   const [selectedTheme, setSelectedTheme] = useState(currentTheme || "system");
   const [selectedLanguage, setSelectedLanguage] = useState(currentLocale || "ru");
   const [telegramEnabled, setTelegramEnabled] = useState(
-    preferences?.success && preferences.data ? preferences.data.notification_telegram_enabled ?? true : true,
+    preferences?.success && preferences.data
+      ? (preferences.data.notification_telegram_enabled ?? true)
+      : true,
   );
   const [emailEnabled, setEmailEnabled] = useState(
-    preferences?.success && preferences.data ? preferences.data.notification_email_enabled ?? true : true,
+    preferences?.success && preferences.data
+      ? (preferences.data.notification_email_enabled ?? true)
+      : true,
   );
 
   useEffect(() => {
@@ -98,10 +107,23 @@ export function SettingsWidget() {
     });
     if (selectedLanguage !== currentLocale) {
       document.cookie = `locale=${selectedLanguage};path=/;max-age=31536000`;
-      startTransition(() => { router.refresh(); });
+      startTransition(() => {
+        router.refresh();
+      });
     }
     toast(t("settings.saved"), "success");
-  }, [selectedTheme, selectedLanguage, currentLocale, telegramEnabled, emailEnabled, setTheme, router, toast, t, updatePreferences]);
+  }, [
+    selectedTheme,
+    selectedLanguage,
+    currentLocale,
+    telegramEnabled,
+    emailEnabled,
+    setTheme,
+    router,
+    toast,
+    t,
+    updatePreferences,
+  ]);
 
   const handleCancel = useCallback(() => {
     setSelectedTheme(currentTheme || "system");
@@ -112,21 +134,39 @@ export function SettingsWidget() {
     }
   }, [currentTheme, currentLocale, preferences]);
 
-  const handleSectionChange = useCallback((section: Section) => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("tab", section);
-    router.replace(`${pathname}?${params.toString()}`);
-  }, [searchParams, pathname, router]);
+  const handleSectionChange = useCallback(
+    (section: Section) => {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("tab", section);
+      router.replace(`${pathname}?${params.toString()}`);
+    },
+    [searchParams, pathname, router],
+  );
 
   return (
     <PageContent title={t("settings.title")} subtitle={t("settings.subtitle")}>
-      <div className="grid gap-6 grid-cols-1 md:grid-cols-4 md:items-start">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-4 md:items-start">
         <Card className="md:col-span-1">
           <CardContent className="p-3">
             <nav className="flex flex-row gap-2 overflow-x-auto md:flex-col md:space-y-1 md:overflow-visible">
-              <NavItem icon={Palette} label={t("settings.appearance")} active={activeSection === "appearance"} onClick={() => handleSectionChange("appearance")} />
-              <NavItem icon={Globe} label={t("settings.language")} active={activeSection === "language"} onClick={() => handleSectionChange("language")} />
-              <NavItem icon={Bell} label={t("settings.notifications")} active={activeSection === "notifications"} onClick={() => handleSectionChange("notifications")} />
+              <NavItem
+                icon={Palette}
+                label={t("settings.appearance")}
+                active={activeSection === "appearance"}
+                onClick={() => handleSectionChange("appearance")}
+              />
+              <NavItem
+                icon={Globe}
+                label={t("settings.language")}
+                active={activeSection === "language"}
+                onClick={() => handleSectionChange("language")}
+              />
+              <NavItem
+                icon={Bell}
+                label={t("settings.notifications")}
+                active={activeSection === "notifications"}
+                onClick={() => handleSectionChange("notifications")}
+              />
             </nav>
           </CardContent>
         </Card>
@@ -135,7 +175,10 @@ export function SettingsWidget() {
           {activeSection === "appearance" && (
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2"><Palette className="size-5" />{t("settings.appearance")}</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Palette className="size-5" />
+                  {t("settings.appearance")}
+                </CardTitle>
                 <CardDescription>{t("settings.appearanceDescription")}</CardDescription>
               </CardHeader>
               <CardContent>
@@ -147,11 +190,15 @@ export function SettingsWidget() {
                         key={th.value}
                         onClick={() => setSelectedTheme(th.value)}
                         className={cn(
-                          "relative flex flex-col items-center gap-2 rounded-xl border-2 p-4 text-sm transition-all cursor-pointer",
-                          selectedTheme === th.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/50 hover:bg-muted/50",
+                          "relative flex cursor-pointer flex-col items-center gap-2 rounded-xl border-2 p-4 text-sm transition-all",
+                          selectedTheme === th.value
+                            ? "border-primary bg-primary/5"
+                            : "border-border hover:border-primary/50 hover:bg-muted/50",
                         )}
                       >
-                        {selectedTheme === th.value && <CheckCircle2 className="text-primary absolute top-2 right-2 size-4" />}
+                        {selectedTheme === th.value && (
+                          <CheckCircle2 className="absolute top-2 right-2 size-4 text-primary" />
+                        )}
                         <Icon className="size-6" />
                         {th.label}
                       </button>
@@ -165,7 +212,10 @@ export function SettingsWidget() {
           {activeSection === "language" && (
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2"><Globe className="size-5" />{t("settings.language")}</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Globe className="size-5" />
+                  {t("settings.language")}
+                </CardTitle>
                 <CardDescription>{t("settings.languageDescription")}</CardDescription>
               </CardHeader>
               <CardContent>
@@ -175,11 +225,15 @@ export function SettingsWidget() {
                       key={lang.value}
                       onClick={() => setSelectedLanguage(lang.value)}
                       className={cn(
-                        "relative flex items-center gap-3 rounded-xl border-2 p-4 text-sm transition-all cursor-pointer",
-                        selectedLanguage === lang.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/50 hover:bg-muted/50",
+                        "relative flex cursor-pointer items-center gap-3 rounded-xl border-2 p-4 text-sm transition-all",
+                        selectedLanguage === lang.value
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:border-primary/50 hover:bg-muted/50",
                       )}
                     >
-                      {selectedLanguage === lang.value && <CheckCircle2 className="text-primary absolute top-2 right-2 size-4" />}
+                      {selectedLanguage === lang.value && (
+                        <CheckCircle2 className="absolute top-2 right-2 size-4 text-primary" />
+                      )}
                       <Globe className="size-5" />
                       {lang.label}
                     </button>
@@ -192,30 +246,47 @@ export function SettingsWidget() {
           {activeSection === "notifications" && (
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2"><Bell className="size-5" />{t("settings.notifications")}</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Bell className="size-5" />
+                  {t("settings.notifications")}
+                </CardTitle>
                 <CardDescription>{t("settings.notificationsDescription")}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between rounded-lg border p-4">
                   <div>
                     <p className="font-medium">{t("settings.telegramNotifications")}</p>
-                    <p className="text-muted-foreground text-sm">{t("settings.telegramNotificationsDescription")}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {t("settings.telegramNotificationsDescription")}
+                    </p>
                   </div>
-                  <Switch checked={telegramEnabled} onCheckedChange={setTelegramEnabled} disabled={prefsLoading} />
+                  <Switch
+                    checked={telegramEnabled}
+                    onCheckedChange={setTelegramEnabled}
+                    disabled={prefsLoading}
+                  />
                 </div>
                 <div className="flex items-center justify-between rounded-lg border p-4">
                   <div>
                     <p className="font-medium">{t("settings.emailNotifications")}</p>
-                    <p className="text-muted-foreground text-sm">{t("settings.emailNotificationsDescription")}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {t("settings.emailNotificationsDescription")}
+                    </p>
                   </div>
-                  <Switch checked={emailEnabled} onCheckedChange={setEmailEnabled} disabled={prefsLoading} />
+                  <Switch
+                    checked={emailEnabled}
+                    onCheckedChange={setEmailEnabled}
+                    disabled={prefsLoading}
+                  />
                 </div>
               </CardContent>
             </Card>
           )}
 
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={handleCancel}>{t("settings.cancel")}</Button>
+            <Button variant="outline" onClick={handleCancel}>
+              {t("settings.cancel")}
+            </Button>
             <Button className="gap-2" onClick={handleSave} disabled={isPending || prefsUpdating}>
               <Save className="size-4" />
               {t("settings.save")}

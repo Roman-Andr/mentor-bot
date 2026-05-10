@@ -3,14 +3,7 @@
 import { Button } from "@/shared/ui/button";
 import { SearchInput } from "@/shared/ui/search-input";
 import { SortableTableHead } from "@/shared/ui/sortable-table-head";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/shared/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 import { DataTable } from "@/shared/ui/data-table";
 import { CardHeader, CardTitle, Card, CardContent } from "@/shared/ui/card";
 import { TableActions, buildEditAction, buildDeleteAction } from "@/shared/components";
@@ -77,20 +70,27 @@ export function CategoriesTable({
   }) {
     return (
       <Card
-        className={cn("cursor-pointer transition-colors hover:bg-muted/50", category.parent_id && "bg-muted/50")}
+        className={cn(
+          "cursor-pointer transition-colors hover:bg-muted/50",
+          category.parent_id && "bg-muted/50",
+        )}
         onClick={() => onEdit(category)}
       >
         <CardContent className="p-4">
           {/* Header: Name */}
           <div className="mb-3">
             <div className="flex items-center gap-2">
-              <h3 className="font-semibold truncate">{category.name}</h3>
+              <h3 className="truncate font-semibold">{category.name}</h3>
               {category.parent_id && (
-                <span className="text-muted-foreground text-xs">({tKnowledge("parent")}: {category.parent_name})</span>
+                <span className="text-xs text-muted-foreground">
+                  ({tKnowledge("parent")}: {category.parent_name})
+                </span>
               )}
             </div>
             {category.description && (
-              <p className="text-muted-foreground mt-1 line-clamp-2 text-xs">{category.description}</p>
+              <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+                {category.description}
+              </p>
             )}
           </div>
 
@@ -108,7 +108,7 @@ export function CategoriesTable({
 
           {/* Footer: Actions */}
           <div
-            className="flex items-center gap-2 border-t pt-3 flex-col sm:flex-row"
+            className="flex flex-col items-center gap-2 border-t pt-3 sm:flex-row"
             onClick={(e) => e.stopPropagation()}
           >
             <Button size="sm" variant="outline" className="flex-1" onClick={() => onEdit(category)}>
@@ -152,14 +152,18 @@ export function CategoriesTable({
       header={
         <CardHeader>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <CardTitle>
+            <CardTitle className="inline-flex items-baseline gap-1 whitespace-nowrap">
               {totalCountLabel ?? tKnowledge("categories")}{" "}
-              <span className="text-muted-foreground text-sm font-normal">
+              <span className="text-sm font-normal text-muted-foreground">
                 ({totalCount ?? categories.length})
               </span>
             </CardTitle>
-            <div className="flex flex-col gap-2 w-full sm:flex-row sm:items-center sm:flex-wrap">
-              <SearchInput value={searchQuery} onChange={onSearchChange} className="w-full sm:w-auto" />
+            <div className="flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+              <SearchInput
+                value={searchQuery}
+                onChange={onSearchChange}
+                className="w-full sm:w-auto"
+              />
               <Button variant="outline" onClick={onResetFilters} className="w-full sm:w-auto">
                 {tCommon("common.reset")}
               </Button>
@@ -190,19 +194,13 @@ export function CategoriesTable({
           {categories.map((category) => (
             <TableRow
               key={category.id}
-              className={cn(
-                "cursor-pointer",
-                category.parent_id && "bg-muted/50"
-              )}
+              className={cn("cursor-pointer", category.parent_id && "bg-muted/50")}
               onClick={() => onEdit(category)}
             >
               {columns.map((col) => (
                 <TableCell key={col.key}>
                   {col.key === "actions" ? (
-                    <div
-                      className="flex gap-1"
-                      onClick={(e) => e.stopPropagation()}
-                    >
+                    <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
                       <TableActions
                         actions={[
                           buildEditAction(() => onEdit(category), tCommon("common.edit")),

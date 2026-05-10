@@ -1,45 +1,45 @@
-import { describe, it, expect, vi } from 'vitest'
-import { renderHook, act } from '@testing-library/react'
-import { useEntity } from '@/shared/hooks/entity/use-entity-composed'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { describe, it, expect, vi } from "vitest";
+import { renderHook, act } from "@testing-library/react";
+import { useEntity } from "@/shared/hooks/entity/use-entity-composed";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-vi.mock('next/navigation', () => ({
+vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(),
   useRouter: () => ({ push: vi.fn() }),
-}))
+}));
 
-vi.mock('@/shared/lib/query-keys', () => ({
+vi.mock("@/shared/lib/query-keys", () => ({
   queryKeys: {
     users: {
-      list: (params: any) => ['users', 'list', params],
+      list: (params: any) => ["users", "list", params],
     },
   },
-}))
+}));
 
-vi.mock('@/shared/providers/pagination-provider', () => ({
+vi.mock("@/shared/providers/pagination-provider", () => ({
   usePaginationSettings: () => ({
     pageSize: 10,
     setPageSize: vi.fn(),
   }),
-}))
+}));
 
-vi.mock('@/shared/hooks/use-debounce', () => ({
+vi.mock("@/shared/hooks/use-debounce", () => ({
   useDebounce: (value: string) => value,
-}))
+}));
 
-vi.mock('@/shared/hooks/use-toast', () => ({
+vi.mock("@/shared/hooks/use-toast", () => ({
   useToast: () => ({
     toast: vi.fn(),
   }),
-}))
+}));
 
-vi.mock('@/shared/hooks/use-confirm', () => ({
+vi.mock("@/shared/hooks/use-confirm", () => ({
   useConfirm: () => vi.fn(() => Promise.resolve(true)),
-}))
+}));
 
-vi.mock('@/shared/hooks/use-translations', () => ({
+vi.mock("@/shared/hooks/use-translations", () => ({
   useTranslations: () => (key: string) => key,
-}))
+}));
 
 const createWrapper = () => {
   const queryClient = new QueryClient({
@@ -48,269 +48,269 @@ const createWrapper = () => {
         retry: false,
       },
     },
-  })
+  });
   return ({ children }: { children: React.ReactNode }) => (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-  )
-}
+  );
+};
 
-describe('useEntity', () => {
-  it('initializes with default values', () => {
+describe("useEntity", () => {
+  it("initializes with default values", () => {
     const listFn = vi.fn().mockResolvedValue({
       success: true,
       data: { items: [], total: 0, pages: 0 },
-    })
+    });
 
     const { result } = renderHook(
       () =>
         useEntity({
-          entityName: 'User',
-          translationNamespace: 'users',
-          queryKeyPrefix: 'users',
+          entityName: "User",
+          translationNamespace: "users",
+          queryKeyPrefix: "users",
           listFn,
-          defaultForm: { name: '' },
+          defaultForm: { name: "" },
           mapItem: (item: any) => item,
           toCreatePayload: (form: any) => form,
           toUpdatePayload: (form: any) => form,
           toForm: (item: any) => item,
         }),
       { wrapper: createWrapper() },
-    )
+    );
 
-    expect(result.current.items).toEqual([])
-    expect(result.current.currentPage).toBe(1)
-    expect(result.current.searchQuery).toBe('')
-    expect(result.current.isCreateDialogOpen).toBe(false)
-    expect(result.current.isEditDialogOpen).toBe(false)
-    expect(result.current.selectedItem).toBeNull()
-  })
+    expect(result.current.items).toEqual([]);
+    expect(result.current.currentPage).toBe(1);
+    expect(result.current.searchQuery).toBe("");
+    expect(result.current.isCreateDialogOpen).toBe(false);
+    expect(result.current.isEditDialogOpen).toBe(false);
+    expect(result.current.selectedItem).toBeNull();
+  });
 
-  it('sets search query', () => {
+  it("sets search query", () => {
     const listFn = vi.fn().mockResolvedValue({
       success: true,
       data: { items: [], total: 0, pages: 0 },
-    })
+    });
 
     const { result } = renderHook(
       () =>
         useEntity({
-          entityName: 'User',
-          queryKeyPrefix: 'users',
+          entityName: "User",
+          queryKeyPrefix: "users",
           listFn,
-          defaultForm: { name: '' },
+          defaultForm: { name: "" },
           mapItem: (item: any) => item,
           toCreatePayload: (form: any) => form,
           toUpdatePayload: (form: any) => form,
           toForm: (item: any) => item,
         }),
       { wrapper: createWrapper() },
-    )
+    );
 
     act(() => {
-      result.current.setSearchQuery('test')
-    })
+      result.current.setSearchQuery("test");
+    });
 
-    expect(result.current.searchQuery).toBe('test')
-  })
+    expect(result.current.searchQuery).toBe("test");
+  });
 
-  it('sets current page', () => {
+  it("sets current page", () => {
     const listFn = vi.fn().mockResolvedValue({
       success: true,
       data: { items: [], total: 0, pages: 0 },
-    })
+    });
 
     const { result } = renderHook(
       () =>
         useEntity({
-          entityName: 'User',
-          queryKeyPrefix: 'users',
+          entityName: "User",
+          queryKeyPrefix: "users",
           listFn,
-          defaultForm: { name: '' },
+          defaultForm: { name: "" },
           mapItem: (item: any) => item,
           toCreatePayload: (form: any) => form,
           toUpdatePayload: (form: any) => form,
           toForm: (item: any) => item,
         }),
       { wrapper: createWrapper() },
-    )
+    );
 
     act(() => {
-      result.current.setCurrentPage(5)
-    })
+      result.current.setCurrentPage(5);
+    });
 
-    expect(result.current.currentPage).toBe(5)
-  })
+    expect(result.current.currentPage).toBe(5);
+  });
 
-  it('opens and closes create dialog', () => {
+  it("opens and closes create dialog", () => {
     const listFn = vi.fn().mockResolvedValue({
       success: true,
       data: { items: [], total: 0, pages: 0 },
-    })
+    });
 
     const { result } = renderHook(
       () =>
         useEntity({
-          entityName: 'User',
-          queryKeyPrefix: 'users',
+          entityName: "User",
+          queryKeyPrefix: "users",
           listFn,
-          defaultForm: { name: '' },
+          defaultForm: { name: "" },
           mapItem: (item: any) => item,
           toCreatePayload: (form: any) => form,
           toUpdatePayload: (form: any) => form,
           toForm: (item: any) => item,
         }),
       { wrapper: createWrapper() },
-    )
+    );
 
     act(() => {
-      result.current.setIsCreateDialogOpen(true)
-    })
+      result.current.setIsCreateDialogOpen(true);
+    });
 
-    expect(result.current.isCreateDialogOpen).toBe(true)
+    expect(result.current.isCreateDialogOpen).toBe(true);
 
     act(() => {
-      result.current.setIsCreateDialogOpen(false)
-    })
+      result.current.setIsCreateDialogOpen(false);
+    });
 
-    expect(result.current.isCreateDialogOpen).toBe(false)
-  })
+    expect(result.current.isCreateDialogOpen).toBe(false);
+  });
 
-  it('opens and closes edit dialog', () => {
+  it("opens and closes edit dialog", () => {
     const listFn = vi.fn().mockResolvedValue({
       success: true,
       data: { items: [], total: 0, pages: 0 },
-    })
+    });
 
     const { result } = renderHook(
       () =>
         useEntity({
-          entityName: 'User',
-          queryKeyPrefix: 'users',
+          entityName: "User",
+          queryKeyPrefix: "users",
           listFn,
-          defaultForm: { name: '' },
+          defaultForm: { name: "" },
           mapItem: (item: any) => item,
           toCreatePayload: (form: any) => form,
           toUpdatePayload: (form: any) => form,
           toForm: (item: any) => item,
         }),
       { wrapper: createWrapper() },
-    )
+    );
 
     act(() => {
-      result.current.setIsEditDialogOpen(true)
-    })
+      result.current.setIsEditDialogOpen(true);
+    });
 
-    expect(result.current.isEditDialogOpen).toBe(true)
+    expect(result.current.isEditDialogOpen).toBe(true);
 
     act(() => {
-      result.current.setIsEditDialogOpen(false)
-    })
+      result.current.setIsEditDialogOpen(false);
+    });
 
-    expect(result.current.isEditDialogOpen).toBe(false)
-  })
+    expect(result.current.isEditDialogOpen).toBe(false);
+  });
 
-  it('sets selected item', () => {
+  it("sets selected item", () => {
     const listFn = vi.fn().mockResolvedValue({
       success: true,
       data: { items: [], total: 0, pages: 0 },
-    })
+    });
 
     const { result } = renderHook(
       () =>
         useEntity({
-          entityName: 'User',
-          queryKeyPrefix: 'users',
+          entityName: "User",
+          queryKeyPrefix: "users",
           listFn,
-          defaultForm: { name: '' },
+          defaultForm: { name: "" },
           mapItem: (item: any) => item,
           toCreatePayload: (form: any) => form,
           toUpdatePayload: (form: any) => form,
           toForm: (item: any) => item,
         }),
       { wrapper: createWrapper() },
-    )
+    );
 
-    const item = { id: 1, name: 'Test' }
+    const item = { id: 1, name: "Test" };
 
     act(() => {
-      result.current.setSelectedItem(item)
-    })
+      result.current.setSelectedItem(item);
+    });
 
-    expect(result.current.selectedItem).toEqual(item)
-  })
+    expect(result.current.selectedItem).toEqual(item);
+  });
 
-  it('updates form field', () => {
+  it("updates form field", () => {
     const listFn = vi.fn().mockResolvedValue({
       success: true,
       data: { items: [], total: 0, pages: 0 },
-    })
+    });
 
     const { result } = renderHook(
       () =>
         useEntity({
-          entityName: 'User',
-          queryKeyPrefix: 'users',
+          entityName: "User",
+          queryKeyPrefix: "users",
           listFn,
-          defaultForm: { name: '', email: '' },
+          defaultForm: { name: "", email: "" },
           mapItem: (item: any) => item,
           toCreatePayload: (form: any) => form,
           toUpdatePayload: (form: any) => form,
           toForm: (item: any) => item,
         }),
       { wrapper: createWrapper() },
-    )
+    );
 
     act(() => {
-      result.current.updateFormField('name', 'Test User')
-    })
+      result.current.updateFormField("name", "Test User");
+    });
 
-    expect(result.current.formData.name).toBe('Test User')
-  })
+    expect(result.current.formData.name).toBe("Test User");
+  });
 
-  it('resets form', () => {
+  it("resets form", () => {
     const listFn = vi.fn().mockResolvedValue({
       success: true,
       data: { items: [], total: 0, pages: 0 },
-    })
+    });
 
     const { result } = renderHook(
       () =>
         useEntity({
-          entityName: 'User',
-          queryKeyPrefix: 'users',
+          entityName: "User",
+          queryKeyPrefix: "users",
           listFn,
-          defaultForm: { name: '' },
+          defaultForm: { name: "" },
           mapItem: (item: any) => item,
           toCreatePayload: (form: any) => form,
           toUpdatePayload: (form: any) => form,
           toForm: (item: any) => item,
         }),
       { wrapper: createWrapper() },
-    )
+    );
 
     act(() => {
-      result.current.setFormData({ name: 'Changed' })
-      result.current.setSelectedItem({ id: 1 } as any)
-      result.current.resetForm()
-    })
+      result.current.setFormData({ name: "Changed" });
+      result.current.setSelectedItem({ id: 1 } as any);
+      result.current.resetForm();
+    });
 
-    expect(result.current.formData).toEqual({ name: '' })
-    expect(result.current.selectedItem).toBeNull()
-  })
+    expect(result.current.formData).toEqual({ name: "" });
+    expect(result.current.selectedItem).toBeNull();
+  });
 
-  it('updates extended state', () => {
+  it("updates extended state", () => {
     const listFn = vi.fn().mockResolvedValue({
       success: true,
       data: { items: [], total: 0, pages: 0 },
-    })
+    });
 
     const { result } = renderHook(
       () =>
         useEntity({
-          entityName: 'User',
-          queryKeyPrefix: 'users',
+          entityName: "User",
+          queryKeyPrefix: "users",
           listFn,
-          defaultForm: { name: '' },
+          defaultForm: { name: "" },
           defaultExtendedState: { attachments: [] },
           mapItem: (item: any) => item,
           toCreatePayload: (form: any) => form,
@@ -318,60 +318,60 @@ describe('useEntity', () => {
           toForm: (item: any) => item,
         }),
       { wrapper: createWrapper() },
-    )
+    );
 
     act(() => {
-      result.current.setExtendedState((prev: any) => ({ ...prev, attachments: ['file.pdf'] }))
-    })
+      result.current.setExtendedState((prev: any) => ({ ...prev, attachments: ["file.pdf"] }));
+    });
 
-    expect(result.current.extendedState.attachments).toEqual(['file.pdf'])
-  })
+    expect(result.current.extendedState.attachments).toEqual(["file.pdf"]);
+  });
 
-  it('opens edit dialog with item data', () => {
+  it("opens edit dialog with item data", () => {
     const listFn = vi.fn().mockResolvedValue({
       success: true,
       data: { items: [], total: 0, pages: 0 },
-    })
+    });
 
     const { result } = renderHook(
       () =>
         useEntity({
-          entityName: 'User',
-          queryKeyPrefix: 'users',
+          entityName: "User",
+          queryKeyPrefix: "users",
           listFn,
-          defaultForm: { name: '' },
+          defaultForm: { name: "" },
           mapItem: (item: any) => item,
           toCreatePayload: (form: any) => form,
           toUpdatePayload: (form: any) => form,
           toForm: (item: any) => item,
         }),
       { wrapper: createWrapper() },
-    )
+    );
 
-    const item = { id: 1, name: 'Test User' }
+    const item = { id: 1, name: "Test User" };
 
     act(() => {
-      result.current.openEditDialog(item)
-    })
+      result.current.openEditDialog(item);
+    });
 
-    expect(result.current.selectedItem).toEqual(item)
-    expect(result.current.formData).toEqual(item)
-    expect(result.current.isEditDialogOpen).toBe(true)
-  })
+    expect(result.current.selectedItem).toEqual(item);
+    expect(result.current.formData).toEqual(item);
+    expect(result.current.isEditDialogOpen).toBe(true);
+  });
 
-  it('handles sorting', () => {
+  it("handles sorting", () => {
     const listFn = vi.fn().mockResolvedValue({
       success: true,
       data: { items: [], total: 0, pages: 0 },
-    })
+    });
 
     const { result } = renderHook(
       () =>
         useEntity({
-          entityName: 'User',
-          queryKeyPrefix: 'users',
+          entityName: "User",
+          queryKeyPrefix: "users",
           listFn,
-          defaultForm: { name: '' },
+          defaultForm: { name: "" },
           sortable: true,
           mapItem: (item: any) => item,
           toCreatePayload: (form: any) => form,
@@ -379,83 +379,140 @@ describe('useEntity', () => {
           toForm: (item: any) => item,
         }),
       { wrapper: createWrapper() },
-    )
+    );
 
     act(() => {
-      result.current.toggleSort('name')
-    })
+      result.current.toggleSort("name");
+    });
 
-    expect(result.current.sortField).toBe('name')
-    expect(result.current.sortDirection).toBe('desc')
+    expect(result.current.sortField).toBe("name");
+    expect(result.current.sortDirection).toBe("desc");
 
     act(() => {
-      result.current.clearSort()
-    })
+      result.current.clearSort();
+    });
 
-    expect(result.current.sortField).toBeNull()
-  })
+    expect(result.current.sortField).toBeNull();
+  });
 
-  it('handles filters', () => {
+  it("handles filters", () => {
     const listFn = vi.fn().mockResolvedValue({
       success: true,
       data: { items: [], total: 0, pages: 0 },
-    })
+    });
 
     const { result } = renderHook(
       () =>
         useEntity({
-          entityName: 'User',
-          queryKeyPrefix: 'users',
+          entityName: "User",
+          queryKeyPrefix: "users",
           listFn,
-          defaultForm: { name: '' },
-          filters: [{ name: 'status', defaultValue: 'ALL' }],
+          defaultForm: { name: "" },
+          filters: [{ name: "status", defaultValue: "ALL" }],
           mapItem: (item: any) => item,
           toCreatePayload: (form: any) => form,
           toUpdatePayload: (form: any) => form,
           toForm: (item: any) => item,
         }),
       { wrapper: createWrapper() },
-    )
+    );
 
     act(() => {
-      result.current.setFilterValue('status', 'active')
-    })
+      result.current.setFilterValue("status", "active");
+    });
 
-    expect(result.current.filterValues.status).toBe('active')
+    expect(result.current.filterValues.status).toBe("active");
 
     act(() => {
-      result.current.resetFilters()
-    })
+      result.current.resetFilters();
+    });
 
-    expect(result.current.filterValues.status).toBe('ALL')
-  })
+    expect(result.current.filterValues.status).toBe("ALL");
+  });
 
-  it('invalidates queries', () => {
+  it("invalidates queries", () => {
     const listFn = vi.fn().mockResolvedValue({
       success: true,
       data: { items: [], total: 0, pages: 0 },
-    })
+    });
 
     const { result } = renderHook(
       () =>
         useEntity({
-          entityName: 'User',
-          queryKeyPrefix: 'users',
+          entityName: "User",
+          queryKeyPrefix: "users",
           listFn,
-          defaultForm: { name: '' },
+          defaultForm: { name: "" },
           mapItem: (item: any) => item,
           toCreatePayload: (form: any) => form,
           toUpdatePayload: (form: any) => form,
           toForm: (item: any) => item,
         }),
       { wrapper: createWrapper() },
-    )
+    );
 
     act(() => {
-      result.current.invalidate()
-    })
+      result.current.invalidate();
+    });
 
     // Should not throw
-    expect(result.current.invalidate).toBeDefined()
-  })
-})
+    expect(result.current.invalidate).toBeDefined();
+  });
+
+  it("runs custom mutations and confirmed deletes", async () => {
+    const deleteFn = vi.fn().mockResolvedValue({ success: true, data: {} });
+    const customAction = vi.fn((_extendedState: { notes: never[] }) => "done");
+    const listFn = vi.fn().mockResolvedValue({
+      success: true,
+      data: { items: [], total: 0, pages: 0 },
+    });
+
+    const { result } = renderHook(
+      () =>
+        useEntity({
+          entityName: "User",
+          entityLabelKey: "user",
+          queryKeyPrefix: "users",
+          listFn,
+          deleteFn,
+          defaultForm: { name: "" },
+          defaultExtendedState: { notes: [] },
+          labels: {
+            deleteConfirmTitle: "Remove user",
+            deleteConfirmDescription: "Remove this user?",
+          },
+          filters: [
+            {
+              name: "status",
+              paramName: "state",
+              defaultValue: "ALL",
+              transform: (value) => value.toUpperCase(),
+            },
+          ],
+          sortable: true,
+          mapItem: (item: any) => item,
+          toCreatePayload: (form: any) => form,
+          toUpdatePayload: (form: any) => form,
+          toForm: (item: any) => item,
+          customMutations: (context) => ({
+            customAction: () => customAction(context.extendedState),
+          }),
+        }),
+      { wrapper: createWrapper() },
+    );
+
+    act(() => {
+      result.current.setSearchQuery("");
+      result.current.setFilterValue("status", "active");
+    });
+
+    expect(result.current.customMutations.customAction()).toBe("done");
+    expect(customAction).toHaveBeenCalledWith({ notes: [] });
+
+    await act(async () => {
+      await result.current.handleDelete(1);
+    });
+
+    expect(deleteFn).toHaveBeenCalledWith(1);
+  });
+});

@@ -7,7 +7,7 @@ from typing import Annotated
 from fastapi import APIRouter, File, Form, HTTPException, Query, UploadFile, status
 from fastapi.responses import RedirectResponse
 
-from checklists_service.api.deps import CurrentUser, HRUser, UOWDep
+from checklists_service.api.deps import AuthToken, CurrentUser, HRUser, UOWDep
 from checklists_service.config import settings
 from checklists_service.core import NotFoundException, PermissionDenied, ValidationException
 from checklists_service.core.enums import TaskStatus
@@ -178,9 +178,10 @@ async def update_task(
     task_data: TaskUpdate,
     uow: UOWDep,
     current_user: CurrentUser,
+    auth_token: AuthToken = None,
 ) -> TaskResponse:
     """Update task."""
-    task_service = TaskService(uow)
+    task_service = TaskService(uow, auth_token, notifications_enabled=True)
     checklist_service = ChecklistService(uow)
 
     try:
@@ -211,9 +212,10 @@ async def update_task_progress(
     progress_data: TaskProgress,
     uow: UOWDep,
     current_user: CurrentUser,
+    auth_token: AuthToken = None,
 ) -> TaskResponse:
     """Update task progress."""
-    task_service = TaskService(uow)
+    task_service = TaskService(uow, auth_token, notifications_enabled=True)
 
     try:
         task = await task_service.get_task(task_id)
@@ -241,10 +243,11 @@ async def complete_task(
     task_id: int,
     uow: UOWDep,
     current_user: CurrentUser,
+    auth_token: AuthToken = None,
     completion_notes: str | None = None,
 ) -> TaskResponse:
     """Mark task as completed."""
-    task_service = TaskService(uow)
+    task_service = TaskService(uow, auth_token, notifications_enabled=True)
 
     try:
         completed_task = await task_service.complete_task(task_id, current_user.id, completion_notes)
@@ -265,9 +268,10 @@ async def bulk_update_tasks(
     bulk_data: TaskBulkUpdate,
     uow: UOWDep,
     _current_user: HRUser,
+    auth_token: AuthToken = None,
 ) -> MessageResponse:
     """Bulk update tasks (HR/admin only)."""
-    task_service = TaskService(uow)
+    task_service = TaskService(uow, auth_token, notifications_enabled=True)
 
     try:
         await task_service.bulk_update_tasks(bulk_data)

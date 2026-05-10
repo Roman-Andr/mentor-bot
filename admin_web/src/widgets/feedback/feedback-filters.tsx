@@ -25,7 +25,7 @@ export function FeedbackFilters({
   const anonymityOptions = getAnonymityOptions(t);
 
   return (
-    <div className="flex flex-col gap-2 w-full sm:flex-row sm:items-center sm:flex-wrap">
+    <div className="flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
       <Select
         value={typeFilter}
         onChange={(value) => onTypeFilterChange(value as FeedbackType | "all")}

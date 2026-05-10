@@ -46,10 +46,8 @@ export const usersApi = {
     fetchApi<{ message: string }>(`/api/v1/users/${id}`, {
       method: "DELETE",
     }),
-  getPreferences: (id: number) =>
-    fetchApi<UserPreferences>(`/api/v1/users/${id}/preferences`),
-  getMyPreferences: () =>
-    fetchApi<UserPreferences>("/api/v1/users/me/preferences"),
+  getPreferences: (id: number) => fetchApi<UserPreferences>(`/api/v1/users/${id}/preferences`),
+  getMyPreferences: () => fetchApi<UserPreferences>("/api/v1/users/me/preferences"),
   updateMyPreferences: (data: UserPreferencesUpdate) =>
     fetchApi<UserPreferences>("/api/v1/users/me/preferences", {
       method: "PUT",

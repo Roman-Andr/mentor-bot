@@ -9,7 +9,14 @@ import { TabSwitcher } from "@/shared/ui/tab-switcher";
 import { api } from "@/shared/lib/api";
 import { queryKeys } from "@/shared/lib/query-keys";
 import { logger } from "@/shared/lib/logger";
-import type { ChecklistStats, SearchSummary, TopQueryStats, ZeroResultQuery, DepartmentSearchStats, SearchTimeseriesPoint } from "@/shared/types";
+import type {
+  ChecklistStats,
+  SearchSummary,
+  TopQueryStats,
+  ZeroResultQuery,
+  DepartmentSearchStats,
+  SearchTimeseriesPoint,
+} from "@/shared/types";
 import { PageContent } from "@/shared/layout/page-content";
 import { AnalyticsStats } from "@/widgets/analytics/analytics-stats";
 import { MonthlyChart } from "@/widgets/analytics/monthly-chart";
@@ -43,8 +50,12 @@ export function AnalyticsWidget() {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<ChecklistStats | null>(null);
   const [userCount, setUserCount] = useState(0);
-  const [monthlyData, setMonthlyData] = useState<Array<{ month: string; newUsers: number; completed: number }>>([]);
-  const [completionTimeData, setCompletionTimeData] = useState<Array<{ range: string; count: number }>>([]);
+  const [monthlyData, setMonthlyData] = useState<
+    Array<{ month: string; newUsers: number; completed: number }>
+  >([]);
+  const [completionTimeData, setCompletionTimeData] = useState<
+    Array<{ range: string; count: number }>
+  >([]);
   const [departmentMap, setDepartmentMap] = useState<Record<string, string>>({});
 
   // Initialize knowledge filters from URL
@@ -52,7 +63,9 @@ export function AnalyticsWidget() {
     from_date: searchParams.get("k_from_date") ?? undefined,
     to_date: searchParams.get("k_to_date") ?? undefined,
   }));
-  const [granularity, setGranularity] = useState<"day" | "week">(() => (searchParams.get("k_granularity") as "day" | "week") ?? "day");
+  const [granularity, setGranularity] = useState<"day" | "week">(
+    () => (searchParams.get("k_granularity") as "day" | "week") ?? "day",
+  );
 
   const tabs: TabItem[] = [
     { id: "onboarding", label: t("analytics.onboardingTab"), icon: BarChart3 },
@@ -67,83 +80,104 @@ export function AnalyticsWidget() {
   const [searchZeroResults, setSearchZeroResults] = useState<ZeroResultQuery[]>([]);
   const [searchByDepartment, setSearchByDepartment] = useState<DepartmentSearchStats[]>([]);
   const [searchTimeseries, setSearchTimeseries] = useState<SearchTimeseriesPoint[]>([]);
-  const [searchFilters, setSearchFilters] = useState<{ from_date?: string; to_date?: string; department_id?: number }>(() => ({
+  const [searchFilters, setSearchFilters] = useState<{
+    from_date?: string;
+    to_date?: string;
+    department_id?: number;
+  }>(() => ({
     from_date: searchParams.get("s_from_date") ?? undefined,
     to_date: searchParams.get("s_to_date") ?? undefined,
-    department_id: searchParams.get("s_department_id") ? parseInt(searchParams.get("s_department_id")!, 10) : undefined,
+    department_id: searchParams.get("s_department_id")
+      ? parseInt(searchParams.get("s_department_id")!, 10)
+      : undefined,
   }));
   const [searchLoading, setSearchLoading] = useState(false);
 
   // URL-aware setters for knowledge filters
-  const setDateRangeWithUrl = useCallback((newDateRange: { from_date?: string; to_date?: string }) => {
-    setDateRange(newDateRange);
-    const params = new URLSearchParams(searchParams.toString());
-    if (newDateRange.from_date) {
-      params.set("k_from_date", newDateRange.from_date);
-    } else {
-      params.delete("k_from_date");
-    }
-    if (newDateRange.to_date) {
-      params.set("k_to_date", newDateRange.to_date);
-    } else {
-      params.delete("k_to_date");
-    }
-    router.push(`?${params.toString()}`, { scroll: false });
-  }, [searchParams, router]);
+  const setDateRangeWithUrl = useCallback(
+    (newDateRange: { from_date?: string; to_date?: string }) => {
+      setDateRange(newDateRange);
+      const params = new URLSearchParams(searchParams.toString());
+      if (newDateRange.from_date) {
+        params.set("k_from_date", newDateRange.from_date);
+      } else {
+        params.delete("k_from_date");
+      }
+      if (newDateRange.to_date) {
+        params.set("k_to_date", newDateRange.to_date);
+      } else {
+        params.delete("k_to_date");
+      }
+      router.push(`?${params.toString()}`, { scroll: false });
+    },
+    [searchParams, router],
+  );
 
-  const setGranularityWithUrl = useCallback((newGranularity: "day" | "week") => {
-    setGranularity(newGranularity);
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("k_granularity", newGranularity);
-    router.push(`?${params.toString()}`, { scroll: false });
-  }, [searchParams, router]);
+  const setGranularityWithUrl = useCallback(
+    (newGranularity: "day" | "week") => {
+      setGranularity(newGranularity);
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("k_granularity", newGranularity);
+      router.push(`?${params.toString()}`, { scroll: false });
+    },
+    [searchParams, router],
+  );
 
   // URL-aware setter for search filters
-  const setSearchFiltersWithUrl = useCallback((newFilters: { from_date?: string; to_date?: string; department_id?: number }) => {
-    setSearchFilters(newFilters);
-    const params = new URLSearchParams(searchParams.toString());
-    if (newFilters.from_date) {
-      params.set("s_from_date", newFilters.from_date);
-    } else {
-      params.delete("s_from_date");
-    }
-    if (newFilters.to_date) {
-      params.set("s_to_date", newFilters.to_date);
-    } else {
-      params.delete("s_to_date");
-    }
-    if (newFilters.department_id) {
-      params.set("s_department_id", newFilters.department_id.toString());
-    } else {
-      params.delete("s_department_id");
-    }
-    router.push(`?${params.toString()}`, { scroll: false });
-  }, [searchParams, router]);
+  const setSearchFiltersWithUrl = useCallback(
+    (newFilters: { from_date?: string; to_date?: string; department_id?: number }) => {
+      setSearchFilters(newFilters);
+      const params = new URLSearchParams(searchParams.toString());
+      if (newFilters.from_date) {
+        params.set("s_from_date", newFilters.from_date);
+      } else {
+        params.delete("s_from_date");
+      }
+      if (newFilters.to_date) {
+        params.set("s_to_date", newFilters.to_date);
+      } else {
+        params.delete("s_to_date");
+      }
+      if (newFilters.department_id) {
+        params.set("s_department_id", newFilters.department_id.toString());
+      } else {
+        params.delete("s_department_id");
+      }
+      router.push(`?${params.toString()}`, { scroll: false });
+    },
+    [searchParams, router],
+  );
 
   useEffect(() => {
     async function loadOnboardingData() {
       try {
-        const [statsResult, usersResult, monthlyResult, completionResult, deptResult] = await Promise.all([
-          api.analytics.checklistStats(),
-          api.users.list({ limit: 1 }),
-          api.analytics.monthlyStats(),
-          api.analytics.completionTimeStats(),
-          departmentsApi.list({ limit: 1000 }),
-        ]);
+        const [statsResult, usersResult, monthlyResult, completionResult, deptResult] =
+          await Promise.all([
+            api.analytics.checklistStats(),
+            api.users.list({ limit: 1 }),
+            api.analytics.monthlyStats(),
+            api.analytics.completionTimeStats(),
+            departmentsApi.list({ limit: 1000 }),
+          ]);
 
         if (statsResult.success && statsResult.data) setStats(statsResult.data);
         if (usersResult.success && usersResult.data) setUserCount(usersResult.data.total);
         if (monthlyResult.success && monthlyResult.data) {
-          setMonthlyData(monthlyResult.data.map((m: any) => ({
-            month: m.month,
-            newUsers: m.new_checklists,
-            completed: m.completed,
-          })));
+          setMonthlyData(
+            monthlyResult.data.map((m: any) => ({
+              month: m.month,
+              newUsers: m.new_checklists,
+              completed: m.completed,
+            })),
+          );
         }
-        if (completionResult.success && completionResult.data) setCompletionTimeData(completionResult.data);
+        if (completionResult.success && completionResult.data)
+          setCompletionTimeData(completionResult.data);
         if (deptResult.success && deptResult.data?.departments) {
           const map: Record<string, string> = {};
-          deptResult.data.departments.forEach((dept: any) => { map[String(dept.id)] = dept.name; });
+          deptResult.data.departments.forEach((dept: any) => {
+            map[String(dept.id)] = dept.name;
+          });
           setDepartmentMap(map);
         }
       } catch (err) {
@@ -157,47 +191,69 @@ export function AnalyticsWidget() {
 
   const { data: knowledgeSummary, isLoading: summaryLoading } = useQuery({
     queryKey: queryKeys.analytics.knowledge.summary(dateRange),
-    queryFn: async () => { const r = await api.analytics.knowledge.summary(dateRange); return r.success ? r.data : null; },
+    queryFn: async () => {
+      const r = await api.analytics.knowledge.summary(dateRange);
+      return r.success ? r.data : null;
+    },
     enabled: activeTab === "knowledge",
     staleTime: 60000,
   });
 
   const { data: topArticles, isLoading: topArticlesLoading } = useQuery({
     queryKey: queryKeys.analytics.knowledge.topArticles({ ...dateRange, limit: 10 }),
-    queryFn: async () => { const r = await api.analytics.knowledge.topArticles({ ...dateRange, limit: 10 }); return r.success ? r.data : []; },
+    queryFn: async () => {
+      const r = await api.analytics.knowledge.topArticles({ ...dateRange, limit: 10 });
+      return r.success ? r.data : [];
+    },
     enabled: activeTab === "knowledge",
     staleTime: 60000,
   });
 
   const { data: timeseriesData, isLoading: timeseriesLoading } = useQuery({
     queryKey: queryKeys.analytics.knowledge.timeseries({ ...dateRange, granularity }),
-    queryFn: async () => { const r = await api.analytics.knowledge.timeseries(dateRange); return r.success ? r.data : []; },
+    queryFn: async () => {
+      const r = await api.analytics.knowledge.timeseries(dateRange);
+      return r.success ? r.data : [];
+    },
     enabled: activeTab === "knowledge",
     staleTime: 60000,
   });
 
   const { data: categoryData, isLoading: categoryLoading } = useQuery({
     queryKey: queryKeys.analytics.knowledge.byCategory(dateRange),
-    queryFn: async () => { const r = await api.analytics.knowledge.byCategory(dateRange); return r.success ? r.data : []; },
+    queryFn: async () => {
+      const r = await api.analytics.knowledge.byCategory(dateRange);
+      return r.success ? r.data : [];
+    },
     enabled: activeTab === "knowledge",
     staleTime: 60000,
   });
 
   const { data: tagData, isLoading: tagLoading } = useQuery({
     queryKey: queryKeys.analytics.knowledge.byTag(dateRange),
-    queryFn: async () => { const r = await api.analytics.knowledge.byTag(dateRange); return r.success ? r.data : []; },
+    queryFn: async () => {
+      const r = await api.analytics.knowledge.byTag(dateRange);
+      return r.success ? r.data : [];
+    },
     enabled: activeTab === "knowledge",
     staleTime: 60000,
   });
 
-  const knowledgeLoading = summaryLoading || topArticlesLoading || timeseriesLoading || categoryLoading || tagLoading;
+  const knowledgeLoading =
+    summaryLoading || topArticlesLoading || timeseriesLoading || categoryLoading || tagLoading;
 
   useEffect(() => {
     async function loadSearchData() {
       if (activeTab !== "search") return;
       setSearchLoading(true);
       try {
-        const [summaryResult, topQueriesResult, zeroResultsResult, byDepartmentResult, timeseriesResult] = await Promise.all([
+        const [
+          summaryResult,
+          topQueriesResult,
+          zeroResultsResult,
+          byDepartmentResult,
+          timeseriesResult,
+        ] = await Promise.all([
           api.analytics.search.summary(searchFilters),
           api.analytics.search.topQueries({ ...searchFilters, limit: 20 }),
           api.analytics.search.zeroResults({ ...searchFilters, limit: 20 }),
@@ -206,10 +262,14 @@ export function AnalyticsWidget() {
         ]);
 
         if (summaryResult.success && summaryResult.data) setSearchSummary(summaryResult.data);
-        if (topQueriesResult.success && topQueriesResult.data) setSearchTopQueries(topQueriesResult.data);
-        if (zeroResultsResult.success && zeroResultsResult.data) setSearchZeroResults(zeroResultsResult.data);
-        if (byDepartmentResult.success && byDepartmentResult.data) setSearchByDepartment(byDepartmentResult.data);
-        if (timeseriesResult.success && timeseriesResult.data) setSearchTimeseries(timeseriesResult.data);
+        if (topQueriesResult.success && topQueriesResult.data)
+          setSearchTopQueries(topQueriesResult.data);
+        if (zeroResultsResult.success && zeroResultsResult.data)
+          setSearchZeroResults(zeroResultsResult.data);
+        if (byDepartmentResult.success && byDepartmentResult.data)
+          setSearchByDepartment(byDepartmentResult.data);
+        if (timeseriesResult.success && timeseriesResult.data)
+          setSearchTimeseries(timeseriesResult.data);
       } catch (err) {
         logger.error("Failed to load search analytics", { error: err });
       } finally {
@@ -219,16 +279,29 @@ export function AnalyticsWidget() {
     loadSearchData();
   }, [activeTab, searchFilters]);
 
-  const departmentData = useMemo(() =>
-    stats?.by_department
-      ? Object.entries(stats.by_department)
-          .filter(([id]) => id !== "None" && id !== "null")
-          .map(([id, value], index) => {
-            const colors = ["#3b82f6", "#8b5cf6", "#22c55e", "#f97316", "#ec4899", "#06b6d4", "#eab308"];
-            return { name: departmentMap[id] || `Department ${id}`, value, color: colors[index % colors.length] };
-          })
-      : [],
-    [stats, departmentMap]
+  const departmentData = useMemo(
+    () =>
+      stats?.by_department
+        ? Object.entries(stats.by_department)
+            .filter(([id]) => id !== "None" && id !== "null")
+            .map(([id, value], index) => {
+              const colors = [
+                "#3b82f6",
+                "#8b5cf6",
+                "#22c55e",
+                "#f97316",
+                "#ec4899",
+                "#06b6d4",
+                "#eab308",
+              ];
+              return {
+                name: departmentMap[id] || `Department ${id}`,
+                value,
+                color: colors[index % colors.length],
+              };
+            })
+        : [],
+    [stats, departmentMap],
   );
 
   const handleExport = async () => {
@@ -236,14 +309,19 @@ export function AnalyticsWidget() {
       const events = await api.audit.fetchAll({}, 10000);
       const rows = [
         ["timestamp", "source", "event_type", "actor", "subject", "resource", "summary"],
-        ...events.map(e => [
-          e.timestamp, e.source, e.event_type,
-          String(e.actor_id || ""), String(e.subject_user_id || ""),
+        ...events.map((e) => [
+          e.timestamp,
+          e.source,
+          e.event_type,
+          String(e.actor_id || ""),
+          String(e.subject_user_id || ""),
           e.resource_type && e.resource_id ? `${e.resource_type}#${e.resource_id}` : "",
           e.summary,
         ]),
       ];
-      const blob = new Blob(["﻿" + rows.map(r => r.join(",")).join("\n")], { type: "text/csv;charset=utf-8;" });
+      const blob = new Blob(["﻿" + rows.map((r) => r.join(",")).join("\n")], {
+        type: "text/csv;charset=utf-8;",
+      });
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
       link.download = "audit_history_export.csv";
@@ -259,7 +337,9 @@ export function AnalyticsWidget() {
       [t("analytics.averageTime"), String(Math.round(stats?.avg_completion_days || 0))],
       [t("analytics.completionRate"), String(Math.round(stats?.completion_rate || 0))],
     ];
-    const blob = new Blob(["﻿" + rows.map(r => r.join(",")).join("\n")], { type: "text/csv;charset=utf-8;" });
+    const blob = new Blob(["﻿" + rows.map((r) => r.join(",")).join("\n")], {
+      type: "text/csv;charset=utf-8;",
+    });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
     link.download = "analytics_export.csv";
@@ -280,7 +360,11 @@ export function AnalyticsWidget() {
       subtitle={t("analytics.overview")}
       actions={
         <div className="flex items-center gap-2">
-          <PDFExportButton data={{ stats, userCount, monthlyData, completionTimeData, departmentData }} variant="outline" size="default" />
+          <PDFExportButton
+            data={{ stats, userCount, monthlyData, completionTimeData, departmentData }}
+            variant="outline"
+            size="default"
+          />
           <Button onClick={handleExport}>
             <Download className="mr-2 h-4 w-4" />
             CSV
@@ -294,11 +378,11 @@ export function AnalyticsWidget() {
         {activeTab === "onboarding" && (
           <>
             <AnalyticsStats stats={stats} userCount={userCount} />
-            <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               <MonthlyChart data={monthlyData} />
               <DepartmentChart data={departmentData} />
             </div>
-            <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               <CompletionTimeChart data={completionTimeData} />
               <ChecklistStatus stats={stats} />
             </div>
@@ -313,7 +397,7 @@ export function AnalyticsWidget() {
             ) : (
               <>
                 <KnowledgeSummaryCards summary={knowledgeSummary || null} />
-                <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -330,9 +414,13 @@ export function AnalyticsWidget() {
                       ))}
                     </TableBody>
                   </Table>
-                  <KnowledgeViewsTimeseries data={timeseriesData || []} onGranularityChange={setGranularityWithUrl} currentGranularity={granularity} />
+                  <KnowledgeViewsTimeseries
+                    data={timeseriesData || []}
+                    onGranularityChange={setGranularityWithUrl}
+                    currentGranularity={granularity}
+                  />
                 </div>
-                <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                   <KnowledgeViewsByCategory data={categoryData || []} />
                   <KnowledgeViewsByTag data={tagData || []} />
                 </div>
@@ -349,11 +437,11 @@ export function AnalyticsWidget() {
             ) : (
               <>
                 <SearchSummaryCards summary={searchSummary} />
-                <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                   <SearchTopQueriesTable data={searchTopQueries} />
                   <SearchZeroResultsTable data={searchZeroResults} />
                 </div>
-                <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                   <SearchTimeseriesChart data={searchTimeseries} />
                   <SearchByDepartmentChart data={searchByDepartment} />
                 </div>

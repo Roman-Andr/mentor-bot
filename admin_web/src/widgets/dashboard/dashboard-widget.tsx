@@ -17,7 +17,8 @@ import { DashboardHeader } from "@/widgets/dashboard/dashboard-header";
 
 export function DashboardWidget() {
   const t = useTranslations();
-  const { stats, progress, activity, departments, escalations, loading, error, refetch } = useDashboardData();
+  const { stats, progress, activity, departments, escalations, loading, error, refetch } =
+    useDashboardData();
 
   const statsData = useMemo(
     () => [
@@ -91,12 +92,12 @@ export function DashboardWidget() {
 
       <StatsCards statsData={statsData} />
 
-      <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-7">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-7">
         <OnboardingProgress progress={progress} href="/checklists?status=in_progress" />
         <ActivityFeed activity={activity} href="/analytics?tab=history" />
       </div>
 
-      <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <DepartmentBreakdown departments={departments} href="/users?tab=departments" />
         <CompletionRateCard stats={stats} href="/analytics?tab=completion" />
         <EscalationSummary escalations={escalations} />
@@ -104,7 +105,9 @@ export function DashboardWidget() {
 
       <div className="flex items-center justify-end gap-1.5 text-xs text-muted-foreground">
         <TrendingUp className="size-3" />
-        <span>{t("common.refresh")}: {new Date().toLocaleDateString()}</span>
+        <span>
+          {t("common.refresh")}: {new Date().toLocaleDateString()}
+        </span>
       </div>
     </div>
   );

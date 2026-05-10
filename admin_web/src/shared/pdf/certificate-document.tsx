@@ -189,7 +189,7 @@ export function CertificateDocument({
             <Text style={styles.achievement}>
               {translations.achievement.replace(
                 "{templateName}",
-                checklist.template_name || "Onboarding"
+                checklist.template_name || "Onboarding",
               )}
             </Text>
 

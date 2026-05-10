@@ -47,15 +47,16 @@ export function Select({
   }, []);
 
   return (
-    <div ref={containerRef} className={cn("relative inline-block min-w-[160px]", className)}>
+    <div ref={containerRef} className={cn("relative block w-full min-w-0", className)}>
       <button
         type="button"
         id={id}
+        title={selectedOption ? selectedOption.label : placeholderText}
         disabled={disabled}
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
           "flex h-9 w-full cursor-pointer items-center justify-between rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors",
-          "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+          "focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none",
           "disabled:cursor-not-allowed disabled:opacity-50",
           !selectedOption && "text-muted-foreground",
         )}
@@ -65,12 +66,13 @@ export function Select({
       </button>
 
       {isOpen && (
-        <div className="bg-popover text-popover-foreground absolute bottom-full z-50 mb-1 w-auto min-w-full rounded-md border shadow-md">
+        <div className="absolute bottom-full z-50 mb-1 w-auto min-w-full rounded-md border bg-popover text-popover-foreground shadow-md">
           <div className="max-h-60 overflow-y-auto p-1">
             {options.map((option) => (
               <button
                 key={option.value}
                 type="button"
+                title={option.label}
                 className={cn(
                   "flex w-full cursor-pointer items-center justify-between gap-2 rounded-sm px-2 py-1.5 text-sm transition-colors hover:bg-accent hover:text-accent-foreground",
                   option.value === value && "bg-accent text-accent-foreground",

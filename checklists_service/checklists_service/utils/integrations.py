@@ -124,6 +124,74 @@ class NotificationServiceClient:
         else:
             return None
 
+    async def schedule_template_notification(
+        self,
+        *,
+        template_name: str,
+        user_id: int,
+        variables: dict[str, Any],
+        channel: str,
+        scheduled_time: str,
+        notification_type: str,
+        recipient_telegram_id: int | None = None,
+        recipient_email: str | None = None,
+        language: str = "en",
+        data: dict[str, Any] | None = None,
+    ) -> dict[str, Any] | None:
+        """Schedule a template notification through the internal notification API."""
+        try:
+            response = await self.client.post(
+                "/api/v1/notifications/internal/schedule-template",
+                json={
+                    "template_name": template_name,
+                    "user_id": user_id,
+                    "variables": variables,
+                    "channel": channel,
+                    "scheduled_time": scheduled_time,
+                    "notification_type": notification_type,
+                    "recipient_telegram_id": recipient_telegram_id,
+                    "recipient_email": recipient_email,
+                    "language": language,
+                    "data": data or {},
+                },
+                headers={"X-Service-Api-Key": settings.SERVICE_API_KEY},
+            )
+            if response.status_code == status.HTTP_200_OK:
+                return response.json()
+            logger.error("Notification schedule-template error: %s", response.text)
+        except httpx.RequestError:
+            logger.exception("Failed to schedule template notification")
+        except Exception:
+            logger.exception("Template notification scheduling error")
+        return None
+
+    async def cancel_scheduled_notifications(
+        self,
+        *,
+        user_id: int,
+        notification_type: str,
+        data_match: dict[str, Any],
+    ) -> int:
+        """Cancel pending scheduled notifications through the internal notification API."""
+        try:
+            response = await self.client.post(
+                "/api/v1/notifications/internal/scheduled/cancel",
+                json={
+                    "user_id": user_id,
+                    "notification_type": notification_type,
+                    "data_match": data_match,
+                },
+                headers={"X-Service-Api-Key": settings.SERVICE_API_KEY},
+            )
+            if response.status_code == status.HTTP_200_OK:
+                return int(response.json().get("cancelled", 0))
+            logger.error("Notification scheduled-cancel error: %s", response.text)
+        except httpx.RequestError:
+            logger.exception("Failed to cancel scheduled notifications")
+        except Exception:
+            logger.exception("Scheduled notification cancellation error")
+        return 0
+
 
 # Singleton instances
 auth_service_client = AuthServiceClient()

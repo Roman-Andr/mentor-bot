@@ -16,9 +16,7 @@ export type ApiError = {
   code?: string;
 };
 
-export type ApiResult<T> =
-  | { success: true; data: T }
-  | { success: false; error: ApiError };
+export type ApiResult<T> = { success: true; data: T } | { success: false; error: ApiError };
 
 async function handleResponse<T>(response: Response): Promise<ApiResult<T>> {
   if (!response.ok) {
@@ -47,10 +45,7 @@ async function handleResponse<T>(response: Response): Promise<ApiResult<T>> {
   return { success: true, data };
 }
 
-export async function fetchApi<T>(
-  endpoint: string,
-  options?: RequestInit,
-): Promise<ApiResult<T>> {
+export async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<ApiResult<T>> {
   try {
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
@@ -73,10 +68,7 @@ export async function fetchApi<T>(
   }
 }
 
-export async function fetchUpload<T>(
-  endpoint: string,
-  formData: FormData,
-): Promise<ApiResult<T>> {
+export async function fetchUpload<T>(endpoint: string, formData: FormData): Promise<ApiResult<T>> {
   try {
     const response = await fetch(endpoint, {
       method: "POST",

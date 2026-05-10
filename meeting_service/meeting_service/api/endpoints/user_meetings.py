@@ -5,7 +5,7 @@ from typing import Annotated
 from fastapi import APIRouter, HTTPException, Query, status
 from loguru import logger
 
-from meeting_service.api.deps import CurrentUser, HRUser, UOWDep
+from meeting_service.api.deps import AuthToken, CurrentUser, HRUser, UOWDep, UserInfo
 from meeting_service.core import (
     ConflictException,
     NotFoundException,
@@ -30,6 +30,29 @@ def _to_response(um: UserMeeting) -> UserMeetingResponse:
     """Convert a UserMeeting ORM object to a response schema without triggering lazy loads."""
     data = {k: v for k, v in um.__dict__.items() if not k.startswith("_")}
     return UserMeetingResponse.model_validate(data)
+
+
+def _current_user_data(current_user: UserInfo) -> dict:
+    """Build auth-like user data from the current user dependency."""
+    return {
+        "id": current_user.id,
+        "email": current_user.email,
+        "first_name": current_user.first_name,
+        "last_name": current_user.last_name,
+        "telegram_id": current_user.telegram_id,
+        "role": current_user.role,
+    }
+
+
+async def _get_recipient_user_data(user_id: int, current_user: UserInfo, auth_token: str | None) -> dict | None:
+    """Fetch recipient user data when assigning/updating reminders."""
+    if user_id == current_user.id:
+        return _current_user_data(current_user)
+    if not auth_token:
+        return None
+    from meeting_service.utils.integrations import auth_service_client
+
+    return await auth_service_client.get_user(user_id, auth_token)
 
 
 @router.get("/my")
@@ -64,6 +87,7 @@ async def assign_meeting(
     assignment_data: UserMeetingCreate,
     uow: UOWDep,
     current_user: CurrentUser,
+    auth_token: AuthToken = None,
 ) -> UserMeetingResponse:
     """Assign a meeting to a user (HR/Admin can assign to anyone, users can assign to themselves)."""
     logger.info(
@@ -83,9 +107,10 @@ async def assign_meeting(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You can only assign meetings to yourself",
         )
-    service = MeetingService(uow)
+    service = MeetingService(uow, notifications_enabled=auth_token is not None)
     try:
-        assignment = await service.assign_meeting(assignment_data)
+        user_data = await _get_recipient_user_data(assignment_data.user_id, current_user, auth_token)
+        assignment = await service.assign_meeting(assignment_data, user_data=user_data)
         logger.info("Meeting assigned via API (assignment_id={})", assignment.id)
         return _to_response(assignment)
     except (NotFoundException, ConflictException) as e:
@@ -167,10 +192,11 @@ async def update_assignment(
     update_data: UserMeetingUpdate,
     uow: UOWDep,
     current_user: CurrentUser,
+    auth_token: AuthToken = None,
 ) -> UserMeetingResponse:
     """Update assignment (status, scheduled_at). Only HR or the assigned user can update."""
     logger.debug("PATCH /user-meetings/{} request", assignment_id)
-    service = MeetingService(uow)
+    service = MeetingService(uow, notifications_enabled=auth_token is not None)
     try:
         assignment = await service.get_assignment(assignment_id)
         if assignment.user_id != current_user.id and not current_user.has_role(["HR", "ADMIN"]):
@@ -178,7 +204,8 @@ async def update_assignment(
                 "Update assignment forbidden (current_user_id={}, assignment_id={})", current_user.id, assignment_id
             )
             raise PermissionDenied
-        updated = await service.update_assignment(assignment_id, update_data)
+        user_data = await _get_recipient_user_data(assignment.user_id, current_user, auth_token)
+        updated = await service.update_assignment(assignment_id, update_data, user_data=user_data)
         logger.info("Assignment updated via API (assignment_id={})", updated.id)
         return _to_response(updated)
     except (NotFoundException, ValidationException) as e:
@@ -195,10 +222,11 @@ async def complete_meeting(
     completion: UserMeetingComplete,
     uow: UOWDep,
     current_user: CurrentUser,
+    auth_token: AuthToken = None,
 ) -> UserMeetingResponse:
     """Mark a meeting as completed (only the assigned user can complete)."""
     logger.info("POST /user-meetings/{}/complete request", assignment_id)
-    service = MeetingService(uow)
+    service = MeetingService(uow, notifications_enabled=auth_token is not None)
     try:
         assignment = await service.get_assignment(assignment_id)
         if assignment.user_id != current_user.id:
@@ -230,10 +258,11 @@ async def delete_assignment(
     assignment_id: int,
     uow: UOWDep,
     _current_user: HRUser,
+    auth_token: AuthToken = None,
 ) -> None:
     """Delete/cancel a user meeting assignment (HR/Admin only)."""
     logger.debug("DELETE /user-meetings/{} request", assignment_id)
-    service = MeetingService(uow)
+    service = MeetingService(uow, notifications_enabled=auth_token is not None)
     try:
         await service.delete_assignment(assignment_id)
         logger.info("Assignment deleted via API (assignment_id={})", assignment_id)

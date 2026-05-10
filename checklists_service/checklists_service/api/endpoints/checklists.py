@@ -106,7 +106,7 @@ async def create_checklist(
     auth_token: AuthToken,
 ) -> ChecklistResponse:
     """Create new checklist (HR/admin only)."""
-    checklist_service = ChecklistService(uow, auth_token)
+    checklist_service = ChecklistService(uow, auth_token, notifications_enabled=True)
 
     try:
         checklist = await checklist_service.create_checklist(checklist_data, auth_token)

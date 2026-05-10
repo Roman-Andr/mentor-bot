@@ -69,36 +69,38 @@ export function TableActions({ actions }: TableActionsProps) {
 
   return (
     <TooltipProvider>
-      <div className="flex items-center justify-end gap-1 flex-wrap sm:flex-nowrap">
-        {sorted.map((action, i) => (
-          <div key={`${action.type}-${i}`} className="flex size-9 items-center justify-center">
-            {action.show !== false && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant={action.variant || "ghost"}
-                    size="icon"
-                    onClick={action.onClick}
-                    aria-label={action.label}
-                    className={`${action.color ? action.color : "text-muted-foreground"} cursor-pointer`}
-                  >
-                    <action.icon className="size-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{action.label}</p>
-                </TooltipContent>
-              </Tooltip>
-            )}
-          </div>
-        ))}
+      <div className="flex flex-wrap items-center justify-end gap-1 sm:flex-nowrap">
+        {sorted.map((action, i) =>
+          action.show !== false ? (
+            <Tooltip key={`${action.type}-${i}`}>
+              <TooltipTrigger asChild>
+                <Button
+                  variant={action.variant || "ghost"}
+                  size="icon"
+                  onClick={action.onClick}
+                  aria-label={action.label}
+                  className={`h-10 w-10 sm:h-9 sm:w-9 ${action.color ? action.color : "text-muted-foreground"} cursor-pointer`}
+                >
+                  <action.icon className="size-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{action.label}</p>
+              </TooltipContent>
+            </Tooltip>
+          ) : null,
+        )}
       </div>
     </TooltipProvider>
   );
 }
 
 // Predefined action builders
-export const buildEditAction = (onClick: () => void, label: string, show = true): ActionDefinition => ({
+export const buildEditAction = (
+  onClick: () => void,
+  label: string,
+  show = true,
+): ActionDefinition => ({
   type: "edit",
   icon: SquarePen,
   label,
@@ -107,7 +109,11 @@ export const buildEditAction = (onClick: () => void, label: string, show = true)
   show,
 });
 
-export const buildDeleteAction = (onClick: () => void, label: string, show = true): ActionDefinition => ({
+export const buildDeleteAction = (
+  onClick: () => void,
+  label: string,
+  show = true,
+): ActionDefinition => ({
   type: "delete",
   icon: Trash2,
   label,
@@ -117,7 +123,11 @@ export const buildDeleteAction = (onClick: () => void, label: string, show = tru
   show,
 });
 
-export const buildToggleAction = (onClick: () => void, label: string, show = true): ActionDefinition => ({
+export const buildToggleAction = (
+  onClick: () => void,
+  label: string,
+  show = true,
+): ActionDefinition => ({
   type: "toggle",
   icon: Power,
   label,
@@ -126,7 +136,11 @@ export const buildToggleAction = (onClick: () => void, label: string, show = tru
   show,
 });
 
-export const buildCompleteAction = (onClick: () => void, label: string, show = true): ActionDefinition => ({
+export const buildCompleteAction = (
+  onClick: () => void,
+  label: string,
+  show = true,
+): ActionDefinition => ({
   type: "complete",
   icon: CheckCircle,
   label,
@@ -136,7 +150,11 @@ export const buildCompleteAction = (onClick: () => void, label: string, show = t
   show,
 });
 
-export const buildResendAction = (onClick: () => void, label: string, show = true): ActionDefinition => ({
+export const buildResendAction = (
+  onClick: () => void,
+  label: string,
+  show = true,
+): ActionDefinition => ({
   type: "resend",
   icon: RefreshCw,
   label,
@@ -146,7 +164,11 @@ export const buildResendAction = (onClick: () => void, label: string, show = tru
   show,
 });
 
-export const buildRevokeAction = (onClick: () => void, label: string, show = true): ActionDefinition => ({
+export const buildRevokeAction = (
+  onClick: () => void,
+  label: string,
+  show = true,
+): ActionDefinition => ({
   type: "revoke",
   icon: Ban,
   label,
@@ -156,7 +178,12 @@ export const buildRevokeAction = (onClick: () => void, label: string, show = tru
   show,
 });
 
-export const buildCopyAction = (onClick: () => void, label: string, show = true, isCopied = false): ActionDefinition => ({
+export const buildCopyAction = (
+  onClick: () => void,
+  label: string,
+  show = true,
+  isCopied = false,
+): ActionDefinition => ({
   type: "copy",
   icon: isCopied ? Check : Copy,
   label,
@@ -166,7 +193,11 @@ export const buildCopyAction = (onClick: () => void, label: string, show = true,
   show,
 });
 
-export const buildViewAction = (onClick: () => void, label: string, show = true): ActionDefinition => ({
+export const buildViewAction = (
+  onClick: () => void,
+  label: string,
+  show = true,
+): ActionDefinition => ({
   type: "view",
   icon: Eye,
   label,
@@ -175,7 +206,11 @@ export const buildViewAction = (onClick: () => void, label: string, show = true)
   show,
 });
 
-export const buildReplyAction = (onClick: () => void, label: string, show = true): ActionDefinition => ({
+export const buildReplyAction = (
+  onClick: () => void,
+  label: string,
+  show = true,
+): ActionDefinition => ({
   type: "reply",
   icon: MessageSquare,
   label,
@@ -184,7 +219,11 @@ export const buildReplyAction = (onClick: () => void, label: string, show = true
   show,
 });
 
-export const buildViewUsersAction = (onClick: () => void, label: string, show = true): ActionDefinition => ({
+export const buildViewUsersAction = (
+  onClick: () => void,
+  label: string,
+  show = true,
+): ActionDefinition => ({
   type: "viewUsers",
   icon: Users,
   label,
@@ -193,7 +232,11 @@ export const buildViewUsersAction = (onClick: () => void, label: string, show = 
   show,
 });
 
-export const buildAssignAction = (onClick: () => void, label: string, show = true): ActionDefinition => ({
+export const buildAssignAction = (
+  onClick: () => void,
+  label: string,
+  show = true,
+): ActionDefinition => ({
   type: "assign",
   icon: UserPlus,
   label,
@@ -202,7 +245,11 @@ export const buildAssignAction = (onClick: () => void, label: string, show = tru
   show,
 });
 
-export const buildAssignMentorAction = (onClick: () => void, label: string, show = true): ActionDefinition => ({
+export const buildAssignMentorAction = (
+  onClick: () => void,
+  label: string,
+  show = true,
+): ActionDefinition => ({
   type: "assignMentor",
   icon: UserCheck,
   label,

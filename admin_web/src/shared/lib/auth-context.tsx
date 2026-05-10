@@ -43,7 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const validateSession = async () => {
       try {
         const response = await fetch("/api/v1/auth/me", {
-          credentials: "include",  // Send httpOnly cookies
+          credentials: "include", // Send httpOnly cookies
         });
         if (response.ok) {
           const userData = await response.json();
@@ -64,7 +64,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsLoading(false);
     };
     validateSession();
-
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
@@ -83,7 +82,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         body: formData.toString(),
       });
 
-      logger.debug("Login response status", { status: response.status, setCookie: response.headers.get("Set-Cookie") || "none" });
+      logger.debug("Login response status", {
+        status: response.status,
+        setCookie: response.headers.get("Set-Cookie") || "none",
+      });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -126,7 +128,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return false;
     }
   };
-
 
   const logout = async () => {
     // Call logout endpoint to clear httpOnly cookies

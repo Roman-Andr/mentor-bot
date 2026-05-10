@@ -125,10 +125,16 @@ export function useTemplates() {
   const { data: departmentsData } = useQuery({
     queryKey: queryKeys.departments.all,
     queryFn: () => api.departments.list({ limit: 1000 }),
-    select: (result) => result.success ? result.data?.departments || [] : [],
+    select: (result) => (result.success ? result.data?.departments || [] : []),
   });
 
-  const entity = useEntity<TemplateItem, TemplateFormData, ReturnType<typeof toCreatePayload>, ReturnType<typeof toUpdatePayload>, ExtendedState>({
+  const entity = useEntity<
+    TemplateItem,
+    TemplateFormData,
+    ReturnType<typeof toCreatePayload>,
+    ReturnType<typeof toUpdatePayload>,
+    ExtendedState
+  >({
     entityName: "Шаблон",
     translationNamespace: "templates",
     queryKeyPrefix: "templates",
@@ -165,7 +171,6 @@ export function useTemplates() {
       entity.setExtendedState(() => ({ tasks: [] }));
     }
   }, [entity]);
-
 
   const handleDelete = async (id: number) => {
     await entity.handleDelete(id);
@@ -244,8 +249,7 @@ export function useTemplates() {
 
     // Tasks - ensure we always return an array
     tasks: entity.extendedState.tasks ?? [],
-    setTasks: (tasks: TaskTemplate[]) =>
-      entity.setExtendedState((prev) => ({ ...prev, tasks })),
+    setTasks: (tasks: TaskTemplate[]) => entity.setExtendedState((prev) => ({ ...prev, tasks })),
 
     // Handlers
     handleCreate: entity.handleSubmit,

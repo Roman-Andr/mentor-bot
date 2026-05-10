@@ -16,10 +16,17 @@ from checklists_service.schemas import ChecklistCreate, ChecklistStats, Checklis
 class ChecklistService:
     """Service for checklist management operations with repository pattern."""
 
-    def __init__(self, uow: IUnitOfWork, auth_token: str | None = None) -> None:
+    def __init__(
+        self,
+        uow: IUnitOfWork,
+        auth_token: str | None = None,
+        *,
+        notifications_enabled: bool = False,
+    ) -> None:
         """Initialize checklist service with Unit of Work and auth token."""
         self._uow = uow
         self.auth_token = auth_token
+        self._notifications_enabled = notifications_enabled
 
     async def _validate_user(self, user_id: int) -> dict:
         """Validate user exists in auth service."""
@@ -37,6 +44,38 @@ class ChecklistService:
             raise ValidationException(msg)
 
         return user_data
+
+    @staticmethod
+    def _task_recipient_id(task: Task, checklist: Checklist) -> int:
+        """Resolve who should receive a task reminder."""
+        return task.assignee_id or checklist.user_id
+
+    async def _schedule_task_reminders(
+        self, tasks: list[Task], checklist: Checklist, user_data: dict[str, Any]
+    ) -> None:
+        """Schedule task reminders 24 hours before due date."""
+        if not self._notifications_enabled or not tasks:
+            return
+
+        from checklists_service.services.task import TaskService
+
+        task_service = TaskService(self._uow, self.auth_token, notifications_enabled=True)
+        user_cache: dict[int, dict[str, Any] | None] = {checklist.user_id: user_data}
+        for task in tasks:
+            recipient_id = self._task_recipient_id(task, checklist)
+            recipient_data = user_cache.get(recipient_id)
+            if recipient_id not in user_cache:
+                try:
+                    recipient_data = await self._validate_user(recipient_id)
+                except ValidationException:
+                    logger.warning(
+                        "Task reminder skipped: recipient not found (task_id={}, user_id={})",
+                        task.id,
+                        recipient_id,
+                    )
+                    recipient_data = None
+                user_cache[recipient_id] = recipient_data
+            await task_service.schedule_task_reminder(task, checklist, recipient_data)
 
     async def create_checklist(self, checklist_data: ChecklistCreate, auth_token: str) -> Checklist:
         """Create new checklist from template."""
@@ -178,6 +217,7 @@ class ChecklistService:
 
         checklist.total_tasks = len(tasks)
         updated_checklist = await self._uow.checklists.update(checklist)
+        await self._schedule_task_reminders(tasks, updated_checklist, user_data)
         logger.info(
             "Checklist created (checklist_id={}, user_id={}, template_id={}, total_tasks={})",
             updated_checklist.id,
@@ -475,6 +515,9 @@ class ChecklistService:
 
             checklist.total_tasks = len(tasks)
             checklist = await self._uow.checklists.update(checklist)
+            if self.auth_token:
+                user_data = await self._validate_user(user_id)
+                await self._schedule_task_reminders(tasks, checklist, user_data)
             created_checklists.append(checklist)
             logger.info(
                 "Auto-create: checklist created (checklist_id={}, user_id={}, template_id={}, total_tasks={})",

@@ -175,6 +175,34 @@ def load_json(filename: str) -> Any:
         return json.load(f)
 
 
+def ensure_article_tag_definitions(tag_data: list[dict], article_data: list[dict]) -> list[dict]:
+    """Ensure every tag slug referenced by articles has a tag payload."""
+    known_slugs = {tag["slug"] for tag in tag_data}
+    article_slugs = {
+        tag_slug
+        for article in article_data
+        for tag_slug in article.get("tags", [])
+    }
+    missing_slugs = sorted(article_slugs - known_slugs)
+    if not missing_slugs:
+        return tag_data
+
+    log_warning(
+        "  knowledge_tags.json is missing article tag definitions: "
+        + ", ".join(missing_slugs)
+        + ". Creating generated tag payloads before articles."
+    )
+    generated_tags = [
+        {
+            "name": slug.replace("-", " ").title(),
+            "slug": slug,
+            "description": f"Generated mock tag for {slug}",
+        }
+        for slug in missing_slugs
+    ]
+    return [*tag_data, *generated_tags]
+
+
 _INSERT_ADMIN_SQL = """
 INSERT INTO users (
     email, first_name, last_name, employee_id, password_hash,
@@ -2760,11 +2788,11 @@ async def main(
         cat_ids = await create_knowledge_categories(token, dept_ids, categories)
         log_success_newline()
 
-        tags = load_json("knowledge_tags.json")
+        articles = load_json("knowledge_articles.json")
+        tags = ensure_article_tag_definitions(load_json("knowledge_tags.json"), articles)
         tag_ids = await create_knowledge_tags(token, tags)
         log_success_newline()
 
-        articles = load_json("knowledge_articles.json")
         article_ids = await create_knowledge_articles(token, cat_ids, tag_ids, dept_ids, articles)
         log_success_newline()
 
@@ -2783,10 +2811,10 @@ async def main(
         categories = load_json("knowledge_categories.json")
         cat_ids = await fetch_existing_categories(token, dept_ids, categories)
 
-        tags = load_json("knowledge_tags.json")
+        articles = load_json("knowledge_articles.json")
+        tags = ensure_article_tag_definitions(load_json("knowledge_tags.json"), articles)
         tag_ids = await fetch_existing_tags(token, tags)
 
-        articles = load_json("knowledge_articles.json")
         article_ids = await fetch_existing_articles(token, cat_ids, tag_ids, dept_ids, articles)
 
     if should_run("invitations"):

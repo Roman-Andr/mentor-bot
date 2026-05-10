@@ -139,7 +139,7 @@ async def test_generate_certificate_from_checklist_employee_not_found(mock_html)
 async def test_generate_certificate_from_checklist_with_hr_and_mentor(mock_auth_client, mock_html) -> None:
     """Test generate_certificate_from_checklist with hr_id and mentor_id (lines 168-178)."""
     mock_auth_client.get_user = AsyncMock(
-        side_effect=lambda uid, token: {
+        side_effect=lambda uid, _: {
             1: {"first_name": "John", "last_name": "Doe", "position": "Developer"},
             2: {"first_name": "Jane", "last_name": "Smith", "position": "HR Manager"},
             3: {"first_name": "Bob", "last_name": "Johnson", "position": "Mentor"},

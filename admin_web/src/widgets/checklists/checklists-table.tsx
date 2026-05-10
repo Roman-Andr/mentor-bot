@@ -7,16 +7,14 @@ import { Select } from "@/shared/ui/select";
 import { DataTable } from "@/shared/ui/data-table";
 import { StatusBadge } from "@/shared/ui/status-badge";
 import { SortableTableHead } from "@/shared/ui/sortable-table-head";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/shared/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 import { CardHeader, CardTitle, Card, CardContent } from "@/shared/ui/card";
-import { TableActions, buildEditAction, buildDeleteAction, buildCompleteAction } from "@/shared/components";
+import {
+  TableActions,
+  buildEditAction,
+  buildDeleteAction,
+  buildCompleteAction,
+} from "@/shared/components";
 import { UserAvatar } from "@/shared/ui/user-avatar";
 import { AlertTriangle, Clock, Filter } from "lucide-react";
 import { getChecklistStatusOptions } from "@/shared/lib/constants";
@@ -52,7 +50,15 @@ interface ChecklistsTableProps {
   onSort?: (field: string) => void;
 }
 
-function ProgressBar({ value, isOverdue, completed }: { value: number; isOverdue: boolean; completed: boolean }) {
+function ProgressBar({
+  value,
+  isOverdue,
+  completed,
+}: {
+  value: number;
+  isOverdue: boolean;
+  completed: boolean;
+}) {
   const color = completed
     ? "bg-emerald-500"
     : isOverdue
@@ -62,13 +68,13 @@ function ProgressBar({ value, isOverdue, completed }: { value: number; isOverdue
         : "bg-amber-500";
   return (
     <div className="flex items-center gap-2">
-      <div className="bg-muted h-2 w-24 overflow-hidden rounded-full">
+      <div className="h-2 w-24 overflow-hidden rounded-full bg-muted">
         <div
           className={cn("h-full rounded-full transition-all", color)}
           style={{ width: `${Math.min(value, 100)}%` }}
         />
       </div>
-      <span className="text-muted-foreground w-9 shrink-0 text-right text-xs">{value}%</span>
+      <span className="w-9 shrink-0 text-right text-xs text-muted-foreground">{value}%</span>
     </div>
   );
 }
@@ -103,7 +109,7 @@ function ChecklistCard({
     <Card
       className={cn(
         "cursor-pointer transition-colors hover:bg-muted/50",
-        checklist.isOverdue && "border-l-4 border-l-red-500"
+        checklist.isOverdue && "border-l-4 border-l-red-500",
       )}
       onClick={() => onEdit(checklist)}
     >
@@ -113,12 +119,12 @@ function ChecklistCard({
           <UserAvatar name={checklist.userName} id={checklist.id} />
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <h3 className="font-semibold truncate">{checklist.userName}</h3>
+              <h3 className="truncate font-semibold">{checklist.userName}</h3>
               <ChecklistStatusBadge status={checklist.status} isOverdue={checklist.isOverdue} />
             </div>
-            <p className="text-muted-foreground text-xs">{checklist.employeeId}</p>
+            <p className="text-xs text-muted-foreground">{checklist.employeeId}</p>
             {checklist.notes && (
-              <p className="text-muted-foreground mt-0.5 line-clamp-1 text-xs">{checklist.notes}</p>
+              <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">{checklist.notes}</p>
             )}
           </div>
         </div>
@@ -136,7 +142,9 @@ function ChecklistCard({
         <div className="mb-3 grid grid-cols-2 gap-2 text-xs">
           <div>
             <span className="text-muted-foreground">{t("checklists.tasks")}: </span>
-            <span>{checklist.completedTasks}/{checklist.totalTasks}</span>
+            <span>
+              {checklist.completedTasks}/{checklist.totalTasks}
+            </span>
           </div>
           <div>
             <span className="text-muted-foreground">{t("checklists.startDate")}: </span>
@@ -150,10 +158,16 @@ function ChecklistCard({
                 {formatDate(checklist.dueDate)}
               </span>
               {checklist.daysRemaining !== null && checklist.status !== "COMPLETED" && (
-                <span className={cn(checklist.daysRemaining < 0 ? "text-red-500" : "text-muted-foreground")}>
-                  ({checklist.daysRemaining > 0
+                <span
+                  className={cn(
+                    checklist.daysRemaining < 0 ? "text-red-500" : "text-muted-foreground",
+                  )}
+                >
+                  (
+                  {checklist.daysRemaining > 0
                     ? `${checklist.daysRemaining} ${t("checklists.daysLeft")}`
-                    : `${Math.abs(checklist.daysRemaining)} ${t("checklists.daysOverdue")}`})
+                    : `${Math.abs(checklist.daysRemaining)} ${t("checklists.daysOverdue")}`}
+                  )
                 </span>
               )}
             </div>
@@ -162,7 +176,7 @@ function ChecklistCard({
 
         {/* Footer: Actions */}
         <div
-          className="flex items-center gap-2 border-t pt-3 flex-col sm:flex-row"
+          className="flex flex-col items-center gap-2 border-t pt-3 sm:flex-row"
           onClick={(e) => e.stopPropagation()}
         >
           <Button size="sm" variant="outline" className="flex-1" onClick={() => onEdit(checklist)}>
@@ -255,9 +269,9 @@ export function ChecklistsTable({
         <CardHeader>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
-              <CardTitle>
+              <CardTitle className="inline-flex items-baseline gap-1 whitespace-nowrap">
                 {t("checklists.title")}{" "}
-                <span className="text-muted-foreground text-sm font-normal">({totalCount})</span>
+                <span className="text-sm font-normal text-muted-foreground">({totalCount})</span>
               </CardTitle>
               {checklists.filter((c) => c.isOverdue).length > 0 && (
                 <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700 dark:bg-red-950/50 dark:text-red-400">
@@ -266,15 +280,29 @@ export function ChecklistsTable({
                 </span>
               )}
             </div>
-            <div className="flex flex-col gap-2 w-full sm:flex-row sm:items-center sm:flex-wrap">
-              <SearchInput value={searchQuery} onChange={onSearchChange} className="w-full sm:w-auto" />
-              <Select value={statusFilter} onChange={onStatusFilterChange} options={statusOptions} className="w-full sm:w-auto" />
-              <Select value={departmentFilter} onChange={onDepartmentFilterChange} options={departmentOptions} className="w-full sm:w-auto" />
+            <div className="flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+              <SearchInput
+                value={searchQuery}
+                onChange={onSearchChange}
+                className="w-full sm:w-auto"
+              />
+              <Select
+                value={statusFilter}
+                onChange={onStatusFilterChange}
+                options={statusOptions}
+                className="w-full sm:w-auto"
+              />
+              <Select
+                value={departmentFilter}
+                onChange={onDepartmentFilterChange}
+                options={departmentOptions}
+                className="w-full sm:w-auto"
+              />
               <Button
                 variant={overdueOnly ? "destructive" : "outline"}
                 size="sm"
                 onClick={() => setOverdueOnly(!overdueOnly)}
-                className="gap-1.5 w-full sm:w-auto"
+                className="w-full gap-1.5 sm:w-auto"
               >
                 <Filter className="size-3.5" />
                 {t("checklists.overdueFilter") || t("checklists.overdue")}
@@ -290,22 +318,58 @@ export function ChecklistsTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <SortableTableHead field="employee" sortable={!!onSort} sortField={sortField ?? null} sortDirection={sortDirection} onSort={onSort ?? (() => {})}>
+            <SortableTableHead
+              field="employee"
+              sortable={!!onSort}
+              sortField={sortField ?? null}
+              sortDirection={sortDirection}
+              onSort={onSort ?? (() => {})}
+            >
               {t("checklists.employee")}
             </SortableTableHead>
-            <SortableTableHead field="status" sortable={!!onSort} sortField={sortField ?? null} sortDirection={sortDirection} onSort={onSort ?? (() => {})}>
+            <SortableTableHead
+              field="status"
+              sortable={!!onSort}
+              sortField={sortField ?? null}
+              sortDirection={sortDirection}
+              onSort={onSort ?? (() => {})}
+            >
               {t("common.status")}
             </SortableTableHead>
-            <SortableTableHead field="progress" sortable={false} sortField={sortField ?? null} sortDirection={sortDirection} onSort={onSort ?? (() => {})}>
+            <SortableTableHead
+              field="progress"
+              sortable={false}
+              sortField={sortField ?? null}
+              sortDirection={sortDirection}
+              onSort={onSort ?? (() => {})}
+            >
               {t("checklists.progress")}
             </SortableTableHead>
-            <SortableTableHead field="tasks" sortable={!!onSort} sortField={sortField ?? null} sortDirection={sortDirection} onSort={onSort ?? (() => {})}>
+            <SortableTableHead
+              field="tasks"
+              sortable={!!onSort}
+              sortField={sortField ?? null}
+              sortDirection={sortDirection}
+              onSort={onSort ?? (() => {})}
+            >
               {t("checklists.tasks")}
             </SortableTableHead>
-            <SortableTableHead field="start_date" sortable={!!onSort} sortField={sortField ?? null} sortDirection={sortDirection} onSort={onSort ?? (() => {})}>
+            <SortableTableHead
+              field="start_date"
+              sortable={!!onSort}
+              sortField={sortField ?? null}
+              sortDirection={sortDirection}
+              onSort={onSort ?? (() => {})}
+            >
               {t("checklists.startDate")}
             </SortableTableHead>
-            <SortableTableHead field="due_date" sortable={!!onSort} sortField={sortField ?? null} sortDirection={sortDirection} onSort={onSort ?? (() => {})}>
+            <SortableTableHead
+              field="due_date"
+              sortable={!!onSort}
+              sortField={sortField ?? null}
+              sortDirection={sortDirection}
+              onSort={onSort ?? (() => {})}
+            >
               {t("checklists.dueDate")}
             </SortableTableHead>
             <TableHead className="w-28">{t("common.actions")}</TableHead>
@@ -316,7 +380,7 @@ export function ChecklistsTable({
             <TableRow
               key={checklist.id}
               className={cn(
-                "hover:bg-muted cursor-pointer transition-colors",
+                "cursor-pointer transition-colors hover:bg-muted",
                 checklist.isOverdue && "border-l-2 border-l-red-500",
               )}
               onClick={() => onEdit(checklist)}
@@ -325,10 +389,12 @@ export function ChecklistsTable({
                 <div className="flex items-center gap-2">
                   <UserAvatar name={checklist.userName} id={checklist.id} />
                   <div>
-                    <p className="font-medium leading-none">{checklist.userName}</p>
-                    <p className="text-muted-foreground mt-0.5 text-xs">{checklist.employeeId}</p>
+                    <p className="leading-none font-medium">{checklist.userName}</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">{checklist.employeeId}</p>
                     {checklist.notes && (
-                      <p className="text-muted-foreground mt-0.5 line-clamp-1 max-w-44 text-xs">{checklist.notes}</p>
+                      <p className="mt-0.5 line-clamp-1 max-w-44 text-xs text-muted-foreground">
+                        {checklist.notes}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -355,12 +421,22 @@ export function ChecklistsTable({
                 <div>
                   <div className="flex items-center gap-1">
                     {checklist.isOverdue && <AlertTriangle className="size-3.5 text-red-500" />}
-                    <span className={cn("text-sm", checklist.isOverdue && "text-red-600 dark:text-red-400")}>
+                    <span
+                      className={cn(
+                        "text-sm",
+                        checklist.isOverdue && "text-red-600 dark:text-red-400",
+                      )}
+                    >
                       {formatDate(checklist.dueDate)}
                     </span>
                   </div>
                   {checklist.daysRemaining !== null && checklist.status !== "COMPLETED" && (
-                    <p className={cn("text-xs", checklist.daysRemaining < 0 ? "text-red-500" : "text-muted-foreground")}>
+                    <p
+                      className={cn(
+                        "text-xs",
+                        checklist.daysRemaining < 0 ? "text-red-500" : "text-muted-foreground",
+                      )}
+                    >
                       {checklist.daysRemaining > 0
                         ? `${checklist.daysRemaining} ${t("checklists.daysLeft")}`
                         : `${Math.abs(checklist.daysRemaining)} ${t("checklists.daysOverdue")}`}

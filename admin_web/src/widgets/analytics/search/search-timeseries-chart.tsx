@@ -4,19 +4,37 @@ import { useState } from "react";
 import { useTranslations } from "@/shared/hooks/use-translations";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { Button } from "@/shared/ui/button";
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, type TooltipProps } from "recharts";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+  type TooltipProps,
+} from "recharts";
 import type { SearchTimeseriesPoint } from "@/shared/types";
 
 interface SearchTimeseriesChartProps {
   data: SearchTimeseriesPoint[];
 }
 
-const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ payload: SearchTimeseriesPoint; name: string; value: number }> }) => {
+const CustomTooltip = ({
+  active,
+  payload,
+}: {
+  active?: boolean;
+  payload?: Array<{ payload: SearchTimeseriesPoint; name: string; value: number }>;
+}) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload as SearchTimeseriesPoint;
     const date = new Date(data.bucket).toLocaleDateString();
     return (
-      <div className="rounded-lg border border-gray-200 bg-white/95 px-3 py-2 text-sm font-medium text-gray-900 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100" style={{ pointerEvents: "none" }}>
+      <div
+        className="rounded-lg border border-gray-200 bg-white/95 px-3 py-2 text-sm font-medium text-gray-900 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+        style={{ pointerEvents: "none" }}
+      >
         <div>{date}</div>
         {payload.map((entry: any) => (
           <div key={entry.name}>
@@ -75,10 +93,7 @@ export function SearchTimeseriesChart({ data }: SearchTimeseriesChartProps) {
       <CardContent>
         <ResponsiveContainer width="100%" height={350}>
           <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-            <XAxis
-              dataKey="formattedDate"
-              tick={{ fontSize: 12 }}
-            />
+            <XAxis dataKey="formattedDate" tick={{ fontSize: 12 }} />
             <YAxis tick={{ fontSize: 12 }} />
             <Tooltip content={<CustomTooltip />} wrapperStyle={{ transition: "none" }} />
             <Legend />

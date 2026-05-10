@@ -1,6 +1,14 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback, useRef, useEffect, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useRef,
+  useEffect,
+  type ReactNode,
+} from "react";
 import { X, CheckCircle, AlertCircle, Info } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 
@@ -61,6 +69,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             {t.type === "info" && <Info className="size-4 shrink-0" />}
             <span>{t.message}</span>
             <button
+              aria-label="Close notification"
+              title="Close notification"
               onClick={() => removeToast(t.id)}
               className="ml-2 shrink-0 opacity-50 hover:opacity-100"
             >

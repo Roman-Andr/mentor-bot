@@ -72,14 +72,14 @@ export function Pagination({
       {/* Left side: Showing info and Page Size Selector */}
       <div className="flex flex-wrap items-center gap-4">
         {totalCount !== undefined && totalCount > 0 && (
-          <span className="text-muted-foreground text-sm">
+          <span className="text-sm text-muted-foreground">
             {t("showing", { from, to, total: totalCount })}
           </span>
         )}
 
         {showPageSizeSelector && onPageSizeChange && pageSize && (
           <div className="flex items-center gap-2">
-            <span className="text-muted-foreground text-sm">{t("itemsPerPageLabel")}</span>
+            <span className="text-sm text-muted-foreground">{t("itemsPerPageLabel")}</span>
             <Select
               value={String(pageSize)}
               onChange={(value) => onPageSizeChange(Number(value))}
@@ -106,12 +106,12 @@ export function Pagination({
 
         {/* Page Info / Input */}
         <div className="flex items-center gap-2 px-2">
-          <span className="text-muted-foreground text-sm">
+          <span className="text-sm text-muted-foreground">
             {t("page")} {currentPage} {t("of")} {totalPages}
           </span>
 
           {showPageInput && totalPages > 1 && (
-            <div className="hidden sm:flex items-center gap-1">
+            <div className="hidden items-center gap-1 sm:flex">
               <Input
                 type="number"
                 min={1}

@@ -511,7 +511,7 @@ class TestDeleteUser:
     """Tests for DELETE /api/v1/users/{user_id} endpoint."""
 
     def test_delete_user_success(self, admin_user, mock_user_service):
-        """Test admin can permanently delete user."""
+        """Test admin delete soft-deactivates user."""
         mock_user_service.delete_user = AsyncMock(return_value=None)
 
         async def mock_require_admin() -> User:
@@ -1154,6 +1154,30 @@ class TestGetUserPreferences:
 
 class TestUpdateMyPreferences:
     """Tests for PUT /api/v1/users/me/preferences endpoint."""
+
+    def test_get_my_preferences_route_uses_static_me_path(self, admin_user, mock_user_service):
+        """Test /me/preferences is routed before /{user_id}/preferences."""
+        mock_user_service.get_user_by_id = AsyncMock(return_value=admin_user)
+
+        async def mock_get_current() -> User:
+            return admin_user
+
+        app.dependency_overrides[deps.get_current_user] = mock_get_current
+        app.dependency_overrides[deps.get_user_service] = lambda: mock_user_service
+
+        try:
+            client = get_test_client()
+            response = client.get(
+                "/api/v1/users/me/preferences",
+                headers=create_auth_headers(admin_user.id, admin_user.role),
+            )
+
+            assert response.status_code == 200
+            assert response.json()["language"] == admin_user.language
+            mock_user_service.get_user_by_id.assert_awaited_once_with(admin_user.id)
+        finally:
+            app.dependency_overrides.pop(deps.get_current_user, None)
+            app.dependency_overrides.pop(deps.get_user_service, None)
 
     async def test_update_my_preferences_success(self, admin_user, mock_user_service):
         """Test updating current user's preferences."""

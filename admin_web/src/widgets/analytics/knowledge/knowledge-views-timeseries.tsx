@@ -4,7 +4,15 @@ import { useState } from "react";
 import { useTranslations } from "@/shared/hooks/use-translations";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { Button } from "@/shared/ui/button";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 
 interface TimeseriesPoint {
   bucket: string;
@@ -18,7 +26,11 @@ interface KnowledgeViewsTimeseriesProps {
   currentGranularity: "day" | "week";
 }
 
-export function KnowledgeViewsTimeseries({ data, onGranularityChange, currentGranularity }: KnowledgeViewsTimeseriesProps) {
+export function KnowledgeViewsTimeseries({
+  data,
+  onGranularityChange,
+  currentGranularity,
+}: KnowledgeViewsTimeseriesProps) {
   const t = useTranslations();
 
   const chartData = data.map((item) => ({

@@ -35,8 +35,8 @@ export function LoginWidget() {
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 px-4 py-8">
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute left-1/4 top-1/4 h-72 w-72 rounded-full bg-blue-600/10 blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 h-96 w-96 rounded-full bg-indigo-600/10 blur-3xl" />
+        <div className="absolute top-1/4 left-1/4 h-72 w-72 rounded-full bg-blue-600/10 blur-3xl" />
+        <div className="absolute right-1/4 bottom-1/4 h-96 w-96 rounded-full bg-indigo-600/10 blur-3xl" />
       </div>
 
       <div className="relative z-10 w-full max-w-md">
@@ -45,7 +45,9 @@ export function LoginWidget() {
             <Bot className="size-7 text-white" />
           </div>
           <div className="text-center">
-            <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">{t("auth.loginTitle")}</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
+              {t("auth.loginTitle")}
+            </h1>
             <p className="mt-1 text-sm text-slate-400">{t("auth.loginDescription")}</p>
           </div>
         </div>
@@ -60,7 +62,9 @@ export function LoginWidget() {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-slate-300 text-sm sm:text-base">{t("auth.email")}</Label>
+              <Label htmlFor="email" className="text-sm text-slate-300 sm:text-base">
+                {t("auth.email")}
+              </Label>
               <Input
                 id="email"
                 type="email"
@@ -74,7 +78,9 @@ export function LoginWidget() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-slate-300 text-sm sm:text-base">{t("auth.password")}</Label>
+              <Label htmlFor="password" className="text-sm text-slate-300 sm:text-base">
+                {t("auth.password")}
+              </Label>
               <div className="relative">
                 <Input
                   id="password"
@@ -89,21 +95,36 @@ export function LoginWidget() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition-colors hover:text-slate-200"
+                  className="absolute top-1/2 right-2 flex size-8 -translate-y-1/2 items-center justify-center text-slate-400 transition-colors duration-150 hover:text-slate-200"
                   aria-label={showPassword ? "Hide password" : "Show password"}
+                  aria-pressed={showPassword}
                 >
-                  {showPassword ? <EyeOff className="size-5" /> : <Eye className="size-5" />}
+                  <Eye
+                    className={`absolute size-5 transition-all duration-200 ${
+                      showPassword ? "rotate-45 opacity-0" : "rotate-0 opacity-100"
+                    }`}
+                    aria-hidden="true"
+                  />
+                  <EyeOff
+                    className={`absolute size-5 transition-all duration-200 ${
+                      showPassword ? "rotate-0 opacity-100" : "-rotate-45 opacity-0"
+                    }`}
+                    aria-hidden="true"
+                  />
                 </button>
               </div>
             </div>
 
             <Button
               type="submit"
-              className="h-12 w-full gap-2 bg-blue-600 font-medium shadow-lg shadow-blue-600/25 hover:bg-blue-500 text-base"
+              className="h-12 w-full gap-2 bg-blue-600 text-base font-medium shadow-lg shadow-blue-600/25 hover:bg-blue-500"
               disabled={isLoading}
             >
               {isLoading ? (
-                <><Loader2 className="size-5 animate-spin" />{t("auth.loggingIn")}</>
+                <>
+                  <Loader2 className="size-5 animate-spin" />
+                  {t("auth.loggingIn")}
+                </>
               ) : (
                 t("auth.loginButton")
               )}

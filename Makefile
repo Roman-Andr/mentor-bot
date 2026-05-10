@@ -1,4 +1,4 @@
-.PHONY: help start stop restart logs clean reset-db create-invitation shell-auth shell-checklist shell-knowledge shell-postgres shell-redis status full-reboot logs-notification logs-escalation logs-meeting shell-notification shell-escalation shell-meeting restart-notification restart-escalation restart-meeting reboot-notification reboot-escalation reboot-meeting logs-admin restart-admin restart-admin-dev reboot-admin shell-admin logs-telegram restart-telegram reboot-telegram shell-telegram dev-admin dev-meeting reset-locks update-deps mock-data prune test coverage coverage-html coverage-clean cache-clean build-push docker-login prod-pull prod-up prod-down prod-logs prod-deploy up up-svc generate-secrets lint-python format-python lint-python-fix lint-admin format-admin lint-admin-check lint-all format-all
+.PHONY: help start stop restart logs clean reset-db create-invitation shell-auth shell-checklist shell-knowledge shell-postgres shell-redis status full-reboot logs-notification logs-escalation logs-meeting shell-notification shell-escalation shell-meeting restart-notification restart-escalation restart-meeting reboot-notification reboot-escalation reboot-meeting logs-admin restart-admin restart-admin-dev reboot-admin shell-admin logs-telegram restart-telegram reboot-telegram shell-telegram dev-admin dev-meeting reset-locks update-deps mock-data prune test coverage coverage-html coverage-clean cache-clean build-push docker-login prod-pull prod-up prod-down prod-logs prod-deploy up up-svc generate-secrets lint-python format-python lint-python-fix lint-admin format-admin lint-admin-check lint-all format-all type-python type-admin type-all typecheck mypy-python tsc-admin
 
 # Docker compose project name
 PROJECT_NAME = mentor-bot
@@ -89,6 +89,9 @@ help:
 	@echo "  make lint-admin-check  - Run prettier --check on admin_web"
 	@echo "  make lint-all          - Run linting on Python and admin_web"
 	@echo "  make format-all        - Run formatting on Python and admin_web"
+	@echo "  make type-python       - Run mypy on all Python services"
+	@echo "  make type-admin        - Run TypeScript type check on admin_web"
+	@echo "  make type-all          - Run Python and TypeScript type checks"
 	@echo ""
 	@echo "Production deploy:"
 	@echo "  DOCKER_USERNAME=user make build-push [TAG=sha]  - Build & push all images"
@@ -209,6 +212,23 @@ lint-admin-check:
 lint-all: lint-python lint-admin
 
 format-all: format-python format-admin
+
+type-python:
+	@for svc in $(PYTHON_SERVICES); do \
+		echo "=== Type checking $$svc ===" && \
+		(cd "$$svc" && env -u VIRTUAL_ENV uv run mypy .) || exit 1; \
+	done
+
+type-admin:
+	cd admin_web && bunx tsc --noEmit
+
+type-all: type-python type-admin
+
+typecheck: type-all
+
+mypy-python: type-python
+
+tsc-admin: type-admin
 
 # ─── Individual service commands for CI ───────────────────────────────────────────
 test-auth:

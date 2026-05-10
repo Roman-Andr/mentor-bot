@@ -64,17 +64,11 @@ async function getCertificateDocument() {
 export async function generateOnboardingReportPDF(
   data: ReportData,
   translations: ReportTranslations,
-  locale: string
+  locale: string,
 ): Promise<Blob> {
   const ReportDocument = await getReportDocument();
 
-  const doc = (
-    <ReportDocument
-      data={data}
-      translations={translations}
-      locale={locale}
-    />
-  );
+  const doc = <ReportDocument data={data} translations={translations} locale={locale} />;
 
   const blob = await pdf(doc).toBlob();
   return blob;
@@ -84,7 +78,7 @@ export async function generateCertificatePDF(
   user: User,
   checklist: Checklist & { template_name?: string },
   translations: CertificateTranslations,
-  locale: string
+  locale: string,
 ): Promise<Blob> {
   const CertificateDocument = await getCertificateDocument();
 
@@ -120,5 +114,7 @@ export function generatePDFReportFilename(locale: string): string {
 export function generateCertificateFilename(user: User, locale: string): string {
   const fullName = `${user.first_name}_${user.last_name || ""}`.trim().replace(/\s+/g, "_");
   const date = new Date().toISOString().split("T")[0];
-  return locale === "ru" ? `сертификат_${fullName}_${date}.pdf` : `certificate_${fullName}_${date}.pdf`;
+  return locale === "ru"
+    ? `сертификат_${fullName}_${date}.pdf`
+    : `certificate_${fullName}_${date}.pdf`;
 }

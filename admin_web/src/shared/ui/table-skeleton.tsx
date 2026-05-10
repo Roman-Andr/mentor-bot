@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/shared/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 import { cn } from "@/shared/lib/utils";
 
 interface TableSkeletonProps {
@@ -18,22 +11,10 @@ interface TableSkeletonProps {
 }
 
 function SkeletonCell({ className }: { className?: string }) {
-  return (
-    <div
-      className={cn(
-        "bg-muted animate-pulse rounded",
-        className
-      )}
-    />
-  );
+  return <div className={cn("animate-pulse rounded bg-muted", className)} />;
 }
 
-export function TableSkeleton({
-  columns,
-  rows = 5,
-  className,
-  header,
-}: TableSkeletonProps) {
+export function TableSkeleton({ columns, rows = 5, className, header }: TableSkeletonProps) {
   return (
     <div className={cn("space-y-4", className)}>
       {header}
@@ -53,12 +34,7 @@ export function TableSkeleton({
               <TableRow key={rowIndex}>
                 {Array.from({ length: columns }).map((_, colIndex) => (
                   <TableCell key={colIndex}>
-                    <SkeletonCell
-                      className={cn(
-                        "h-4",
-                        colIndex === 0 ? "w-32" : "w-24"
-                      )}
-                    />
+                    <SkeletonCell className={cn("h-4", colIndex === 0 ? "w-32" : "w-24")} />
                   </TableCell>
                 ))}
               </TableRow>
@@ -121,7 +97,7 @@ export function DataTableSkeleton({
                   <SkeletonCell
                     className={cn(
                       "h-4",
-                      colIndex === 0 ? "w-36" : colIndex === 1 ? "w-28" : "w-20"
+                      colIndex === 0 ? "w-36" : colIndex === 1 ? "w-28" : "w-20",
                     )}
                   />
                 </TableCell>

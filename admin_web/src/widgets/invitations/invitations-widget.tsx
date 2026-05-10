@@ -1,9 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import { useTranslations } from "@/shared/hooks/use-translations";
 import { PageContent } from "@/shared/layout/page-content";
-import { useInvitations, type InvitationItem, type InvitationFormData } from "@/shared/hooks/use-invitations";
+import { useInvitations, type InvitationFormData } from "@/shared/hooks/use-invitations";
 import { useDepartments } from "@/shared/hooks/use-departments";
 import { CreateInvitationDialog } from "@/widgets/invitations/create-invitation-dialog";
 import { InvitationLinkDialog } from "@/widgets/invitations/invitation-link-dialog";
@@ -18,24 +17,40 @@ export function InvitationsWidget() {
   const deps = useDepartments();
 
   return (
-    <PageContent title={t("invitations.title")} subtitle={t("invitations.title")}>
+    <PageContent
+      title={t("invitations.title")}
+      subtitle={t("invitations.title")}
+      actions={
+        <Button className="w-full gap-2 sm:w-auto" onClick={() => inv.setIsCreateDialogOpen(true)}>
+          <Plus className="size-4" />
+          {t("invitations.createInvitation")}
+        </Button>
+      }
+    >
       <CreateInvitationDialog
         open={inv.isCreateDialogOpen}
         onOpenChange={inv.setIsCreateDialogOpen}
         formData={inv.formData}
-        onFormDataChange={(value: InvitationFormData | ((prev: InvitationFormData) => InvitationFormData)) => {
+        onFormDataChange={(
+          value: InvitationFormData | ((prev: InvitationFormData) => InvitationFormData),
+        ) => {
           inv.setFormData(typeof value === "function" ? value(inv.formData) : value);
         }}
         emailTouched={inv.emailTouched}
         onEmailTouchedChange={(touched: boolean) => inv.setEmailTouched(touched)}
         departments={deps.items}
         onSubmit={inv.handleCreateInvitation}
-        onCancel={() => { inv.setIsCreateDialogOpen(false); inv.setEmailTouched(false); }}
+        onCancel={() => {
+          inv.setIsCreateDialogOpen(false);
+          inv.setEmailTouched(false);
+        }}
       />
 
       <InvitationLinkDialog
         url={inv.createdUrl}
-        onOpenChange={(open) => { if (!open) inv.setCreatedUrl(null); }}
+        onOpenChange={(open) => {
+          if (!open) inv.setCreatedUrl(null);
+        }}
       />
 
       <InvitationStats stats={inv.stats} />

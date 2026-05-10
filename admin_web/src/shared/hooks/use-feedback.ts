@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/shared/hooks/use-toast";
 import { useTranslations } from "@/shared/hooks/use-translations";
+import { useConfirm } from "@/shared/hooks/use-confirm";
 import { api } from "@/shared/lib/api";
 import { queryKeys } from "@/shared/lib/query-keys";
 import { feedbackApi } from "@/shared/lib/api/feedback";
@@ -16,6 +17,7 @@ import type {
 export function useFeedback() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const confirm = useConfirm();
   const t = useTranslations();
 
   // Pagination
@@ -43,7 +45,7 @@ export function useFeedback() {
   const toggleSort = useCallback((field: string) => {
     setSortField((current) => {
       if (current === field) {
-        setSortDirection((dir) => dir === "asc" ? "desc" : "asc");
+        setSortDirection((dir) => (dir === "asc" ? "desc" : "asc"));
       } else {
         setSortDirection("desc");
       }
@@ -74,7 +76,12 @@ export function useFeedback() {
     isLoading: isPulseLoading,
     refetch: refetchPulse,
   } = useQuery({
-    queryKey: queryKeys.feedback.pulse({ skip, limit: pageSize, sort_by: sortField, sort_order: sortDirection }),
+    queryKey: queryKeys.feedback.pulse({
+      skip,
+      limit: pageSize,
+      sort_by: sortField,
+      sort_order: sortDirection,
+    }),
     queryFn: () =>
       feedbackApi.getPulseSurveys({
         skip,
@@ -93,7 +100,12 @@ export function useFeedback() {
     isLoading: isExperienceLoading,
     refetch: refetchExperience,
   } = useQuery({
-    queryKey: queryKeys.feedback.experience({ skip, limit: pageSize, sort_by: sortField, sort_order: sortDirection }),
+    queryKey: queryKeys.feedback.experience({
+      skip,
+      limit: pageSize,
+      sort_by: sortField,
+      sort_order: sortDirection,
+    }),
     queryFn: () =>
       feedbackApi.getExperienceRatings({
         skip,
@@ -112,7 +124,12 @@ export function useFeedback() {
     isLoading: isCommentsLoading,
     refetch: refetchComments,
   } = useQuery({
-    queryKey: queryKeys.feedback.comments({ skip, limit: pageSize, sort_by: sortField, sort_order: sortDirection }),
+    queryKey: queryKeys.feedback.comments({
+      skip,
+      limit: pageSize,
+      sort_by: sortField,
+      sort_order: sortDirection,
+    }),
     queryFn: () =>
       feedbackApi.getComments({
         skip,
@@ -194,6 +211,32 @@ export function useFeedback() {
     },
   });
 
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (item: FeedbackItem) => {
+      const result =
+        item.type === "pulse"
+          ? await feedbackApi.deletePulseSurvey(item.id)
+          : item.type === "experience"
+            ? await feedbackApi.deleteExperienceRating(item.id)
+            : await feedbackApi.deleteComment(item.id);
+
+      if (!result.success) {
+        throw new Error(result.error?.message || "Failed to delete feedback");
+      }
+    },
+    onSuccess: (_data, item) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.feedback.all });
+      setSelectedFeedback((current) =>
+        current?.type === item.type && current.id === item.id ? null : current,
+      );
+      toast(t("feedback.deleted"), "success");
+    },
+    onError: (error) => {
+      toast(error instanceof Error ? error.message : t("feedback.deleteError"), "error");
+    },
+  });
+
   // Combine all feedback items
   const feedbackItems = useMemo<FeedbackItem[]>(() => {
     const items: FeedbackItem[] = [];
@@ -235,7 +278,7 @@ export function useFeedback() {
 
     // Sort by submitted_at descending
     return items.sort(
-      (a, b) => new Date(b.submitted_at).getTime() - new Date(a.submitted_at).getTime()
+      (a, b) => new Date(b.submitted_at).getTime() - new Date(a.submitted_at).getTime(),
     );
   }, [pulseData, experienceData, commentsData]);
 
@@ -260,7 +303,8 @@ export function useFeedback() {
   // Calculate totals based on type filter
   const totalCount = useMemo(() => {
     if (typeFilter === "pulse") return pulseData?.success ? pulseData.data?.total || 0 : 0;
-    if (typeFilter === "experience") return experienceData?.success ? experienceData.data?.total || 0 : 0;
+    if (typeFilter === "experience")
+      return experienceData?.success ? experienceData.data?.total || 0 : 0;
     if (typeFilter === "comment") return commentsData?.success ? commentsData.data?.total || 0 : 0;
     // typeFilter === "all" - sum all totals
     return (
@@ -275,9 +319,9 @@ export function useFeedback() {
   const totalComments = commentsData?.success ? commentsData.data?.total || 0 : 0;
 
   const commentsWithReply = useMemo(() => {
-    return (
-      commentsData?.success && commentsData.data?.items ? commentsData.data.items.filter((c) => c.reply).length : 0
-    );
+    return commentsData?.success && commentsData.data?.items
+      ? commentsData.data.items.filter((c) => c.reply).length
+      : 0;
   }, [commentsData]);
 
   // Handlers
@@ -286,26 +330,47 @@ export function useFeedback() {
       if (id === null || id === undefined) return "-";
       return usersData?.get(id) ?? String(id);
     },
-    [usersData]
+    [usersData],
   );
 
   const viewDetails = useCallback((item: FeedbackItem) => {
     setSelectedFeedback(item);
   }, []);
 
-  const handleReply = useCallback((commentId: number) => {
-    const item = feedbackItems.find((feedbackItem) => feedbackItem.type === "comment" && feedbackItem.id === commentId);
-    setSelectedFeedback(item ?? null);
-    setReplyingToId(commentId);
-    setIsReplyModalOpen(true);
-  }, [feedbackItems]);
+  const handleReply = useCallback(
+    (commentId: number) => {
+      const item = feedbackItems.find(
+        (feedbackItem) => feedbackItem.type === "comment" && feedbackItem.id === commentId,
+      );
+      setSelectedFeedback(item ?? null);
+      setReplyingToId(commentId);
+      setIsReplyModalOpen(true);
+    },
+    [feedbackItems],
+  );
 
   const submitReply = useCallback(
     async (reply: string) => {
       if (replyingToId === null) return;
       await replyMutation.mutateAsync({ commentId: replyingToId, reply });
     },
-    [replyingToId, replyMutation]
+    [replyingToId, replyMutation],
+  );
+
+  const handleDelete = useCallback(
+    async (item: FeedbackItem) => {
+      const confirmed = await confirm({
+        title: t("common.deleteTitle"),
+        description: t("feedback.deleteConfirm"),
+        confirmText: t("common.delete"),
+        cancelText: t("common.cancel"),
+        variant: "destructive",
+      });
+
+      if (!confirmed) return;
+      await deleteMutation.mutateAsync(item);
+    },
+    [confirm, deleteMutation, t],
   );
 
   const resetFilters = useCallback(() => {
@@ -328,13 +393,22 @@ export function useFeedback() {
     isReplyModalOpen,
     replyingToId,
     replySubmitting: replyMutation.isPending,
+    deleteSubmitting: deleteMutation.isPending,
 
     // Stats
-    pulseStats: pulseStats?.success ? pulseStats.data as PulseStats | undefined : undefined,
-    experienceStats: experienceStats?.success ? experienceStats.data as ExperienceStats | undefined : undefined,
-    pulseAnonymityStats: pulseAnonymityStats?.success ? pulseAnonymityStats.data as AnonymityStats | undefined : undefined,
-    experienceAnonymityStats: experienceAnonymityStats?.success ? experienceAnonymityStats.data as AnonymityStats | undefined : undefined,
-    commentAnonymityStats: commentAnonymityStats?.success ? commentAnonymityStats.data as AnonymityStats | undefined : undefined,
+    pulseStats: pulseStats?.success ? (pulseStats.data as PulseStats | undefined) : undefined,
+    experienceStats: experienceStats?.success
+      ? (experienceStats.data as ExperienceStats | undefined)
+      : undefined,
+    pulseAnonymityStats: pulseAnonymityStats?.success
+      ? (pulseAnonymityStats.data as AnonymityStats | undefined)
+      : undefined,
+    experienceAnonymityStats: experienceAnonymityStats?.success
+      ? (experienceAnonymityStats.data as AnonymityStats | undefined)
+      : undefined,
+    commentAnonymityStats: commentAnonymityStats?.success
+      ? (commentAnonymityStats.data as AnonymityStats | undefined)
+      : undefined,
     totalComments,
     commentsWithReply,
 
@@ -363,6 +437,7 @@ export function useFeedback() {
     getUserName,
     viewDetails,
     handleReply,
+    handleDelete,
     submitReply,
     resetFilters,
     invalidate,

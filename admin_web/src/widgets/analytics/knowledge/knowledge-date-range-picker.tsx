@@ -29,7 +29,11 @@ function toISODate(d: Date) {
   return d.toISOString().split("T")[0];
 }
 
-export function KnowledgeDateRangePicker({ onChange, defaultFrom, defaultTo }: KnowledgeDateRangePickerProps) {
+export function KnowledgeDateRangePicker({
+  onChange,
+  defaultFrom,
+  defaultTo,
+}: KnowledgeDateRangePickerProps) {
   const t = useTranslations();
   const [fromDate, setFromDate] = useState(defaultFrom || "");
   const [toDate, setToDate] = useState(defaultTo || "");
@@ -79,7 +83,10 @@ export function KnowledgeDateRangePicker({ onChange, defaultFrom, defaultTo }: K
           <Label className="text-xs">{t("analytics.knowledge.fromDate")}</Label>
           <DatePicker
             value={fromDate}
-            onChange={(v) => { setFromDate(v); setActivePreset(null); }}
+            onChange={(v) => {
+              setFromDate(v);
+              setActivePreset(null);
+            }}
             placeholder={t("analytics.knowledge.fromDate")}
           />
         </div>
@@ -87,7 +94,10 @@ export function KnowledgeDateRangePicker({ onChange, defaultFrom, defaultTo }: K
           <Label className="text-xs">{t("analytics.knowledge.toDate")}</Label>
           <DatePicker
             value={toDate}
-            onChange={(v) => { setToDate(v); setActivePreset(null); }}
+            onChange={(v) => {
+              setToDate(v);
+              setActivePreset(null);
+            }}
             placeholder={t("analytics.knowledge.toDate")}
           />
         </div>

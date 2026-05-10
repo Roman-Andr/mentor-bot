@@ -52,7 +52,7 @@ class TestLanguageHandlers:
 
             await cmd_language(mock_message, locale="en")
 
-        mock_message.answer.assert_called_once()
+        mock_message.answer.assert_called_once_with("Choose your language", reply_markup=mock_kb.return_value)
 
     async def test_cmd_language_russian(self, mock_message):
         """Test language command with Russian locale."""
@@ -61,7 +61,7 @@ class TestLanguageHandlers:
 
             await cmd_language(mock_message, locale="ru")
 
-        mock_message.answer.assert_called_once()
+        mock_message.answer.assert_called_once_with("Выберите язык", reply_markup=mock_kb.return_value)
 
     async def test_cb_language_menu(self, mock_callback):
         """Test language menu callback."""

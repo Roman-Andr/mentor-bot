@@ -34,7 +34,12 @@ export function KnowledgeViewsByTag({ data }: KnowledgeViewsByTagProps) {
             <XAxis dataKey="name" tick={{ fontSize: 12 }} />
             <YAxis />
             <Tooltip />
-            <Bar dataKey="views" name={t("analytics.knowledge.views")} fill="#8B5CF6" radius={[4, 4, 0, 0]} />
+            <Bar
+              dataKey="views"
+              name={t("analytics.knowledge.views")}
+              fill="#8B5CF6"
+              radius={[4, 4, 0, 0]}
+            />
           </BarChart>
         </ResponsiveContainer>
       </CardContent>

@@ -6,7 +6,10 @@ import { Plus } from "lucide-react";
 import { DepartmentDocumentsTable } from "./department-documents-table";
 import { DepartmentDocumentFormDialog } from "./department-document-form-dialog";
 import { useDepartmentDocuments } from "@/shared/hooks/use-department-documents";
-import type { DepartmentDocument, DepartmentDocumentUpdate } from "@/shared/types/department-document";
+import type {
+  DepartmentDocument,
+  DepartmentDocumentUpdate,
+} from "@/shared/types/department-document";
 
 export function DepartmentDocumentsTab() {
   const [searchQuery, setSearchQuery] = useState("");

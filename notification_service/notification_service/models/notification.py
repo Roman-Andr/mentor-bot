@@ -4,6 +4,7 @@ from datetime import datetime
 
 from sqlalchemy import (
     JSON,
+    BigInteger,
     DateTime,
     Enum,
     Integer,
@@ -26,7 +27,7 @@ class Notification(Base):
 
     # Recipient
     user_id: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
-    recipient_telegram_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    recipient_telegram_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     recipient_email: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
     # Content

@@ -13,7 +13,11 @@ import { useEffect } from "react";
 import { logger } from "@/shared/lib/logger";
 
 interface SearchFiltersProps {
-  onFiltersChange: (filters: { from_date?: string; to_date?: string; department_id?: number }) => void;
+  onFiltersChange: (filters: {
+    from_date?: string;
+    to_date?: string;
+    department_id?: number;
+  }) => void;
 }
 
 export function SearchFilters({ onFiltersChange }: SearchFiltersProps) {
@@ -28,10 +32,12 @@ export function SearchFilters({ onFiltersChange }: SearchFiltersProps) {
       try {
         const result = await departmentsApi.list({ limit: 1000 });
         if (result.success && result.data?.departments) {
-          const options: SelectOption[] = result.data.departments.map((dept: { id: number; name: string }) => ({
-            value: dept.id.toString(),
-            label: dept.name,
-          }));
+          const options: SelectOption[] = result.data.departments.map(
+            (dept: { id: number; name: string }) => ({
+              value: dept.id.toString(),
+              label: dept.name,
+            }),
+          );
           setDepartmentOptions(options);
         }
       } catch (error) {
@@ -59,7 +65,7 @@ export function SearchFilters({ onFiltersChange }: SearchFiltersProps) {
   return (
     <Card>
       <CardContent className="pt-6">
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
           <div className="space-y-2">
             <Label>{t("analytics.search.fromDate")}</Label>
             <DatePicker

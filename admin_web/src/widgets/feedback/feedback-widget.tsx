@@ -5,8 +5,12 @@ import { DataTable } from "@/shared/ui/data-table";
 import { PageContent } from "@/shared/layout/page-content";
 import { CardHeader, CardTitle } from "@/shared/ui/card";
 import {
-  FeedbackStats, FeedbackAnonymityStats, FeedbackFilters,
-  FeedbackTable, FeedbackDetailsDialog, FeedbackReplyDialog,
+  FeedbackStats,
+  FeedbackAnonymityStats,
+  FeedbackFilters,
+  FeedbackTable,
+  FeedbackDetailsDialog,
+  FeedbackReplyDialog,
 } from "@/widgets/feedback";
 import { useFeedback } from "@/shared/hooks/use-feedback";
 
@@ -19,6 +23,7 @@ export function FeedbackWidget() {
     getUserName: (userId) => f.getUserName(userId),
     onViewDetails: (item) => f.viewDetails(item),
     onReply: (id) => f.handleReply(id),
+    onDelete: (item) => f.handleDelete(item),
     sortField: f.sortField,
     sortDirection: f.sortDirection,
     onSort: f.toggleSort,
@@ -45,9 +50,11 @@ export function FeedbackWidget() {
           header={
             <CardHeader>
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <CardTitle>
+                <CardTitle className="inline-flex items-baseline gap-1 whitespace-nowrap">
                   {t("feedback.title")}{" "}
-                  <span className="text-muted-foreground text-sm font-normal">({f.totalCount})</span>
+                  <span className="text-sm font-normal text-muted-foreground">
+                    ({f.totalCount})
+                  </span>
                 </CardTitle>
                 <FeedbackFilters
                   typeFilter={f.typeFilter}
@@ -67,13 +74,17 @@ export function FeedbackWidget() {
         item={f.selectedFeedback}
         open={f.selectedFeedback !== null && !f.isReplyModalOpen}
         getUserName={(userId) => f.getUserName(userId)}
-        onOpenChange={(open) => { if (!open) f.closeDetails(); }}
+        onOpenChange={(open) => {
+          if (!open) f.closeDetails();
+        }}
       />
       <FeedbackReplyDialog
         item={f.selectedFeedback}
         open={f.isReplyModalOpen}
         submitting={f.replySubmitting}
-        onOpenChange={(open) => { if (!open) f.closeReplyModal(); }}
+        onOpenChange={(open) => {
+          if (!open) f.closeReplyModal();
+        }}
         onSubmit={f.submitReply}
       />
     </PageContent>

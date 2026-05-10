@@ -199,7 +199,6 @@ class TestGetArticle:
         mock_article_service.get_article_by_id.assert_called_once_with(1)
         mock_article_service.record_view.assert_called_once()
 
-
     async def test_get_article_by_slug(
         self,
         mock_article_service: AsyncMock,

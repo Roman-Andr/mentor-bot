@@ -20,9 +20,23 @@ interface StatCardProps {
   subtitle?: string;
 }
 
-function StatCard({ label, value, icon: Icon, iconClass, gradientFrom, gradientTo, subtitle }: StatCardProps) {
+function StatCard({
+  label,
+  value,
+  icon: Icon,
+  iconClass,
+  gradientFrom,
+  gradientTo,
+  subtitle,
+}: StatCardProps) {
   return (
-    <div className={cn("relative overflow-hidden rounded-xl border bg-gradient-to-br p-5", gradientFrom, gradientTo)}>
+    <div
+      className={cn(
+        "relative overflow-hidden rounded-xl border bg-gradient-to-br p-5",
+        gradientFrom,
+        gradientTo,
+      )}
+    >
       <div className="flex items-start justify-between">
         <div>
           <p className="text-sm font-medium opacity-75">{label}</p>
@@ -73,9 +87,21 @@ export function AnalyticsStats({ stats, userCount }: AnalyticsStatsProps) {
         label={t("analytics.inProgressStatus")}
         value={stats?.in_progress || 0}
         icon={stats?.overdue ? AlertTriangle : TrendingUp}
-        iconClass={stats?.overdue ? "bg-red-500/20 text-red-500 dark:bg-red-400/20 dark:text-red-400" : "bg-amber-500/20 text-amber-500 dark:bg-amber-400/20 dark:text-amber-400"}
-        gradientFrom={stats?.overdue ? "from-red-50 dark:from-red-950/20" : "from-amber-50 dark:from-amber-950/20"}
-        gradientTo={stats?.overdue ? "to-red-100/50 dark:to-red-900/10" : "to-amber-100/50 dark:to-amber-900/10"}
+        iconClass={
+          stats?.overdue
+            ? "bg-red-500/20 text-red-500 dark:bg-red-400/20 dark:text-red-400"
+            : "bg-amber-500/20 text-amber-500 dark:bg-amber-400/20 dark:text-amber-400"
+        }
+        gradientFrom={
+          stats?.overdue
+            ? "from-red-50 dark:from-red-950/20"
+            : "from-amber-50 dark:from-amber-950/20"
+        }
+        gradientTo={
+          stats?.overdue
+            ? "to-red-100/50 dark:to-red-900/10"
+            : "to-amber-100/50 dark:to-amber-900/10"
+        }
         subtitle={stats?.overdue ? `${stats.overdue} ${t("analytics.overdue")}` : undefined}
       />
     </div>

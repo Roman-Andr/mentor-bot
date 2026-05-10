@@ -19,9 +19,23 @@ import { useEntityMutations } from "./use-entity-mutations";
 import { useEntityFilters } from "./use-entity-filters";
 import { useEntityPagination } from "./use-entity-pagination";
 
-export function useEntity<TItem, TForm, TCreatePayload = unknown, TUpdatePayload = unknown, TExtendedState = Record<string, unknown>>(
-  options: UseEntityOptions<TItem, TForm, TCreatePayload, TUpdatePayload, TExtendedState>,
-): UseEntityResult<TItem, TForm, TCreatePayload, TUpdatePayload, TExtendedState> {
+export function useEntity<
+  TItem,
+  TForm,
+  TCreatePayload = unknown,
+  TUpdatePayload = unknown,
+  TExtendedState = Record<string, unknown>,
+  TCustomMutations extends Record<string, unknown> = Record<string, never>,
+>(
+  options: UseEntityOptions<
+    TItem,
+    TForm,
+    TCreatePayload,
+    TUpdatePayload,
+    TExtendedState,
+    TCustomMutations
+  >,
+): UseEntityResult<TItem, TForm, TCreatePayload, TUpdatePayload, TExtendedState, TCustomMutations> {
   const {
     entityName,
     translationNamespace,
@@ -50,23 +64,28 @@ export function useEntity<TItem, TForm, TCreatePayload = unknown, TUpdatePayload
   } = options;
 
   // Initialize translations - always call hooks unconditionally
-  const tNamespace = useTranslations((translationNamespace as import("../use-translations").Namespace) ?? "common");
+  const tNamespace = useTranslations(
+    (translationNamespace as import("../use-translations").Namespace) ?? "common",
+  );
   const tCommon = useTranslations("common");
   const t = translationNamespace ? tNamespace : tCommon;
 
   // Resolve entity name from entityLabelKey if provided
-  const resolvedEntityName = entityLabelKey ? t(entityLabelKey as any) as string : entityName;
+  const resolvedEntityName = entityLabelKey ? (t(entityLabelKey as any) as string) : entityName;
 
   // Resolve label with i18n support (translation keys take precedence)
-  const resolveLabel = useCallback((key: keyof EntityLabels, fallback: string): string => {
-    const translationKey = labels[`${key}Key` as keyof EntityLabels] as string | undefined;
-    if (translationKey && t) {
-      const keyParts = translationKey.split(".");
-      const finalKey = keyParts.length > 1 ? keyParts[keyParts.length - 1] : translationKey;
-      return t(finalKey) as string;
-    }
-    return labels[key] ?? fallback;
-  }, [labels, t]);
+  const resolveLabel = useCallback(
+    (key: keyof EntityLabels, fallback: string): string => {
+      const translationKey = labels[`${key}Key` as keyof EntityLabels] as string | undefined;
+      if (translationKey && t) {
+        const keyParts = translationKey.split(".");
+        const finalKey = keyParts.length > 1 ? keyParts[keyParts.length - 1] : translationKey;
+        return t(finalKey) as string;
+      }
+      return labels[key] ?? fallback;
+    },
+    [labels, t],
+  );
 
   const created = resolveLabel("created", `${resolvedEntityName}`);
   const updated = resolveLabel("updated", `${resolvedEntityName}`);
@@ -75,7 +94,10 @@ export function useEntity<TItem, TForm, TCreatePayload = unknown, TUpdatePayload
   const updateError = resolveLabel("updateError", `${resolvedEntityName}`);
   const deleteError = resolveLabel("deleteError", `${resolvedEntityName}`);
   const deleteConfirmTitle = resolveLabel("deleteConfirmTitle", tCommon("deleteTitle") ?? "");
-  const deleteConfirmDescription = resolveLabel("deleteConfirmDescription", tCommon("confirmDelete") ?? "");
+  const deleteConfirmDescription = resolveLabel(
+    "deleteConfirmDescription",
+    tCommon("confirmDelete") ?? "",
+  );
 
   const { toast } = useToast();
   const confirm = useConfirm();
@@ -89,32 +111,33 @@ export function useEntity<TItem, TForm, TCreatePayload = unknown, TUpdatePayload
     defaultExtendedState ?? ({} as TExtendedState),
   );
 
-  const setExtendedState = useCallback(
-    (updater: (prev: TExtendedState) => TExtendedState) => {
-      setExtendedStateState((prev) => updater(prev));
-    },
-    [],
-  );
+  const setExtendedState = useCallback((updater: (prev: TExtendedState) => TExtendedState) => {
+    setExtendedStateState((prev) => updater(prev));
+  }, []);
 
   // Search state - initialize from URL
   const [searchQuery, setSearchQuery] = useState(() => searchParams.get(searchParamName) ?? "");
   const debouncedSearch = useDebounce(searchQuery);
 
-  const setSearchQueryWithUrl = useCallback((query: string) => {
-    setSearchQuery(query);
+  const setSearchQueryWithUrl = useCallback(
+    (query: string) => {
+      setSearchQuery(query);
 
-    // Update URL
-    const params = new URLSearchParams(searchParams.toString());
-    if (query === "") {
-      params.delete(searchParamName);
-    } else {
-      params.set(searchParamName, query);
-    }
-    router.push(`?${params.toString()}`, { scroll: false });
-  }, [searchParamName, searchParams, router]);
+      // Update URL
+      const params = new URLSearchParams(searchParams.toString());
+      if (query === "") {
+        params.delete(searchParamName);
+      } else {
+        params.set(searchParamName, query);
+      }
+      router.push(`?${params.toString()}`, { scroll: false });
+    },
+    [searchParamName, searchParams, router],
+  );
 
   // Pagination state
-  const { currentPage, setCurrentPage, pageSize, setPageSize } = useEntityPagination(initialPageSize);
+  const { currentPage, setCurrentPage, pageSize, setPageSize } =
+    useEntityPagination(initialPageSize);
 
   // Filters and sorting state
   const {
@@ -166,7 +189,20 @@ export function useEntity<TItem, TForm, TCreatePayload = unknown, TUpdatePayload
     }
 
     return params;
-  }, [currentPage, pageSize, searchable, debouncedSearch, searchParamName, filters, filterValues, sortable, sortField, sortDirection, sortFieldParam, sortDirectionParam]);
+  }, [
+    currentPage,
+    pageSize,
+    searchable,
+    debouncedSearch,
+    searchParamName,
+    filters,
+    filterValues,
+    sortable,
+    sortField,
+    sortDirection,
+    sortFieldParam,
+    sortDirectionParam,
+  ]);
 
   // Query
   const { items, loading, totalCount, totalPages } = useEntityQuery(
@@ -196,16 +232,25 @@ export function useEntity<TItem, TForm, TCreatePayload = unknown, TUpdatePayload
     formData,
   };
 
-  const { createMutation, updateMutation, deleteMutation, handleSubmit, isSubmitting, isDeleting } = useEntityMutations(
-    { createFn, updateFn, deleteFn, queryKeyPrefix, onAfterCreate: options.onAfterCreate, onAfterUpdate: options.onAfterUpdate, toCreatePayload },
-    mutationContext,
-    { created, updated, deleted, createError, updateError, deleteError },
-    resetFormInternal,
-    setIsCreateDialogOpen,
-    setIsEditDialogOpen,
-    setSelectedItem,
-    toUpdatePayload,
-  );
+  const { createMutation, updateMutation, deleteMutation, handleSubmit, isSubmitting, isDeleting } =
+    useEntityMutations(
+      {
+        createFn,
+        updateFn,
+        deleteFn,
+        queryKeyPrefix,
+        onAfterCreate: options.onAfterCreate,
+        onAfterUpdate: options.onAfterUpdate,
+        toCreatePayload,
+      },
+      mutationContext,
+      { created, updated, deleted, createError, updateError, deleteError },
+      resetFormInternal,
+      setIsCreateDialogOpen,
+      setIsEditDialogOpen,
+      setSelectedItem,
+      toUpdatePayload,
+    );
 
   // Custom mutations
   const customMutationsContext: UseEntityContext<TItem, TForm, TExtendedState> = {
@@ -219,7 +264,7 @@ export function useEntity<TItem, TForm, TCreatePayload = unknown, TUpdatePayload
   };
 
   const customMutations = useMemo(() => {
-    if (!customMutationsConfig) return {};
+    if (!customMutationsConfig) return {} as TCustomMutations;
     return customMutationsConfig(customMutationsContext);
   }, [customMutationsConfig, customMutationsContext]);
 

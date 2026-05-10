@@ -34,7 +34,9 @@ export function DepartmentFormDialog({
   return (
     <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto">
       <DialogHeader>
-        <DialogTitle>{isEdit ? t("departments.editDepartment") : t("departments.addDepartment")}</DialogTitle>
+        <DialogTitle>
+          {isEdit ? t("departments.editDepartment") : t("departments.addDepartment")}
+        </DialogTitle>
         <DialogDescription>
           {isEdit ? t("departments.editDepartment") : t("departments.addDepartment")}
         </DialogDescription>

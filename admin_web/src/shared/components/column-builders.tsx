@@ -17,7 +17,7 @@ export const buildTextColumn = <T,>(
   key: string,
   header: string,
   getValue: (item: T) => string,
-  options?: { sortable?: boolean; width?: string; className?: string }
+  options?: { sortable?: boolean; width?: string; className?: string },
 ): ColumnDefinition<T> => ({
   key,
   header,
@@ -31,16 +31,14 @@ export const buildDateColumn = <T,>(
   key: string,
   header: string,
   getValue: (item: T) => string | Date,
-  options?: { sortable?: boolean; width?: string; format?: "date" | "datetime" }
+  options?: { sortable?: boolean; width?: string; format?: "date" | "datetime" },
 ): ColumnDefinition<T> => ({
   key,
   header,
   cell: (item) => {
     const date = getValue(item);
-    const formatted = options?.format === "datetime" 
-      ? formatDateTime(date) 
-      : formatDate(date);
-    return <span className="text-muted-foreground text-sm">{formatted}</span>;
+    const formatted = options?.format === "datetime" ? formatDateTime(date) : formatDate(date);
+    return <span className="text-sm text-muted-foreground">{formatted}</span>;
   },
   sortable: options?.sortable ?? true,
   width: options?.width || "w-32",
@@ -51,13 +49,13 @@ export const buildIconTextColumn = <T,>(
   header: string,
   getValue: (item: T) => string,
   Icon: LucideIcon,
-  options?: { sortable?: boolean; width?: string }
+  options?: { sortable?: boolean; width?: string },
 ): ColumnDefinition<T> => ({
   key,
   header,
   cell: (item) => (
     <div className="flex items-center gap-1">
-      <Icon className="text-muted-foreground size-4" />
+      <Icon className="size-4 text-muted-foreground" />
       <span>{getValue(item)}</span>
     </div>
   ),
@@ -69,7 +67,7 @@ export const buildStatusColumn = <T,>(
   key: string,
   header: string,
   getStatus: (item: T) => string,
-  options?: { sortable?: boolean; width?: string }
+  options?: { sortable?: boolean; width?: string },
 ): ColumnDefinition<T> => ({
   key,
   header,
@@ -84,7 +82,7 @@ export const buildSelectColumn = <T,>(
   getValue: (item: T) => string,
   options: { label: string; value: string }[],
   defaultValue?: string,
-  config?: { sortable?: boolean; width?: string }
+  config?: { sortable?: boolean; width?: string },
 ): ColumnDefinition<T> => ({
   key,
   header,
@@ -101,17 +99,16 @@ export const buildYesNoColumn = <T,>(
   key: string,
   header: string,
   getValue: (item: T) => boolean,
-  config?: { sortable?: boolean; width?: string }
+  config?: { sortable?: boolean; width?: string },
 ): ColumnDefinition<T> => ({
   key,
   header,
-  cell: (item) => (
+  cell: (item) =>
     getValue(item) ? (
       <span className="text-green-600">Yes</span>
     ) : (
       <span className="text-muted-foreground">No</span>
-    )
-  ),
+    ),
   sortable: config?.sortable ?? true,
   width: config?.width,
 });
@@ -119,7 +116,7 @@ export const buildYesNoColumn = <T,>(
 export const buildActionsColumn = <T,>(
   key: string = "actions",
   renderActions: (item: T) => React.ReactNode,
-  width = "w-40"
+  width = "w-40",
 ): ColumnDefinition<T> => ({
   key,
   header: "",
@@ -129,13 +126,13 @@ export const buildActionsColumn = <T,>(
 
 // Predefined common columns
 export const buildDeadlineDaysColumn = <T,>(
-  getValue: (item: T) => number
+  getValue: (item: T) => number,
 ): ColumnDefinition<T> => ({
   key: "deadlineDays",
   header: "Deadline Days",
   cell: (item) => (
     <div className="flex items-center gap-1">
-      <Calendar className="text-muted-foreground size-4" />
+      <Calendar className="size-4 text-muted-foreground" />
       {getValue(item)} days
     </div>
   ),
@@ -143,13 +140,13 @@ export const buildDeadlineDaysColumn = <T,>(
 });
 
 export const buildDurationMinutesColumn = <T,>(
-  getValue: (item: T) => number
+  getValue: (item: T) => number,
 ): ColumnDefinition<T> => ({
   key: "durationMinutes",
   header: "Duration",
   cell: (item) => (
     <div className="flex items-center gap-1">
-      <Clock className="text-muted-foreground size-4" />
+      <Clock className="size-4 text-muted-foreground" />
       {getValue(item)} min
     </div>
   ),

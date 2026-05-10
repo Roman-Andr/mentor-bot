@@ -123,7 +123,12 @@ export function toForm(user: UserItem): UserFormData {
 }
 
 export function useUsers() {
-  const entity = useEntity<UserItem, UserFormData, ReturnType<typeof toCreatePayload>, ReturnType<typeof toUpdatePayload>>({
+  const entity = useEntity<
+    UserItem,
+    UserFormData,
+    ReturnType<typeof toCreatePayload>,
+    ReturnType<typeof toUpdatePayload>
+  >({
     entityName: "Пользователь",
     translationNamespace: "users",
     queryKeyPrefix: "users",
@@ -142,12 +147,19 @@ export function useUsers() {
     searchParamName: "search",
     filters: [
       { name: "role", defaultValue: "ALL", paramName: "role" },
-      { name: "department", defaultValue: "ALL", paramName: "department_id", transform: (v) => parseInt(v) },
+      {
+        name: "department",
+        defaultValue: "ALL",
+        paramName: "department_id",
+        transform: (v) => parseInt(v),
+      },
     ],
     labels: {
       createdKey: "users.created",
       updatedKey: "users.updated",
       deletedKey: "users.deleted",
+      deleteConfirmTitleKey: "users.deleteConfirmTitle",
+      deleteConfirmDescriptionKey: "users.deleteConfirmDescription",
       createErrorKey: "users.createError",
       updateErrorKey: "users.updateError",
       deleteErrorKey: "users.deleteError",
@@ -161,7 +173,7 @@ export function useUsers() {
   const { data: departmentsData } = useQuery({
     queryKey: queryKeys.departments.all,
     queryFn: () => api.departments.list({ limit: 1000 }),
-    select: (result) => result.success ? result.data?.departments || [] : [],
+    select: (result) => (result.success ? result.data?.departments || [] : []),
   });
 
   const departments = departmentsData || [];
@@ -178,7 +190,7 @@ export function useUsers() {
     queryKey: queryKeys.userMentors.byUser(selectedUserForMentor?.id || 0),
     queryFn: () => api.userMentors.list({ user_id: selectedUserForMentor?.id }),
     enabled: !!selectedUserForMentor && assignMentorDialogOpen,
-    select: (result) => result.success ? result.data?.relations || [] : [],
+    select: (result) => (result.success ? result.data?.relations || [] : []),
   });
 
   const currentMentor = userMentorsData?.find((m) => m.is_active) || null;
@@ -188,25 +200,31 @@ export function useUsers() {
     setAssignMentorDialogOpen(true);
   }, []);
 
-  const handleAssignMentor = useCallback(async (userId: number, mentorId: number) => {
-    const resp = await api.userMentors.create({ user_id: userId, mentor_id: mentorId });
-    if (resp.success) {
-      toast(t("mentorAssigned"), "success");
-      await queryClient.invalidateQueries({ queryKey: queryKeys.users.all });
-    } else {
-      toast(resp.error.message || t("assignMentorError"), "error");
-    }
-  }, [t, toast, queryClient]);
+  const handleAssignMentor = useCallback(
+    async (userId: number, mentorId: number) => {
+      const resp = await api.userMentors.create({ user_id: userId, mentor_id: mentorId });
+      if (resp.success) {
+        toast(t("mentorAssigned"), "success");
+        await queryClient.invalidateQueries({ queryKey: queryKeys.users.all });
+      } else {
+        toast(resp.error.message || t("assignMentorError"), "error");
+      }
+    },
+    [t, toast, queryClient],
+  );
 
-  const handleUnassignMentor = useCallback(async (mentorRelationId: number) => {
-    const resp = await api.userMentors.delete(mentorRelationId);
-    if (resp.success) {
-      toast(t("mentorUnassigned"), "success");
-      await queryClient.invalidateQueries({ queryKey: queryKeys.users.all });
-    } else {
-      toast(resp.error.message || t("unassignMentorError"), "error");
-    }
-  }, [t, toast, queryClient]);
+  const handleUnassignMentor = useCallback(
+    async (mentorRelationId: number) => {
+      const resp = await api.userMentors.delete(mentorRelationId);
+      if (resp.success) {
+        toast(t("mentorUnassigned"), "success");
+        await queryClient.invalidateQueries({ queryKey: queryKeys.users.all });
+      } else {
+        toast(resp.error.message || t("unassignMentorError"), "error");
+      }
+    },
+    [t, toast, queryClient],
+  );
 
   return {
     // Data - map generic names to specific names for backward compatibility

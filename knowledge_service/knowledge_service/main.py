@@ -22,6 +22,7 @@ from knowledge_service.api import (
     categories,
     department_documents,
     dialogues,
+    internal,
     search,
     search_analytics,
     tags,
@@ -106,6 +107,7 @@ app.include_router(dialogues.router, prefix=f"{settings.API_V1_PREFIX}/dialogue-
 app.include_router(analytics.router, prefix=f"{settings.API_V1_PREFIX}/knowledge/analytics", tags=["analytics"])
 app.include_router(audit.router, prefix=f"{settings.API_V1_PREFIX}/knowledge/audit", tags=["audit"])
 app.include_router(department_documents.router, prefix=f"{settings.API_V1_PREFIX}", tags=["department-documents"])
+app.include_router(internal.router, prefix=f"{settings.API_V1_PREFIX}/knowledge/internal", tags=["internal"])
 
 
 @app.get("/")

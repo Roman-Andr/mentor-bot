@@ -72,7 +72,9 @@ export function ArticleFormDialog({
   return (
     <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
       <DialogHeader>
-        <DialogTitle>{isEdit ? t("knowledge.editArticleTitle") : t("knowledge.addArticleTitle")}</DialogTitle>
+        <DialogTitle>
+          {isEdit ? t("knowledge.editArticleTitle") : t("knowledge.addArticleTitle")}
+        </DialogTitle>
         <DialogDescription>
           {isEdit ? t("knowledge.changeArticle") : t("knowledge.createNewArticle")}
         </DialogDescription>
@@ -122,7 +124,7 @@ export function ArticleFormDialog({
             />
           </div>
         </div>
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div className="grid gap-2">
             <label className="text-sm font-medium">{t("common.department")}</label>
             <Select
@@ -167,7 +169,7 @@ export function ArticleFormDialog({
               type="checkbox"
               checked={formData.is_pinned}
               onChange={(e) => update("is_pinned", e.target.checked)}
-              className="border-input rounded"
+              className="rounded border-input"
             />
             <span className="text-sm">{t("knowledge.pin")}</span>
           </label>
@@ -176,7 +178,7 @@ export function ArticleFormDialog({
               type="checkbox"
               checked={formData.is_featured}
               onChange={(e) => update("is_featured", e.target.checked)}
-              className="border-input rounded"
+              className="rounded border-input"
             />
             <span className="text-sm">{t("knowledge.featured")}</span>
           </label>

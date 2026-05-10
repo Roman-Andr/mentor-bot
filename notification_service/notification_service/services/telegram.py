@@ -35,10 +35,11 @@ class TelegramService:
             }
             await redis.publish(self.channel, json.dumps(message))
             logger.info("Telegram notification published to Redis (chat_id=%s)", chat_id)
-            return True
         except Exception:
             logger.exception("Failed to publish Telegram notification to Redis")
             return False
+        else:
+            return True
 
     async def close(self) -> None:
         """Close Redis connection."""

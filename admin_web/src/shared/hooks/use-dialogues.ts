@@ -101,7 +101,13 @@ export function useDialogues() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const entity = useEntity<DialogueRow, DialogueFormData, ReturnType<typeof toPayload>, ReturnType<typeof toPayload>, Record<string, unknown>>({
+  const entity = useEntity<
+    DialogueRow,
+    DialogueFormData,
+    ReturnType<typeof toPayload>,
+    ReturnType<typeof toPayload>,
+    Record<string, unknown>
+  >({
     entityName: "Диалог",
     translationNamespace: "dialogues",
     queryKeyPrefix: "dialogues",
@@ -138,7 +144,9 @@ export function useDialogues() {
 
   // Fetch steps for selected dialogue
   const { data: stepsData } = useQuery({
-    queryKey: entity.selectedItem ? queryKeys.dialogues.steps(entity.selectedItem.id) : ["dialogue-steps", "none"],
+    queryKey: entity.selectedItem
+      ? queryKeys.dialogues.steps(entity.selectedItem.id)
+      : ["dialogue-steps", "none"],
     queryFn: () => api.dialogues.get(entity.selectedItem!.id),
     enabled: !!entity.selectedItem,
     select: (result) => {
@@ -234,4 +242,3 @@ export function useDialogues() {
     toggleSort: entity.toggleSort,
   };
 }
-

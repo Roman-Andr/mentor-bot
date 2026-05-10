@@ -45,7 +45,10 @@ export function CertificateButton({
       toast(locale === "ru" ? "Сертификат скачан" : "Certificate downloaded", "success");
     } catch (error) {
       logger.error("Failed to download certificate", { error });
-      toast(locale === "ru" ? "Ошибка скачивания сертификата" : "Failed to download certificate", "error");
+      toast(
+        locale === "ru" ? "Ошибка скачивания сертификата" : "Failed to download certificate",
+        "error",
+      );
     } finally {
       setIsGenerating(false);
     }

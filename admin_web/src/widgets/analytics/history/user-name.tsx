@@ -22,7 +22,7 @@ export function UserName({ userId }: UserNameProps) {
   }
 
   if (isLoading) {
-    return <Skeleton className="h-4 w-24 inline-block" />;
+    return <Skeleton className="inline-block h-4 w-24" />;
   }
 
   if (error || !data?.success || !data?.data) {
@@ -30,8 +30,9 @@ export function UserName({ userId }: UserNameProps) {
   }
 
   const user = data.data;
-  const displayName = user.first_name || user.last_name
-    ? `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim()
-    : user.email || `User #${user.id}`;
+  const displayName =
+    user.first_name || user.last_name
+      ? `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim()
+      : user.email || `User #${user.id}`;
   return <span>{displayName}</span>;
 }

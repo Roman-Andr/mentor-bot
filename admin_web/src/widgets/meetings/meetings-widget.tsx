@@ -18,7 +18,18 @@ import { Select } from "@/shared/ui/select";
 import { Button } from "@/shared/ui/button";
 import { SearchInput } from "@/shared/ui/search-input";
 import { CardHeader, CardTitle, Card, CardContent } from "@/shared/ui/card";
-import { Plus, Pencil, Trash2, ChevronDown, ChevronRight, Shield, Send, Calendar, Clock, FileText } from "lucide-react";
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  ChevronDown,
+  ChevronRight,
+  Shield,
+  Send,
+  Calendar,
+  Clock,
+  FileText,
+} from "lucide-react";
 import { SendNotificationDialog } from "@/widgets/meetings/send-notification-dialog";
 import { getMeetingTypeOptions } from "@/shared/lib/constants";
 import { useMeetingsColumns } from "@/widgets/meetings/meetings-columns";
@@ -105,36 +116,58 @@ export function MeetingsWidget() {
       toast(t("meetings.meetingAssigned"), "success");
       setIsAssignDialogOpen(false);
     } else {
-      toast(!resp.success && resp.error ? resp.error.message : t("meetings.errorAssigning"), "error");
+      toast(
+        !resp.success && resp.error ? resp.error.message : t("meetings.errorAssigning"),
+        "error",
+      );
     }
   };
 
   const handleDelete = async (meeting: MeetingItem) => {
-    if (!(await confirm({
-      title: t("meetings.deleteMeeting") || "Delete meeting",
-      description: t("common.confirmDelete").replace("item", `"${meeting.title}"`),
-      variant: "destructive",
-      confirmText: t("common.delete"),
-    }))) return;
+    if (
+      !(await confirm({
+        title: t("meetings.deleteMeeting") || "Delete meeting",
+        description: t("common.confirmDelete").replace("item", `"${meeting.title}"`),
+        variant: "destructive",
+        confirmText: t("common.delete"),
+      }))
+    )
+      return;
     m.handleDelete(meeting.id);
   };
 
-  const columns = useMeetingsColumns({ departments: d.items, onOpenAssignDialog: openAssignDialog, onOpenAssignmentsDialog: openAssignmentsDialog, t });
+  const columns = useMeetingsColumns({
+    departments: d.items,
+    onOpenAssignDialog: openAssignDialog,
+    onOpenAssignmentsDialog: openAssignmentsDialog,
+    t,
+  });
 
   const toggleExpand = (id: number) => setExpandedId((prev) => (prev === id ? null : id));
 
-  function MeetingCard({ meeting, onEdit, onDelete }: { meeting: MeetingItem; onEdit: (meeting: MeetingItem) => void; onDelete: (meeting: MeetingItem) => void }) {
+  function MeetingCard({
+    meeting,
+    onEdit,
+    onDelete,
+  }: {
+    meeting: MeetingItem;
+    onEdit: (meeting: MeetingItem) => void;
+    onDelete: (meeting: MeetingItem) => void;
+  }) {
     return (
-      <Card className="cursor-pointer transition-colors hover:bg-muted/50" onClick={() => onEdit(meeting)}>
+      <Card
+        className="cursor-pointer transition-colors hover:bg-muted/50"
+        onClick={() => onEdit(meeting)}
+      >
         <CardContent className="p-4">
           {/* Header: Title + Mandatory Badge */}
           <div className="mb-3 flex items-start gap-3">
             <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-              <Calendar className="text-primary size-4" />
+              <Calendar className="size-4 text-primary" />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="font-semibold truncate">{meeting.title}</h3>
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="truncate font-semibold">{meeting.title}</h3>
                 {meeting.isMandatory && (
                   <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">
                     <Shield className="size-3" />
@@ -156,7 +189,7 @@ export function MeetingsWidget() {
               <span>{meeting.department || "—"}</span>
             </div>
             <div className="flex items-center gap-1">
-              <Clock className="text-muted-foreground size-3" />
+              <Clock className="size-3 text-muted-foreground" />
               <span className="text-muted-foreground">{t("meetings.durationMinutes")}: </span>
               <span>{meeting.durationMinutes} min</span>
             </div>
@@ -168,7 +201,7 @@ export function MeetingsWidget() {
 
           {/* Footer: Actions */}
           <div
-            className="flex items-center gap-2 border-t pt-3 flex-col sm:flex-row"
+            className="flex flex-col items-center gap-2 border-t pt-3 sm:flex-row"
             onClick={(e) => e.stopPropagation()}
           >
             <Button size="sm" variant="outline" className="flex-1" onClick={() => onEdit(meeting)}>
@@ -209,7 +242,10 @@ export function MeetingsWidget() {
           departments={d.items}
           onFormDataChange={m.setFormData}
           onSubmit={m.handleCreate}
-          onCancel={() => { m.setIsCreateDialogOpen(false); m.resetForm(); }}
+          onCancel={() => {
+            m.setIsCreateDialogOpen(false);
+            m.resetForm();
+          }}
         />
       </Dialog>
 
@@ -220,7 +256,11 @@ export function MeetingsWidget() {
           departments={d.items}
           onFormDataChange={m.setFormData}
           onSubmit={m.handleUpdate}
-          onCancel={() => { m.setIsEditDialogOpen(false); m.setSelectedMeeting(null); m.resetForm(); }}
+          onCancel={() => {
+            m.setIsEditDialogOpen(false);
+            m.setSelectedMeeting(null);
+            m.resetForm();
+          }}
         />
       </Dialog>
 
@@ -258,9 +298,11 @@ export function MeetingsWidget() {
           <CardHeader>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3">
-                <CardTitle>
+                <CardTitle className="inline-flex items-baseline gap-1 whitespace-nowrap">
                   {t("meetings.meetings")}{" "}
-                  <span className="text-muted-foreground text-sm font-normal">({m.totalCount})</span>
+                  <span className="text-sm font-normal text-muted-foreground">
+                    ({m.totalCount})
+                  </span>
                 </CardTitle>
                 {mandatoryCount > 0 && (
                   <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">
@@ -269,14 +311,34 @@ export function MeetingsWidget() {
                   </span>
                 )}
               </div>
-              <div className="flex flex-col gap-2 w-full sm:flex-row sm:items-center sm:flex-wrap">
-                <SearchInput placeholder={t("common.searchPlaceholder")} value={m.searchQuery} onChange={m.setSearchQuery} className="w-full sm:w-auto" />
-                <Select value={m.typeFilter} onChange={m.setTypeFilter} options={typeOptions} className="w-full sm:w-[180px]" />
-                <Button variant="outline" onClick={() => setIsSendNotifOpen(true)} className="gap-2 w-full sm:w-auto">
+              <div className="flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+                <SearchInput
+                  placeholder={t("common.searchPlaceholder")}
+                  value={m.searchQuery}
+                  onChange={m.setSearchQuery}
+                  className="w-full sm:w-auto"
+                />
+                <Select
+                  value={m.typeFilter}
+                  onChange={m.setTypeFilter}
+                  options={typeOptions}
+                  className="w-full sm:w-[180px]"
+                />
+                <Button
+                  variant="outline"
+                  onClick={() => setIsSendNotifOpen(true)}
+                  className="w-full gap-2 sm:w-auto"
+                >
                   <Send className="size-4" />
                   {t("settings.sendNotification") || "Send Notification"}
                 </Button>
-                <Button onClick={() => { m.resetForm(); m.setIsCreateDialogOpen(true); }} className="gap-2 w-full sm:w-auto">
+                <Button
+                  onClick={() => {
+                    m.resetForm();
+                    m.setIsCreateDialogOpen(true);
+                  }}
+                  className="w-full gap-2 sm:w-auto"
+                >
                   <Plus className="size-4" />
                   {t("meetings.scheduleMeeting")}
                 </Button>
@@ -290,14 +352,78 @@ export function MeetingsWidget() {
           <TableHeader>
             <TableRow>
               <TableHead className="w-8" />
-              <SortableTableHead field="title" sortable={true} sortField={m.sortField ?? null} sortDirection={m.sortDirection} onSort={m.toggleSort}>{t("meetings.name")}</SortableTableHead>
-              <SortableTableHead field="type" sortable={true} sortField={m.sortField ?? null} sortDirection={m.sortDirection} onSort={m.toggleSort}>{t("meetings.type")}</SortableTableHead>
-              <SortableTableHead field="department" sortable={true} sortField={m.sortField ?? null} sortDirection={m.sortDirection} onSort={m.toggleSort}>{t("meetings.department")}</SortableTableHead>
-              <SortableTableHead field="deadlineDays" sortable={true} sortField={m.sortField ?? null} sortDirection={m.sortDirection} onSort={m.toggleSort}>{t("meetings.deadlineDays")}</SortableTableHead>
-              <SortableTableHead field="durationMinutes" sortable={true} sortField={m.sortField ?? null} sortDirection={m.sortDirection} onSort={m.toggleSort}>{t("meetings.durationMinutes")}</SortableTableHead>
-              <SortableTableHead field="isMandatory" sortable={true} sortField={m.sortField ?? null} sortDirection={m.sortDirection} onSort={m.toggleSort}>{t("meetings.isMandatory")}</SortableTableHead>
-              <SortableTableHead field="order" sortable={true} sortField={m.sortField ?? null} sortDirection={m.sortDirection} onSort={m.toggleSort}>{t("meetings.order")}</SortableTableHead>
-              <SortableTableHead field="createdAt" sortable={true} sortField={m.sortField ?? null} sortDirection={m.sortDirection} onSort={m.toggleSort}>{t("common.created")}</SortableTableHead>
+              <SortableTableHead
+                field="title"
+                sortable={true}
+                sortField={m.sortField ?? null}
+                sortDirection={m.sortDirection}
+                onSort={m.toggleSort}
+              >
+                {t("meetings.name")}
+              </SortableTableHead>
+              <SortableTableHead
+                field="type"
+                sortable={true}
+                sortField={m.sortField ?? null}
+                sortDirection={m.sortDirection}
+                onSort={m.toggleSort}
+              >
+                {t("meetings.type")}
+              </SortableTableHead>
+              <SortableTableHead
+                field="department"
+                sortable={true}
+                sortField={m.sortField ?? null}
+                sortDirection={m.sortDirection}
+                onSort={m.toggleSort}
+              >
+                {t("meetings.department")}
+              </SortableTableHead>
+              <SortableTableHead
+                field="deadlineDays"
+                sortable={true}
+                sortField={m.sortField ?? null}
+                sortDirection={m.sortDirection}
+                onSort={m.toggleSort}
+              >
+                {t("meetings.deadlineDays")}
+              </SortableTableHead>
+              <SortableTableHead
+                field="durationMinutes"
+                sortable={true}
+                sortField={m.sortField ?? null}
+                sortDirection={m.sortDirection}
+                onSort={m.toggleSort}
+              >
+                {t("meetings.durationMinutes")}
+              </SortableTableHead>
+              <SortableTableHead
+                field="isMandatory"
+                sortable={true}
+                sortField={m.sortField ?? null}
+                sortDirection={m.sortDirection}
+                onSort={m.toggleSort}
+              >
+                {t("meetings.isMandatory")}
+              </SortableTableHead>
+              <SortableTableHead
+                field="order"
+                sortable={true}
+                sortField={m.sortField ?? null}
+                sortDirection={m.sortDirection}
+                onSort={m.toggleSort}
+              >
+                {t("meetings.order")}
+              </SortableTableHead>
+              <SortableTableHead
+                field="createdAt"
+                sortable={true}
+                sortField={m.sortField ?? null}
+                sortDirection={m.sortDirection}
+                onSort={m.toggleSort}
+              >
+                {t("common.created")}
+              </SortableTableHead>
               <TableHead className="w-36">{t("common.actions")}</TableHead>
             </TableRow>
           </TableHeader>
@@ -305,11 +431,18 @@ export function MeetingsWidget() {
             {m.meetings.map((meeting) => (
               <Fragment key={meeting.id}>
                 <TableRow
-                  className={cn("hover:bg-muted cursor-pointer transition-colors", expandedId === meeting.id && "bg-muted/50")}
+                  className={cn(
+                    "cursor-pointer transition-colors hover:bg-muted",
+                    expandedId === meeting.id && "bg-muted/50",
+                  )}
                   onClick={() => toggleExpand(meeting.id)}
                 >
                   <TableCell className="w-8 pr-0">
-                    {expandedId === meeting.id ? <ChevronDown className="text-muted-foreground size-4" /> : <ChevronRight className="text-muted-foreground size-4" />}
+                    {expandedId === meeting.id ? (
+                      <ChevronDown className="size-4 text-muted-foreground" />
+                    ) : (
+                      <ChevronRight className="size-4 text-muted-foreground" />
+                    )}
                   </TableCell>
                   {columns.slice(0, -1).map((column, idx) => (
                     <TableCell key={idx}>{column.cell(meeting)}</TableCell>
@@ -317,10 +450,20 @@ export function MeetingsWidget() {
                   <TableCell onClick={(e) => e.stopPropagation()}>
                     <div className="flex items-center gap-1">
                       {columns[columns.length - 1].cell(meeting)}
-                      <Button variant="ghost" size="icon" className="size-8" onClick={() => m.openEditDialog(meeting)}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-8"
+                        onClick={() => m.openEditDialog(meeting)}
+                      >
                         <Pencil className="size-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="size-8 text-red-500 hover:text-red-600" onClick={() => handleDelete(meeting)}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-8 text-red-500 hover:text-red-600"
+                        onClick={() => handleDelete(meeting)}
+                      >
                         <Trash2 className="size-4" />
                       </Button>
                     </div>
@@ -328,7 +471,7 @@ export function MeetingsWidget() {
                 </TableRow>
                 {expandedId === meeting.id && (
                   <TableRow key={`${meeting.id}-materials`} className="bg-muted/30">
-                    <TableCell colSpan={11} className="py-3 pl-10 pr-6">
+                    <TableCell colSpan={11} className="py-3 pr-6 pl-10">
                       <MaterialsPanel meetingId={meeting.id} />
                     </TableCell>
                   </TableRow>

@@ -5,17 +5,15 @@ import { Button } from "@/shared/ui/button";
 import { Badge } from "@/shared/ui/badge";
 import { SearchInput } from "@/shared/ui/search-input";
 import { Select } from "@/shared/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/shared/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 import { DataTable } from "@/shared/ui/data-table";
 import { CardHeader, CardTitle, Card, CardContent } from "@/shared/ui/card";
-import { TableActions, buildEditAction, buildDeleteAction, buildAssignMentorAction } from "@/shared/components";
+import {
+  TableActions,
+  buildEditAction,
+  buildDeleteAction,
+  buildAssignMentorAction,
+} from "@/shared/components";
 import { Building, Shield, ShieldOff, UserCog } from "lucide-react";
 import { getRoleOptions } from "@/shared/lib/constants";
 import type { UserItem } from "@/shared/hooks/use-users";
@@ -50,15 +48,24 @@ interface UsersTableProps {
 }
 
 const ROLE_STYLES: Record<string, string> = {
-  ADMIN: "bg-violet-100 text-violet-700 border-violet-200 dark:bg-violet-950/50 dark:text-violet-300 dark:border-violet-800",
+  ADMIN:
+    "bg-violet-100 text-violet-700 border-violet-200 dark:bg-violet-950/50 dark:text-violet-300 dark:border-violet-800",
   HR: "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950/50 dark:text-blue-300 dark:border-blue-800",
-  MENTOR: "bg-teal-100 text-teal-700 border-teal-200 dark:bg-teal-950/50 dark:text-teal-300 dark:border-teal-800",
-  NEWBIE: "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-800",
+  MENTOR:
+    "bg-teal-100 text-teal-700 border-teal-200 dark:bg-teal-950/50 dark:text-teal-300 dark:border-teal-800",
+  NEWBIE:
+    "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-800",
 };
 
 const AVATAR_COLORS = [
-  "bg-blue-500", "bg-teal-500", "bg-violet-500", "bg-amber-500",
-  "bg-rose-500", "bg-cyan-500", "bg-emerald-500", "bg-indigo-500",
+  "bg-blue-500",
+  "bg-teal-500",
+  "bg-violet-500",
+  "bg-amber-500",
+  "bg-rose-500",
+  "bg-cyan-500",
+  "bg-emerald-500",
+  "bg-indigo-500",
 ];
 
 function UserAvatar({ name, id }: { name: string; id: number }) {
@@ -70,7 +77,12 @@ function UserAvatar({ name, id }: { name: string; id: number }) {
     .slice(0, 2);
   const color = AVATAR_COLORS[id % AVATAR_COLORS.length];
   return (
-    <div className={cn("flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white", color)}>
+    <div
+      className={cn(
+        "flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white",
+        color,
+      )}
+    >
       {initials || "?"}
     </div>
   );
@@ -95,7 +107,10 @@ function UserCard({
 
   return (
     <Card
-      className={cn("cursor-pointer transition-colors hover:bg-muted/50", !user.isActive && "opacity-60")}
+      className={cn(
+        "cursor-pointer transition-colors hover:bg-muted/50",
+        !user.isActive && "opacity-60",
+      )}
       onClick={handleCardClick}
     >
       <CardContent className="p-4">
@@ -104,12 +119,12 @@ function UserCard({
           <UserAvatar name={user.name} id={user.id} />
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <h3 className="font-semibold truncate">{user.name}</h3>
+              <h3 className="truncate font-semibold">{user.name}</h3>
               <div className="flex size-2 shrink-0 rounded-full bg-emerald-500" />
             </div>
-            <p className="text-muted-foreground text-xs truncate">{user.email}</p>
+            <p className="truncate text-xs text-muted-foreground">{user.email}</p>
             {user.telegram_id && (
-              <p className="text-blue-500 mt-0.5 text-xs">@tg:{user.telegram_id}</p>
+              <p className="mt-0.5 text-xs text-blue-500">@tg:{user.telegram_id}</p>
             )}
           </div>
         </div>
@@ -118,7 +133,12 @@ function UserCard({
         <div className="mb-3 grid grid-cols-2 gap-2 text-xs">
           <div>
             <span className="text-muted-foreground">{t("common.role")}: </span>
-            <span className={cn("inline-flex items-center rounded-full border px-2 py-0.5 font-semibold", ROLE_STYLES[user.role] ?? "bg-muted text-muted-foreground")}>
+            <span
+              className={cn(
+                "inline-flex items-center rounded-full border px-2 py-0.5 font-semibold",
+                ROLE_STYLES[user.role] ?? "bg-muted text-muted-foreground",
+              )}
+            >
               {t(`statuses.${user.role}`) || user.role}
             </span>
           </div>
@@ -138,14 +158,19 @@ function UserCard({
 
         {/* Footer: Actions */}
         <div
-          className="flex items-center gap-2 border-t pt-3 flex-col sm:flex-row"
+          className="flex flex-col items-center gap-2 border-t pt-3 sm:flex-row"
           onClick={(e) => e.stopPropagation()}
         >
           <Button size="sm" variant="outline" className="flex-1" onClick={() => onEdit(user)}>
             {t("common.edit")}
           </Button>
           {onAssignMentor && user.role === "NEWBIE" && (
-            <Button size="sm" variant="outline" className="flex-1" onClick={() => onAssignMentor(user)}>
+            <Button
+              size="sm"
+              variant="outline"
+              className="flex-1"
+              onClick={() => onAssignMentor(user)}
+            >
               {t("users.assignMentor")}
             </Button>
           )}
@@ -232,20 +257,25 @@ export function UsersTable({
       header={
         <CardHeader>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <CardTitle>
+            <CardTitle className="inline-flex items-baseline gap-1 whitespace-nowrap">
               {t("users.title")}{" "}
-              <span className="text-muted-foreground text-sm font-normal">
+              <span className="text-sm font-normal text-muted-foreground">
                 ({totalCount ?? users.length})
               </span>
             </CardTitle>
-            <div className="flex flex-col gap-2 w-full sm:flex-row sm:items-center sm:flex-wrap">
+            <div className="flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
               <SearchInput
                 placeholder={t("users.searchByNameOrEmail")}
                 value={searchQuery}
                 onChange={onSearchChange}
                 className="w-full sm:w-auto"
               />
-              <Select value={roleFilter} onChange={onRoleFilterChange} options={roleOptions} className="w-full sm:w-auto" />
+              <Select
+                value={roleFilter}
+                onChange={onRoleFilterChange}
+                options={roleOptions}
+                className="w-full sm:w-auto"
+              />
               <Select
                 value={departmentFilter}
                 onChange={onDepartmentFilterChange}
@@ -263,25 +293,67 @@ export function UsersTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <SortableTableHead field="name" sortable={!!onSort} sortField={sortField ?? null} sortDirection={sortDirection} onSort={onSort ?? (() => {})}>
+            <SortableTableHead
+              field="name"
+              sortable={!!onSort}
+              sortField={sortField ?? null}
+              sortDirection={sortDirection}
+              onSort={onSort ?? (() => {})}
+            >
               {t("common.user")}
             </SortableTableHead>
-            <SortableTableHead field="employee_id" sortable={!!onSort} sortField={sortField ?? null} sortDirection={sortDirection} onSort={onSort ?? (() => {})}>
+            <SortableTableHead
+              field="employee_id"
+              sortable={!!onSort}
+              sortField={sortField ?? null}
+              sortDirection={sortDirection}
+              onSort={onSort ?? (() => {})}
+            >
               {t("users.employeeId")}
             </SortableTableHead>
-            <SortableTableHead field="department" sortable={!!onSort} sortField={sortField ?? null} sortDirection={sortDirection} onSort={onSort ?? (() => {})}>
+            <SortableTableHead
+              field="department"
+              sortable={!!onSort}
+              sortField={sortField ?? null}
+              sortDirection={sortDirection}
+              onSort={onSort ?? (() => {})}
+            >
               {t("common.department")}
             </SortableTableHead>
-            <SortableTableHead field="position" sortable={!!onSort} sortField={sortField ?? null} sortDirection={sortDirection} onSort={onSort ?? (() => {})}>
+            <SortableTableHead
+              field="position"
+              sortable={!!onSort}
+              sortField={sortField ?? null}
+              sortDirection={sortDirection}
+              onSort={onSort ?? (() => {})}
+            >
               {t("common.position")}
             </SortableTableHead>
-            <SortableTableHead field="role" sortable={!!onSort} sortField={sortField ?? null} sortDirection={sortDirection} onSort={onSort ?? (() => {})}>
+            <SortableTableHead
+              field="role"
+              sortable={!!onSort}
+              sortField={sortField ?? null}
+              sortDirection={sortDirection}
+              onSort={onSort ?? (() => {})}
+            >
               {t("common.role")}
             </SortableTableHead>
-            <SortableTableHead field="isActive" sortable={!!onSort} sortField={sortField ?? null} sortDirection={sortDirection} onSort={onSort ?? (() => {})}>
+            <SortableTableHead
+              field="isActive"
+              sortable={!!onSort}
+              sortField={sortField ?? null}
+              sortDirection={sortDirection}
+              onSort={onSort ?? (() => {})}
+            >
               {t("common.status")}
             </SortableTableHead>
-            <SortableTableHead field="createdAt" sortable={!!onSort} sortField={sortField ?? null} sortDirection={sortDirection} onSort={onSort ?? (() => {})}>
+            <SortableTableHead
+              field="createdAt"
+              sortable={!!onSort}
+              sortField={sortField ?? null}
+              sortDirection={sortDirection}
+              onSort={onSort ?? (() => {})}
+            >
               {t("common.createdAt")}
             </SortableTableHead>
             <TableHead className="w-28">{t("common.actions")}</TableHead>
@@ -291,15 +363,18 @@ export function UsersTable({
           {users.map((user) => (
             <TableRow
               key={user.id}
-              className={cn("hover:bg-muted cursor-pointer transition-colors", !user.isActive && "opacity-60")}
+              className={cn(
+                "cursor-pointer transition-colors hover:bg-muted",
+                !user.isActive && "opacity-60",
+              )}
               onClick={() => onEdit(user)}
             >
               <TableCell>
                 <div className="flex items-center gap-3">
                   <UserAvatar name={user.name} id={user.id} />
                   <div>
-                    <p className="font-medium leading-none">{user.name}</p>
-                    <p className="text-muted-foreground mt-0.5 text-xs">{user.email}</p>
+                    <p className="leading-none font-medium">{user.name}</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">{user.email}</p>
                     {user.telegram_id && (
                       <p className="mt-0.5 text-xs text-blue-500">@tg:{user.telegram_id}</p>
                     )}
@@ -309,7 +384,7 @@ export function UsersTable({
               <TableCell className="font-mono text-sm">{user.employee_id || "—"}</TableCell>
               <TableCell>
                 <div className="flex items-center gap-1.5">
-                  <Building className="text-muted-foreground size-3.5" />
+                  <Building className="size-3.5 text-muted-foreground" />
                   <span className="text-sm">{user.department || "—"}</span>
                 </div>
               </TableCell>
@@ -317,7 +392,12 @@ export function UsersTable({
                 <span className="text-sm">{user.position || "—"}</span>
               </TableCell>
               <TableCell>
-                <span className={cn("inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold", ROLE_STYLES[user.role] ?? "bg-muted text-muted-foreground")}>
+                <span
+                  className={cn(
+                    "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold",
+                    ROLE_STYLES[user.role] ?? "bg-muted text-muted-foreground",
+                  )}
+                >
                   {t(`statuses.${user.role}`) || user.role}
                 </span>
               </TableCell>
@@ -326,12 +406,14 @@ export function UsersTable({
                   {user.isActive ? (
                     <>
                       <div className="size-2 rounded-full bg-emerald-500" />
-                      <span className="text-xs text-emerald-600 dark:text-emerald-400">{t("common.active")}</span>
+                      <span className="text-xs text-emerald-600 dark:text-emerald-400">
+                        {t("common.active")}
+                      </span>
                     </>
                   ) : (
                     <>
                       <div className="size-2 rounded-full bg-gray-400" />
-                      <span className="text-muted-foreground text-xs">{t("common.inactive")}</span>
+                      <span className="text-xs text-muted-foreground">{t("common.inactive")}</span>
                     </>
                   )}
                 </div>
@@ -346,18 +428,26 @@ export function UsersTable({
                   actions={[
                     buildEditAction(() => onEdit(user), t("common.edit")),
                     ...(onAssignMentor
-                      ? [buildAssignMentorAction(() => onAssignMentor(user), t("users.assignMentor"), user.role === "NEWBIE")]
+                      ? [
+                          buildAssignMentorAction(
+                            () => onAssignMentor(user),
+                            t("users.assignMentor"),
+                            user.role === "NEWBIE",
+                          ),
+                        ]
                       : []),
                     ...(onDeactivate
-                      ? [{
-                          type: "toggle" as const,
-                          icon: user.isActive ? ShieldOff : Shield,
-                          label: user.isActive ? t("users.deactivate") : t("users.activate"),
-                          onClick: () => onDeactivate(user),
-                          variant: "ghost" as const,
-                          color: user.isActive ? "text-amber-500" : "text-emerald-500",
-                          show: true,
-                        }]
+                      ? [
+                          {
+                            type: "toggle" as const,
+                            icon: user.isActive ? ShieldOff : Shield,
+                            label: user.isActive ? t("users.deactivate") : t("users.activate"),
+                            onClick: () => onDeactivate(user),
+                            variant: "ghost" as const,
+                            color: user.isActive ? "text-amber-500" : "text-emerald-500",
+                            show: true,
+                          },
+                        ]
                       : []),
                     {
                       type: "edit" as const,

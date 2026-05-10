@@ -15,16 +15,38 @@ export { useArticles } from "./use-articles";
 export type { ArticleRow, ArticleFormData } from "./use-articles";
 export { useCategories } from "./use-categories";
 export type { CategoryRow, CategoryFormData } from "./use-categories";
-export { useDialogues, mapDialogue, toPayload as toDialoguePayload, toForm as toDialogueForm } from "./use-dialogues";
+export {
+  useDialogues,
+  mapDialogue,
+  toPayload as toDialoguePayload,
+  toForm as toDialogueForm,
+} from "./use-dialogues";
 export type { DialogueRow, DialogueFormData } from "./use-dialogues";
 export { useDialogueEdit } from "./use-dialogue-edit";
-export { useMeetings, mapMeeting, toPayload as toMeetingPayload, toForm as toMeetingForm } from "./use-meetings";
+export {
+  useMeetings,
+  mapMeeting,
+  toPayload as toMeetingPayload,
+  toForm as toMeetingForm,
+} from "./use-meetings";
 export type { MeetingItem, MeetingFormData } from "./use-meetings";
-export { useEscalations, mapEscalation, toForm as toEscalationForm, toPayload as toEscalationPayload } from "./use-escalations";
+export {
+  useEscalations,
+  mapEscalation,
+  toForm as toEscalationForm,
+  toPayload as toEscalationPayload,
+} from "./use-escalations";
 export type { EscalationItem, EscalationFormData } from "./use-escalations";
 export { useFeedback } from "./use-feedback";
 export { useDashboardData } from "./use-dashboard-data";
-export { useListQuery, useInfiniteListQuery, useMutate, useCreate, useUpdate, useDelete } from "./use-queries";
+export {
+  useListQuery,
+  useInfiniteListQuery,
+  useMutate,
+  useCreate,
+  useUpdate,
+  useDelete,
+} from "./use-queries";
 export { useDebounce } from "./use-debounce";
 export { useToast } from "./use-toast";
 export { useConfirm } from "./use-confirm";

@@ -34,14 +34,19 @@ export function UserFilters({
   ];
   return (
     <Card>
-      <CardContent className="flex flex-col gap-2 py-4 sm:flex-row sm:items-center sm:flex-wrap">
+      <CardContent className="flex flex-col gap-2 py-4 sm:flex-row sm:flex-wrap sm:items-center">
         <SearchInput
           placeholder={t("users.searchByNameOrEmail")}
           value={searchQuery}
           onChange={onSearchChange}
           className="w-full sm:w-auto"
         />
-        <Select value={roleFilter} onChange={onRoleFilterChange} options={ROLES_WITH_ALL} className="w-full sm:w-auto" />
+        <Select
+          value={roleFilter}
+          onChange={onRoleFilterChange}
+          options={ROLES_WITH_ALL}
+          className="w-full sm:w-auto"
+        />
         <Select
           value={departmentFilter}
           onChange={onDepartmentFilterChange}

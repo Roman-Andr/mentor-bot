@@ -10,7 +10,7 @@ export const departmentDocumentsApi = {
   list: (params?: { department_id?: number; category?: string; is_public?: boolean }) => {
     const qs = buildQueryString(params);
     return fetchApi<DepartmentDocumentListResponse>(
-      `/api/v1/knowledge/department-documents${qs ? `?${qs}` : ""}`
+      `/api/v1/knowledge/department-documents${qs ? `?${qs}` : ""}`,
     );
   },
   get: (id: number) => fetchApi<DepartmentDocument>(`/api/v1/knowledge/department-documents/${id}`),

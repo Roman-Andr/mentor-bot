@@ -13,7 +13,7 @@ import type { Comment } from "@/shared/types/feedback";
 function buildQueryString(params?: Record<string, unknown>): string {
   if (!params) return "";
   const filtered = Object.fromEntries(
-    Object.entries(params).filter(([, v]) => v !== undefined && v !== null)
+    Object.entries(params).filter(([, v]) => v !== undefined && v !== null),
   );
   return new URLSearchParams(filtered as Record<string, string>).toString();
 }
@@ -31,7 +31,7 @@ export const feedbackApi = {
     sort_order?: "asc" | "desc";
   }) =>
     fetchApi<FeedbackListResponse<PulseSurvey>>(
-      `/api/v1/feedback/pulse?${buildQueryString(params as Record<string, unknown>)}`
+      `/api/v1/feedback/pulse?${buildQueryString(params as Record<string, unknown>)}`,
     ),
 
   submitPulse: (data: { rating: number; is_anonymous?: boolean }) =>
@@ -42,8 +42,13 @@ export const feedbackApi = {
 
   getPulseStats: (params?: { user_id?: number; from_date?: string; to_date?: string }) =>
     fetchApi<PulseStats>(
-      `/api/v1/feedback/pulse/stats?${buildQueryString(params as Record<string, unknown>)}`
+      `/api/v1/feedback/pulse/stats?${buildQueryString(params as Record<string, unknown>)}`,
     ),
+
+  deletePulseSurvey: (surveyId: number) =>
+    fetchApi<void>(`/api/v1/feedback/pulse/${surveyId}`, {
+      method: "DELETE",
+    }),
 
   // Experience ratings
   getExperienceRatings: (params?: {
@@ -58,7 +63,7 @@ export const feedbackApi = {
     sort_order?: "asc" | "desc";
   }) =>
     fetchApi<FeedbackListResponse<ExperienceRating>>(
-      `/api/v1/feedback/experience?${buildQueryString(params as Record<string, unknown>)}`
+      `/api/v1/feedback/experience?${buildQueryString(params as Record<string, unknown>)}`,
     ),
 
   submitExperience: (data: { rating: number; is_anonymous?: boolean }) =>
@@ -69,8 +74,13 @@ export const feedbackApi = {
 
   getExperienceStats: (params?: { user_id?: number; from_date?: string; to_date?: string }) =>
     fetchApi<ExperienceStats>(
-      `/api/v1/feedback/experience/stats?${buildQueryString(params as Record<string, unknown>)}`
+      `/api/v1/feedback/experience/stats?${buildQueryString(params as Record<string, unknown>)}`,
     ),
+
+  deleteExperienceRating: (ratingId: number) =>
+    fetchApi<void>(`/api/v1/feedback/experience/${ratingId}`, {
+      method: "DELETE",
+    }),
 
   // Comments
   getComments: (params?: {
@@ -85,7 +95,7 @@ export const feedbackApi = {
     sort_order?: "asc" | "desc";
   }) =>
     fetchApi<FeedbackListResponse<Comment>>(
-      `/api/v1/feedback/comments?${buildQueryString(params as Record<string, unknown>)}`
+      `/api/v1/feedback/comments?${buildQueryString(params as Record<string, unknown>)}`,
     ),
 
   submitComment: (data: {
@@ -105,19 +115,36 @@ export const feedbackApi = {
       body: JSON.stringify({ reply }),
     }),
 
+  deleteComment: (commentId: number) =>
+    fetchApi<void>(`/api/v1/feedback/comments/${commentId}`, {
+      method: "DELETE",
+    }),
+
   // Anonymity stats (admin only)
-  getPulseAnonymityStats: (params?: { department_id?: number; from_date?: string; to_date?: string }) =>
+  getPulseAnonymityStats: (params?: {
+    department_id?: number;
+    from_date?: string;
+    to_date?: string;
+  }) =>
     fetchApi<AnonymityStats>(
-      `/api/v1/feedback/pulse/anonymity-stats?${buildQueryString(params as Record<string, unknown>)}`
+      `/api/v1/feedback/pulse/anonymity-stats?${buildQueryString(params as Record<string, unknown>)}`,
     ),
 
-  getExperienceAnonymityStats: (params?: { department_id?: number; from_date?: string; to_date?: string }) =>
+  getExperienceAnonymityStats: (params?: {
+    department_id?: number;
+    from_date?: string;
+    to_date?: string;
+  }) =>
     fetchApi<AnonymityStats>(
-      `/api/v1/feedback/experience/anonymity-stats?${buildQueryString(params as Record<string, unknown>)}`
+      `/api/v1/feedback/experience/anonymity-stats?${buildQueryString(params as Record<string, unknown>)}`,
     ),
 
-  getCommentAnonymityStats: (params?: { department_id?: number; from_date?: string; to_date?: string }) =>
+  getCommentAnonymityStats: (params?: {
+    department_id?: number;
+    from_date?: string;
+    to_date?: string;
+  }) =>
     fetchApi<AnonymityStats>(
-      `/api/v1/feedback/comments/anonymity-stats?${buildQueryString(params as Record<string, unknown>)}`
+      `/api/v1/feedback/comments/anonymity-stats?${buildQueryString(params as Record<string, unknown>)}`,
     ),
 };

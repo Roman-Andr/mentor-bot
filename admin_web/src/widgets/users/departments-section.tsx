@@ -11,7 +11,10 @@ interface DepartmentsSectionProps {
   isEditDialogOpen: boolean;
   setIsEditDialogOpen: (open: boolean) => void;
   formData: DepartmentFormData;
-  updateFormField: <K extends keyof DepartmentFormData>(field: K, value: DepartmentFormData[K]) => void;
+  updateFormField: <K extends keyof DepartmentFormData>(
+    field: K,
+    value: DepartmentFormData[K],
+  ) => void;
   handleSubmit: () => void;
   resetForm: () => void;
   items: DepartmentRow[];

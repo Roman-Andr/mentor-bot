@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  useCallback,
-  type ReactNode,
-} from "react";
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
 
 const STORAGE_KEY = "mentor-bot-pagination-settings";
 const DEFAULT_PAGE_SIZE = 20;
@@ -21,9 +14,7 @@ interface PaginationContextType {
   setPageSize: (size: number) => void;
 }
 
-export const PaginationContext = createContext<PaginationContextType | undefined>(
-  undefined
-);
+export const PaginationContext = createContext<PaginationContextType | undefined>(undefined);
 
 export function PaginationProvider({ children }: { children: ReactNode }) {
   const [pageSize, setPageSizeState] = useState<number>(() => {
@@ -61,9 +52,7 @@ export function PaginationProvider({ children }: { children: ReactNode }) {
   // Prevent hydration mismatch by not rendering until loaded
   if (!isLoaded) {
     return (
-      <PaginationContext.Provider
-        value={{ pageSize: DEFAULT_PAGE_SIZE, setPageSize: () => {} }}
-      >
+      <PaginationContext.Provider value={{ pageSize: DEFAULT_PAGE_SIZE, setPageSize: () => {} }}>
         {children}
       </PaginationContext.Provider>
     );
@@ -79,9 +68,7 @@ export function PaginationProvider({ children }: { children: ReactNode }) {
 export function usePaginationSettings() {
   const context = useContext(PaginationContext);
   if (context === undefined) {
-    throw new Error(
-      "usePaginationSettings must be used within a PaginationProvider"
-    );
+    throw new Error("usePaginationSettings must be used within a PaginationProvider");
   }
   return context;
 }

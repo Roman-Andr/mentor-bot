@@ -11,15 +11,7 @@ import { Label } from "@/shared/ui/label";
 import { Select } from "@/shared/ui/select";
 import { FormDialog } from "@/shared/ui/form-dialog";
 import { ConfirmDialog } from "@/shared/ui/confirm-dialog";
-import {
-  File,
-  FileText,
-  Link2,
-  Plus,
-  Trash2,
-  ExternalLink,
-  Edit3,
-} from "lucide-react";
+import { File, FileText, Link2, Plus, Trash2, ExternalLink, Edit3 } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { MaterialFileManager } from "./material-file-manager";
 
@@ -42,11 +34,22 @@ interface AddMaterialDialogProps {
   editingMaterial?: MeetingMaterial | null;
 }
 
-function AddMaterialDialog({ open, onOpenChange, meetingId, editingMaterial }: AddMaterialDialogProps) {
+function AddMaterialDialog({
+  open,
+  onOpenChange,
+  meetingId,
+  editingMaterial,
+}: AddMaterialDialogProps) {
   const t = useTranslations();
   const { toast } = useToast();
   const qc = useQueryClient();
-  const [form, setForm] = useState({ title: "", url: "", type: "URL", description: "", content: "" });
+  const [form, setForm] = useState({
+    title: "",
+    url: "",
+    type: "URL",
+    description: "",
+    content: "",
+  });
   const [errors, setErrors] = useState<{ title?: string; url?: string; content?: string }>({});
   const [loading, setLoading] = useState(false);
 
@@ -89,18 +92,18 @@ function AddMaterialDialog({ open, onOpenChange, meetingId, editingMaterial }: A
     if (!form.title.trim()) {
       newErrors.title = t("meetings.materialTitleRequired") || "Title is required";
     }
-    
+
     if (form.type === "URL") {
       const urlError = validateUrl(form.url);
       if (urlError) {
         newErrors.url = urlError;
       }
     }
-    
+
     if (form.type === "FILE" && !form.url.trim()) {
       newErrors.url = t("meetings.fileRequired") || "File is required";
     }
-    
+
     if (form.type === "NOTE") {
       const contentError = validateContent(form.content);
       if (contentError) {
@@ -119,7 +122,7 @@ function AddMaterialDialog({ open, onOpenChange, meetingId, editingMaterial }: A
       if (editingMaterial) {
         await meetingsApi.updateMaterial(editingMaterial.id, {
           title: form.title,
-          url: (form.type === "URL" || form.type === "FILE") ? form.url : null,
+          url: form.type === "URL" || form.type === "FILE" ? form.url : null,
           content: form.type === "NOTE" ? form.content : null,
           type: form.type,
           description: form.description || null,
@@ -128,7 +131,7 @@ function AddMaterialDialog({ open, onOpenChange, meetingId, editingMaterial }: A
       } else {
         await meetingsApi.addMaterial(meetingId, {
           title: form.title,
-          url: (form.type === "URL" || form.type === "FILE") ? form.url : null,
+          url: form.type === "URL" || form.type === "FILE" ? form.url : null,
           content: form.type === "NOTE" ? form.content : null,
           type: form.type,
           description: form.description || null,
@@ -149,7 +152,11 @@ function AddMaterialDialog({ open, onOpenChange, meetingId, editingMaterial }: A
     <FormDialog
       open={open}
       onOpenChange={onOpenChange}
-      title={editingMaterial ? (t("meetings.editMaterial") || "Edit material") : (t("meetings.addMaterial") || "Add material")}
+      title={
+        editingMaterial
+          ? t("meetings.editMaterial") || "Edit material"
+          : t("meetings.addMaterial") || "Add material"
+      }
       isSubmitting={loading}
       canSubmit={Object.keys(errors).length === 0}
       onSubmit={handleSubmit}
@@ -169,12 +176,16 @@ function AddMaterialDialog({ open, onOpenChange, meetingId, editingMaterial }: A
             autoFocus
             className={errors.title ? "border-red-500" : ""}
           />
-          {errors.title && <p className="text-red-500 text-xs">{errors.title}</p>}
+          {errors.title && <p className="text-xs text-red-500">{errors.title}</p>}
         </div>
         {form.type === "FILE" && (
           <div className="space-y-1.5">
             <Label>{t("meetings.file") || "File"}</Label>
-            <MaterialFileManager url={form.url} onUrlChange={(url) => setForm((f) => ({ ...f, url }))} disabled={loading} />
+            <MaterialFileManager
+              url={form.url}
+              onUrlChange={(url) => setForm((f) => ({ ...f, url }))}
+              disabled={loading}
+            />
           </div>
         )}
         {form.type === "URL" && (
@@ -195,7 +206,7 @@ function AddMaterialDialog({ open, onOpenChange, meetingId, editingMaterial }: A
               type="url"
               className={errors.url ? "border-red-500" : ""}
             />
-            {errors.url && <p className="text-red-500 text-xs">{errors.url}</p>}
+            {errors.url && <p className="text-xs text-red-500">{errors.url}</p>}
           </div>
         )}
         {form.type === "NOTE" && (
@@ -214,11 +225,11 @@ function AddMaterialDialog({ open, onOpenChange, meetingId, editingMaterial }: A
               placeholder={t("meetings.noteContent") || "Enter note content..."}
               required
               className={cn(
-                "flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
-                errors.content ? "border-red-500" : ""
+                "flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50",
+                errors.content ? "border-red-500" : "",
               )}
             />
-            {errors.content && <p className="text-red-500 text-xs">{errors.content}</p>}
+            {errors.content && <p className="text-xs text-red-500">{errors.content}</p>}
           </div>
         )}
         <div className="space-y-1.5">
@@ -272,7 +283,9 @@ export function MaterialsPanel({ meetingId, className }: MaterialsPanelProps) {
     },
   });
 
-  const materials: MeetingMaterial[] = data?.success ? (data.data as MeetingMaterial[]) ?? [] : [];
+  const materials: MeetingMaterial[] = data?.success
+    ? ((data.data as MeetingMaterial[]) ?? [])
+    : [];
 
   const handleEdit = (material: MeetingMaterial) => {
     setEditingMaterial(material);
@@ -288,16 +301,21 @@ export function MaterialsPanel({ meetingId, className }: MaterialsPanelProps) {
     <div className={cn("space-y-3", className)}>
       <div className="flex items-center justify-between">
         <p className="text-sm font-medium">{t("meetings.materials") || "Materials"}</p>
-        <Button size="sm" variant="outline" className="gap-1.5 h-7 text-xs" onClick={() => setAddOpen(true)}>
+        <Button
+          size="sm"
+          variant="outline"
+          className="h-7 gap-1.5 text-xs"
+          onClick={() => setAddOpen(true)}
+        >
           <Plus className="size-3" />
           {t("meetings.addMaterial") || "Add"}
         </Button>
       </div>
 
       {isLoading ? (
-        <div className="text-muted-foreground text-xs">{t("common.loading")}</div>
+        <div className="text-xs text-muted-foreground">{t("common.loading")}</div>
       ) : materials.length === 0 ? (
-        <div className="text-muted-foreground rounded-lg border border-dashed p-4 text-center text-xs">
+        <div className="rounded-lg border border-dashed p-4 text-center text-xs text-muted-foreground">
           {t("meetings.noMaterials") || "No materials yet"}
         </div>
       ) : (
@@ -311,13 +329,13 @@ export function MaterialsPanel({ meetingId, className }: MaterialsPanelProps) {
               <div className="min-w-0 flex-1">
                 <p className="truncate font-medium">{m.title}</p>
                 {m.description && (
-                  <p className="text-muted-foreground truncate text-xs">{m.description}</p>
+                  <p className="truncate text-xs text-muted-foreground">{m.description}</p>
                 )}
                 {m.type === "NOTE" && m.content && (
-                  <p className="text-muted-foreground mt-1 line-clamp-2 text-xs">{m.content}</p>
+                  <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{m.content}</p>
                 )}
                 {(m.type === "URL" || m.type === "FILE") && m.url && (
-                  <p className="text-muted-foreground mt-1 truncate text-xs">{m.url}</p>
+                  <p className="mt-1 truncate text-xs text-muted-foreground">{m.url}</p>
                 )}
               </div>
               <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
@@ -333,7 +351,8 @@ export function MaterialsPanel({ meetingId, className }: MaterialsPanelProps) {
                     href={m.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-muted-foreground rounded p-1 hover:text-foreground"
+                    title={t("meetings.openMaterial") || "Open material"}
+                    className="rounded p-1 text-muted-foreground hover:text-foreground"
                     onClick={(e) => e.stopPropagation()}
                   >
                     <ExternalLink className="size-3.5" />
@@ -344,6 +363,7 @@ export function MaterialsPanel({ meetingId, className }: MaterialsPanelProps) {
                     e.stopPropagation();
                     setDeletingId(m.id);
                   }}
+                  title={t("meetings.deleteMaterial") || "Delete material"}
                   className="rounded p-1 text-red-400 hover:text-red-600"
                 >
                   <Trash2 className="size-3.5" />
@@ -354,7 +374,12 @@ export function MaterialsPanel({ meetingId, className }: MaterialsPanelProps) {
         </div>
       )}
 
-      <AddMaterialDialog open={addOpen} onOpenChange={handleCloseDialog} meetingId={meetingId} editingMaterial={editingMaterial} />
+      <AddMaterialDialog
+        open={addOpen}
+        onOpenChange={handleCloseDialog}
+        meetingId={meetingId}
+        editingMaterial={editingMaterial}
+      />
 
       <ConfirmDialog
         open={deletingId !== null}
@@ -366,7 +391,9 @@ export function MaterialsPanel({ meetingId, className }: MaterialsPanelProps) {
           }
         }}
         title={t("meetings.deleteMaterial") || "Delete material"}
-        description={t("meetings.deleteMaterialConfirm") || "Are you sure you want to delete this material?"}
+        description={
+          t("meetings.deleteMaterialConfirm") || "Are you sure you want to delete this material?"
+        }
       />
     </div>
   );

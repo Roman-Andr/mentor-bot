@@ -20,7 +20,7 @@ export function ActivityFeed({ activity, href }: ActivityFeedProps) {
   const t = useTranslations();
 
   const card = (
-    <Card className="col-span-1 md:col-span-2 lg:col-span-3 transition-shadow hover:shadow-md">
+    <Card className="col-span-1 transition-shadow hover:shadow-md md:col-span-2 lg:col-span-3">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle>{t("dashboard.recentActivity")}</CardTitle>
         {href && (
@@ -40,11 +40,11 @@ export function ActivityFeed({ activity, href }: ActivityFeedProps) {
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium">
                   {item.user}{" "}
-                  <span className="text-muted-foreground font-normal">{item.action}</span>
+                  <span className="font-normal text-muted-foreground">{item.action}</span>
                 </p>
-                <p className="text-muted-foreground text-xs">{item.task}</p>
+                <p className="text-xs text-muted-foreground">{item.task}</p>
               </div>
-              <span className="text-muted-foreground text-xs whitespace-nowrap">{item.time}</span>
+              <span className="text-xs whitespace-nowrap text-muted-foreground">{item.time}</span>
             </div>
           ))}
         </div>

@@ -153,6 +153,33 @@ class TestStorageServiceUpload:
 
         assert result == "test/file.txt"
 
+    async def test_upload_file_encodes_non_ascii_metadata(self, mock_service: StorageService) -> None:
+        """Test non-ASCII metadata is encoded before boto3 validation."""
+        mock_service.client.upload_fileobj = MagicMock()
+
+        async def mock_run_in_executor(executor, func, *args):
+            return func(*args)
+
+        with patch("asyncio.get_running_loop") as mock_loop:
+            mock_loop.return_value.run_in_executor = mock_run_in_executor
+
+            result = await mock_service.upload_file(
+                file_data=b"test content",
+                object_name="test/file.pdf",
+                content_type="application/pdf",
+                metadata={"original_filename": "Гайд по досрочной практике.pdf"},
+            )
+
+        assert result == "test/file.pdf"
+        call_kwargs = mock_service.client.upload_fileobj.call_args.kwargs
+        expected_filename = (
+            "%D0%93%D0%B0%D0%B9%D0%B4%20%D0%BF%D0%BE%20%D0%B4%D0%BE%D1%81%D1%80%D0%BE%D1%87"
+            "%D0%BD%D0%BE%D0%B9%20%D0%BF%D1%80%D0%B0%D0%BA%D1%82%D0%B8%D0%BA%D0%B5.pdf"
+        )
+        assert call_kwargs["ExtraArgs"]["Metadata"] == {
+            "original_filename": expected_filename,
+        }
+
     async def test_upload_file_bytesio(self, mock_service: StorageService) -> None:
         """Test uploading BytesIO (lines 130-149)."""
         mock_service.client.upload_fileobj = MagicMock()
