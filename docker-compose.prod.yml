@@ -21,9 +21,9 @@
 #                               ESCALATION_SERVICE_TAG, MEETING_SERVICE_TAG
 
 x-common-env: &common-env
-  LOG_LEVEL: ${LOG_LEVEL}
+  LOG_LEVEL: ${LOG_LEVEL:-INFO}
   SERVICE_API_KEY: ${SERVICE_API_KEY}
-  TZ: ${TZ}
+  TZ: ${TZ:-UTC}
   CORS_ORIGINS: ${CORS_ORIGINS}
   ALLOWED_HOSTS: ${ALLOWED_HOSTS}
 
@@ -45,6 +45,8 @@ x-python-defaults: &python-defaults
   logging: *default-logging
   mem_limit: 220m
   mem_reservation: 120m
+  volumes:
+    - service_logs:/var/log/app
 
 services:
   telegram_bot:
@@ -59,7 +61,7 @@ services:
       REDIS_URL: ${REDIS_URL}/3
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
       TELEGRAM_API_KEY: ${TELEGRAM_API_KEY}
-      TELEGRAM_PROXY: ${TELEGRAM_PROXY}
+      TELEGRAM_PROXY: ${TELEGRAM_PROXY:-}
       AUTH_SERVICE_URL: http://auth_service:8000
       CHECKLISTS_SERVICE_URL: http://checklists_service:8000
       KNOWLEDGE_SERVICE_URL: http://knowledge_service:8000
@@ -328,6 +330,7 @@ volumes:
   postgres_data:
   redis_data:
   minio_data:
+  service_logs:
 
 networks:
   mentor_network:
