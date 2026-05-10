@@ -1,9 +1,9 @@
 """
 initial_schema.
 
-Revision ID: 31eef9785faa
+Revision ID: 20260510_feedback_initial
 Revises:
-Create Date: 2026-04-25 14:41:04.268796+00:00
+Create Date: 2026-05-10 00:00:00.000000+00:00
 """
 
 from collections.abc import Sequence
@@ -11,7 +11,7 @@ from collections.abc import Sequence
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = "31eef9785faa"
+revision: str = "20260510_feedback_initial"
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -19,6 +19,7 @@ depends_on: str | Sequence[str] | None = None
 
 def upgrade() -> None:
     """Upgrade database schema."""
+    # From feedback_service/migrations/versions/20260425_1441_initial_schema.py
     op.create_table(
         "comments",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -65,9 +66,53 @@ def upgrade() -> None:
     op.create_index(op.f("ix_pulse_surveys_rating"), "pulse_surveys", ["rating"], unique=False)
     op.create_index(op.f("ix_pulse_surveys_user_id"), "pulse_surveys", ["user_id"], unique=False)
 
+    # From feedback_service/migrations/versions/20260426_add_audit_tables.py
+    # No audit tables needed for feedback service
+
+    # From feedback_service/migrations/versions/20260504_add_feedback_status_change_history.py
+    op.create_table(
+        "feedback_status_change_history",
+        sa.Column("id", sa.Integer(), primary_key=True),
+        sa.Column("feedback_id", sa.Integer(), nullable=False),
+        sa.Column("user_id", sa.Integer(), nullable=False),
+        sa.Column("action", sa.String(length=50), nullable=False),
+        sa.Column("old_status", sa.String(length=50), nullable=True),
+        sa.Column("new_status", sa.String(length=50), nullable=True),
+        sa.Column(
+            "changed_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.func.now(),
+            nullable=False,
+        ),
+        sa.Column("changed_by", sa.Integer(), nullable=True),
+        sa.Column("meta_data", sa.JSON(), nullable=True),
+    )
+    op.create_index(
+        "ix_feedback_status_change_history_feedback_id_changed_at",
+        "feedback_status_change_history",
+        ["feedback_id", "changed_at"],
+    )
+    op.create_index(
+        "ix_feedback_status_change_history_changed_at",
+        "feedback_status_change_history",
+        ["changed_at"],
+    )
+
 
 def downgrade() -> None:
     """Downgrade database schema."""
+    # From feedback_service/migrations/versions/20260504_add_feedback_status_change_history.py
+    op.drop_index(
+        "ix_feedback_status_change_history_changed_at",
+        table_name="feedback_status_change_history",
+    )
+    op.drop_index(
+        "ix_feedback_status_change_history_feedback_id_changed_at",
+        table_name="feedback_status_change_history",
+    )
+    op.drop_table("feedback_status_change_history")
+
+    # From feedback_service/migrations/versions/20260425_1441_initial_schema.py
     op.drop_index(op.f("ix_pulse_surveys_user_id"), table_name="pulse_surveys")
     op.drop_index(op.f("ix_pulse_surveys_rating"), table_name="pulse_surveys")
     op.drop_index(op.f("ix_pulse_surveys_department_id"), table_name="pulse_surveys")

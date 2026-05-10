@@ -1,9 +1,9 @@
 """
 initial_schema.
 
-Revision ID: 9724532a34a7
+Revision ID: 20260510_notification_initial
 Revises:
-Create Date: 2026-04-25 14:40:55.343025+00:00
+Create Date: 2026-05-10 00:00:00.000000+00:00
 """
 
 from collections.abc import Sequence
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql
 
-revision: str = "9724532a34a7"
+revision: str = "20260510_notification_initial"
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -20,6 +20,7 @@ depends_on: str | Sequence[str] | None = None
 
 def upgrade() -> None:
     """Upgrade database schema."""
+    # From notification_service/migrations/versions/20260425_1440_initial_schema.py
     op.create_table(
         "notification_templates",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -114,9 +115,30 @@ def upgrade() -> None:
     op.create_index(op.f("ix_scheduled_notifications_type"), "scheduled_notifications", ["type"], unique=False)
     op.create_index(op.f("ix_scheduled_notifications_user_id"), "scheduled_notifications", ["user_id"], unique=False)
 
+    # From notification_service/migrations/versions/20260426_add_audit_columns.py
+    # Add audit columns to notifications table (sent_at already exists in initial schema)
+    op.add_column("notifications", sa.Column("delivered_at", sa.DateTime(timezone=True), nullable=True))
+    op.add_column("notifications", sa.Column("read_at", sa.DateTime(timezone=True), nullable=True))
+    op.add_column("notifications", sa.Column("failure_reason", sa.Text(), nullable=True))
+    op.add_column("notifications", sa.Column("meta_data", sa.JSON(), nullable=True))
+
+    # Create indexes for audit columns
+    op.create_index(op.f("ix_notifications_delivered_at"), "notifications", ["delivered_at"])
+    op.create_index(op.f("ix_notifications_read_at"), "notifications", ["read_at"])
+
 
 def downgrade() -> None:
     """Downgrade database schema."""
+    # From notification_service/migrations/versions/20260426_add_audit_columns.py
+    op.drop_index(op.f("ix_notifications_read_at"), table_name="notifications")
+    op.drop_index(op.f("ix_notifications_delivered_at"), table_name="notifications")
+
+    op.drop_column("notifications", "meta_data")
+    op.drop_column("notifications", "failure_reason")
+    op.drop_column("notifications", "read_at")
+    op.drop_column("notifications", "delivered_at")
+
+    # From notification_service/migrations/versions/20260425_1440_initial_schema.py
     op.drop_index(op.f("ix_scheduled_notifications_user_id"), table_name="scheduled_notifications")
     op.drop_index(op.f("ix_scheduled_notifications_type"), table_name="scheduled_notifications")
     op.drop_index(op.f("ix_scheduled_notifications_scheduled_time"), table_name="scheduled_notifications")
